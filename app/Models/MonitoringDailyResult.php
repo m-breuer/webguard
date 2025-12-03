@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * Class MonitoringDailyResult
+ *
+ * @property int $id
+ * @property string $monitoring_id
+ * @property string $date
+ * @property int $uptime_total
+ * @property int $downtime_total
+ * @property float $uptime_percentage
+ * @property float $downtime_percentage
+ * @property int $uptime_minutes
+ * @property int $downtime_minutes
+ * @property float|null $avg_response_time
+ * @property int|null $min_response_time
+ * @property int|null $max_response_time
+ * @property int $incidents_count
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Monitoring $monitoring
+ *
+ * This model represents the aggregated daily monitoring results.
+ * Raw monitoring data is processed daily and summarized into this table
+ * to optimize performance for historical data retrieval and reporting.
+ */
+class MonitoringDailyResult extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'monitoring_id',
+        'date',
+        'uptime_total',
+        'downtime_total',
+        'uptime_percentage',
+        'downtime_percentage',
+        'uptime_minutes',
+        'downtime_minutes',
+        'avg_response_time',
+        'min_response_time',
+        'max_response_time',
+        'incidents_count',
+    ];
+
+    /**
+     * @return BelongsTo<Monitoring, $this>
+     */
+    public function monitoring(): BelongsTo
+    {
+        return $this->belongsTo(Monitoring::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+            'uptime_percentage' => 'float',
+            'downtime_percentage' => 'float',
+            'uptime_minutes' => 'integer',
+            'downtime_minutes' => 'integer',
+        ];
+    }
+}

@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+    font-family: 'Sen';
+    src: url('/resources/fonts/Sen/Sen-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sen';
+    src: url('/resources/fonts/Sen/Sen-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sen';
+    src: url('/resources/fonts/Sen/Sen-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sen';
+    src: url('/resources/fonts/Sen/Sen-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sen';
+    src: url('/resources/fonts/Sen/Sen-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root,
+:host {
+    --font-sans: "Sen", ui-sans-serif, system-ui, sans-serif;
+}
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
