@@ -22,6 +22,7 @@ yarn-error.log
 /.vscode
 /.zed
 .DS_STORE
+.DS_Store
 .scribe
 GEMINI.md
 .nvmrc
