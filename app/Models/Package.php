@@ -42,6 +42,21 @@ class Package extends Model
     ];
 
     /**
+     * Get the cheapest selectable package available.
+     *
+     * This method retrieves the package with the cheapest price, which is typically
+     * the free package, and orders it by monitoring limit in descending order.
+     */
+    public static function cheapest(): ?self
+    {
+        return self::query()
+            ->where('is_selectable', true)
+            ->orderBy('price', 'asc')
+            ->orderByDesc('monitoring_limit')
+            ->first();
+    }
+
+    /**
      * Get the users for the package.
      *
      * @return HasMany<User, $this>

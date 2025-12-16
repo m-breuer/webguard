@@ -1,8 +1,10 @@
 import Chart from 'chart.js/auto';
 
-
+// Define a type for the time format utility
+type TimeFormat = (seconds: number) => string;
 
 interface MonitoringDetailComponent {
+    sinceDate: any;
     incidents: any[];
     status: string | null;
     since: string | null;
@@ -11,6 +13,11 @@ interface MonitoringDetailComponent {
     incidentsLoading: boolean;
     lastCheckedAt: string | null;
     nextCheckIn: string | null;
+    lastCheckedAtDate: Date | null;
+    nextCheckInDate: Date | null;
+    lastCheckedAtHuman: string | null;
+    nextCheckInHuman: string | null;
+    countdown: number | null;
     uptimeDowntimeData: Record<string, any>;
     sslValid: boolean | null;
     sslExpiration: string | null;
@@ -26,6 +33,7 @@ interface MonitoringDetailComponent {
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
+    formatTime: TimeFormat;
     getThemeColors(): {};
     loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
@@ -35,6 +43,8 @@ interface MonitoringDetailComponent {
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
+    startCountdown(this: MonitoringDetailComponent): void;
+    beforeDestroy(this: MonitoringDetailComponent): void;
     init(this: MonitoringDetailComponent): void;
 }
 
@@ -51,6 +61,11 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
     incidentsLoading: false,
     lastCheckedAt: null as string | null,
     nextCheckIn: null as string | null,
+    lastCheckedAtDate: null,
+    nextCheckInDate: null,
+    lastCheckedAtHuman: null,
+    nextCheckInHuman: null,
+    countdown: null,
     uptimeDowntimeData: {} as Record<string, any>,
     sslValid: null as boolean | null,
     sslExpiration: null as string | null,
@@ -70,6 +85,37 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
     uptimeCalendarData: [] as any[],
     uptimeCalendarLoading: false,
 
+    sinceDate: null as Date | null,
+
+    // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
+    formatTime(seconds: number): string {
+        if (seconds < 0) {
+            return '0s';
+        }
+
+        const d = Math.floor(seconds / (3600 * 24));
+        const h = Math.floor(seconds % (3600 * 24) / 3600);
+        const m = Math.floor(seconds % 3600 / 60);
+        const s = Math.floor(seconds % 60);
+
+        let result = '';
+        if (d > 0) {
+            result += `${d}d `;
+        }
+        if (h > 0) {
+            result += `${h}h `;
+        }
+        if (m > 0) {
+            result += `${m}m `;
+        }
+        if (s > 0 || result === '') {
+            result += `${s}s`;
+        }
+
+        return result.trim();
+    },
+
+
     getThemeColors(this: MonitoringDetailComponent) {
         // This function was empty in the original JS, keeping it as is.
         return {};
@@ -81,7 +127,9 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             const response = await fetch(`/api/monitorings/${monitoringId}/status-since`);
             const responseData = await response.json();
             this.status = responseData.status;
-            this.since = responseData.since;
+            if (responseData.since) {
+                this.sinceDate = new Date(responseData.since);
+            }
         } catch (_) {
             this.status = null;
             this.since = null;
@@ -141,7 +189,7 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             const heatmapContainer = document.getElementById('monitoring-heatmap-detail');
             if (heatmapContainer) {
                 heatmapContainer.innerHTML = ''; // Clear existing dots
-                capped.forEach((point: { uptime: number; downtime: number }) => {
+                capped.forEach((point: { uptime: number; downtime: number; }) => {
                     const statusDot = document.createElement('div');
 
                     let bgColor;
@@ -164,14 +212,56 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         }
     },
 
+    // Start the countdown timers for last and next check
+    startCountdown(this: MonitoringDetailComponent): void {
+        if (this.countdown) {
+            clearInterval(this.countdown);
+        }
+
+        this.countdown = setInterval(() => {
+            if (this.lastCheckedAtDate) {
+                const now = new Date();
+                const diffInSeconds = Math.round((now.getTime() - this.lastCheckedAtDate.getTime()) / 1000);
+                this.lastCheckedAt = `${this.formatTime(diffInSeconds)}`;
+            }
+
+            if (this.nextCheckInDate) {
+                const now = new Date();
+                const diffInSeconds = Math.round((this.nextCheckInDate.getTime() - now.getTime()) / 1000);
+
+                if (diffInSeconds <= 0) {
+                    this.nextCheckIn = ' 0s';
+                    window.dispatchEvent(new CustomEvent('reload-monitoring-data'));
+                    this.loadLastCheck();
+                    this.loadStatusChanged();
+                } else {
+                    this.nextCheckIn = `${this.formatTime(diffInSeconds)}`;
+                }
+            }
+
+            if (this.sinceDate) {
+                const now = new Date();
+                const diffInSeconds = Math.round((now.getTime() - this.sinceDate.getTime()) / 1000);
+                this.since = this.formatTime(diffInSeconds);
+            }
+        }, 1000);
+    },
+
     // Loads timestamps for the last check and the next scheduled check
     async loadLastCheck(this: MonitoringDetailComponent): Promise<void> {
         try {
             const response = await fetch(`/api/monitorings/${monitoringId}/status-now`);
             const responseData = await response.json();
 
-            this.lastCheckedAt = responseData.checked_at;
-            this.nextCheckIn = responseData.next;
+            if (responseData.checked_at) {
+                this.lastCheckedAtDate = new Date(responseData.checked_at);
+            }
+
+            if (responseData.next) {
+                this.nextCheckInDate = new Date(responseData.next);
+            }
+
+            this.startCountdown();
         } catch (_) {
             this.lastCheckedAt = null;
             this.nextCheckIn = null;
@@ -186,11 +276,10 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             '90': 90,
         };
 
-        const promises = Object.entries(intervals).map(([label, days]) =>
-            fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
-                .then(res => res.ok ? res.json() : null)
-                .then(data => ({ [label]: data }))
-                .catch(() => ({ [label]: null }))
+        const promises = Object.entries(intervals).map(([label, days]) => fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => ({ [label]: data }))
+            .catch(() => ({ [label]: null }))
         );
 
         const results = await Promise.all(promises);
@@ -219,6 +308,7 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
     async loadPerformanceChart(this: AlpineThisContext, days: string | number = this.selectedRange): Promise<void> {
         this.selectedRange = days.toString();
         this.chartLoading = true; // Hide canvas and show loading indicator
+
 
         // Destroy existing chart instance if present to avoid memory leaks
         if (this.performanceChartInstance) {
@@ -258,11 +348,11 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             this.performanceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: responseData.data.map((entry: { date: string }) => entry.date),
+                    labels: responseData.data.map((entry: { date: string; }) => entry.date),
                     datasets: [
                         {
                             label: this.chartLabels.min,
-                            data: responseData.data.map((entry: { min: number }) => entry.min),
+                            data: responseData.data.map((entry: { min: number; }) => entry.min),
                             fill: false,
                             borderDash: [5, 5],
                             borderColor: '#dab2ff',
@@ -270,14 +360,14 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
                         },
                         {
                             label: this.chartLabels.avg,
-                            data: responseData.data.map((entry: { avg: number }) => entry.avg),
+                            data: responseData.data.map((entry: { avg: number; }) => entry.avg),
                             fill: false,
                             borderColor: this.isDarkMode ? '#9810fa' : '#9810fa',
                             tension: 0.1
                         },
                         {
                             label: this.chartLabels.max,
-                            data: responseData.data.map((entry: { max: number }) => entry.max),
+                            data: responseData.data.map((entry: { max: number; }) => entry.max),
                             fill: false,
                             borderDash: [5, 5],
                             borderColor: '#dab2ff',
@@ -361,6 +451,12 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         }
     },
 
+    beforeDestroy(this: MonitoringDetailComponent) {
+        if (this.countdown) {
+            clearInterval(this.countdown);
+        }
+    },
+
     init(this: MonitoringDetailComponent) {
         // Observe changes to the 'class' attribute of the <html> element
         const observer = new MutationObserver((mutations) => {
@@ -374,5 +470,9 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         });
 
         observer.observe(document.documentElement, { attributes: true });
-    }
+
+        // Clear the interval when the component is destroyed
+        window.addEventListener('beforeunload', () => this.beforeDestroy());
+    },
+    chartLabels: {} as Record<string, string>
 });

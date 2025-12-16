@@ -9,12 +9,12 @@ use Exception;
 class UserObserver
 {
     /**
-     * Handle the User "created" event.
+     * Handle the User "creating" event.
      */
-    public function created(User $user): void
+    public function creating(User $user): void
     {
-        if (! $user->package_id) {
-            $cheapestSelectablePackage = User::cheapestPackage();
+        if ($user->package_id === null) {
+            $cheapestSelectablePackage = Package::cheapest();
             if ($cheapestSelectablePackage) {
                 $user->package_id = $cheapestSelectablePackage->id;
             } else {
@@ -28,7 +28,6 @@ class UserObserver
                     throw new Exception('No packages available to assign to new user.');
                 }
             }
-            $user->save();
         }
     }
 }

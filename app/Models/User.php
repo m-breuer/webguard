@@ -79,19 +79,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Get the cheapest selectable package available.
-     *
-     * This method retrieves the package with a price of 0, which is typically
-     * the free package, and orders it by monitoring limit in descending order.
-     *
-     * @return Package|null The cheapest selectable package, or null if none is found.
-     */
-    public static function cheapestPackage(): ?Package
-    {
-        return Package::query()->where('price', 0)->where('is_selectable', true)->orderByDesc('monitoring_limit')->first();
-    }
-
-    /**
      * Get all monitorings that belong to the user.
      *
      * @return HasMany<Monitoring, $this>

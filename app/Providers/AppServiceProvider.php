@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Http\View\Composers\NotificationComposer;
 use App\Models\Incident;
 use App\Models\MonitoringResponse;
+use App\Models\User;
 use App\Observers\IncidentObserver;
 use App\Observers\MonitoringResponseObserver;
+use App\Observers\UserObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
         Incident::observe(IncidentObserver::class);
         MonitoringResponse::observe(MonitoringResponseObserver::class);
+        User::observe(UserObserver::class);
         View::composer('layouts.navigation', NotificationComposer::class);
     }
 }
