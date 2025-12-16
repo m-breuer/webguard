@@ -50,8 +50,8 @@ class MonitoringResultService
     public static function getHeatmap(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
     {
         // Enforce 24-hour window for heatmap
-        $startDate = Carbon::now()->subHours(23)->startOfHour();
-        $endDate = Carbon::now()->endOfHour();
+        $startDate = Date::now()->subHours(23)->startOfHour();
+        $endDate = Date::now()->endOfHour();
 
         $raw = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
@@ -279,7 +279,7 @@ class MonitoringResultService
         return [
             'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
             'checked_at' => $latest ? $latest->updated_at->toIso8601String() : null,
-            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : $cronjobInterval
+            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : $cronjobInterval,
         ];
     }
 
@@ -478,7 +478,7 @@ class MonitoringResultService
     public static function getUpTimeGroupByDateAndMonth(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): array
     {
         if ($endDate->isFuture()) {
-            $endDate = Carbon::now()->endOfDay();
+            $endDate = Date::now()->endOfDay();
         }
 
         if ($startDate->diffInDays($endDate) > 366) {
@@ -497,7 +497,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -536,7 +536,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
@@ -577,7 +577,7 @@ class MonitoringResultService
     private static function getMonitoringResponseQuery(Carbon $endDate)
     {
         // If the end date is older than 7 days, query the archived responses.
-        if ($endDate->lt(Carbon::now()->subWeek()->startOfDay())) {
+        if ($endDate->lt(Date::now()->subWeek()->startOfDay())) {
             return MonitoringResponseArchived::query();
         }
 
