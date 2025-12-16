@@ -10,6 +10,7 @@ interface MonitoringCardLoaderComponent {
     sinceMap: Record<string, string>;
     lastCheckMap: Record<string, string>;
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
+    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
     init(this: MonitoringCardLoaderComponent): void;
@@ -34,6 +35,44 @@ export default (
     sinceMap: {} as Record<string, string>,
     lastCheckMap: {} as Record<string, string>,
 
+    // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
+    _formatTime(seconds: number): string {
+        if (seconds < 0) {
+            return '0s';
+        }
+
+        const d = Math.floor(seconds / (3600 * 24));
+        const h = Math.floor(seconds % (3600 * 24) / 3600);
+        const m = Math.floor(seconds % 3600 / 60);
+        const s = Math.floor(seconds % 60);
+
+        let result = '';
+        if (d > 0) {
+            result += `${d}d `;
+        }
+        if (h > 0) {
+            result += `${h}h `;
+        }
+        if (m > 0) {
+            result += `${m}m `;
+        }
+        if (s > 0 || result === '') { // Always show seconds if no other unit, or if it's the only unit
+            result += `${s}s`;
+        }
+
+        return result.trim();
+    },
+
+    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null {
+        if (!isoTimestamp) {
+            return null;
+        }
+        const date = new Date(isoTimestamp);
+        const now = new Date();
+        const diffInSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
+        return this._formatTime(diffInSeconds);
+    },
+
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string } {
         const htmlElement = document.documentElement;
         const isDark = htmlElement.classList.contains('dark');
@@ -52,7 +91,7 @@ export default (
 
         if (statusData) {
             this.statusMap[monitoringId] = statusData.status;
-            this.sinceMap[monitoringId] = statusData.since;
+            this.sinceMap[monitoringId] = this.formatSinceDate(statusData.since);
         }
 
         if (heatmapData) {
