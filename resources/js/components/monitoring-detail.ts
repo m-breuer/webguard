@@ -1,6 +1,7 @@
 import Chart from 'chart.js/auto';
 
-
+// Define a type for the time format utility
+type TimeFormat = (seconds: number) => string;
 
 interface MonitoringDetailComponent {
     incidents: any[];
@@ -11,6 +12,11 @@ interface MonitoringDetailComponent {
     incidentsLoading: boolean;
     lastCheckedAt: string | null;
     nextCheckIn: string | null;
+    lastCheckedAtDate: Date | null;
+    nextCheckInDate: Date | null;
+    lastCheckedAtHuman: string | null;
+    nextCheckInHuman: string | null;
+    countdown: number | null;
     uptimeDowntimeData: Record<string, any>;
     sslValid: boolean | null;
     sslExpiration: string | null;
@@ -26,6 +32,7 @@ interface MonitoringDetailComponent {
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
+    formatTime: TimeFormat;
     getThemeColors(): {};
     loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
@@ -35,6 +42,8 @@ interface MonitoringDetailComponent {
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
+    startCountdown(this: MonitoringDetailComponent): void;
+    beforeDestroy(this: MonitoringDetailComponent): void;
     init(this: MonitoringDetailComponent): void;
 }
 
@@ -51,6 +60,11 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
     incidentsLoading: false,
     lastCheckedAt: null as string | null,
     nextCheckIn: null as string | null,
+    lastCheckedAtDate: null,
+    nextCheckInDate: null,
+    lastCheckedAtHuman: null,
+    nextCheckInHuman: null,
+    countdown: null,
     uptimeDowntimeData: {} as Record<string, any>,
     sslValid: null as boolean | null,
     sslExpiration: null as string | null,
@@ -70,6 +84,37 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
     uptimeCalendarData: [] as any[],
     uptimeCalendarLoading: false,
 
+    sinceDate: null as Date | null,
+
+    // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
+    formatTime(seconds: number): string {
+        if (seconds < 0) {
+            return '0s';
+        }
+
+        const d = Math.floor(seconds / (3600 * 24));
+        const h = Math.floor(seconds % (3600 * 24) / 3600);
+        const m = Math.floor(seconds % 3600 / 60);
+        const s = Math.floor(seconds % 60);
+
+        let result = '';
+        if (d > 0) {
+            result += `${d}d `;
+        }
+        if (h > 0) {
+            result += `${h}h `;
+        }
+        if (m > 0) {
+            result += `${m}m `;
+        }
+        if (s > 0 || result === '') {
+            result += `${s}s`;
+        }
+
+        return result.trim();
+    },
+
+
     getThemeColors(this: MonitoringDetailComponent) {
         // This function was empty in the original JS, keeping it as is.
         return {};
@@ -81,7 +126,9 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             const response = await fetch(`/api/monitorings/${monitoringId}/status-since`);
             const responseData = await response.json();
             this.status = responseData.status;
-            this.since = responseData.since;
+            if (responseData.since) {
+                this.sinceDate = new Date(responseData.since);
+            }
         } catch (_) {
             this.status = null;
             this.since = null;
@@ -164,14 +211,56 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         }
     },
 
+    // Start the countdown timers for last and next check
+    startCountdown(this: MonitoringDetailComponent): void {
+        if (this.countdown) {
+            clearInterval(this.countdown);
+        }
+
+        this.countdown = setInterval(() => {
+            if (this.lastCheckedAtDate) {
+                const now = new Date();
+                const diffInSeconds = Math.round((now.getTime() - this.lastCheckedAtDate.getTime()) / 1000);
+                this.lastCheckedAt = `${this.formatTime(diffInSeconds)}`;
+            }
+
+            if (this.nextCheckInDate) {
+                const now = new Date();
+                const diffInSeconds = Math.round((this.nextCheckInDate.getTime() - now.getTime()) / 1000);
+
+                if (diffInSeconds <= 0) {
+                    this.nextCheckIn = ' 0s';
+                    window.dispatchEvent(new CustomEvent('reload-monitoring-data'));
+                    this.loadLastCheck();
+                    this.loadStatusChanged();
+                } else {
+                    this.nextCheckIn = `${this.formatTime(diffInSeconds)}`;
+                }
+            }
+
+            if (this.sinceDate) {
+                const now = new Date();
+                const diffInSeconds = Math.round((now.getTime() - this.sinceDate.getTime()) / 1000);
+                this.since = this.formatTime(diffInSeconds);
+            }
+        }, 1000);
+    },
+
     // Loads timestamps for the last check and the next scheduled check
     async loadLastCheck(this: MonitoringDetailComponent): Promise<void> {
         try {
             const response = await fetch(`/api/monitorings/${monitoringId}/status-now`);
             const responseData = await response.json();
 
-            this.lastCheckedAt = responseData.checked_at;
-            this.nextCheckIn = responseData.next;
+            if (responseData.checked_at) {
+                this.lastCheckedAtDate = new Date(responseData.checked_at);
+            }
+
+            if (responseData.next) {
+                this.nextCheckInDate = new Date(responseData.next);
+            }
+
+            this.startCountdown();
         } catch (_) {
             this.lastCheckedAt = null;
             this.nextCheckIn = null;
@@ -361,6 +450,12 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         }
     },
 
+    beforeDestroy(this: MonitoringDetailComponent) {
+        if (this.countdown) {
+            clearInterval(this.countdown);
+        }
+    },
+
     init(this: MonitoringDetailComponent) {
         // Observe changes to the 'class' attribute of the <html> element
         const observer = new MutationObserver((mutations) => {
@@ -374,5 +469,8 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         });
 
         observer.observe(document.documentElement, { attributes: true });
+
+        // Clear the interval when the component is destroyed
+        window.addEventListener('beforeunload', () => this.beforeDestroy());
     }
 });

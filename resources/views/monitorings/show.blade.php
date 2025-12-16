@@ -8,11 +8,14 @@
         <x-heading type="h1" class="flex flex-wrap items-baseline">
             {{ $monitoring->name }}:
             <x-span class="ml-2">{{ $monitoring->target }}</x-span>
-            <x-span class="text-gray-500 ml-2">({{ strtoupper($monitoring->type->value) }})</x-span>
+            <x-span class="ml-2 text-gray-500">({{ strtoupper($monitoring->type->value) }})</x-span>
             @if ($monitoring->public_label_enabled)
-                <a href="{{ route('public-label', $monitoring) }}" target="_blank" class="ml-2 text-gray-400 hover:text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" />
+                <a href="{{ route('public-label', $monitoring) }}" target="_blank"
+                    class="ml-2 text-gray-400 hover:text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" />
                     </svg>
                 </a>
             @endif
@@ -76,15 +79,16 @@
     loadSslStatus();
     loadPerformanceChart(selectedRange);
     loadIncidents(selectedRange);
-    loadUptimeCalendar();" x-data="Object.assign({ selectedRange: 1,
-    chartLabels: {
-        min: '{{ __('monitoring.detail.response_time.min_label') }}',
-        avg: '{{ __('monitoring.detail.response_time.avg_label') }}',
-        max: '{{ __('monitoring.detail.response_time.max_label') }}',
-        yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
-        xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
-    }
-}, monitoringDetail('{{ $monitoring->id }}'))">
+    loadUptimeCalendar();" x-data="Object.assign({
+        selectedRange: 1,
+        chartLabels: {
+            min: '{{ __('monitoring.detail.response_time.min_label') }}',
+            avg: '{{ __('monitoring.detail.response_time.avg_label') }}',
+            max: '{{ __('monitoring.detail.response_time.max_label') }}',
+            yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
+            xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
+        }
+    }, monitoringDetail('{{ $monitoring->id }}'))">
 
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <x-container>
@@ -112,7 +116,8 @@
                 <x-heading type="h2">{{ __('monitoring.detail.last_check') }}</x-heading>
                 <div>
                     <template x-if="lastCheckedAt">
-                        <x-paragraph x-text="lastCheckedAt"></x-paragraph>
+                        <x-paragraph
+                            x-text="'{{ __('monitoring.detail.last_check_before') }} ' + lastCheckedAt"></x-paragraph>
                     </template>
                     <template x-if="!lastCheckedAt">
                         <div x-transition.opacity>
@@ -121,7 +126,7 @@
                     </template>
 
                     <template x-if="nextCheckIn">
-                        <x-paragraph x-text="'{{ __('monitoring.detail.next_check') }} '+ nextCheckIn"
+                        <x-paragraph x-text="'{{ __('monitoring.detail.next_check') }} ' + nextCheckIn"
                             class="text-gray-400"></x-paragraph>
                     </template>
                 </div>

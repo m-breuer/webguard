@@ -62,4 +62,21 @@ class Package extends Model
             'is_selectable' => 'boolean',
         ];
     }
+
+    /**
+     * Get the cheapest selectable package available.
+     *
+     * This method retrieves the package with the cheapest price, which is typically
+     * the free package, and orders it by monitoring limit in descending order.
+     *
+     * @return Package|null
+     */
+    public static function cheapest(): ?Package
+    {
+        return self::query()
+            ->where('is_selectable', true)
+            ->orderBy('price', 'asc')
+            ->orderByDesc('monitoring_limit')
+            ->first();
+    }
 }

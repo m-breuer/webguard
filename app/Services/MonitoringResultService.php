@@ -50,8 +50,8 @@ class MonitoringResultService
     public static function getHeatmap(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
     {
         // Enforce 24-hour window for heatmap
-        $startDate = now()->subHours(23)->startOfHour();
-        $endDate = now()->endOfHour();
+        $startDate = Carbon::now()->subHours(23)->startOfHour();
+        $endDate = Carbon::now()->endOfHour();
 
         $raw = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
@@ -241,20 +241,20 @@ class MonitoringResultService
         if (! $latest) {
             return [
                 'status' => $monitoring->latestResponseResult ? $monitoring->latestResponseResult->status->value : MonitoringStatus::UNKNOWN->value,
-                'since' => $monitoring->latestResponseResult ? $monitoring->created_at->shortAbsoluteDiffForHumans(now()) : null,
+                'since' => $monitoring->latestResponseResult ? $monitoring->created_at->toIso8601String() : null,
             ];
         }
 
         if ($latest->up_at) {
             return [
                 'status' => MonitoringStatus::UP->value,
-                'since' => $latest->up_at->shortAbsoluteDiffForHumans(now()),
+                'since' => $latest->up_at->toIso8601String(),
             ];
         }
 
         return [
             'status' => MonitoringStatus::DOWN->value,
-            'since' => $latest->down_at->shortAbsoluteDiffForHumans(now()),
+            'since' => $latest->down_at->toIso8601String(),
         ];
     }
 
@@ -278,8 +278,8 @@ class MonitoringResultService
 
         return [
             'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
-            'checked_at' => $latest ? $latest->updated_at->diffForHumans() : null,
-            'next' => now()->addSeconds($cronjobInterval + 1)->diffForHumans(),
+            'checked_at' => $latest ? $latest->updated_at->toIso8601String() : null,
+            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : $cronjobInterval
         ];
     }
 
@@ -478,7 +478,7 @@ class MonitoringResultService
     public static function getUpTimeGroupByDateAndMonth(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): array
     {
         if ($endDate->isFuture()) {
-            $endDate = now()->endOfDay();
+            $endDate = Carbon::now()->endOfDay();
         }
 
         if ($startDate->diffInDays($endDate) > 366) {
@@ -497,7 +497,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -536,7 +536,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
@@ -577,7 +577,7 @@ class MonitoringResultService
     private static function getMonitoringResponseQuery(Carbon $endDate)
     {
         // If the end date is older than 7 days, query the archived responses.
-        if ($endDate->lt(now()->subWeek()->startOfDay())) {
+        if ($endDate->lt(Carbon::now()->subWeek()->startOfDay())) {
             return MonitoringResponseArchived::query();
         }
 
