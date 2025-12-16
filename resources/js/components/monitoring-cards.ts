@@ -11,6 +11,7 @@ interface MonitoringCardLoaderComponent {
     lastCheckMap: Record<string, string>;
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
     formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null;
+    _formatTime(this: MonitoringCardLoaderComponent, seconds: number): string;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
     init(this: MonitoringCardLoaderComponent): void;
@@ -91,7 +92,7 @@ export default (
 
         if (statusData) {
             this.statusMap[monitoringId] = statusData.status;
-            this.sinceMap[monitoringId] = this.formatSinceDate(statusData.since);
+            this.sinceMap[monitoringId] = this.formatSinceDate(statusData.since) ?? '';
         }
 
         if (heatmapData) {

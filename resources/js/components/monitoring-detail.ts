@@ -4,6 +4,7 @@ import Chart from 'chart.js/auto';
 type TimeFormat = (seconds: number) => string;
 
 interface MonitoringDetailComponent {
+    sinceDate: any;
     incidents: any[];
     status: string | null;
     since: string | null;
@@ -188,7 +189,7 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             const heatmapContainer = document.getElementById('monitoring-heatmap-detail');
             if (heatmapContainer) {
                 heatmapContainer.innerHTML = ''; // Clear existing dots
-                capped.forEach((point: { uptime: number; downtime: number }) => {
+                capped.forEach((point: { uptime: number; downtime: number; }) => {
                     const statusDot = document.createElement('div');
 
                     let bgColor;
@@ -275,11 +276,10 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             '90': 90,
         };
 
-        const promises = Object.entries(intervals).map(([label, days]) =>
-            fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
-                .then(res => res.ok ? res.json() : null)
-                .then(data => ({ [label]: data }))
-                .catch(() => ({ [label]: null }))
+        const promises = Object.entries(intervals).map(([label, days]) => fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => ({ [label]: data }))
+            .catch(() => ({ [label]: null }))
         );
 
         const results = await Promise.all(promises);
@@ -308,6 +308,7 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
     async loadPerformanceChart(this: AlpineThisContext, days: string | number = this.selectedRange): Promise<void> {
         this.selectedRange = days.toString();
         this.chartLoading = true; // Hide canvas and show loading indicator
+
 
         // Destroy existing chart instance if present to avoid memory leaks
         if (this.performanceChartInstance) {
@@ -347,11 +348,11 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
             this.performanceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: responseData.data.map((entry: { date: string }) => entry.date),
+                    labels: responseData.data.map((entry: { date: string; }) => entry.date),
                     datasets: [
                         {
                             label: this.chartLabels.min,
-                            data: responseData.data.map((entry: { min: number }) => entry.min),
+                            data: responseData.data.map((entry: { min: number; }) => entry.min),
                             fill: false,
                             borderDash: [5, 5],
                             borderColor: '#dab2ff',
@@ -359,14 +360,14 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
                         },
                         {
                             label: this.chartLabels.avg,
-                            data: responseData.data.map((entry: { avg: number }) => entry.avg),
+                            data: responseData.data.map((entry: { avg: number; }) => entry.avg),
                             fill: false,
                             borderColor: this.isDarkMode ? '#9810fa' : '#9810fa',
                             tension: 0.1
                         },
                         {
                             label: this.chartLabels.max,
-                            data: responseData.data.map((entry: { max: number }) => entry.max),
+                            data: responseData.data.map((entry: { max: number; }) => entry.max),
                             fill: false,
                             borderDash: [5, 5],
                             borderColor: '#dab2ff',
@@ -472,5 +473,6 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
 
         // Clear the interval when the component is destroyed
         window.addEventListener('beforeunload', () => this.beforeDestroy());
-    }
+    },
+    chartLabels: {} as Record<string, string>
 });
