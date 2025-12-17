@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> 💡 **System Architecture Note:** This repository contains the **Management Core & API**. For the distributed scanning node/worker, please visit the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance).
+> 💡 **System Architecture Note:** This repository contains the **Management Core & API**. For the distributed scanning node/worker, please visit the [WebGuard Instance Repository](https://gitlab.com/marcelbreuer/webguard-instance).
 
 WebGuard is a powerful, open-source web monitoring service built with Laravel 12. It's designed to help you track website uptime, response times, and SSL certificate statuses with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
 
@@ -55,7 +55,7 @@ To get started with WebGuard, you'll need to have the following prerequisites in
 1.  **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/m-breuer/webguard.git](https://github.com/m-breuer/webguard.git)
+    git clone [https://gitlab.com/marcelbreuer/webguard.git](https://gitlab.com/marcelbreuer/webguard.git)
     cd webguard
     ```
 
