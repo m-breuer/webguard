@@ -11,13 +11,13 @@ return RectorConfig::configure()
     ->withSetProviders(LaravelSetProvider::class)
     ->withComposerBased(laravel: true)
     ->withPaths([
-        __DIR__.'/app',
-        __DIR__.'/bootstrap',
-        __DIR__.'/config',
-        __DIR__.'/public',
-        __DIR__.'/resources',
-        __DIR__.'/routes',
-        __DIR__.'/tests',
+        __DIR__ . '/app',
+        __DIR__ . '/bootstrap',
+        __DIR__ . '/config',
+        __DIR__ . '/public',
+        __DIR__ . '/resources',
+        __DIR__ . '/routes',
+        __DIR__ . '/tests',
     ])
     ->withSets([
         LaravelLevelSetList::UP_TO_LARAVEL_120,
@@ -31,7 +31,6 @@ return RectorConfig::configure()
         LaravelSetList::LARAVEL_FACTORIES,
         LaravelSetList::LARAVEL_LEGACY_FACTORIES_TO_CLASSES,
         LaravelSetList::LARAVEL_TESTING,
-        LaravelSetList::LARAVEL_TYPE_DECLARATIONS,
         LaravelSetList::LARAVEL_IF_HELPERS,
     ])
     ->withPreparedSets(
@@ -42,5 +41,5 @@ return RectorConfig::configure()
     )
     ->withImportNames(true)
     ->withSkip([
-        __DIR__.'/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
+        __DIR__ . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
     ]);
