@@ -56,6 +56,7 @@ return [
         'last_check' => 'Last check',
         'last_check_before' => '',
         'next_check' => 'Next check in',
+        'interval' => 'Checked every',
         'last_24_hours' => 'Last 24 Hours',
         'downtime' => 'Downtime',
         'incidents' => [
