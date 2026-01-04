@@ -52,7 +52,7 @@ interface AlpineThisContext extends MonitoringDetailComponent {
     $nextTick: (callback?: () => void) => Promise<void>;
 }
 
-export default (monitoringId: string): MonitoringDetailComponent => ({
+export default (monitoringId: string, chartLabels: Record<string, string>): MonitoringDetailComponent => ({
     incidents: [] as any[],
     status: null as string | null,
     since: null as string | null,
@@ -471,5 +471,5 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
         // Clear the interval when the component is destroyed
         window.addEventListener('beforeunload', () => this.beforeDestroy());
     },
-    chartLabels: {} as Record<string, string>
+    chartLabels: chartLabels
 });
