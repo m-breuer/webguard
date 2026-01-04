@@ -230,10 +230,7 @@ export default (monitoringId: string): MonitoringDetailComponent => ({
                 const diffInSeconds = Math.round((this.nextCheckInDate.getTime() - now.getTime()) / 1000);
 
                 if (diffInSeconds <= 0) {
-                    this.nextCheckIn = ' 0s';
-                    window.dispatchEvent(new CustomEvent('reload-monitoring-data'));
-                    this.loadLastCheck();
-                    this.loadStatusChanged();
+                    this.nextCheckIn = '0s';
                 } else {
                     this.nextCheckIn = `${this.formatTime(diffInSeconds)}`;
                 }
