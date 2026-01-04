@@ -80,15 +80,14 @@
     loadPerformanceChart(selectedRange);
     loadIncidents(selectedRange);
     loadUptimeCalendar();" x-data="Object.assign({
-        selectedRange: 1,
-        chartLabels: {
-            min: '{{ __('monitoring.detail.response_time.min_label') }}',
-            avg: '{{ __('monitoring.detail.response_time.avg_label') }}',
-            max: '{{ __('monitoring.detail.response_time.max_label') }}',
-            yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
-            xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
-        }
-    }, monitoringDetail('{{ $monitoring->id }}'))">
+        selectedRange: 1
+    }, monitoringDetail('{{ $monitoring->id }}', {
+        min: '{{ __('monitoring.detail.response_time.min_label') }}',
+        avg: '{{ __('monitoring.detail.response_time.avg_label') }}',
+        max: '{{ __('monitoring.detail.response_time.max_label') }}',
+        yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
+        xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
+    }))">
 
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <x-container>
