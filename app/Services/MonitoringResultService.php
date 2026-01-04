@@ -12,6 +12,7 @@ use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -49,8 +50,8 @@ class MonitoringResultService
     public static function getHeatmap(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
     {
         // Enforce 24-hour window for heatmap
-        $startDate = Carbon::now()->subHours(23)->startOfHour();
-        $endDate = Carbon::now()->endOfHour();
+        $startDate = Date::now()->subHours(23)->startOfHour();
+        $endDate = Date::now()->endOfHour();
 
         $raw = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
@@ -342,7 +343,7 @@ class MonitoringResultService
 
             $combinedData = $dailyAggregatedData->map(function ($row) {
                 return [
-                    'date' => Carbon::parse($row->date)->format('Y-m-d'),
+                    'date' => Date::parse($row->date)->format('Y-m-d'),
                     'avg' => $row->avg_response_time ?? 0,
                     'min' => $row->min_response_time ?? 0,
                     'max' => $row->max_response_time ?? 0,
@@ -359,7 +360,7 @@ class MonitoringResultService
             ]);
         }
 
-        $grouping = self::getGrouping(Carbon::parse($startDate)->diffInDays($endDate));
+        $grouping = self::getGrouping(Date::parse($startDate)->diffInDays($endDate));
 
         $data = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
@@ -435,8 +436,8 @@ class MonitoringResultService
 
         // Map incidents to the desired output format.
         return $incidents->map(function ($incident) {
-            $downAt = Carbon::parse($incident->down_at);
-            $upAt = $incident->up_at ? Carbon::parse($incident->up_at) : null;
+            $downAt = Date::parse($incident->down_at);
+            $upAt = $incident->up_at ? Date::parse($incident->up_at) : null;
 
             return [
                 'down_at' => $downAt->format('d.m.Y H:i'),
@@ -477,7 +478,7 @@ class MonitoringResultService
     public static function getUpTimeGroupByDateAndMonth(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): array
     {
         if ($endDate->isFuture()) {
-            $endDate = Carbon::now()->endOfDay();
+            $endDate = Date::now()->endOfDay();
         }
 
         if ($startDate->diffInDays($endDate) > 366) {
@@ -490,13 +491,13 @@ class MonitoringResultService
         }
 
         $dailyUptimeData = [];
-        $currentDate = Carbon::today();
+        $currentDate = Date::today();
 
         $historicalData = MonitoringDailyResult::query()
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn($result) => Carbon::parse($result->date)->toDateString());
+            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -535,11 +536,11 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
 
             if (! empty($validUptimes)) {
-                $monthStartDate = Carbon::createFromFormat('Y-m', $monthYear)->startOfMonth();
-                $monthEndDate = Carbon::createFromFormat('Y-m', $monthYear)->endOfMonth();
+                $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
+                $monthEndDate = Date::createFromFormat('Y-m', $monthYear)->endOfMonth();
 
                 $calculationStartDate = $monthStartDate->max($startDate);
                 $calculationEndDate = $monthEndDate->min($endDate);
@@ -573,7 +574,7 @@ class MonitoringResultService
     private static function getMonitoringResponseQuery(Carbon $endDate)
     {
         // If the end date is older than 7 days, query the archived responses.
-        if ($endDate->lt(Carbon::now()->subWeek()->startOfDay())) {
+        if ($endDate->lt(Date::now()->subWeek()->startOfDay())) {
             return MonitoringResponseArchived::query();
         }
 
