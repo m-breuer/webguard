@@ -8,10 +8,12 @@ interface MonitoringCardLoaderComponent {
     hasMonitorings: boolean;
     statusMap: Record<string, string>;
     sinceMap: Record<string, string>;
+    sinceDateMap: Record<string, string | null>;
     lastCheckMap: Record<string, string>;
-    getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
-    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null;
     _formatTime(this: MonitoringCardLoaderComponent, seconds: number): string;
+    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null;
+    getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
+    updateSince(this: MonitoringCardLoaderComponent): void;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
     init(this: MonitoringCardLoaderComponent): void;
@@ -34,6 +36,7 @@ export default (
     hasMonitorings: monitoringIds.length > 0,
     statusMap: {} as Record<string, string>,
     sinceMap: {} as Record<string, string>,
+    sinceDateMap: {} as Record<string, string | null>,
     lastCheckMap: {} as Record<string, string>,
 
     // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
@@ -92,6 +95,7 @@ export default (
 
         if (statusData) {
             this.statusMap[monitoringId] = statusData.status;
+            this.sinceDateMap[monitoringId] = statusData.since;
             this.sinceMap[monitoringId] = this.formatSinceDate(statusData.since) ?? '';
         }
 
@@ -131,8 +135,18 @@ export default (
         await Promise.all(this.monitoringIds.map((id: string) => this.loadCard(id)));
     },
 
+    updateSince(this: MonitoringCardLoaderComponent): void {
+        for (const monitoringId in this.sinceDateMap) {
+            this.sinceMap[monitoringId] = this.formatSinceDate(this.sinceDateMap[monitoringId]) ?? '';
+        }
+    },
+
     init(this: MonitoringCardLoaderComponent) {
         this.loadAll();
+
+        setInterval(() => {
+            this.updateSince();
+        }, 1000);
 
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
