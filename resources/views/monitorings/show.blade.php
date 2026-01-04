@@ -124,8 +124,8 @@
                         </div>
                     </template>
 
-                    <template x-if="nextCheckIn">
-                        <x-paragraph x-text="'{{ __('monitoring.detail.next_check') }} ' + nextCheckIn"
+                    <template x-if="interval">
+                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + interval + 's'"
                             class="text-gray-400"></x-paragraph>
                     </template>
                 </div>

@@ -17,6 +17,7 @@ interface MonitoringDetailComponent {
     nextCheckInDate: Date | null;
     lastCheckedAtHuman: string | null;
     nextCheckInHuman: string | null;
+    interval: number | null;
     countdown: number | null;
     uptimeDowntimeData: Record<string, any>;
     sslValid: boolean | null;
@@ -65,6 +66,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     nextCheckInDate: null,
     lastCheckedAtHuman: null,
     nextCheckInHuman: null,
+    interval: null,
     countdown: null,
     uptimeDowntimeData: {} as Record<string, any>,
     sslValid: null as boolean | null,
@@ -225,17 +227,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                 this.lastCheckedAt = `${this.formatTime(diffInSeconds)}`;
             }
 
-            if (this.nextCheckInDate) {
-                const now = new Date();
-                const diffInSeconds = Math.round((this.nextCheckInDate.getTime() - now.getTime()) / 1000);
-
-                if (diffInSeconds <= 0) {
-                    this.nextCheckIn = '0s';
-                } else {
-                    this.nextCheckIn = `${this.formatTime(diffInSeconds)}`;
-                }
-            }
-
             if (this.sinceDate) {
                 const now = new Date();
                 const diffInSeconds = Math.round((now.getTime() - this.sinceDate.getTime()) / 1000);
@@ -256,6 +247,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             if (responseData.next) {
                 this.nextCheckInDate = new Date(responseData.next);
+            }
+
+            if (responseData.interval) {
+                this.interval = responseData.interval;
             }
 
             this.startCountdown();
