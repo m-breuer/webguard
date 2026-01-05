@@ -5,6 +5,7 @@ interface MonitoringCardLoaderComponent {
     monitoringTypes: Record<string, string>;
     monitoringStatusMap: Record<string, string>;
     monitoringPublicLabelMap: Record<string, boolean>;
+    maintenanceStatusMap: Record<string, boolean>;
     hasMonitorings: boolean;
     statusMap: Record<string, string>;
     sinceMap: Record<string, string>;
@@ -25,7 +26,8 @@ export default (
     monitoringTargets: Record<string, string>,
     monitoringTypes: Record<string, string>,
     monitoringStatusMap: Record<string, string>,
-    monitoringPublicLabelMap: Record<string, boolean>
+    monitoringPublicLabelMap: Record<string, boolean>,
+    maintenanceStatusMap: Record<string, boolean>
 ): MonitoringCardLoaderComponent => ({
     monitoringIds: monitoringIds,
     monitoringNames: monitoringNames,
@@ -33,6 +35,7 @@ export default (
     monitoringTypes: monitoringTypes,
     monitoringStatusMap: monitoringStatusMap,
     monitoringPublicLabelMap: monitoringPublicLabelMap,
+    maintenanceStatusMap: maintenanceStatusMap,
     hasMonitorings: monitoringIds.length > 0,
     statusMap: {} as Record<string, string>,
     sinceMap: {} as Record<string, string>,

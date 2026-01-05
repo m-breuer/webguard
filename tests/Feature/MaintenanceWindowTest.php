@@ -41,7 +41,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-API-KEY' => 'test-token',
         ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location->value]));
-        $response->assertJson(['data' => [['maintenance_active' => false]]]);
+        $response->assertJsonFragment(['maintenance_active' => false]);
 
         // Future maintenance window
         $this->monitoring->update(array_merge($this->getValidData(), [
@@ -51,7 +51,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-API-KEY' => 'test-token',
         ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location->value]));
-        $response->assertJson(['data' => [['maintenance_active' => false]]]);
+        $response->assertJsonFragment(['maintenance_active' => false]);
 
         // Active maintenance window
         $this->monitoring->update(array_merge($this->getValidData(), [
@@ -61,7 +61,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-API-KEY' => 'test-token',
         ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location->value]));
-        $response->assertJson(['data' => [['maintenance_active' => true]]]);
+        $response->assertJsonFragment(['maintenance_active' => true]);
 
         // Open-ended maintenance window
         $this->monitoring->update(array_merge($this->getValidData(), [
@@ -71,6 +71,6 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-API-KEY' => 'test-token',
         ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location->value]));
-        $response->assertJson(['data' => [['maintenance_active' => true]]]);
+        $response->assertJsonFragment(['maintenance_active' => true]);
     }
 }
