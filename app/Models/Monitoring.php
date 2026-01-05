@@ -82,6 +82,8 @@ class Monitoring extends Model
         'preferred_location',
         'email_notification_on_failure',
         'deleted_at',
+        'maintenance_from',
+        'maintenance_until',
     ];
 
     /**
@@ -175,6 +177,22 @@ class Monitoring extends Model
     }
 
     /**
+     * Determine if the monitoring is currently under maintenance.
+     */
+    public function isUnderMaintenance(): bool
+    {
+        if ($this->maintenance_from && is_null($this->maintenance_until)) {
+            return $this->maintenance_from->isPast();
+        }
+
+        if ($this->maintenance_from && $this->maintenance_until) {
+            return now()->between($this->maintenance_from, $this->maintenance_until);
+        }
+
+        return false;
+    }
+
+    /**
      * Apply the global scope to ensure all queries are restricted to the authenticated user.
      */
     #[Override]
@@ -233,6 +251,8 @@ class Monitoring extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
+            'maintenance_from' => 'datetime',
+            'maintenance_until' => 'datetime',
         ];
     }
 }

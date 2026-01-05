@@ -32,6 +32,7 @@ return [
             'uptime' => 'Uptime',
             'details' => 'Details',
             'paused' => 'Paused',
+            'maintenance' => 'Maintenance',
             'last_check' => 'Last check',
             'since' => 'since',
         ],
@@ -135,6 +136,10 @@ return [
         'email_notification_on_failure' => 'Email Notifications',
         'email_notification_on_failure_enabled' => 'Send email notifications if this monitoring fails',
         'preferred_location' => 'Preferred Location',
+        'maintenance_from' => 'Maintenance From',
+        'maintenance_until' => 'Maintenance Until',
+        'maintenance_help' => 'During the maintenance window, checks will be skipped and the status will be reported as UNKNOWN.',
+        'maintenance' => 'Maintenance',
         'placeholders' => [
             'http_target' => 'e.g. https://example.com',
             'ping_target' => 'e.g. 8.8.8.8',

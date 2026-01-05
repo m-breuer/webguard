@@ -9,6 +9,7 @@
     $monitoringTypes = json_encode($monitorings->pluck('type', 'id'));
     $monitoringStatusMap = json_encode($monitorings->pluck('status', 'id'));
     $monitoringPublicLabelMap = json_encode($monitorings->pluck('public_label_enabled', 'id'));
+    $maintenanceStatusMap = json_encode($maintenanceStatusMap);
 @endphp
 
 <x-app-layout>
@@ -167,7 +168,7 @@
             </div>
         @endif
 
-        <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }})" x-init="init()" x-cloak>
+        <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }})" x-init="init()" x-cloak>
             <div x-show="monitoringIds.length === 0">
                 <x-container class="text-center">
                     <x-heading type="h2">
@@ -221,9 +222,16 @@
 
                                 <template x-if="monitoringStatusMap && monitoringStatusMap[id] === 'paused'">
                                     <div class="mt-1 sm:text-center">
-                                        <x-span
-                                            class="rounded bg-yellow-100 px-2 py-0.5 text-center text-yellow-800 dark:text-purple-800">
-                                            {{ __('monitoring.index.table.paused') }}</x-span>
+                                        <x-badge type="warning">
+                                            {{ __('monitoring.index.table.paused') }}
+                                        </x-badge>
+                                    </div>
+                                </template>
+                                <template x-if="maintenanceStatusMap && maintenanceStatusMap[id]">
+                                    <div class="mt-1 sm:text-center">
+                                        <x-badge type="info">
+                                            {{ __('monitoring.index.table.maintenance') }}
+                                        </x-badge>
                                     </div>
                                 </template>
                             </div>

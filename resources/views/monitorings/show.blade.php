@@ -20,9 +20,14 @@
                 </a>
             @endif
             @if ($monitoring->isPaused())
-                <x-span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-yellow-800 dark:text-purple-800">
+                <x-badge type="warning">
                     {{ __('monitoring.index.table.paused') }}
-                </x-span>
+                </x-badge>
+            @endif
+            @if ($monitoring->isUnderMaintenance())
+                <x-badge type="info">
+                    {{ __('monitoring.index.table.maintenance') }}
+                </x-badge>
             @endif
         </x-heading>
 

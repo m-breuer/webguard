@@ -153,6 +153,8 @@ class MonitoringRequest extends FormRequest
             'preferred_location' => ['required', Rule::enum(ServerInstance::class)],
             'public_label_enabled' => ['boolean'],
             'email_notification_on_failure' => ['boolean'],
+            'maintenance_from' => ['nullable', 'date'],
+            'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
         ];
     }
 

@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Enums\ServerInstance;
 use App\Models\Monitoring;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -28,6 +30,8 @@ class MonitoringFactory extends Factory
                 MonitoringType::PING => fake()->ipv4(),
                 MonitoringType::PORT => fake()->ipv4(), // Or fake()->domainName() if ports can be checked on domain names
             },
+            'preferred_location' => fake()->randomElement(ServerInstance::cases()),
+            'status' => MonitoringLifecycleStatus::ACTIVE,
         ];
 
         if ($type === MonitoringType::PORT) {
