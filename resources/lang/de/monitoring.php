@@ -135,6 +135,9 @@ return [
         'email_notification_on_failure' => 'E-Mail-Benachrichtigungen',
         'email_notification_on_failure_enabled' => 'E-Mail-Benachrichtigungen senden, wenn diese Überwachung fehlschlägt',
         'preferred_location' => 'Bevorzugter Standort',
+        'maintenance_from' => 'Wartung von',
+        'maintenance_until' => 'Wartung bis',
+        'maintenance_help' => 'Während des Wartungsfensters werden die Prüfungen übersprungen und der Status als UNBEKANNT gemeldet.',
         'placeholders' => [
             'http_target' => 'z.B. https://example.com',
             'ping_target' => 'z.B. 8.8.8.8',

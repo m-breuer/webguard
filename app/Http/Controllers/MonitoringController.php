@@ -196,7 +196,7 @@ class MonitoringController extends Controller
         abort_if(Auth::user()->isGuest(), 403);
 
         if (cache()->getStore() instanceof TaggableStore) {
-            cache()->tags(['monitoring:'.$monitoring->id])->flush();
+            cache()->tags(['monitoring:' . $monitoring->id])->flush();
         }
 
         dispatch(new DeleteMonitoringResults($monitoring));

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Observers\IncidentObserver;
 use App\Observers\MonitoringResponseObserver;
 use App\Observers\UserObserver;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -36,5 +37,7 @@ class AppServiceProvider extends ServiceProvider
         MonitoringResponse::observe(MonitoringResponseObserver::class);
         User::observe(UserObserver::class);
         View::composer('layouts.navigation', NotificationComposer::class);
+
+        JsonResource::withoutWrapping();
     }
 }

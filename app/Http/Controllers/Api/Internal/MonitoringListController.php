@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Internal;
 
 use App\Enums\MonitoringType;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Instance\MonitoringResource;
 use App\Models\Monitoring;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,6 @@ class MonitoringListController extends Controller
 
         $monitorings = $builder->get();
 
-        return response()->json($monitorings);
+        return MonitoringResource::collection($monitorings);
     }
 }
