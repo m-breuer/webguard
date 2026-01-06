@@ -24,7 +24,6 @@ interface MonitoringDetailComponent {
     lastCheckedAtDate: Date | null;
     nextCheckInDate: Date | null;
     lastCheckedAtHuman: string | null;
-    nextCheckInHuman: string | null;
     interval: number | null;
     countdown: number | null;
     uptimeDowntimeData: Record<string, any>;
@@ -72,7 +71,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     lastCheckedAtDate: null,
     nextCheckInDate: null,
     lastCheckedAtHuman: null,
-    nextCheckInHuman: null,
     interval: null,
     countdown: null,
     uptimeDowntimeData: {} as Record<string, any>,

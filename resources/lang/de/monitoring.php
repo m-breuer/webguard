@@ -55,8 +55,8 @@ return [
         'current_status' => 'Aktueller Status',
         'no_data' => 'Daten werden geladen...',
         'last_check' => 'Letzte Prüfung',
-        'next_check' => 'Nächste Prüfung in',
         'interval' => 'Geprüft alle',
+        'seconds_short' => 's',
         'last_24_hours' => 'Letzte 24 Stunden',
         'downtime' => 'Ausfallzeit',
         'incidents' => [
