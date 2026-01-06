@@ -121,14 +121,17 @@
                 <div>
                     <template x-if="lastCheckedAt">
                         <x-paragraph
-                            x-text="'{{ __('monitoring.detail.last_check_before') }} ' + lastCheckedAt"></x-paragraph>
+                            x-text="'{{ __('monitoring.detail.last_check_before') }} ' + lastCheckedAtHuman"></x-paragraph>
                     </template>
                     <template x-if="!lastCheckedAt">
                         <div x-transition.opacity>
                             <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
                         </div>
                     </template>
-
+                    <template x-if="nextCheckInHuman">
+                        <x-paragraph x-text="'{{ __('monitoring.detail.next_check_at') }} ' + nextCheckInHuman"
+                            class="text-gray-400"></x-paragraph>
+                    </template>
                     <template x-if="interval">
                         <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + interval + 's'"
                             class="text-gray-400"></x-paragraph>
@@ -179,7 +182,7 @@
                 <x-container id="uptime-card-{{ $key }}">
                     <x-heading type="h2" class="capitalize">{{ $label }}</x-heading>
                     <x-paragraph class="text-2xl font-bold text-purple-600"
-                        x-text="uptimeDowntimeData['{{ $key }}']?.uptime?.percentage_rounded + '%' ?? '—%'">
+                        x-text="uptimeDowntimeData['{{ $key }}']?.uptime?.percentage_rounded.toFixed(2) + '%' ?? '—%'">
                         —%
                     </x-paragraph>
                     <x-paragraph class="text-gray-400"

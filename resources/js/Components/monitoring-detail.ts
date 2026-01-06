@@ -4,6 +4,7 @@ import Chart from 'chart.js/auto';
 type TimeFormat = (seconds: number) => string;
 
 interface MonitoringDetailComponent {
+    _formatDate: any;
     sinceDate: any;
     incidents: any[];
     status: string | null;
@@ -36,6 +37,7 @@ interface MonitoringDetailComponent {
     chartLabels: Record<string, string>;
     formatTime: TimeFormat;
     getThemeColors(): {};
+    _formatDuration(minutes: number): string;
     loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
@@ -88,6 +90,33 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     uptimeCalendarLoading: false,
 
     sinceDate: null as Date | null,
+
+    _formatDate(isoTimestamp: string | null): string | null {
+        if (!isoTimestamp) {
+            return null;
+        }
+        const date = new Date(isoTimestamp);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    },
+
+    _formatDuration(minutes: number): string {
+        if (minutes < 0) return '0 minutes';
+        const days = Math.floor(minutes / (24 * 60));
+        const hours = Math.floor((minutes % (24 * 60)) / 60);
+        const remainingMinutes = minutes % 60;
+
+        let parts: string[] = [];
+        if (days > 0) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+        if (hours > 0) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+        if (remainingMinutes > 0) parts.push(`${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`);
+
+        return parts.length > 0 ? parts.join(' ') : '0 minutes';
+    },
 
     // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
     formatTime(seconds: number): string {
@@ -161,7 +190,12 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/incidents?days=${finalDays}`);
             const responseData = await response.json();
 
-            this.incidents = responseData;
+            this.incidents = responseData.map((incident: any) => ({
+                ...incident,
+                down_at: this._formatDate(incident.down_at),
+                up_at: incident.up_at ? this._formatDate(incident.up_at) : null,
+                duration: this._formatDuration(incident.duration),
+            }));
         } catch (_) {
             this.incidents = [];
         } finally {
@@ -243,10 +277,12 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
+                this.lastCheckedAtHuman = this._formatDate(responseData.checked_at);
             }
 
             if (responseData.next) {
                 this.nextCheckInDate = new Date(responseData.next);
+                this.nextCheckInHuman = this._formatDate(responseData.next);
             }
 
             if (responseData.interval) {
@@ -270,7 +306,17 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
         const promises = Object.entries(intervals).map(([label, days]) => fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
             .then(res => res.ok ? res.json() : null)
-            .then(data => ({ [label]: data }))
+            .then(data => {
+                if (data && data[label]) {
+                    if (data[label].downtime && data[label].downtime.total_human !== undefined) {
+                        data[label].downtime.total_human = this._formatDuration(data[label].downtime.total_human);
+                    }
+                    if (data[label].uptime && data[label].uptime.total_human !== undefined) {
+                        data[label].uptime.total_human = this._formatDuration(data[label].uptime.total_human);
+                    }
+                }
+                return { [label]: data };
+            })
             .catch(() => ({ [label]: null }))
         );
 
