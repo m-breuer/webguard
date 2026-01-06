@@ -8,7 +8,6 @@ use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringResponseArchived;
 use Carbon\Carbon;
-use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -69,12 +68,10 @@ class MonitoringResultService
         return collect(
             CarbonPeriod::create($startDate, '1 hour', $endDate)
                 ->map(function (Carbon $hour) use ($raw) {
-                    $formatted = Carbon::parse($hour->format('Y-m-d H:00:00'))->toDateTimeString();
-
-                    $record = $raw->get($formatted);
+                    $record = $raw->get($hour->format('Y-m-d H'));
 
                     return [
-                        'date' => $formatted,
+                        'date' => $hour,
                         'uptime' => (int) ($record->uptime ?? 0),
                         'downtime' => (int) ($record->downtime ?? 0),
                         'unknown' => (int) ($record->unknown ?? 0),
