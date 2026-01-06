@@ -45,33 +45,35 @@
             @endif
         </div>
 
-        {{-- Language Selection --}}
-        <div class="mt-4">
-            <x-input-label for="locale" :value="__('profile.fields.language')" />
-            <x-select-input id="locale" name="locale" class="mt-1 block w-full">
-                @foreach ($languages as $code => $name)
-                    <option value="{{ $code }}" @selected(old('locale', $user->locale) === $code)>
-                        {{ $name }}
+        <div class="gap-4 md:flex md:items-center">
+            <div class="w-full md:w-1/2">
+                <x-input-label for="locale" :value="__('profile.fields.language')" />
+                <x-select-input id="locale" name="locale" class="mt-1 block w-full">
+                    @foreach ($languages as $code => $name)
+                        <option value="{{ $code }}" @selected(old('locale', $user->locale) === $code)>
+                            {{ $name }}
+                        </option>
+                    @endforeach
+                </x-select-input>
+                <x-input-error :messages="$errors->get('locale')" />
+            </div>
+
+            <div class="mt-4 w-full md:mt-0 md:w-1/2" x-data="{ theme: '{{ old('theme', $user->theme) }}' }">
+                <x-input-label for="theme" :value="__('profile.fields.theme')" />
+                <x-select-input id="theme" class="block w-full" name="theme"
+                    @change="theme = $event.target.value">
+                    <option value="light" :selected="theme === 'light'">{{ __('profile.fields.theme_light') }}
                     </option>
-                @endforeach
-            </x-select-input>
-            <x-input-error :messages="$errors->get('locale')" />
+                    <option value="dark" :selected="theme === 'dark'">{{ __('profile.fields.theme_dark') }}
+                    </option>
+                    <option value="system" :selected="theme === 'system'">{{ __('profile.fields.theme_system') }}
+                    </option>
+                </x-select-input>
+                <x-input-error :messages="$errors->get('theme')" />
+            </div>
         </div>
 
-        {{-- Theme Selection --}}
-        <div class="mt-4" x-data="{ theme: '{{ old('theme', $user->theme) }}' }">
-            <x-input-label for="theme" :value="__('profile.fields.theme')" />
-            <x-select-input id="theme" name="theme" @change="theme = $event.target.value">
-                <option value="light" :selected="theme === 'light'">{{ __('profile.fields.theme_light') }}</option>
-                <option value="dark" :selected="theme === 'dark'">{{ __('profile.fields.theme_dark') }}</option>
-                <option value="system" :selected="theme === 'system'">{{ __('profile.fields.theme_system') }}
-                </option>
-            </x-select-input>
-            <x-input-error :messages="$errors->get('theme')" />
-        </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('button.update') }}</x-primary-button>
-        </div>
+        <x-primary-button>{{ __('button.update') }}</x-primary-button>
     </form>
 </x-container>
