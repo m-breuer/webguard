@@ -20,6 +20,10 @@ class SocialiteController extends Controller
     {
         $githubUser = Socialite::driver('github')->user();
 
+        if (empty($githubUser->getEmail())) {
+            return redirect()->route('register')->withErrors(['socialite_error' => 'Could not retrieve your email address from GitHub. Please make your email public on your GitHub profile or register with email and password.']);
+        }
+
         $user = User::query()->where('github_id', $githubUser->getId())->first();
 
         if ($user) {

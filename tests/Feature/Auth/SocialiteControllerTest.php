@@ -94,4 +94,34 @@ class SocialiteControllerTest extends TestCase
         $this->assertAuthenticatedAs($user);
         $response->assertRedirect(route('dashboard'));
     }
+
+    public function test_handle_github_callback_with_null_email(): void
+    {
+        $githubUser = Mockery::mock(\Laravel\Socialite\Two\User::class);
+        $githubUser->shouldReceive('getId')->andReturn('12345');
+        $githubUser->shouldReceive('getName')->andReturn('Test User');
+        $githubUser->shouldReceive('getEmail')->andReturn(null);
+
+        Socialite::shouldReceive('driver->user')->andReturn($githubUser);
+
+        $response = $this->get(route('github.callback'));
+
+        $response->assertRedirect(route('register'));
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_handle_github_callback_with_empty_string_email(): void
+    {
+        $githubUser = Mockery::mock(\Laravel\Socialite\Two\User::class);
+        $githubUser->shouldReceive('getId')->andReturn('12345');
+        $githubUser->shouldReceive('getName')->andReturn('Test User');
+        $githubUser->shouldReceive('getEmail')->andReturn('');
+
+        Socialite::shouldReceive('driver->user')->andReturn($githubUser);
+
+        $response = $this->get(route('github.callback'));
+
+        $response->assertRedirect(route('register'));
+        $response->assertSessionHasErrors('email');
+    }
 }
