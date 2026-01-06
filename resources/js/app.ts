@@ -1,6 +1,8 @@
+import './components/ThemeSwitcher';
+
 import.meta.glob([
     '../images/**',
-    '../fonts/**'
+    '../fonts/**',
 ]);
 
 import './bootstrap';

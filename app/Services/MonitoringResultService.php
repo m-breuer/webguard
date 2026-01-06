@@ -347,7 +347,7 @@ class MonitoringResultService
 
             $combinedData = $dailyAggregatedData->map(function ($row) {
                 return [
-                    'date' => Date::parse($row->date)->format('Y-m-d'),
+                    'date' => Date::parse($row->date)->toIso8601String(),
                     'avg' => $row->avg_response_time ?? 0,
                     'min' => $row->min_response_time ?? 0,
                     'max' => $row->max_response_time ?? 0,
@@ -382,7 +382,7 @@ class MonitoringResultService
         // Combine and process data for final output.
         $combinedData = $data->map(function ($row) {
             return [
-                'date' => $row['period'],
+                'date' => Date::parse($row['period'] . ':00:00')->toIso8601String(),
                 'avg' => $row['avg_response_time'],
                 'min' => $row['min_response_time'],
                 'max' => $row['max_response_time'],
@@ -531,7 +531,7 @@ class MonitoringResultService
                 }
 
                 $monthDays[] = [
-                    'date' => $dateString,
+                    'date' => $currentDay->toIso8601String(),
                     'uptime_percentage' => $uptimePercentage,
                 ];
             }

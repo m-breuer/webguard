@@ -90,7 +90,7 @@ return [
             'heading' => 'SSL-Status',
             'valid' => 'Gültig',
             'expired' => 'Abgelaufen oder Ungültig',
-            'expires_in' => 'Läuft ab in',
+            'expires_in' => 'Läuft aus am',
             'issued_on' => 'Ausgestellt am',
             'issued_from' => 'Ausgestellt von',
         ],

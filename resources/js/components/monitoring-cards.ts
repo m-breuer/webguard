@@ -1,3 +1,21 @@
+import { formatDistanceToNowStrict, Locale } from 'date-fns';
+import { enUS, de } from 'date-fns/locale'; // Import locales as needed
+
+// Map Laravel locales to date-fns locales
+const dateFnsLocales: { [key: string]: Locale } = {
+    'en': enUS,
+    'de': de,
+    // Add other locales as needed
+};
+
+declare global {
+    interface Window {
+        App: {
+            locale: string;
+        };
+    }
+}
+
 interface MonitoringCardLoaderComponent {
     monitoringIds: string[];
     monitoringNames: Record<string, string>;
@@ -11,8 +29,7 @@ interface MonitoringCardLoaderComponent {
     sinceMap: Record<string, string>;
     sinceDateMap: Record<string, string | null>;
     lastCheckMap: Record<string, string>;
-    _formatTime(this: MonitoringCardLoaderComponent, seconds: number): string;
-    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null;
+    currentLocale: Locale;
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
     updateSince(this: MonitoringCardLoaderComponent): void;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
@@ -42,42 +59,13 @@ export default (
     sinceDateMap: {} as Record<string, string | null>,
     lastCheckMap: {} as Record<string, string>,
 
-    // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
-    _formatTime(seconds: number): string {
-        if (seconds < 0) {
-            return '0s';
-        }
-
-        const d = Math.floor(seconds / (3600 * 24));
-        const h = Math.floor(seconds % (3600 * 24) / 3600);
-        const m = Math.floor(seconds % 3600 / 60);
-        const s = Math.floor(seconds % 60);
-
-        let result = '';
-        if (d > 0) {
-            result += `${d}d `;
-        }
-        if (h > 0) {
-            result += `${h}h `;
-        }
-        if (m > 0) {
-            result += `${m}m `;
-        }
-        if (s > 0 || result === '') { // Always show seconds if no other unit, or if it's the only unit
-            result += `${s}s`;
-        }
-
-        return result.trim();
-    },
+    currentLocale: dateFnsLocales[window.App.locale] || enUS,
 
     formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null {
         if (!isoTimestamp) {
             return null;
         }
-        const date = new Date(isoTimestamp);
-        const now = new Date();
-        const diffInSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
-        return this._formatTime(diffInSeconds);
+        return formatDistanceToNowStrict(new Date(isoTimestamp), { addSuffix: true, locale: this.currentLocale });
     },
 
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string } {

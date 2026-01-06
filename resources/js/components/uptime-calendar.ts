@@ -1,3 +1,6 @@
+import { Locale } from 'date-fns';
+import { formatDateForDisplay, getCurrentDateFnsLocale } from '../utils/date-fns-utils';
+
 interface DayUptime {
     date: string;
     uptime_percentage: number | null;
@@ -16,6 +19,7 @@ interface UptimeCalendarComponent {
     isLoading: boolean;
     calendarData: CalendarData | null;
     monitoringId: string;
+    currentLocale: Locale;
     fetchUptimeCalendar(this: UptimeCalendarComponent): Promise<void>;
 }
 
@@ -23,6 +27,7 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
     isLoading: true,
     calendarData: null,
     monitoringId: monitoringId,
+    currentLocale: getCurrentDateFnsLocale(),
 
     async fetchUptimeCalendar() {
         this.isLoading = true;
@@ -38,7 +43,17 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            this.calendarData = await response.json();
+            const responseData = await response.json();
+            this.calendarData = Object.keys(responseData).reduce((acc, monthYear) => {
+                acc[monthYear] = {
+                    ...responseData[monthYear],
+                    days: responseData[monthYear].days.map((day: any) => ({
+                        ...day,
+                        date: formatDateForDisplay(day.date, 'dd.MM.yyyy'),
+                    })),
+                };
+                return acc;
+            }, {});
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
             this.calendarData = null; // Clear data on error

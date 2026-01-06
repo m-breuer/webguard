@@ -1,10 +1,15 @@
 import Chart from 'chart.js/auto';
+import { format, formatDistanceToNowStrict, Locale } from 'date-fns';
+import { enUS, de } from 'date-fns/locale'; // Import locales as needed
 
-// Define a type for the time format utility
-type TimeFormat = (seconds: number) => string;
+// Map Laravel locales to date-fns locales
+const dateFnsLocales: { [key: string]: Locale } = {
+    'en': enUS,
+    'de': de,
+    // Add other locales as needed
+};
 
 interface MonitoringDetailComponent {
-    _formatDate: any;
     sinceDate: any;
     incidents: any[];
     status: string | null;
@@ -35,9 +40,9 @@ interface MonitoringDetailComponent {
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
-    formatTime: TimeFormat;
     getThemeColors(): {};
-    _formatDuration(minutes: number): string;
+    currentLocale: Locale;
+    _formatDurationFromMinutes(minutes: number): string;
     loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
@@ -53,6 +58,14 @@ interface MonitoringDetailComponent {
 
 interface AlpineThisContext extends MonitoringDetailComponent {
     $nextTick: (callback?: () => void) => Promise<void>;
+}
+
+declare global {
+    interface Window {
+        App: {
+            locale: string;
+        };
+    }
 }
 
 export default (monitoringId: string, chartLabels: Record<string, string>): MonitoringDetailComponent => ({
@@ -91,61 +104,12 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
     sinceDate: null as Date | null,
 
-    _formatDate(isoTimestamp: string | null): string | null {
-        if (!isoTimestamp) {
-            return null;
-        }
-        const date = new Date(isoTimestamp);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    currentLocale: dateFnsLocales[window.App.locale] || enUS,
+
+    _formatDurationFromMinutes(minutes: number): string {
+        if (minutes < 0) return formatDuration({ minutes: 0 }, { locale: this.currentLocale });
+        return formatDuration({ minutes: minutes }, { locale: this.currentLocale });
     },
-
-    _formatDuration(minutes: number): string {
-        if (minutes < 0) return '0 minutes';
-        const days = Math.floor(minutes / (24 * 60));
-        const hours = Math.floor((minutes % (24 * 60)) / 60);
-        const remainingMinutes = minutes % 60;
-
-        let parts: string[] = [];
-        if (days > 0) parts.push(`${days} day${days === 1 ? '' : 's'}`);
-        if (hours > 0) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
-        if (remainingMinutes > 0) parts.push(`${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`);
-
-        return parts.length > 0 ? parts.join(' ') : '0 minutes';
-    },
-
-    // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
-    formatTime(seconds: number): string {
-        if (seconds < 0) {
-            return '0s';
-        }
-
-        const d = Math.floor(seconds / (3600 * 24));
-        const h = Math.floor(seconds % (3600 * 24) / 3600);
-        const m = Math.floor(seconds % 3600 / 60);
-        const s = Math.floor(seconds % 60);
-
-        let result = '';
-        if (d > 0) {
-            result += `${d}d `;
-        }
-        if (h > 0) {
-            result += `${h}h `;
-        }
-        if (m > 0) {
-            result += `${m}m `;
-        }
-        if (s > 0 || result === '') {
-            result += `${s}s`;
-        }
-
-        return result.trim();
-    },
-
 
     getThemeColors(this: MonitoringDetailComponent) {
         // This function was empty in the original JS, keeping it as is.
@@ -192,9 +156,9 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             this.incidents = responseData.map((incident: any) => ({
                 ...incident,
-                down_at: this._formatDate(incident.down_at),
-                up_at: incident.up_at ? this._formatDate(incident.up_at) : null,
-                duration: this._formatDuration(incident.duration),
+                down_at: incident.down_at ? format(new Date(incident.down_at), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale }) : null,
+                up_at: incident.up_at ? format(new Date(incident.up_at), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale }) : null,
+                duration: this._formatDurationFromMinutes(incident.duration),
             }));
         } catch (_) {
             this.incidents = [];
@@ -257,14 +221,14 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         this.countdown = setInterval(() => {
             if (this.lastCheckedAtDate) {
                 const now = new Date();
-                const diffInSeconds = Math.round((now.getTime() - this.lastCheckedAtDate.getTime()) / 1000);
-                this.lastCheckedAt = `${this.formatTime(diffInSeconds)}`;
+                const diffInMinutes = Math.round((now.getTime() - this.lastCheckedAtDate.getTime()) / (1000 * 60));
+                this.lastCheckedAt = this._formatDurationFromMinutes(diffInMinutes);
             }
 
             if (this.sinceDate) {
                 const now = new Date();
-                const diffInSeconds = Math.round((now.getTime() - this.sinceDate.getTime()) / 1000);
-                this.since = this.formatTime(diffInSeconds);
+                const diffInMinutes = Math.round((now.getTime() - this.sinceDate.getTime()) / (1000 * 60));
+                this.since = this._formatDurationFromMinutes(diffInMinutes);
             }
         }, 1000);
     },
@@ -277,12 +241,12 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = this._formatDate(responseData.checked_at);
+                this.lastCheckedAtHuman = format(new Date(responseData.checked_at), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale });
             }
 
             if (responseData.next) {
                 this.nextCheckInDate = new Date(responseData.next);
-                this.nextCheckInHuman = this._formatDate(responseData.next);
+                this.nextCheckInHuman = format(new Date(responseData.next), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale });
             }
 
             if (responseData.interval) {
@@ -309,10 +273,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             .then(data => {
                 if (data && data[label]) {
                     if (data[label].downtime && data[label].downtime.total_human !== undefined) {
-                        data[label].downtime.total_human = this._formatDuration(data[label].downtime.total_human);
+                        data[label].downtime.total_human = this._formatDurationFromMinutes(data[label].downtime.total_human);
                     }
                     if (data[label].uptime && data[label].uptime.total_human !== undefined) {
-                        data[label].uptime.total_human = this._formatDuration(data[label].uptime.total_human);
+                        data[label].uptime.total_human = this._formatDurationFromMinutes(data[label].uptime.total_human);
                     }
                 }
                 return { [label]: data };
@@ -481,7 +445,17 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            this.uptimeCalendarData = await response.json();
+            const responseData = await response.json();
+            this.uptimeCalendarData = Object.keys(responseData).reduce((acc, monthYear) => {
+                acc[monthYear] = {
+                    ...responseData[monthYear],
+                    days: responseData[monthYear].days.map((day: any) => ({
+                        ...day,
+                        date: format(new Date(day.date), 'dd.MM.yyyy', { locale: this.currentLocale }),
+                    })),
+                };
+                return acc;
+            }, {});
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
         } finally {
