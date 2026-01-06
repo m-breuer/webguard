@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 
 /**
- * Class ApiController
+ * @group Public API
  *
  * This controller is responsible for handling all API requests related to monitoring data.
  * It provides endpoints for retrieving uptime/downtime, response times, incidents, and other monitoring statistics.
@@ -26,11 +26,87 @@ class ApiController extends Controller
     protected int $cronjobInterval = 60;
 
     /**
+     * Retrieves all data for a given monitoring instance.
+     *
+     * @response {
+     *  "status_since": {
+     *  "status": "UP",
+     *  "time": "2021-01-01 00:00:00"
+     *  },
+     *  "status_now": {
+     *  "status": "UP"
+     *  },
+     *  "uptime_downtime": [
+     *  {
+     *  "date": "2021-01-01",
+     *  "uptime": 100,
+     *  "downtime": 0
+     *  }
+     *  ],
+     *  "response_times": [
+     *  {
+     *  "datetime": "2021-01-01 00:00:00",
+     *  "response_time": 123
+     *  }
+     *  ],
+     *  "incidents": [
+     *  {
+     *  "started_at": "2021-01-01 00:00:00",
+     *  "finished_at": "2021-01-01 00:05:00",
+     *  "type": "DOWN",
+     *  "reason": "HTTP status code 500"
+     *  }
+     *  ],
+     *  "heatmap": [
+     *  {
+     *  "hour": "00:00",
+     *  "uptime": 100
+     *  }
+     *  ],
+     *  "ssl": {
+     *  "valid": true,
+     *  "expiration": "2022-01-01T00:00:00.000000Z",
+     *  "issuer": "Let's Encrypt",
+     *  "issue_date": "2021-10-01T00:00:00.000000Z"
+     *  },
+     *  "uptime_calendar": {
+     *  "2021-01": [
+     *  {
+     *  "date": "2021-01-01",
+     *  "uptime": "100.00"
+     *  }
+     *  ]
+     *  }
+     * }
+     */
+    public function all(Monitoring $monitoring, Request $request): JsonResponse
+    {
+        $data = [
+            'status_since' => $this->statusSince($monitoring)->getData(),
+            'status_now' => $this->statusNow($monitoring)->getData(),
+            'uptime_downtime' => $this->uptimeDowntime($monitoring, $request)->getData(),
+            'response_times' => $this->responseTimes($monitoring, $request)->getData(),
+            'incidents' => $this->incidents($monitoring, $request)->getData(),
+            'heatmap' => $this->uptimeHeatmap($monitoring)->getData(),
+            'ssl' => $this->sslStatus($monitoring)->getData(),
+            'uptime_calendar' => $this->uptimeCalendar($monitoring, $request)->getData(),
+        ];
+
+        return response()->json($data);
+    }
+
+    /**
      * Retrieves the uptime and downtime data for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @param  Request  $request  The HTTP request.
-     * @return JsonResponse The JSON response containing the uptime and downtime data.
+     * @queryParam days integer The number of days to retrieve data for. Defaults to 30. Example: 30
+     *
+     * @response [
+     * {
+     * "date": "2021-01-01",
+     * "uptime": 100,
+     * "downtime": 0
+     * }
+     * ]
      */
     public function uptimeDowntime(Monitoring $monitoring, Request $request): JsonResponse
     {
@@ -59,9 +135,14 @@ class ApiController extends Controller
     /**
      * Retrieves the response times for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @param  Request  $request  The HTTP request.
-     * @return JsonResponse The JSON response containing the response times data.
+     * @queryParam days integer The number of days to retrieve data for. Defaults to 30. Example: 30
+     *
+     * @response [
+     * {
+     * "datetime": "2021-01-01 00:00:00",
+     * "response_time": 123
+     * }
+     * ]
      */
     public function responseTimes(Monitoring $monitoring, Request $request): JsonResponse
     {
@@ -90,8 +171,12 @@ class ApiController extends Controller
     /**
      * Retrieves the uptime heatmap data for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @return JsonResponse The JSON response containing the uptime heatmap data.
+     * @response [
+     * {
+     * "hour": "00:00",
+     * "uptime": 100
+     * }
+     * ]
      */
     public function uptimeHeatmap(Monitoring $monitoring): JsonResponse
     {
@@ -113,8 +198,10 @@ class ApiController extends Controller
     /**
      * Retrieves the status since the last incident for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @return JsonResponse The JSON response containing the status since data.
+     * @response {
+     * "status": "UP",
+     * "time": "2021-01-01 00:00:00"
+     * }
      */
     public function statusSince(Monitoring $monitoring): JsonResponse
     {
@@ -126,8 +213,9 @@ class ApiController extends Controller
     /**
      * Retrieves the current status of a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @return JsonResponse The JSON response containing the current status data.
+     * @response {
+     * "status": "UP"
+     * }
      */
     public function statusNow(Monitoring $monitoring): JsonResponse
     {
@@ -139,9 +227,16 @@ class ApiController extends Controller
     /**
      * Retrieves the incidents for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @param  Request  $request  The HTTP request.
-     * @return JsonResponse The JSON response containing the incidents data.
+     * @queryParam days integer The number of days to retrieve data for. Defaults to 30. Example: 30
+     *
+     * @response [
+     * {
+     * "started_at": "2021-01-01 00:00:00",
+     * "finished_at": "2021-01-01 00:05:00",
+     * "type": "DOWN",
+     * "reason": "HTTP status code 500"
+     * }
+     * ]
      */
     public function incidents(Monitoring $monitoring, Request $request): JsonResponse
     {
@@ -168,8 +263,12 @@ class ApiController extends Controller
     /**
      * Retrieves the SSL status for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @return JsonResponse The JSON response containing the SSL status data.
+     * @response {
+     * "valid": true,
+     * "expiration": "2022-01-01T00:00:00.000000Z",
+     * "issuer": "Let's Encrypt",
+     * "issue_date": "2021-10-01T00:00:00.000000Z"
+     * }
      */
     public function sslStatus(Monitoring $monitoring): JsonResponse
     {
@@ -193,9 +292,17 @@ class ApiController extends Controller
     /**
      * Retrieves the uptime calendar data for a given monitoring instance.
      *
-     * @param  Monitoring  $monitoring  The monitoring instance.
-     * @param  Request  $request  The HTTP request.
-     * @return JsonResponse The JSON response containing the uptime calendar data.
+     * @queryParam start_date date required The start date to retrieve data for. Example: 2021-01-01
+     * @queryParam end_date date required The end date to retrieve data for. Example: 2021-01-31
+     *
+     * @response {
+     * "2021-01": [
+     * {
+     * "date": "2021-01-01",
+     * "uptime": "100.00"
+     * }
+     * ]
+     * }
      */
     public function uptimeCalendar(Monitoring $monitoring, Request $request): JsonResponse
     {
