@@ -70,7 +70,7 @@ export default (
         if (statusData) {
             this.statusMap[monitoringId] = statusData.status;
             this.sinceDateMap[monitoringId] = statusData.since;
-            this.sinceMap[monitoringId] = statusData.since ? dayjs(statusData.since).locale(this.currentLocale).fromNow() : '';
+            this.sinceMap[monitoringId] = statusData.since ? dayjs(statusData.since).locale(this.currentLocale).fromNow(true) : '';
         }
 
         if (heatmapData) {
@@ -113,7 +113,7 @@ export default (
         dayjs.locale(this.currentLocale);
         for (const monitoringId in this.sinceDateMap) {
             const sinceDate = this.sinceDateMap[monitoringId];
-            this.sinceMap[monitoringId] = sinceDate ? dayjs(sinceDate).fromNow() : '';
+            this.sinceMap[monitoringId] = sinceDate ? dayjs(sinceDate).fromNow(true) : '';
         }
     },
 

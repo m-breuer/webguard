@@ -213,7 +213,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             }
 
             if (this.sinceDate) {
-                this.since = dayjs(this.sinceDate).fromNow();
+                this.since = dayjs(this.sinceDate).fromNow(true);
             }
         }, 1000);
     },
