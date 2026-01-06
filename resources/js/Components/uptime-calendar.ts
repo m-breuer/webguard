@@ -1,4 +1,10 @@
 import { getCurrentDayjsLocale } from "@/utils/dayjs-utils";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import "dayjs/locale/de";
+import "dayjs/locale/en";
+
+dayjs.extend(localizedFormat);
 
 interface DayUptime {
     date: string;
@@ -48,7 +54,7 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: day.date, // TODO: format date according to locale
+                        date: dayjs(day.date).locale(this.currentLocale).format('L'),
                     })),
                 };
                 return acc;

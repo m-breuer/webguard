@@ -21,6 +21,11 @@
     <meta property="og:image" content="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
+    <script>
+        window.App = {
+            locale: '{{ app()->getLocale() }}'
+        }
+    </script>
 </head>
 
 <body class="bg-gray-100 font-sans antialiased dark:bg-gray-900 dark:text-gray-100">
