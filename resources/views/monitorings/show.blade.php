@@ -120,8 +120,7 @@
                 <x-heading type="h2">{{ __('monitoring.detail.last_check') }}</x-heading>
                 <div>
                     <template x-if="lastCheckedAt">
-                        <x-paragraph
-                            x-text="'{{ __('monitoring.detail.last_check_before') }} ' + lastCheckedAtHuman"></x-paragraph>
+                        <x-paragraph x-text="lastCheckedAtHuman"></x-paragraph>
                     </template>
                     <template x-if="!lastCheckedAt">
                         <div x-transition.opacity>

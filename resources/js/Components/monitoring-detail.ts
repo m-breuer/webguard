@@ -210,8 +210,9 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
         this.countdown = window.setInterval(() => {
             dayjs.locale(this.currentLocale);
+
             if (this.lastCheckedAtDate) {
-                this.lastCheckedAtHuman = dayjs(this.lastCheckedAtDate).fromNow();
+                this.lastCheckedAtHuman = dayjs().locale(this.currentLocale).format('L LTS');
             }
 
             if (this.sinceDate) {
@@ -229,6 +230,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
                 this.lastCheckedAtHuman = dayjs(this.lastCheckedAtDate).locale(this.currentLocale).fromNow();
+                this.lastCheckedAt = responseData.checked_at;
             }
 
             if (responseData.interval) {

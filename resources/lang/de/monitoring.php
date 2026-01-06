@@ -55,7 +55,6 @@ return [
         'current_status' => 'Aktueller Status',
         'no_data' => 'Daten werden geladen...',
         'last_check' => 'Letzte Prüfung',
-        'last_check_before' => 'vor',
         'next_check' => 'Nächste Prüfung in',
         'interval' => 'Geprüft alle',
         'last_24_hours' => 'Letzte 24 Stunden',
