@@ -200,13 +200,6 @@ class Monitoring extends Model
     {
         parent::boot();
 
-        // TODO: check why not using preferred_location scope breaks things
-        /*
-        static::addGlobalScope('forCurrentLocation', function (Builder $builder) {
-            $builder->where('preferred_location', config('webguard.location'));
-        });
-        */
-
         static::addGlobalScope('user', function (Builder $builder): void {
             if (Auth::check()) {
                 $builder->where('user_id', Auth::user()->id);

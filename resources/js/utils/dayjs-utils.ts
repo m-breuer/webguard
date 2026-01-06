@@ -3,18 +3,11 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/de'; // Import German locale data
+import 'dayjs/locale/en';
 
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
-
-declare global {
-    interface Window {
-        App: {
-            locale: string;
-        };
-    }
-}
 
 export function getCurrentDayjsLocale(): string {
     const locale = window.App.locale || 'en';

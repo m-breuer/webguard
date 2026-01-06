@@ -1,10 +1,6 @@
 import { getCurrentDayjsLocale } from "@/utils/dayjs-utils";
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/de";
-import "dayjs/locale/en";
-
-dayjs.extend(relativeTime);
+import { renderHeatmap } from "@/utils/heatmap-utils";
 
 interface MonitoringCardLoaderComponent {
     monitoringIds: string[];
@@ -20,7 +16,6 @@ interface MonitoringCardLoaderComponent {
     sinceDateMap: Record<string, string | null>;
     lastCheckMap: Record<string, string>;
     currentLocale: string;
-    getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
     updateSince(this: MonitoringCardLoaderComponent): void;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
@@ -51,16 +46,6 @@ export default (
 
     currentLocale: getCurrentDayjsLocale(),
 
-    getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string } {
-        const htmlElement = document.documentElement;
-        const isDark = htmlElement.classList.contains('dark');
-        return {
-            up: 'bg-green-500',
-            down: 'bg-red-500',
-            unknown: isDark ? 'bg-gray-400' : 'bg-gray-300'
-        };
-    },
-
     async loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void> {
         const statusPromise = fetch(`/api/monitorings/${monitoringId}/status-since`).then(res => res.ok ? res.json() : null).catch(() => null);
         const heatmapPromise = fetch(`/api/monitorings/${monitoringId}/heatmap`).then(res => res.ok ? res.json() : null).catch(() => null);
@@ -75,29 +60,8 @@ export default (
 
         if (heatmapData) {
             const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
-
             if (heatmapContainer) {
-                heatmapContainer.innerHTML = '';
-                const capped = Array.isArray(heatmapData) ? heatmapData.slice(0, 24) : [];
-                while (capped.length < 24) {
-                    capped.push({ uptime: 0, downtime: 0 });
-                }
-
-                const colors = this.getThemeColors();
-
-                capped.forEach((point: { uptime: number; downtime: number }) => {
-                    const statusDot = document.createElement('div');
-                    let bgColor;
-                    if (point.uptime > point.downtime) {
-                        bgColor = colors.up;
-                    } else if (point.uptime < point.downtime) {
-                        bgColor = colors.down;
-                    } else {
-                        bgColor = colors.unknown;
-                    }
-                    statusDot.className = `h-6 w-3 rounded-xs ${bgColor}`;
-                    heatmapContainer.appendChild(statusDot);
-                });
+                renderHeatmap(heatmapContainer, heatmapData);
             }
         }
     },

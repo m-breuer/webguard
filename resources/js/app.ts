@@ -10,8 +10,6 @@ import './bootstrap';
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
 
-import './components/ThemeSwitcher';
-
 import monitoringCardLoader from './components/monitoring-cards';
 import monitoringDetail from './components/monitoring-detail';
 import uptimeCalendar from './components/uptime-calendar';

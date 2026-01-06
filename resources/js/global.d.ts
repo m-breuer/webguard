@@ -4,6 +4,9 @@ declare global {
         Alpine: any; // Using 'any' for simplicity, can be more specific if Alpine.js types are available
         Chart: any; // Adding Chart to the Window interface
         axios: any; // Adding axios to the Window interface
+        App: {
+            locale: string;
+        };
     }
 }
 

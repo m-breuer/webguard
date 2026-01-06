@@ -1,10 +1,5 @@
 import { getCurrentDayjsLocale } from "@/utils/dayjs-utils";
 import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import "dayjs/locale/de";
-import "dayjs/locale/en";
-
-dayjs.extend(localizedFormat);
 
 interface DayUptime {
     date: string;

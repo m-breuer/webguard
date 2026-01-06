@@ -1,15 +1,6 @@
 import { getCurrentDayjsLocale } from '@/utils/dayjs-utils';
 import Chart from 'chart.js/auto';
 import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
-import duration from 'dayjs/plugin/duration';
-import 'dayjs/locale/de';
-import 'dayjs/locale/en';
-
-dayjs.extend(relativeTime);
-dayjs.extend(localizedFormat);
-dayjs.extend(duration);
 
 interface MonitoringDetailComponent {
     sinceDate: any;
@@ -96,11 +87,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
     currentLocale: getCurrentDayjsLocale(),
 
-    getThemeColors(this: MonitoringDetailComponent) {
-        // This function was empty in the original JS, keeping it as is.
-        return {};
-    },
-
     // Loads the current status and since when this status has been active
     async loadStatusChanged(this: MonitoringDetailComponent): Promise<void> {
         try {
@@ -157,12 +143,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     async loadHeatmap(this: MonitoringDetailComponent): Promise<void> {
         this.loading = true;
 
-        // TODO: not working
-
         try {
             const response = await fetch(`/api/monitorings/${monitoringId}/heatmap`);
             const responseData = await response.json();
-            let capped = responseData.slice(0, 24);
+            let capped = Array.isArray(responseData) ? responseData.slice(0, 24) : [];
             if (capped.length < 24) {
                 const missing = 24 - capped.length;
                 // Fill missing hours with zero uptime and downtime
@@ -172,26 +156,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             // Replace heatmap data with the capped and possibly filled array
             this.heatmap.splice(0, this.heatmap.length, ...capped);
-
-            // Manually update heatmap dots if they are rendered outside Alpine's direct control
-            const heatmapContainer = document.getElementById('monitoring-heatmap-detail');
-            if (heatmapContainer) {
-                heatmapContainer.innerHTML = ''; // Clear existing dots
-                capped.forEach((point: { uptime: number; downtime: number; }) => {
-                    const statusDot = document.createElement('div');
-
-                    let bgColor;
-                    if (point.uptime > point.downtime) {
-                        bgColor = 'bg-green-500';
-                    } else if (point.uptime < point.downtime) {
-                        bgColor = 'bg-red-500';
-                    } else {
-                        bgColor = 'bg-gray-400';
-                    }
-                    statusDot.className = `h-6 w-3 rounded-xs ${bgColor}`;
-                    heatmapContainer.appendChild(statusDot);
-                });
-            }
 
         } catch (_) {
             this.heatmap = [];
