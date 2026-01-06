@@ -1,4 +1,4 @@
-import { getCurrentDayjsLocale } from '@/utils/dayjs-utils';
+import { formatDate, getCurrentDayjsLocale, humanizeDistance, humanizeDuration } from '@/utils/dayjs-utils';
 import Chart from 'chart.js/auto';
 import dayjs from 'dayjs';
 
@@ -17,7 +17,7 @@ interface MonitoringDetailComponent {
     lastCheckedAtHuman: string | null;
     interval: number | null;
     countdown: number | null;
-    uptimeDowntimeData: Record<string, any>;
+    uptimeStats: Record<string, any>;
     sslValid: boolean | null;
     sslExpiration: string | null;
     sslIssuer: string | null;
@@ -32,7 +32,6 @@ interface MonitoringDetailComponent {
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
-    getThemeColors(): {};
     currentLocale: string;
     loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
@@ -64,7 +63,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     lastCheckedAtHuman: null,
     interval: null,
     countdown: null,
-    uptimeDowntimeData: {} as Record<string, any>,
+    uptimeStats: {} as Record<string, any>,
     sslValid: null as boolean | null,
     sslExpiration: null as string | null,
     sslIssuer: null as string | null,
@@ -125,12 +124,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/incidents?days=${finalDays}`);
             const responseData = await response.json();
 
-            dayjs.locale(this.currentLocale);
             this.incidents = responseData.map((incident: any) => ({
                 ...incident,
-                down_at: incident.down_at ? dayjs(incident.down_at).format('L LT') : null,
-                up_at: incident.up_at ? dayjs(incident.up_at).format('L LT') : null,
-                duration: incident.duration ? dayjs.duration(incident.duration, 'seconds').humanize() : null,
+                down_at: incident.down_at ? formatDate(incident.down_at, 'L LT') : null,
+                up_at: incident.up_at ? formatDate(incident.up_at, 'L LT') : null,
+                duration: incident.duration ? humanizeDuration(incident.duration, 'seconds') : null,
             }));
         } catch (_) {
             this.incidents = [];
@@ -174,11 +172,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             dayjs.locale(this.currentLocale);
 
             if (this.lastCheckedAtDate) {
-                this.lastCheckedAtHuman = dayjs().locale(this.currentLocale).format('L LTS');
+                this.lastCheckedAtHuman = formatDate(dayjs(), 'L LTS');
             }
 
             if (this.sinceDate) {
-                this.since = dayjs(this.sinceDate).fromNow(true);
+                this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
             }
         }, 1000);
     },
@@ -191,7 +189,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = dayjs(this.lastCheckedAtDate).locale(this.currentLocale).fromNow();
+                this.lastCheckedAtHuman = humanizeDistance(this.lastCheckedAtDate);
                 this.lastCheckedAt = responseData.checked_at;
             }
 
@@ -220,10 +218,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             .then(data => {
                 if (data && data[label]) {
                     if (data[label].downtime && data[label].downtime.total !== undefined) {
-                        data[label].downtime.total_human = dayjs.duration(data[label].downtime.total, 'seconds').humanize();
+                        data[label].downtime.total_human = humanizeDuration(data[label].downtime.total, 'seconds');
                     }
                     if (data[label].uptime && data[label].uptime.total !== undefined) {
-                        data[label].uptime.total_human = dayjs.duration(data[label].uptime.total, 'seconds').humanize();
+                        data[label].uptime.total_human = humanizeDuration(data[label].uptime.total, 'seconds');
                     }
                 }
                 return { [label]: data };
@@ -233,7 +231,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
         const results = await Promise.all(promises);
 
-        this.uptimeDowntimeData = Object.assign({}, ...results);
+        this.uptimeStats = Object.assign({}, ...results);
     },
 
     // Loads SSL certificate status and related metadata
@@ -241,11 +239,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         try {
             const response = await fetch(`/api/monitorings/${monitoringId}/ssl`);
             const responseData = await response.json();
-            dayjs.locale(this.currentLocale);
             this.sslValid = responseData.valid;
-            this.sslExpiration = responseData.expiration ? dayjs(responseData.expiration).format('L') : null;
+            this.sslExpiration = responseData.expiration ? formatDate(responseData.expiration, 'L') : null;
             this.sslIssuer = responseData.issuer;
-            this.sslIssueDate = responseData.issue_date ? dayjs(responseData.issue_date).format('L') : null;
+            this.sslIssueDate = responseData.issue_date ? formatDate(responseData.issue_date, 'L') : null;
         } catch (_) {
             this.sslValid = null;
             this.sslExpiration = null;
@@ -298,7 +295,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.performanceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: responseData.data.map((entry: { date: string; }) => dayjs(entry.date).locale(this.currentLocale).format('L LT')),
+                    labels: responseData.data.map((entry: { date: string; }) => formatDate(entry.date, 'L LT')),
                     datasets: [
                         {
                             label: this.chartLabels.min,
@@ -386,10 +383,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         startDate.setMonth(startDate.getMonth() - 11);
         startDate.setDate(1);
 
-        const formatDate = (date: Date) => date.toISOString().split('T')[0];
+        const formatDateFn = (date: Date) => date.toISOString().split('T')[0];
 
         try {
-            const response = await fetch(`/api/monitorings/${monitoringId}/uptime-calendar?start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}`);
+            const response = await fetch(`/api/monitorings/${monitoringId}/uptime-calendar?start_date=${formatDateFn(startDate)}&end_date=${formatDateFn(endDate)}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -399,7 +396,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: dayjs(day.date).locale(this.currentLocale).format('L'),
+                        date: formatDate(day.date, 'L'),
                     })),
                 };
                 return acc;

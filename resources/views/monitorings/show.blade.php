@@ -177,12 +177,12 @@
                 <x-container id="uptime-card-{{ $key }}">
                     <x-heading type="h2" class="capitalize">{{ $label }}</x-heading>
                     <x-paragraph class="text-2xl font-bold text-purple-600"
-                        x-text="uptimeDowntimeData['{{ $key }}']?.uptime?.percentage_rounded.toFixed(2) + '%' ?? '—%'">
+                        x-text="uptimeStats['{{ $key }}']?.uptime?.percentage_rounded.toFixed(2) + '%' ?? '—%'">
                         —%
                     </x-paragraph>
                     <x-paragraph class="text-gray-400"
-                        x-text="uptimeDowntimeData['{{ $key }}']
-                                ? uptimeDowntimeData['{{ $key }}'].downtime.total + ' {{ __('monitoring.detail.incidents.heading') }}, ' + uptimeDowntimeData['{{ $key }}'].downtime.total_human + ' {{ __('monitoring.detail.downtime') }}'
+                        x-text="uptimeStats['{{ $key }}']
+                                ? uptimeStats['{{ $key }}'].downtime.total + ' {{ __('monitoring.detail.incidents.heading') }}, ' + uptimeStats['{{ $key }}'].downtime.total_human + ' {{ __('monitoring.detail.downtime') }}'
                                 : '— {{ __('monitoring.detail.incidents.heading') }}, {{ __('monitoring.detail.downtime') }} —'">
                         — {{ __('monitoring.detail.incidents.heading') }}, {{ __('monitoring.detail.downtime') }}
                         —

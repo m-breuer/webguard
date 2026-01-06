@@ -15,19 +15,18 @@ export function getCurrentDayjsLocale(): string {
     return locale;
 }
 
-export function formatDateForDisplay(date: dayjs.Dayjs | string | null, formatStr: string): string | null {
+export function formatDate(date: dayjs.Dayjs | string | null, formatStr: string): string | null {
     if (!date) {
         return null;
     }
     return dayjs(date).locale(getCurrentDayjsLocale()).format(formatStr);
 }
 
-export function formatDurationForDisplay(minutes: number): string {
-    // dayjs duration can directly convert minutes to humanized string
-    return dayjs.duration(minutes, 'minutes').locale(getCurrentDayjsLocale()).humanize();
+export function humanizeDuration(value: number, unit: dayjs.ManipulateType): string {
+    return dayjs.duration(value, unit).locale(getCurrentDayjsLocale()).humanize();
 }
 
-export function formatDistanceForDisplay(date: dayjs.Dayjs | string): string {
-    return dayjs(date).locale(getCurrentDayjsLocale()).fromNow();
+export function humanizeDistance(date: dayjs.Dayjs | string, options?: { withoutSuffix?: boolean }): string {
+    return dayjs(date).locale(getCurrentDayjsLocale()).fromNow(options?.withoutSuffix);
 }
 

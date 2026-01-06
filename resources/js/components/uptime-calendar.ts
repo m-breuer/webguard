@@ -1,5 +1,4 @@
-import { getCurrentDayjsLocale } from "@/utils/dayjs-utils";
-import dayjs from "dayjs";
+import { formatDate, getCurrentDayjsLocale } from "@/utils/dayjs-utils";
 
 interface DayUptime {
     date: string;
@@ -31,15 +30,14 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
 
     async fetchUptimeCalendar() {
         this.isLoading = true;
-        const endDate = new Date();
         const startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 11);
         startDate.setDate(1);
 
-        const formatDate = (date: Date) => date.toISOString().split('T')[0];
+        const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
         try {
-            const response = await fetch(`/api/monitorings/${this.monitoringId}/uptime-calendar?start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}`);
+            const response = await fetch(`/api/monitorings/${this.monitoringId}/uptime-calendar?start_date=${formatDateForApi(startDate)}&end_date=${formatDateForApi(endDate)}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -49,7 +47,7 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: dayjs(day.date).locale(this.currentLocale).format('L'),
+                        date: formatDate(day.date, 'L'),
                     })),
                 };
                 return acc;

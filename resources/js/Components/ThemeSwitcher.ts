@@ -1,5 +1,5 @@
 // Helper to get theme from data-theme attribute (for Alpine.js x-data initialization)
-window.getThemeFromCookie = function(): string | undefined {
+window.getInitialTheme = function(): string | undefined {
     const html = document.documentElement;
     return html.dataset.theme;
 };
