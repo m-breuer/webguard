@@ -30,6 +30,7 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
 
     async fetchUptimeCalendar() {
         this.isLoading = true;
+        const endDate = new Date();
         const startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 11);
         startDate.setDate(1);
