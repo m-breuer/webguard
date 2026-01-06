@@ -48,6 +48,8 @@ return [
         'resend_button' => 'Bestätigungs-E-Mail erneut senden',
     ],
     'logout' => 'Abmelden',
+    'or_continue_with' => 'oder fahre fort mit',
+    'github_login' => 'Mit GitHub anmelden',
     'guest_login' => [
         'no_guest_user_found' => 'Kein Gastbenutzer gefunden.',
     ],

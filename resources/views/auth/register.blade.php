@@ -71,4 +71,16 @@
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-4 text-center">
+        <div class="my-4 flex items-center">
+            <div class="flex-grow border-t border-gray-300"></div>
+            <span class="mx-4 flex-shrink px-2 text-gray-500">{{ __('auth.or_continue_with') }}</span>
+            <div class="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        <x-secondary-button :href="route('github.redirect')">
+            {{ __('auth.github_login') }}
+        </x-secondary-button>
+    </div>
 </x-guest-layout>

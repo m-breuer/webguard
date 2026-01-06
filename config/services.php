@@ -35,4 +35,22 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Socialite Providers
+    |--------------------------------------------------------------------------
+    |
+    | Here you can register the credentials for the socialite providers
+    | that you want to use in your application. You can add more
+    | providers as you see fit.
+    |
+    | See: https://laravel.com/docs/socialite
+    |
+    */
+    'github' => [
+        'client_id' => env('GITHUB_CLIENT_ID'),
+        'client_secret' => env('GITHUB_CLIENT_SECRET'),
+        'redirect' => env('GITHUB_REDIRECT_URI'),
+    ],
+
 ];
