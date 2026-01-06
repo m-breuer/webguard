@@ -60,15 +60,24 @@
         --}}
         <input type="hidden" name="terms" value="1">
 
-        <div class="mt-4 flex items-center justify-end">
-            <a class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100"
-                href="{{ route('login') }}">
-                {{ __('auth.register.already_registered') }}
-            </a>
-
-            <x-primary-button class="ms-4">
+        <div class="mt-4">
+            <x-primary-button>
                 {{ __('auth.register.button') }}
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-4 text-center">
+        <div class="my-4 flex items-center">
+            <div class="flex-grow border-t border-gray-300"></div>
+            <span class="mx-4 flex-shrink px-2 text-gray-500">{{ __('auth.or_continue_with') }}</span>
+            <div class="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        <x-input-error :messages="$errors->get('socialite_error')" class="mb-4" />
+
+        <x-secondary-button :href="route('github.redirect')">
+            {{ __('auth.github_login') }}
+        </x-secondary-button>
+    </div>
 </x-guest-layout>

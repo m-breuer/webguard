@@ -27,9 +27,10 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 
 * **Framework:** Laravel 12 (PHP 8.4) - *Chosen for robust MVC architecture and modern PHP features.*
 * **Package Manager:** Composer
-* **API Authentication:** Laravel Sanctum
-* **API Documentation:** Scribe
-* **Cache & Queue:** Redis - *Utilized for high-performance caching and efficient queue management for asynchronous monitoring tasks, ensuring minimal latency.*
+*   **API Authentication:** Laravel Sanctum
+*   **API Documentation:** Scribe
+*   **Social Authentication (Future):** Laravel Socialite - *Installed for future social login integrations, currently configured for GitHub.*
+*   **Cache & Queue:** Redis - *Utilized for high-performance caching and efficient queue management for asynchronous monitoring tasks, ensuring minimal latency.*
 
 ### Frontend
 

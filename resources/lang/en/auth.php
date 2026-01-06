@@ -48,6 +48,8 @@ return [
         'resend_button' => 'Resend Verification Email',
     ],
     'logout' => 'Log Out',
+    'or_continue_with' => 'or continue with',
+    'github_login' => 'Sign in with GitHub',
     'guest_login' => [
         'no_guest_user_found' => 'No guest user found.',
     ],

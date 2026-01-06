@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ApiController as AdminApiController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -10,6 +11,9 @@ use App\Http\Controllers\PublicLabelController;
 use Illuminate\Support\Facades\Route;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
+
+Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
+Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
 Route::get('/', fn () => view('welcome'))->name('welcome');
 
