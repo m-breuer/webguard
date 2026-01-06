@@ -1,3 +1,6 @@
+import { getCurrentDayjsLocale, humanizeDistance } from "@/utils/dayjs-utils";
+import { renderHeatmap } from "@/utils/heatmap-utils";
+
 interface MonitoringCardLoaderComponent {
     monitoringIds: string[];
     monitoringNames: Record<string, string>;
@@ -11,9 +14,7 @@ interface MonitoringCardLoaderComponent {
     sinceMap: Record<string, string>;
     sinceDateMap: Record<string, string | null>;
     lastCheckMap: Record<string, string>;
-    _formatTime(this: MonitoringCardLoaderComponent, seconds: number): string;
-    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null;
-    getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
+    currentLocale: string;
     updateSince(this: MonitoringCardLoaderComponent): void;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
@@ -42,53 +43,7 @@ export default (
     sinceDateMap: {} as Record<string, string | null>,
     lastCheckMap: {} as Record<string, string>,
 
-    // Utility function to format seconds into a human-readable string (e.g., "1d 2h 3m 4s")
-    _formatTime(seconds: number): string {
-        if (seconds < 0) {
-            return '0s';
-        }
-
-        const d = Math.floor(seconds / (3600 * 24));
-        const h = Math.floor(seconds % (3600 * 24) / 3600);
-        const m = Math.floor(seconds % 3600 / 60);
-        const s = Math.floor(seconds % 60);
-
-        let result = '';
-        if (d > 0) {
-            result += `${d}d `;
-        }
-        if (h > 0) {
-            result += `${h}h `;
-        }
-        if (m > 0) {
-            result += `${m}m `;
-        }
-        if (s > 0 || result === '') { // Always show seconds if no other unit, or if it's the only unit
-            result += `${s}s`;
-        }
-
-        return result.trim();
-    },
-
-    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null {
-        if (!isoTimestamp) {
-            return null;
-        }
-        const date = new Date(isoTimestamp);
-        const now = new Date();
-        const diffInSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
-        return this._formatTime(diffInSeconds);
-    },
-
-    getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string } {
-        const htmlElement = document.documentElement;
-        const isDark = htmlElement.classList.contains('dark');
-        return {
-            up: 'bg-green-500',
-            down: 'bg-red-500',
-            unknown: isDark ? 'bg-gray-400' : 'bg-gray-300'
-        };
-    },
+    currentLocale: getCurrentDayjsLocale(),
 
     async loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void> {
         const statusPromise = fetch(`/api/monitorings/${monitoringId}/status-since`).then(res => res.ok ? res.json() : null).catch(() => null);
@@ -99,34 +54,13 @@ export default (
         if (statusData) {
             this.statusMap[monitoringId] = statusData.status;
             this.sinceDateMap[monitoringId] = statusData.since;
-            this.sinceMap[monitoringId] = this.formatSinceDate(statusData.since) ?? '';
+            this.sinceMap[monitoringId] = statusData.since ? humanizeDistance(statusData.since, { withoutSuffix: true }) : '';
         }
 
         if (heatmapData) {
             const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
-
             if (heatmapContainer) {
-                heatmapContainer.innerHTML = '';
-                const capped = Array.isArray(heatmapData) ? heatmapData.slice(0, 24) : [];
-                while (capped.length < 24) {
-                    capped.push({ uptime: 0, downtime: 0 });
-                }
-
-                const colors = this.getThemeColors();
-
-                capped.forEach((point: { uptime: number; downtime: number }) => {
-                    const statusDot = document.createElement('div');
-                    let bgColor;
-                    if (point.uptime > point.downtime) {
-                        bgColor = colors.up;
-                    } else if (point.uptime < point.downtime) {
-                        bgColor = colors.down;
-                    } else {
-                        bgColor = colors.unknown;
-                    }
-                    statusDot.className = `h-6 w-3 rounded-xs ${bgColor}`;
-                    heatmapContainer.appendChild(statusDot);
-                });
+                renderHeatmap(heatmapContainer, heatmapData);
             }
         }
     },
@@ -140,7 +74,8 @@ export default (
 
     updateSince(this: MonitoringCardLoaderComponent): void {
         for (const monitoringId in this.sinceDateMap) {
-            this.sinceMap[monitoringId] = this.formatSinceDate(this.sinceDateMap[monitoringId]) ?? '';
+            const sinceDate = this.sinceDateMap[monitoringId];
+            this.sinceMap[monitoringId] = sinceDate ? humanizeDistance(sinceDate, { withoutSuffix: true }) : '';
         }
     },
 
@@ -149,16 +84,6 @@ export default (
 
         setInterval(() => {
             this.updateSince();
-        }, 1000);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                    this.loadAll();
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
+        }, 60000);
     }
 });

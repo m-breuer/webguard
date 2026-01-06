@@ -161,11 +161,9 @@
         </x-container>
 
         @if ($errors->has('limit'))
-            <div class="mb-4 overflow-hidden rounded-md bg-red-600 shadow-md">
-                <div class="p-6 text-gray-900">
-                    {{ $errors->first('limit') }}
-                </div>
-            </div>
+            <x-container class="mb-4">
+                {{ $errors->first('limit') }}
+            </x-container>
         @endif
 
         <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }})" x-init="init()" x-cloak>
@@ -195,9 +193,12 @@
                                     <x-span x-text="monitoringTargets[id]"></x-span>
                                     <x-span x-text="'(' + monitoringTypes[id] + ')'" class="ml-2"></x-span>
                                     <template x-if="monitoringPublicLabelMap[id]">
-                                        <a x-bind:href="'/label/' + id" target="_blank" class="ml-2 text-gray-400 hover:text-gray-500">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" />
+                                        <a x-bind:href="'/label/' + id" target="_blank"
+                                            class="ml-2 text-gray-400 hover:text-gray-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" />
                                             </svg>
                                         </a>
                                     </template>
@@ -249,4 +250,5 @@
             {{ $monitorings->withQueryString()->links() }}
         </div>
     </x-main>
+
 </x-app-layout>

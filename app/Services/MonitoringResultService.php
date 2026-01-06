@@ -8,7 +8,6 @@ use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringResponseArchived;
 use Carbon\Carbon;
-use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -34,13 +33,13 @@ class MonitoringResultService
      * @example
      * [
      *   {
-     *     "date": "2024-01-01 00",
+     *     "date": "2024-01-01 00::00:00",
      *     "uptime": 60,
      *     "downtime": 0,
      *     "unknown": 0
      *   },
      *   {
-     *     "date": "2024-01-01 01",
+     *     "date": "2024-01-01 01:00:00",
      *     "uptime": 50,
      *     "downtime": 10,
      *     "unknown": 0
@@ -69,11 +68,10 @@ class MonitoringResultService
         return collect(
             CarbonPeriod::create($startDate, '1 hour', $endDate)
                 ->map(function (Carbon $hour) use ($raw) {
-                    $formatted = $hour->format('Y-m-d H');
-                    $record = $raw->get($formatted);
+                    $record = $raw->get($hour->format('Y-m-d H'));
 
                     return [
-                        'date' => $formatted,
+                        'date' => $hour,
                         'uptime' => (int) ($record->uptime ?? 0),
                         'downtime' => (int) ($record->downtime ?? 0),
                         'unknown' => (int) ($record->unknown ?? 0),
@@ -147,15 +145,15 @@ class MonitoringResultService
                 'uptime' => [
                     'total' => $aggregatedData->uptime_total ?? 0,
                     'percentage' => $uptimePercentage,
-                    'percentage_rounded' => number_format($uptimePercentage, 3),
-                    'total_human' => CarbonInterval::minutes($aggregatedData->uptime_minutes ?? 0)->cascade()->forHumans(['minimumUnit' => 'minute']),
+                    'percentage_rounded' => $uptimePercentage,
+                    'total_human' => $aggregatedData->uptime_minutes ?? 0,
                     'total_minutes' => $aggregatedData->uptime_minutes ?? 0,
                 ],
                 'downtime' => [
                     'total' => $aggregatedData->downtime_total ?? 0,
                     'percentage' => $downtimePercentage,
-                    'percentage_rounded' => number_format($downtimePercentage, 3),
-                    'total_human' => CarbonInterval::minutes($aggregatedData->downtime_minutes ?? 0)->cascade()->forHumans(['minimumUnit' => 'minute']),
+                    'percentage_rounded' => $downtimePercentage,
+                    'total_human' => $aggregatedData->downtime_minutes ?? 0,
                     'total_minutes' => $aggregatedData->downtime_minutes ?? 0,
                 ],
             ]);
@@ -208,15 +206,15 @@ class MonitoringResultService
             'uptime' => [
                 'total' => $data->uptime_total ?? 0,
                 'percentage' => $overallUptimePercentage,
-                'percentage_rounded' => number_format($overallUptimePercentage, 3),
-                'total_human' => CarbonInterval::minutes($overallUptimeMinutes)->cascade()->forHumans(['minimumUnit' => 'minute']),
+                'percentage_rounded' => $overallUptimePercentage,
+                'total_human' => $overallUptimeMinutes,
                 'total_minutes' => $overallUptimeMinutes,
             ],
             'downtime' => [
                 'total' => $data->downtime_total ?? 0,
                 'percentage' => $overallDowntimePercentage,
-                'percentage_rounded' => number_format($overallDowntimePercentage, 3),
-                'total_human' => CarbonInterval::minutes($overallDowntimeMinutes)->cascade()->forHumans(['minimumUnit' => 'minute']),
+                'percentage_rounded' => $overallDowntimePercentage,
+                'total_human' => $overallDowntimeMinutes,
                 'total_minutes' => $overallDowntimeMinutes,
             ],
         ]);
@@ -231,7 +229,7 @@ class MonitoringResultService
      * @example
      * {
      *   "status": "up",
-     *   "since": "1 day ago"
+     *   "since": "2024-01-01T12:00:00Z"
      * }
      */
     public static function getStatusSince(Monitoring $monitoring): array
@@ -263,13 +261,14 @@ class MonitoringResultService
      *
      * @param  Monitoring  $monitoring  The monitoring instance to check the status for.
      * @param  int  $cronjobInterval  The interval in seconds for the cron job.
-     * @return array{status: string, checked_at: string, next: string} An array containing the status, last checked time and next check time.
+     * @return array{status: string, checked_at: string, next: string, interval: int} An array containing the status, last checked time and next check time.
      *
      * @example
      * {
      *   "status": "up",
-     *   "checked_at": "24 seconds ago",
-     *   "next": "in 36 seconds from now"
+     *   "checked_at": "2024-01-01T12:00:00Z",
+     *   "next": "2024-01-01T12:01:00Z",
+     *   "interval": 60
      * }
      */
     public static function getStatusNow(Monitoring $monitoring, int $cronjobInterval = 60): array
@@ -279,7 +278,7 @@ class MonitoringResultService
         return [
             'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
             'checked_at' => $latest ? $latest->updated_at->toIso8601String() : null,
-            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : $cronjobInterval,
+            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : Date::now()->addSeconds($cronjobInterval)->toIso8601String(),
             'interval' => $cronjobInterval,
         ];
     }
@@ -301,9 +300,10 @@ class MonitoringResultService
      *
      * @example
      * For raw data (e.g., $days = 1):
-     * {n     *   "data": [
+     * {
+     *   "data": [
      *     {
-     *       "date": "2024-01-01 10",
+     *       "date": "2024-01-01 10:00:00",
      *       "avg": 150.5,
      *       "min": 100,
      *       "max": 200
@@ -316,9 +316,9 @@ class MonitoringResultService
      *   }
      * }
      * For aggregated data (e.g., $days > 1 and $loadAggregatedData = true):
-     * {n     *   "data": [ // Collection of daily aggregated response times
+     *   "data": [ // Collection of daily aggregated response times
      *     {
-     *       "date": "2024-01-01",
+     *       "date": "2024-01-01 00:00:00",
      *       "avg": 150.5,
      *       "min": 100,
      *       "max": 200
@@ -344,7 +344,7 @@ class MonitoringResultService
 
             $combinedData = $dailyAggregatedData->map(function ($row) {
                 return [
-                    'date' => Date::parse($row->date)->format('Y-m-d'),
+                    'date' => Date::parse($row->date)->toIso8601String(),
                     'avg' => $row->avg_response_time ?? 0,
                     'min' => $row->min_response_time ?? 0,
                     'max' => $row->max_response_time ?? 0,
@@ -379,7 +379,7 @@ class MonitoringResultService
         // Combine and process data for final output.
         $combinedData = $data->map(function ($row) {
             return [
-                'date' => $row['period'],
+                'date' => Date::parse($row['period'].':00:00')->toIso8601String(),
                 'avg' => $row['avg_response_time'],
                 'min' => $row['min_response_time'],
                 'max' => $row['max_response_time'],
@@ -408,12 +408,12 @@ class MonitoringResultService
      * @example
      * [
      *   {
-     *     "down_at": "01.01.2024 10:00",
-     *     "up_at": "01.01.2024 10:15",
+     *     "down_at": "01.01.2024 10:00:00",
+     *     "up_at": "01.01.2024 10:15:00",
      *     "duration": "15 minutes"
      *   },
      *   {
-     *     "down_at": "01.01.2024 08:00",
+     *     "down_at": "01.01.2024 08:00:00",
      *     "up_at": null,
      *     "duration": "2 hours"
      *   }
@@ -441,9 +441,9 @@ class MonitoringResultService
             $upAt = $incident->up_at ? Date::parse($incident->up_at) : null;
 
             return [
-                'down_at' => $downAt->format('d.m.Y H:i'),
-                'up_at' => $upAt?->format('d.m.Y H:i'),
-                'duration' => CarbonInterval::minutes(max(1, (int) ceil($incident->duration_minutes)))->cascade()->forHumans(['minimumUnit' => 'minute']),
+                'down_at' => $downAt->toIso8601String(),
+                'up_at' => $upAt?->toIso8601String(),
+                'duration' => max(1, (int) ceil($incident->duration_minutes)),
             ];
         });
     }
@@ -460,17 +460,17 @@ class MonitoringResultService
      * [
      *   "2024-07" => [
      *     [
-     *       "date" => "2024-07-01",
+     *       "date" => "2024-07-01 00:00:00",
      *       "uptime_percentage" => 99.98
      *     ],
      *     [
-     *       "date" => "2024-07-02",
+     *       "date" => "2024-07-02 00:00:00",
      *       "uptime_percentage" => 100.00
      *     ]
      *   ],
      *   "2024-08" => [
      *     [
-     *       "date" => "2024-08-01",
+     *       "date" => "2024-08-01 00:00:00",
      *       "uptime_percentage" => null
      *     ]
      *   ]
@@ -528,7 +528,7 @@ class MonitoringResultService
                 }
 
                 $monthDays[] = [
-                    'date' => $dateString,
+                    'date' => $currentDay->toIso8601String(),
                     'uptime_percentage' => $uptimePercentage,
                 ];
             }

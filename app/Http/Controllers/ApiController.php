@@ -179,9 +179,9 @@ class ApiController extends Controller
             $cacheKey,
             fn (): array => [
                 'valid' => $monitoring->sslResult?->is_valid,
-                'expiration' => optional($monitoring->sslResult?->expires_at)?->format('d.m.Y'),
+                'expiration' => optional($monitoring->sslResult?->expires_at)?->toIso8601String(),
                 'issuer' => $monitoring->sslResult?->issuer,
-                'issue_date' => optional($monitoring->sslResult?->issued_at)?->format('d.m.Y'),
+                'issue_date' => optional($monitoring->sslResult?->issued_at)?->toIso8601String(),
             ],
             $this->cronjobInterval,
             'monitoring:'.$monitoring->id

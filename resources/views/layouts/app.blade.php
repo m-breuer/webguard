@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ session('theme', 'system') === 'dark' ? 'dark' : '' }}" data-theme="{{ session('theme', 'system') }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    class="{{ session('theme', 'system') === 'dark' ? 'dark' : '' }}" data-theme="{{ session('theme', 'system') }}">
 
 <head>
     <meta charset="utf-8">
@@ -27,6 +28,11 @@
     <meta property="og:image" content="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
+    <script>
+        window.App = {
+            locale: '{{ app()->getLocale() }}'
+        }
+    </script>
 </head>
 
 <body

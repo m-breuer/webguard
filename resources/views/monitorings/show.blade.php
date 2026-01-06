@@ -120,17 +120,15 @@
                 <x-heading type="h2">{{ __('monitoring.detail.last_check') }}</x-heading>
                 <div>
                     <template x-if="lastCheckedAt">
-                        <x-paragraph
-                            x-text="'{{ __('monitoring.detail.last_check_before') }} ' + lastCheckedAt"></x-paragraph>
+                        <x-paragraph x-text="lastCheckedAtHuman"></x-paragraph>
                     </template>
                     <template x-if="!lastCheckedAt">
                         <div x-transition.opacity>
                             <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
                         </div>
                     </template>
-
                     <template x-if="interval">
-                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + interval + 's'"
+                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + interval + '{{ __('monitoring.detail.seconds_short') }}'"
                             class="text-gray-400"></x-paragraph>
                     </template>
                 </div>
@@ -179,12 +177,12 @@
                 <x-container id="uptime-card-{{ $key }}">
                     <x-heading type="h2" class="capitalize">{{ $label }}</x-heading>
                     <x-paragraph class="text-2xl font-bold text-purple-600"
-                        x-text="uptimeDowntimeData['{{ $key }}']?.uptime?.percentage_rounded + '%' ?? '—%'">
+                        x-text="uptimeStats['{{ $key }}']?.uptime?.percentage_rounded.toFixed(2) + '%' ?? '—%'">
                         —%
                     </x-paragraph>
                     <x-paragraph class="text-gray-400"
-                        x-text="uptimeDowntimeData['{{ $key }}']
-                                ? uptimeDowntimeData['{{ $key }}'].downtime.total + ' {{ __('monitoring.detail.incidents.heading') }}, ' + uptimeDowntimeData['{{ $key }}'].downtime.total_human + ' {{ __('monitoring.detail.downtime') }}'
+                        x-text="uptimeStats['{{ $key }}']
+                                ? uptimeStats['{{ $key }}'].downtime.total + ' {{ __('monitoring.detail.incidents.heading') }}, ' + uptimeStats['{{ $key }}'].downtime.total_human + ' {{ __('monitoring.detail.downtime') }}'
                                 : '— {{ __('monitoring.detail.incidents.heading') }}, {{ __('monitoring.detail.downtime') }} —'">
                         — {{ __('monitoring.detail.incidents.heading') }}, {{ __('monitoring.detail.downtime') }}
                         —

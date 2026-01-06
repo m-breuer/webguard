@@ -55,9 +55,8 @@ return [
         'current_status' => 'Current Status',
         'no_data' => 'Loading data...',
         'last_check' => 'Last check',
-        'last_check_before' => '',
-        'next_check' => 'Next check in',
         'interval' => 'Checked every',
+        'seconds_short' => 's',
         'last_24_hours' => 'Last 24 Hours',
         'downtime' => 'Downtime',
         'incidents' => [
