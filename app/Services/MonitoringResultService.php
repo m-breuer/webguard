@@ -278,7 +278,7 @@ class MonitoringResultService
         return [
             'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
             'checked_at' => $latest ? $latest->updated_at->toIso8601String() : null,
-            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : Carbon::now()->addSeconds($cronjobInterval)->toIso8601String(),
+            'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : Date::now()->addSeconds($cronjobInterval)->toIso8601String(),
             'interval' => $cronjobInterval,
         ];
     }
@@ -379,7 +379,7 @@ class MonitoringResultService
         // Combine and process data for final output.
         $combinedData = $data->map(function ($row) {
             return [
-                'date' => Date::parse($row['period'] . ':00:00')->toIso8601String(),
+                'date' => Date::parse($row['period'].':00:00')->toIso8601String(),
                 'avg' => $row['avg_response_time'],
                 'min' => $row['min_response_time'],
                 'max' => $row['max_response_time'],
@@ -498,7 +498,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -537,7 +537,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
