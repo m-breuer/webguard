@@ -1,23 +1,12 @@
-import { formatDistanceToNowStrict, Locale } from 'date-fns';
-import { enUS, de } from 'date-fns/locale'; // Import locales as needed
+import { getCurrentDayjsLocale } from "@/utils/dayjs-utils";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/de";
+import "dayjs/locale/en";
 
-// Map Laravel locales to date-fns locales
-const dateFnsLocales: { [key: string]: Locale } = {
-    'en': enUS,
-    'de': de,
-    // Add other locales as needed
-};
-
-declare global {
-    interface Window {
-        App: {
-            locale: string;
-        };
-    }
-}
+dayjs.extend(relativeTime);
 
 interface MonitoringCardLoaderComponent {
-    formatSinceDate(since: any): string;
     monitoringIds: string[];
     monitoringNames: Record<string, string>;
     monitoringTargets: Record<string, string>;
@@ -30,7 +19,7 @@ interface MonitoringCardLoaderComponent {
     sinceMap: Record<string, string>;
     sinceDateMap: Record<string, string | null>;
     lastCheckMap: Record<string, string>;
-    currentLocale: Locale;
+    currentLocale: string;
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string };
     updateSince(this: MonitoringCardLoaderComponent): void;
     loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
@@ -60,15 +49,7 @@ export default (
     sinceDateMap: {} as Record<string, string | null>,
     lastCheckMap: {} as Record<string, string>,
 
-    currentLocale: dateFnsLocales[window.App.locale] || enUS,
-
-    formatSinceDate(this: MonitoringCardLoaderComponent, isoTimestamp: string | null): string | null {
-        if (!isoTimestamp) {
-            return null;
-        }
-
-        return formatDistanceToNowStrict(new Date(isoTimestamp), { addSuffix: true, locale: this.currentLocale });
-    },
+    currentLocale: getCurrentDayjsLocale(),
 
     getThemeColors(this: MonitoringCardLoaderComponent): { up: string; down: string; unknown: string } {
         const htmlElement = document.documentElement;
@@ -89,7 +70,7 @@ export default (
         if (statusData) {
             this.statusMap[monitoringId] = statusData.status;
             this.sinceDateMap[monitoringId] = statusData.since;
-            this.sinceMap[monitoringId] = this.formatSinceDate(statusData.since) ?? '';
+            this.sinceMap[monitoringId] = statusData.since ? dayjs(statusData.since).locale(this.currentLocale).fromNow() : '';
         }
 
         if (heatmapData) {
@@ -129,12 +110,18 @@ export default (
     },
 
     updateSince(this: MonitoringCardLoaderComponent): void {
+        dayjs.locale(this.currentLocale);
         for (const monitoringId in this.sinceDateMap) {
-            this.sinceMap[monitoringId] = this.formatSinceDate(this.sinceDateMap[monitoringId]) ?? '';
+            const sinceDate = this.sinceDateMap[monitoringId];
+            this.sinceMap[monitoringId] = sinceDate ? dayjs(sinceDate).fromNow() : '';
         }
     },
 
     init(this: MonitoringCardLoaderComponent) {
         this.loadAll();
+
+        setInterval(() => {
+            this.updateSince();
+        }, 60000);
     }
 });

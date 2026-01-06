@@ -1,13 +1,15 @@
+import { getCurrentDayjsLocale } from '@/utils/dayjs-utils';
 import Chart from 'chart.js/auto';
-import { format, formatDistanceToNowStrict, formatDuration, Locale } from 'date-fns';
-import { enUS, de } from 'date-fns/locale'; // Import locales as needed
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import duration from 'dayjs/plugin/duration';
+import 'dayjs/locale/de';
+import 'dayjs/locale/en';
 
-// Map Laravel locales to date-fns locales
-const dateFnsLocales: { [key: string]: Locale } = {
-    'en': enUS,
-    'de': de,
-    // Add other locales as needed
-};
+dayjs.extend(relativeTime);
+dayjs.extend(localizedFormat);
+dayjs.extend(duration);
 
 interface MonitoringDetailComponent {
     sinceDate: any;
@@ -41,8 +43,7 @@ interface MonitoringDetailComponent {
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
     getThemeColors(): {};
-    currentLocale: Locale;
-    _formatDurationFromMinutes(minutes: number): string;
+    currentLocale: string;
     loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
@@ -57,14 +58,6 @@ interface MonitoringDetailComponent {
 
 interface AlpineThisContext extends MonitoringDetailComponent {
     $nextTick: (callback?: () => void) => Promise<void>;
-}
-
-declare global {
-    interface Window {
-        App: {
-            locale: string;
-        };
-    }
 }
 
 export default (monitoringId: string, chartLabels: Record<string, string>): MonitoringDetailComponent => ({
@@ -103,12 +96,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
     sinceDate: null as Date | null,
 
-    currentLocale: dateFnsLocales[window.App.locale] || enUS,
-
-    _formatDurationFromMinutes(minutes: number): string {
-        if (minutes < 0) return formatDuration({ minutes: 0 }, { locale: this.currentLocale });
-        return formatDuration({ minutes: minutes }, { locale: this.currentLocale });
-    },
+    currentLocale: getCurrentDayjsLocale(),
 
     getThemeColors(this: MonitoringDetailComponent) {
         // This function was empty in the original JS, keeping it as is.
@@ -153,11 +141,12 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/incidents?days=${finalDays}`);
             const responseData = await response.json();
 
+            dayjs.locale(this.currentLocale);
             this.incidents = responseData.map((incident: any) => ({
                 ...incident,
-                down_at: incident.down_at ? format(new Date(incident.down_at), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale }) : null,
-                up_at: incident.up_at ? format(new Date(incident.up_at), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale }) : null,
-                duration: this._formatDurationFromMinutes(incident.duration),
+                down_at: incident.down_at ? dayjs(incident.down_at).format('L LT') : null,
+                up_at: incident.up_at ? dayjs(incident.up_at).format('L LT') : null,
+                duration: incident.duration ? dayjs.duration(incident.duration, 'seconds').humanize() : null,
             }));
         } catch (_) {
             this.incidents = [];
@@ -217,17 +206,14 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             clearInterval(this.countdown);
         }
 
-        this.countdown = setInterval(() => {
+        this.countdown = window.setInterval(() => {
+            dayjs.locale(this.currentLocale);
             if (this.lastCheckedAtDate) {
-                const now = new Date();
-                const diffInMinutes = Math.round((now.getTime() - this.lastCheckedAtDate.getTime()) / (1000 * 60));
-                this.lastCheckedAt = this._formatDurationFromMinutes(diffInMinutes);
+                this.lastCheckedAtHuman = dayjs(this.lastCheckedAtDate).fromNow();
             }
 
             if (this.sinceDate) {
-                const now = new Date();
-                const diffInMinutes = Math.round((now.getTime() - this.sinceDate.getTime()) / (1000 * 60));
-                this.since = this._formatDurationFromMinutes(diffInMinutes);
+                this.since = dayjs(this.sinceDate).fromNow();
             }
         }, 1000);
     },
@@ -240,7 +226,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = format(new Date(responseData.checked_at), 's', { locale: this.currentLocale });
+                this.lastCheckedAtHuman = dayjs(this.lastCheckedAtDate).locale(this.currentLocale).fromNow();
             }
 
             if (responseData.interval) {
@@ -267,11 +253,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             .then(res => res.ok ? res.json() : null)
             .then(data => {
                 if (data && data[label]) {
-                    if (data[label].downtime && data[label].downtime.total_human !== undefined) {
-                        data[label].downtime.total_human = this._formatDurationFromMinutes(data[label].downtime.total_human);
+                    if (data[label].downtime && data[label].downtime.total !== undefined) {
+                        data[label].downtime.total_human = dayjs.duration(data[label].downtime.total, 'seconds').humanize();
                     }
-                    if (data[label].uptime && data[label].uptime.total_human !== undefined) {
-                        data[label].uptime.total_human = this._formatDurationFromMinutes(data[label].uptime.total_human);
+                    if (data[label].uptime && data[label].uptime.total !== undefined) {
+                        data[label].uptime.total_human = dayjs.duration(data[label].uptime.total, 'seconds').humanize();
                     }
                 }
                 return { [label]: data };
@@ -289,10 +275,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         try {
             const response = await fetch(`/api/monitorings/${monitoringId}/ssl`);
             const responseData = await response.json();
+            dayjs.locale(this.currentLocale);
             this.sslValid = responseData.valid;
-            this.sslExpiration = responseData.expiration;
+            this.sslExpiration = responseData.expiration ? dayjs(responseData.expiration).format('L') : null;
             this.sslIssuer = responseData.issuer;
-            this.sslIssueDate = responseData.issue_date;
+            this.sslIssueDate = responseData.issue_date ? dayjs(responseData.issue_date).format('L') : null;
         } catch (_) {
             this.sslValid = null;
             this.sslExpiration = null;
@@ -345,7 +332,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.performanceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: responseData.data.map((entry: { date: string; }) => entry.date),
+                    labels: responseData.data.map((entry: { date: string; }) => dayjs(entry.date).locale(this.currentLocale).format('L')),
                     datasets: [
                         {
                             label: this.chartLabels.min,
@@ -446,7 +433,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: day.date,
+                        date: dayjs(day.date).locale(this.currentLocale).format('L'),
                     })),
                 };
                 return acc;

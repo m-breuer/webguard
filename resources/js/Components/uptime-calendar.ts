@@ -1,5 +1,4 @@
-import { Locale } from 'date-fns';
-import { getCurrentDateFnsLocale } from '../utils/date-fns-utils';
+import { getCurrentDayjsLocale } from "@/utils/dayjs-utils";
 
 interface DayUptime {
     date: string;
@@ -19,7 +18,7 @@ interface UptimeCalendarComponent {
     isLoading: boolean;
     calendarData: CalendarData | null;
     monitoringId: string;
-    currentLocale: Locale;
+    currentLocale: string;
     fetchUptimeCalendar(this: UptimeCalendarComponent): Promise<void>;
 }
 
@@ -27,7 +26,7 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
     isLoading: true,
     calendarData: null,
     monitoringId: monitoringId,
-    currentLocale: getCurrentDateFnsLocale(),
+    currentLocale: getCurrentDayjsLocale(),
 
     async fetchUptimeCalendar() {
         this.isLoading = true;
@@ -49,8 +48,7 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        // date: formatDateForDisplay(day.date, 'dd.MM.yyyy'),
-                        date: day.date,
+                        date: day.date, // TODO: format date according to locale
                     })),
                 };
                 return acc;
