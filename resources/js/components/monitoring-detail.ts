@@ -159,6 +159,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     async loadHeatmap(this: MonitoringDetailComponent): Promise<void> {
         this.loading = true;
 
+        // TODO: not working
+
         try {
             const response = await fetch(`/api/monitorings/${monitoringId}/heatmap`);
             const responseData = await response.json();
@@ -332,7 +334,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.performanceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: responseData.data.map((entry: { date: string; }) => dayjs(entry.date).locale(this.currentLocale).format('L')),
+                    labels: responseData.data.map((entry: { date: string; }) => dayjs(entry.date).locale(this.currentLocale).format('L LT')),
                     datasets: [
                         {
                             label: this.chartLabels.min,
