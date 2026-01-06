@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { format, formatDistanceToNowStrict, Locale } from 'date-fns';
+import { format, formatDistanceToNowStrict, formatDuration, Locale } from 'date-fns';
 import { enUS, de } from 'date-fns/locale'; // Import locales as needed
 
 // Map Laravel locales to date-fns locales
@@ -52,7 +52,6 @@ interface MonitoringDetailComponent {
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
     startCountdown(this: MonitoringDetailComponent): void;
-    beforeDestroy(this: MonitoringDetailComponent): void;
     init(this: MonitoringDetailComponent): void;
 }
 
@@ -241,12 +240,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = format(new Date(responseData.checked_at), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale });
-            }
-
-            if (responseData.next) {
-                this.nextCheckInDate = new Date(responseData.next);
-                this.nextCheckInHuman = format(new Date(responseData.next), 'dd.MM.yyyy HH:mm', { locale: this.currentLocale });
+                this.lastCheckedAtHuman = format(new Date(responseData.checked_at), 's', { locale: this.currentLocale });
             }
 
             if (responseData.interval) {
@@ -256,7 +250,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.startCountdown();
         } catch (_) {
             this.lastCheckedAt = null;
-            this.nextCheckIn = null;
+            this.lastCheckedAtHuman = null;
+            this.interval = null;
         }
     },
 
@@ -451,7 +446,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: format(new Date(day.date), 'dd.MM.yyyy', { locale: this.currentLocale }),
+                        date: day.date,
                     })),
                 };
                 return acc;
@@ -463,28 +458,10 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }
     },
 
-    beforeDestroy(this: MonitoringDetailComponent) {
-        if (this.countdown) {
-            clearInterval(this.countdown);
-        }
-    },
-
     init(this: MonitoringDetailComponent) {
-        // Observe changes to the 'class' attribute of the <html> element
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                    // Re-load heatmap and chart when the theme changes
-                    this.loadHeatmap();
-                    this.loadPerformanceChart();
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
-
-        // Clear the interval when the component is destroyed
-        window.addEventListener('beforeunload', () => this.beforeDestroy());
+        this.loadHeatmap();
+        this.loadPerformanceChart();
     },
+
     chartLabels: chartLabels
 });

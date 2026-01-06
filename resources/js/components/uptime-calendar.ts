@@ -1,5 +1,5 @@
 import { Locale } from 'date-fns';
-import { formatDateForDisplay, getCurrentDateFnsLocale } from '../utils/date-fns-utils';
+import { getCurrentDateFnsLocale } from '../utils/date-fns-utils';
 
 interface DayUptime {
     date: string;
@@ -49,7 +49,8 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: formatDateForDisplay(day.date, 'dd.MM.yyyy'),
+                        // date: formatDateForDisplay(day.date, 'dd.MM.yyyy'),
+                        date: day.date,
                     })),
                 };
                 return acc;

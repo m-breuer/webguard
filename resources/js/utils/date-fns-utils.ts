@@ -19,21 +19,3 @@ declare global {
 export function getCurrentDateFnsLocale(): Locale {
     return dateFnsLocales[window.App.locale] || enUS;
 }
-
-export function formatDateForDisplay(date: Date | string | null, formatStr: string): string | null {
-    if (!date) {
-        return null;
-    }
-    const parsedDate = typeof date === 'string' ? new Date(date) : date;
-    return format(parsedDate, formatStr, { locale: getCurrentDateFnsLocale() });
-}
-
-export function formatDurationForDisplay(minutes: number): string {
-    if (minutes < 0) return formatDuration({ minutes: 0 }, { locale: getCurrentDateFnsLocale() });
-    return formatDuration({ minutes: minutes }, { locale: getCurrentDateFnsLocale() });
-}
-
-export function formatDistanceForDisplay(date: Date | string): string {
-    const parsedDate = typeof date === 'string' ? new Date(date) : date;
-    return formatDistanceToNowStrict(parsedDate, { addSuffix: true, locale: getCurrentDateFnsLocale() });
-}

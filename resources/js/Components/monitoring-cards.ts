@@ -17,6 +17,7 @@ declare global {
 }
 
 interface MonitoringCardLoaderComponent {
+    formatSinceDate(since: any): string;
     monitoringIds: string[];
     monitoringNames: Record<string, string>;
     monitoringTargets: Record<string, string>;
@@ -65,6 +66,7 @@ export default (
         if (!isoTimestamp) {
             return null;
         }
+
         return formatDistanceToNowStrict(new Date(isoTimestamp), { addSuffix: true, locale: this.currentLocale });
     },
 
@@ -134,19 +136,5 @@ export default (
 
     init(this: MonitoringCardLoaderComponent) {
         this.loadAll();
-
-        setInterval(() => {
-            this.updateSince();
-        }, 1000);
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                    this.loadAll();
-                }
-            });
-        });
-
-        observer.observe(document.documentElement, { attributes: true });
     }
 });
