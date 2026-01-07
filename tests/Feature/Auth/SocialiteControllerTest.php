@@ -106,7 +106,7 @@ class SocialiteControllerTest extends TestCase
         $testResponse = $this->get(route('github.callback'));
 
         $testResponse->assertRedirect(route('register'));
-        $testResponse->assertSessionHasErrors('email');
+        $testResponse->assertSessionHasErrors('socialite_error');
     }
 
     public function test_handle_github_callback_with_empty_string_email(): void
@@ -121,6 +121,6 @@ class SocialiteControllerTest extends TestCase
         $testResponse = $this->get(route('github.callback'));
 
         $testResponse->assertRedirect(route('register'));
-        $testResponse->assertSessionHasErrors('email');
+        $testResponse->assertSessionHasErrors('socialite_error');
     }
 }
