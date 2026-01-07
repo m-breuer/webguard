@@ -218,25 +218,19 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             '90': 90,
         };
 
-        const promises = Object.entries(intervals).map(([label, days]) => fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if (data) {
-                    if (data.downtime && data.downtime.total_minutes !== undefined) {
-                        data.downtime.total_human = humanizeDuration(data.downtime.total_minutes, 'minutes');
-                    } else if (data.downtime) {
-                        data.downtime.total_human = humanizeDuration(0, 'minutes');
-                    }
-                    if (data.uptime && data.uptime.total_minutes !== undefined) {
-                        data.uptime.total_human = humanizeDuration(data.uptime.total_minutes, 'minutes');
-                    } else if (data.uptime) {
-                        data.uptime.total_human = humanizeDuration(0, 'minutes');
-                    }
-                }
-                return { [label]: data };
-            })
-            .catch(() => ({ [label]: null }))
-        );
+        const promises = Object.entries(intervals).map(async ([label, days]) => {
+            const uptimePromise = fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
+            const incidentsPromise = fetch(`/api/monitorings/${monitoringId}/incidents?days=${days}`).then(res => res.ok ? res.json() : null);
+
+            const [uptimeData, incidentsData] = await Promise.all([uptimePromise, incidentsPromise]);
+
+            if (uptimeData && uptimeData.downtime) {
+                uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
+                uptimeData.downtime.incidents_count = incidentsData ? incidentsData.length : 0;
+            }
+
+            return { [label]: uptimeData };
+        });
 
         const results = await Promise.all(promises);
 
