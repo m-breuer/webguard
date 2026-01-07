@@ -91,8 +91,8 @@ class MonitoringResultService
      * @param  bool  $loadAggregatedData  Whether to load aggregated data if available. Defaults to false.
      * @return Collection{
      *     data: array{from: Carbon, to: Carbon},
-     *     uptime: array{total: int, percentage: float, percentage_rounded: string, total_human: string, total_minutes: int},
-     *     downtime: array{total: int, percentage: float, percentage_rounded: string, total_human: string, total_minutes: int}
+     *     uptime: array{minutes: int, percentage: float},
+     *     downtime: array{minutes: int, percentage: float}
      * } A collection containing uptime and downtime statistics.
      *
      * @example
@@ -102,18 +102,12 @@ class MonitoringResultService
      *     "to": "2024-01-07 23:59:59"
      *   },
      *   "uptime": {
-     *     "total": 1000,
-     *     "percentage": 99.99,
-     *     "percentage_rounded": "99.99",
-     *     "total_human": "7 days",
-     *     "total_minutes": 10080
+     *     "minutes": 10080,
+     *     "percentage": 99.99
      *   },
      *   "downtime": {
-     *     "total": 1,
-     *     "percentage": 0.01,
-     *     "percentage_rounded": "0.01",
-     *     "total_human": "1 minute",
-     *     "total_minutes": 1
+     *     "minutes": 1,
+     *     "percentage": 0.01
      *   }
      * }
      */
