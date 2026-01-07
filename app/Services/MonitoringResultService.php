@@ -126,8 +126,6 @@ class MonitoringResultService
             $aggregatedData = $monitoring->dailyResults()
                 ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
                 ->selectRaw('
-                    SUM(uptime_total) as uptime_total,
-                    SUM(downtime_total) as downtime_total,
                     SUM(uptime_minutes) as uptime_minutes,
                     SUM(downtime_minutes) as downtime_minutes
                 ')
@@ -143,13 +141,11 @@ class MonitoringResultService
                     'to' => $endDate,
                 ],
                 'uptime' => [
-                    'total' => $aggregatedData->uptime_total ?? 0,
-                    'total_minutes' => $aggregatedData->uptime_minutes ?? 0,
+                    'minutes' => $aggregatedData->uptime_minutes ?? 0,
                     'percentage' => $uptimePercentage,
                 ],
                 'downtime' => [
-                    'total' => $aggregatedData->downtime_total ?? 0,
-                    'total_minutes' => $aggregatedData->downtime_minutes ?? 0,
+                    'minutes' => $aggregatedData->downtime_minutes ?? 0,
                     'percentage' => $downtimePercentage,
                 ],
             ]);
@@ -200,13 +196,11 @@ class MonitoringResultService
                 'to' => $endDate,
             ],
             'uptime' => [
-                'total' => $data->uptime_total ?? 0,
-                'total_minutes' => $overallUptimeMinutes,
+                'minutes' => $overallUptimeMinutes,
                 'percentage' => $overallUptimePercentage,
             ],
             'downtime' => [
-                'total' => $data->downtime_total ?? 0, // TODO: insert amount of incidents
-                'total_minutes' => $overallDowntimeMinutes,
+                'minutes' => $overallDowntimeMinutes,
                 'percentage' => $overallDowntimePercentage,
             ],
         ]);
