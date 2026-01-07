@@ -144,15 +144,13 @@ class MonitoringResultService
                 ],
                 'uptime' => [
                     'total' => $aggregatedData->uptime_total ?? 0,
-                    'percentage' => $uptimePercentage,
-                    'percentage_rounded' => $uptimePercentage,
                     'total_minutes' => $aggregatedData->uptime_minutes ?? 0,
+                    'percentage' => $uptimePercentage,
                 ],
                 'downtime' => [
                     'total' => $aggregatedData->downtime_total ?? 0,
-                    'percentage' => $downtimePercentage,
-                    'percentage_rounded' => $downtimePercentage,
                     'total_minutes' => $aggregatedData->downtime_minutes ?? 0,
+                    'percentage' => $downtimePercentage,
                 ],
             ]);
         }
@@ -203,15 +201,13 @@ class MonitoringResultService
             ],
             'uptime' => [
                 'total' => $data->uptime_total ?? 0,
-                'percentage' => $overallUptimePercentage,
-                'percentage_rounded' => $overallUptimePercentage,
                 'total_minutes' => $overallUptimeMinutes,
+                'percentage' => $overallUptimePercentage,
             ],
             'downtime' => [
-                'total' => $data->downtime_total ?? 0,
-                'percentage' => $overallDowntimePercentage,
-                'percentage_rounded' => $overallDowntimePercentage,
+                'total' => $data->downtime_total ?? 0, // TODO: insert amount of incidents
                 'total_minutes' => $overallDowntimeMinutes,
+                'percentage' => $overallDowntimePercentage,
             ],
         ]);
     }
@@ -375,7 +371,7 @@ class MonitoringResultService
         // Combine and process data for final output.
         $combinedData = $data->map(function ($row) {
             return [
-                'date' => Date::parse($row['period'].':00:00')->toIso8601String(),
+                'date' => Date::parse($row['period'] . ':00:00')->toIso8601String(),
                 'avg' => $row['avg_response_time'],
                 'min' => $row['min_response_time'],
                 'max' => $row['max_response_time'],
@@ -492,7 +488,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -531,7 +527,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
