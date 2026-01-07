@@ -200,33 +200,27 @@ class ApiController extends Controller
     }
 
     /**
-     * Retrieves the status since the last incident for a given monitoring instance.
+     * Retrieves the combined status of a given monitoring instance.
      *
      * @response {
      * "status": "UP",
-     * "time": "2021-01-01 00:00:00"
+     * "since": "2021-01-01 00:00:00",
+     * "checked_at": "2021-01-01 00:00:00",
+     * "next": "2021-01-01 00:01:00",
+     * "interval": 60
      * }
      */
-    public function statusSince(Monitoring $monitoring): JsonResponse
+    public function status(Monitoring $monitoring): JsonResponse
     {
-        $data = MonitoringResultService::getStatusSince($monitoring);
+        $statusSince = MonitoringResultService::getStatusSince($monitoring);
+        $statusNow = MonitoringResultService::getStatusNow($monitoring, $this->cronjobInterval);
+
+        $data = array_merge($statusSince, $statusNow);
 
         return response()->json($data);
     }
 
-    /**
-     * Retrieves the current status of a given monitoring instance.
-     *
-     * @response {
-     * "status": "UP"
-     * }
-     */
-    public function statusNow(Monitoring $monitoring): JsonResponse
-    {
-        $data = MonitoringResultService::getStatusNow($monitoring, $this->cronjobInterval);
 
-        return response()->json($data);
-    }
 
     /**
      * Retrieves the incidents for a given monitoring instance.

@@ -77,8 +77,7 @@
     </x-slot>
 
 
-    <x-main x-init="loadStatusChanged();
-    loadLastCheck();
+    <x-main x-init="loadStatus();
     loadHeatmap();
     loadUptime();
     loadSslStatus();
