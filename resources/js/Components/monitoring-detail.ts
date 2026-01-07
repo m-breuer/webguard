@@ -33,10 +33,9 @@ interface MonitoringDetailComponent {
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
     currentLocale: string;
-    loadStatusChanged(this: MonitoringDetailComponent): Promise<void>;
+    loadStatus(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
-    loadLastCheck(this: MonitoringDetailComponent): Promise<void>;
     loadUptime(this: MonitoringDetailComponent): Promise<void>;
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
@@ -85,20 +84,32 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     sinceDate: null as Date | null,
 
     currentLocale: getCurrentDayjsLocale(),
-    // Loads the current status and since when this status has been active
-    async loadStatusChanged(this: MonitoringDetailComponent): Promise<void> {
+    async loadStatus(this: MonitoringDetailComponent): Promise<void> {
         try {
-            const response = await fetch(`/api/monitorings/${monitoringId}/status-since`);
+            const response = await fetch(`/api/monitorings/${monitoringId}/status`);
             const responseData = await response.json();
             this.status = responseData.status;
             if (responseData.since) {
                 this.sinceDate = new Date(responseData.since);
             }
+            if (responseData.checked_at) {
+                this.lastCheckedAtDate = new Date(responseData.checked_at);
+                this.lastCheckedAtHuman = humanizeDistance(this.lastCheckedAtDate);
+                this.lastCheckedAt = responseData.checked_at;
+            }
+            if (responseData.interval) {
+                this.interval = responseData.interval;
+            }
+            this.startCountdown();
         } catch (_) {
             this.status = null;
             this.since = null;
+            this.lastCheckedAt = null;
+            this.lastCheckedAtHuman = null;
+            this.interval = null;
         }
     },
+
 
     // Loads incident data for a minimum of 1 days or the specified range, and updates the corresponding cookie
     async loadIncidents(this: MonitoringDetailComponent, days: string | number | null = null): Promise<void> {
@@ -186,29 +197,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }, 1000);
     },
 
-    // Loads timestamps for the last check and the next scheduled check
-    async loadLastCheck(this: MonitoringDetailComponent): Promise<void> {
-        try {
-            const response = await fetch(`/api/monitorings/${monitoringId}/status-now`);
-            const responseData = await response.json();
 
-            if (responseData.checked_at) {
-                this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = humanizeDistance(this.lastCheckedAtDate);
-                this.lastCheckedAt = responseData.checked_at;
-            }
-
-            if (responseData.interval) {
-                this.interval = responseData.interval;
-            }
-
-            this.startCountdown();
-        } catch (_) {
-            this.lastCheckedAt = null;
-            this.lastCheckedAtHuman = null;
-            this.interval = null;
-        }
-    },
 
     // Loads uptime data for predefined intervals and supplements it with downtime duration
     async loadUptime(this: MonitoringDetailComponent): Promise<void> {

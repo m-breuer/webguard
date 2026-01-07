@@ -46,7 +46,7 @@ export default (
     currentLocale: getCurrentDayjsLocale(),
 
     async loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void> {
-        const statusPromise = fetch(`/api/monitorings/${monitoringId}/status-since`).then(res => res.ok ? res.json() : null).catch(() => null);
+        const statusPromise = fetch(`/api/monitorings/${monitoringId}/status`).then(res => res.ok ? res.json() : null).catch(() => null);
         const heatmapPromise = fetch(`/api/monitorings/${monitoringId}/heatmap`).then(res => res.ok ? res.json() : null).catch(() => null);
 
         const [statusData, heatmapData] = await Promise.all([statusPromise, heatmapPromise]);
