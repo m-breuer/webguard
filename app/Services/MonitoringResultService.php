@@ -508,7 +508,7 @@ class MonitoringResultService
                         }
                     } elseif ($currentDay->eq($currentDate)) {
                         $currentDayUptimeData = self::getUptimeDowntime($monitoring, $currentDay, $currentDay->copy()->endOfDay(), false);
-                        if ($currentDayUptimeData['uptime']['total'] === 0 && $currentDayUptimeData['downtime']['total'] === 0) {
+                        if (($currentDayUptimeData['uptime']['minutes'] ?? 0) === 0 && ($currentDayUptimeData['downtime']['minutes'] ?? 0) === 0) {
                             $uptimePercentage = null;
                         } else {
                             $uptimePercentage = $currentDayUptimeData['uptime']['percentage'];
