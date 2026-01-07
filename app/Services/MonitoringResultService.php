@@ -146,14 +146,12 @@ class MonitoringResultService
                     'total' => $aggregatedData->uptime_total ?? 0,
                     'percentage' => $uptimePercentage,
                     'percentage_rounded' => $uptimePercentage,
-                    'total_human' => $aggregatedData->uptime_minutes ?? 0,
                     'total_minutes' => $aggregatedData->uptime_minutes ?? 0,
                 ],
                 'downtime' => [
                     'total' => $aggregatedData->downtime_total ?? 0,
                     'percentage' => $downtimePercentage,
                     'percentage_rounded' => $downtimePercentage,
-                    'total_human' => $aggregatedData->downtime_minutes ?? 0,
                     'total_minutes' => $aggregatedData->downtime_minutes ?? 0,
                 ],
             ]);
@@ -207,14 +205,12 @@ class MonitoringResultService
                 'total' => $data->uptime_total ?? 0,
                 'percentage' => $overallUptimePercentage,
                 'percentage_rounded' => $overallUptimePercentage,
-                'total_human' => $overallUptimeMinutes,
                 'total_minutes' => $overallUptimeMinutes,
             ],
             'downtime' => [
                 'total' => $data->downtime_total ?? 0,
                 'percentage' => $overallDowntimePercentage,
                 'percentage_rounded' => $overallDowntimePercentage,
-                'total_human' => $overallDowntimeMinutes,
                 'total_minutes' => $overallDowntimeMinutes,
             ],
         ]);
@@ -429,8 +425,7 @@ class MonitoringResultService
             ->whereBetween('down_at', [$startDate, $endDate])
             ->select(
                 'down_at',
-                'up_at',
-                DB::raw('TIMESTAMPDIFF(MINUTE, down_at, COALESCE(up_at, NOW())) as duration_minutes')
+                'up_at'
             )
             ->latest('down_at')
             ->get();
@@ -443,7 +438,6 @@ class MonitoringResultService
             return [
                 'down_at' => $downAt->toIso8601String(),
                 'up_at' => $upAt?->toIso8601String(),
-                'duration' => max(1, (int) ceil($incident->duration_minutes)),
             ];
         });
     }

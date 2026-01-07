@@ -23,7 +23,28 @@ export function formatDate(date: dayjs.Dayjs | string | null, formatStr: string)
 }
 
 export function humanizeDuration(value: number, unit: dayjs.ManipulateType): string {
-    return dayjs.duration(value, unit).locale(getCurrentDayjsLocale()).humanize();
+    const duration = dayjs.duration(value, unit);
+
+    const days = duration.days();
+    const hours = duration.hours();
+    const minutes = duration.minutes();
+
+    const parts = [];
+    if (days > 0) {
+        parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    }
+    if (hours > 0) {
+        parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    }
+    if (minutes > 0) {
+        parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+    }
+
+    if (parts.length === 0) {
+        return 'less than a minute';
+    }
+
+    return parts.join(' ');
 }
 
 export function humanizeDistance(date: dayjs.Dayjs | string, options?: { withoutSuffix?: boolean }): string {

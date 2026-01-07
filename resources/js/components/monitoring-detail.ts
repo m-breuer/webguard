@@ -85,7 +85,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     sinceDate: null as Date | null,
 
     currentLocale: getCurrentDayjsLocale(),
-
     // Loads the current status and since when this status has been active
     async loadStatusChanged(this: MonitoringDetailComponent): Promise<void> {
         try {
@@ -124,12 +123,18 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/incidents?days=${finalDays}`);
             const responseData = await response.json();
 
-            this.incidents = responseData.map((incident: any) => ({
-                ...incident,
-                down_at: incident.down_at ? formatDate(incident.down_at, 'L LT') : null,
-                up_at: incident.up_at ? formatDate(incident.up_at, 'L LT') : null,
-                duration: incident.duration ? humanizeDuration(incident.duration, 'seconds') : null,
-            }));
+            this.incidents = responseData.map((incident: any) => {
+                const downAt = dayjs(incident.down_at);
+                const upAt = incident.up_at ? dayjs(incident.up_at) : dayjs(); // Use now if up_at is null
+                const durationInMinutes = upAt.diff(downAt, 'minutes');
+
+                return {
+                    ...incident,
+                    down_at: formatDate(incident.down_at, 'L LT'),
+                    up_at: incident.up_at ? formatDate(incident.up_at, 'L LT') : null,
+                    duration: humanizeDuration(durationInMinutes, 'minutes'),
+                };
+            });
         } catch (_) {
             this.incidents = [];
         } finally {
@@ -216,12 +221,16 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         const promises = Object.entries(intervals).map(([label, days]) => fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`)
             .then(res => res.ok ? res.json() : null)
             .then(data => {
-                if (data && data[label]) {
-                    if (data[label].downtime && data[label].downtime.total !== undefined) {
-                        data[label].downtime.total_human = humanizeDuration(data[label].downtime.total, 'seconds');
+                if (data) {
+                    if (data.downtime && data.downtime.total_minutes !== undefined) {
+                        data.downtime.total_human = humanizeDuration(data.downtime.total_minutes, 'minutes');
+                    } else if (data.downtime) {
+                        data.downtime.total_human = humanizeDuration(0, 'minutes');
                     }
-                    if (data[label].uptime && data[label].uptime.total !== undefined) {
-                        data[label].uptime.total_human = humanizeDuration(data[label].uptime.total, 'seconds');
+                    if (data.uptime && data.uptime.total_minutes !== undefined) {
+                        data.uptime.total_human = humanizeDuration(data.uptime.total_minutes, 'minutes');
+                    } else if (data.uptime) {
+                        data.uptime.total_human = humanizeDuration(0, 'minutes');
                     }
                 }
                 return { [label]: data };
