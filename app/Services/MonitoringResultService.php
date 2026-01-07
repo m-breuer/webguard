@@ -149,16 +149,27 @@ class MonitoringResultService
         $totalMinutesInPeriod = $startDate->diffInMinutes($endDate);
 
         // Get total downtime minutes from incidents that were active during the period.
-        $boundStartDate = $startDate->toDateTimeString();
-        $boundEndDate = $endDate->toDateTimeString();
-
-        $totalDowntimeMinutes = $monitoring->incidents()
+        $incidents = $monitoring->incidents()
             ->where('down_at', '<=', $endDate)
             ->where(function (Builder $builder) use ($startDate) {
                 $builder->where('up_at', '>=', $startDate)
                     ->orWhereNull('up_at');
             })
-            ->sum(DB::raw("GREATEST(0, TIMESTAMPDIFF(MINUTE, GREATEST(down_at, '{$boundStartDate}'), LEAST(COALESCE(up_at, '{$boundEndDate}'), '{$boundEndDate}')))"));
+            ->get();
+
+        $totalDowntimeMinutes = 0;
+        foreach ($incidents as $incident) {
+            $downAt = Date::parse($incident->down_at);
+            $upAt = $incident->up_at ? Date::parse($incident->up_at) : Date::now();
+
+            $start = $downAt->max($startDate);
+            $end = $upAt->min($endDate);
+
+            if ($start->lt($end)) {
+                $totalDowntimeMinutes += $start->diffInMinutes($end);
+            }
+        }
+
 
         // Ensure downtime doesn't exceed the total period.
         $overallDowntimeMinutes = min($totalDowntimeMinutes, $totalMinutesInPeriod);
