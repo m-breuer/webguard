@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -32,8 +34,8 @@ class UserController extends Controller
         $lengthAwarePaginator = User::query()
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $query->where(function (Builder $builder) use ($request): void {
-                    $builder->where('name', 'like', '%'.$request->search.'%')
-                        ->orWhere('email', 'like', '%'.$request->search.'%');
+                    $builder->where('name', 'like', '%' . $request->search . '%')
+                        ->orWhere('email', 'like', '%' . $request->search . '%');
                 });
             })->latest()
             ->paginate(10);

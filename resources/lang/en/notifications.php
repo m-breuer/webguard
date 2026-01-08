@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'Notifications',
     'status_change_notifications' => 'Status Change',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'ssl_expiry_warning' => [
         'subject' => 'SSL-Zertifikat-Ablaufwarnung für :monitoringName',

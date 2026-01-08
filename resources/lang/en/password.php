@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'messages' => [
         'reset' => 'Your password has been reset.',

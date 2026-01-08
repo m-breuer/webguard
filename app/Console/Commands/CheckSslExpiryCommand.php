@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Mail\SslExpiryWarningMail;
@@ -46,7 +48,7 @@ class CheckSslExpiryCommand extends Command
             }
 
             // Prevent duplicate emails for the same issue more than once per day
-            $cacheKey = 'ssl_expiry_notification_'.$expiringSslResult->id.'_'.now()->format('Y-m-d');
+            $cacheKey = 'ssl_expiry_notification_' . $expiringSslResult->id . '_' . now()->format('Y-m-d');
 
             if (Cache::missing($cacheKey)) {
                 Mail::to($user->email)->send(new SslExpiryWarningMail($expiringSslResult, $monitoring));

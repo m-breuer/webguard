@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'heading' => 'Verfügbarkeitskalender',
     'loading' => 'Kalender wird geladen...',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -18,7 +20,7 @@ class CheckUserRole
         abort_unless($request->user(), 403);
 
         foreach ($roles as $role) {
-            $checkMethod = 'is'.ucfirst($role);
+            $checkMethod = 'is' . ucfirst($role);
             if (method_exists($request->user(), $checkMethod) && $request->user()->$checkMethod()) {
                 return $next($request);
             }

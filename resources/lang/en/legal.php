@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'terms_of_use' => [
         'title' => 'Terms of Use',

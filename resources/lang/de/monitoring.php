@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'Überwachung',
     'text' => 'Überwachungen ermöglichen es Ihnen, den Status Ihrer Dienste zu verfolgen und Benachrichtigungen bei Problemen zu erhalten.',

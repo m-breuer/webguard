@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Api\Internal\MonitoringController;
 use App\Http\Controllers\Api\Internal\MonitoringListController;
 use Illuminate\Support\Facades\Route;

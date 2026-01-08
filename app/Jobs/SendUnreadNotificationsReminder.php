@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Mail\UnreadNotificationsReminderMail;
@@ -36,7 +38,7 @@ class SendUnreadNotificationsReminder implements ShouldQueue
             try {
                 Mail::to($this->user->email)->send(new UnreadNotificationsReminderMail($this->unreadNotificationsCount, $this->user));
             } catch (Exception $e) {
-                Log::error("Failed to send unread notifications reminder email to {$this->user->email}: ".$e->getMessage());
+                Log::error("Failed to send unread notifications reminder email to {$this->user->email}: " . $e->getMessage());
             }
         }
     }

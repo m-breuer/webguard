@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'Users',
     'text' => 'View and manage all user accounts in the application.',

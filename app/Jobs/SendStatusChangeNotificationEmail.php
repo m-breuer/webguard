@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Mail\StatusChangeNotificationMail;
@@ -42,7 +44,7 @@ class SendStatusChangeNotificationEmail implements ShouldQueue
                 $this->notification->sent = true;
                 $this->notification->save();
             } catch (Exception $e) {
-                Log::error("Failed to send email for notification {$this->notification->id}: ".$e->getMessage());
+                Log::error("Failed to send email for notification {$this->notification->id}: " . $e->getMessage());
             }
         }
     }

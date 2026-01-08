@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Admin\ApiController as AdminApiController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\UserController;
@@ -79,8 +81,8 @@ Route::middleware(['auth'])->group(function (): void {
 Route::group(
     ['prefix' => 'api', 'as' => 'api.'],
     function () {
-        require __DIR__.'/api/internal.php';
+        require __DIR__ . '/api/internal.php';
     }
 );
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

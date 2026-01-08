@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'WebGuard',
     'title' => 'WebGuard – Website-, Server- & Port-Überwachung (DSGVO-konform)',

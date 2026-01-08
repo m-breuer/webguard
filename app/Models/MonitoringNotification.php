@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\NotificationType;
@@ -98,7 +100,7 @@ class MonitoringNotification extends Model
                     $status = mb_strtolower(str_replace('Monitoring status changed to ', '', $message));
                 }
 
-                return __('notifications.status_messages.'.$status, ['name' => $this->monitoring->name]);
+                return __('notifications.status_messages.' . $status, ['name' => $this->monitoring->name]);
             }
 
             // For other types, return the original message

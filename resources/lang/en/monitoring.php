@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'Monitoring',
     'text' => 'Monitorings allow you to track the status of your services and receive notifications when issues arise.',

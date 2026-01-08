@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\MonitoringStatus;
@@ -12,7 +14,6 @@ use Carbon\CarbonPeriod;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Class MonitoringResultService
@@ -169,7 +170,6 @@ class MonitoringResultService
                 $totalDowntimeMinutes += $start->diffInMinutes($end);
             }
         }
-
 
         // Ensure downtime doesn't exceed the total period.
         $overallDowntimeMinutes = min($totalDowntimeMinutes, $totalMinutesInPeriod);
@@ -487,7 +487,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -526,7 +526,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Models\Monitoring;
@@ -36,7 +38,7 @@ class AggregateDailyMonitoringResults extends Command
         for ($i = 1; $i <= $daysToAggregate; $i++) {
             $date = now()->subDays($i)->startOfDay()->copy(); // Aggregate for past days
 
-            $this->info('Aggregating for date: '.$date->toDateString());
+            $this->info('Aggregating for date: ' . $date->toDateString());
 
             // Get all monitorings that have responses on this specific date
             $monitoringsWithResponses = Monitoring::query()->whereHas('responseResults', function (Builder $builder) use ($date) {
@@ -44,7 +46,7 @@ class AggregateDailyMonitoringResults extends Command
             })->get();
 
             foreach ($monitoringsWithResponses as $monitoringWithResponse) {
-                $this->info('  Aggregating for monitoring: '.$monitoringWithResponse->name.' ('.$monitoringWithResponse->id.')');
+                $this->info('  Aggregating for monitoring: ' . $monitoringWithResponse->name . ' (' . $monitoringWithResponse->id . ')');
 
                 $uptimeDowntime = MonitoringResultService::getUptimeDowntime($monitoringWithResponse, $date->copy()->startOfDay(), $date->copy()->endOfDay());
                 $responseTimes = MonitoringResultService::getResponseTimes($monitoringWithResponse, $date->copy()->startOfDay(), $date->copy()->endOfDay());

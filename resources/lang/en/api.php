@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'API',
     'text' => 'Manage your API keys and access tokens for secure API interactions.',

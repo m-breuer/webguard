@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Monitoring;
@@ -128,7 +130,7 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn(): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
+            fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
             $this->cronjobInterval,
             'monitoring:' . $monitoring->id
         );
@@ -164,7 +166,7 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn(): Collection => MonitoringResultService::getResponseTimes($monitoring, $startDate, $endDate, $loadAggregatedData),
+            fn (): Collection => MonitoringResultService::getResponseTimes($monitoring, $startDate, $endDate, $loadAggregatedData),
             $this->cronjobInterval,
             'monitoring:' . $monitoring->id
         );
@@ -191,7 +193,7 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn(): Collection => MonitoringResultService::getHeatmap($monitoring, $start_date, $end_date),
+            fn (): Collection => MonitoringResultService::getHeatmap($monitoring, $start_date, $end_date),
             now()->addMinutes(15),
             'monitoring:' . $monitoring->id
         );
@@ -219,8 +221,6 @@ class ApiController extends Controller
 
         return response()->json($data);
     }
-
-
 
     /**
      * Retrieves the incidents for a given monitoring instance.
@@ -250,7 +250,7 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn(): Collection => MonitoringResultService::getIncidents($monitoring, $startDate, $endDate),
+            fn (): Collection => MonitoringResultService::getIncidents($monitoring, $startDate, $endDate),
             $this->cronjobInterval,
             'monitoring:' . $monitoring->id
         );
@@ -274,7 +274,7 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn(): array => [
+            fn (): array => [
                 'valid' => $monitoring->sslResult?->is_valid,
                 'expiration' => optional($monitoring->sslResult?->expires_at)?->toIso8601String(),
                 'issuer' => $monitoring->sslResult?->issuer,
@@ -316,7 +316,7 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn(): array => MonitoringResultService::getUpTimeGroupByDateAndMonth($monitoring, $startDate, $endDate),
+            fn (): array => MonitoringResultService::getUpTimeGroupByDateAndMonth($monitoring, $startDate, $endDate),
             3600, // Cache for 1 hour
             'monitoring:' . $monitoring->id
         );

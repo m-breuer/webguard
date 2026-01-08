@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
 use Illuminate\Database\Migrations\Migration;

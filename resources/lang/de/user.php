@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'Benutzer',
     'text' => 'Alle Benutzerkonten in der Anwendung anzeigen und verwalten.',
