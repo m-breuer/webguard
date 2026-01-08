@@ -92,8 +92,8 @@ class MonitoringResultService
      * @param  bool  $loadAggregatedData  Whether to load aggregated data if available. Defaults to false.
      * @return Collection{
      *     data: array{from: Carbon, to: Carbon},
-     *     uptime: array{minutes: int, percentage: float},
-     *     downtime: array{minutes: int, percentage: float}
+     *     uptime: array{minutes: int, percentage: float, total: int},
+     *     downtime: array{minutes: int, percentage: float, total: int}
      * } A collection containing uptime and downtime statistics.
      *
      * @example
@@ -186,7 +186,7 @@ class MonitoringResultService
 
         // For 'total' (count of checks), we still need to query monitoring_responses.
         // This is separate from the duration calculation.
-        self::getMonitoringResponseQuery($endDate)
+        $data = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
             ->selectRaw("
                 SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) as uptime_total,
@@ -203,10 +203,12 @@ class MonitoringResultService
             'uptime' => [
                 'minutes' => $overallUptimeMinutes,
                 'percentage' => $overallUptimePercentage,
+                'total' => (int) ($data->uptime_total ?? 0),
             ],
             'downtime' => [
                 'minutes' => $overallDowntimeMinutes,
                 'percentage' => $overallDowntimePercentage,
+                'total' => (int) ($data->downtime_total ?? 0),
             ],
         ]);
     }

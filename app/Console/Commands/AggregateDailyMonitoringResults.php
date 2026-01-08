@@ -60,8 +60,8 @@ class AggregateDailyMonitoringResults extends Command
                     'downtime_total' => $uptimeDowntime['downtime']['total'] ?? 0,
                     'uptime_percentage' => $uptimeDowntime['uptime']['percentage'] ?? 0.0,
                     'downtime_percentage' => $uptimeDowntime['downtime']['percentage'] ?? 0.0,
-                    'uptime_minutes' => $uptimeDowntime['uptime']['total_minutes'] ?? 0,
-                    'downtime_minutes' => $uptimeDowntime['downtime']['total_minutes'] ?? 0,
+                    'uptime_minutes' => $uptimeDowntime['uptime']['minutes'] ?? 0,
+                    'downtime_minutes' => $uptimeDowntime['downtime']['minutes'] ?? 0,
                     'avg_response_time' => $responseTimes['aggregated']['avg'] ?? 0,
                     'min_response_time' => $responseTimes['aggregated']['min'] ?? 0,
                     'max_response_time' => $responseTimes['aggregated']['max'] ?? 0,
@@ -71,10 +71,10 @@ class AggregateDailyMonitoringResults extends Command
                 $this->info(sprintf(
                     '    -> Uptime: %.2f%% (%d min, Total: %d) | Downtime: %.2f%% (%d min, Total: %d) | Avg RT: %.2f ms (Min: %.2f, Max: %.2f) | Incidents: %d',
                     $uptimeDowntime['uptime']['percentage'],
-                    $uptimeDowntime['uptime']['total_minutes'],
+                    $uptimeDowntime['uptime']['minutes'],
                     $uptimeDowntime['uptime']['total'], // uptime_total
                     $uptimeDowntime['downtime']['percentage'],
-                    $uptimeDowntime['downtime']['total_minutes'],
+                    $uptimeDowntime['downtime']['minutes'],
                     $uptimeDowntime['downtime']['total'], // downtime_total
                     $responseTimes['aggregated']['avg'],
                     $responseTimes['aggregated']['min'], // min_response_time
