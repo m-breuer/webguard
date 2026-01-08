@@ -186,7 +186,7 @@ class MonitoringResultService
 
         // For 'total' (count of checks), we still need to query monitoring_responses.
         // This is separate from the duration calculation.
-        $data = self::getMonitoringResponseQuery($endDate)
+        self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
             ->selectRaw("
                 SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) as uptime_total,
@@ -487,7 +487,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -526,7 +526,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
@@ -556,12 +556,9 @@ class MonitoringResultService
     }
 
     /**
-     * Get the grouping format for date-based queries based on the number of days in the period.
-     *
-     * @param  int  $days  The number of days in the period.
-     * @return string The date format string for grouping (e.g., '%Y-%m-%d %H' for hourly, '%Y-%m-%d' for daily).
+     * Get the base query for monitoring responses, either from live or archived tables.
      */
-    private static function getMonitoringResponseQuery(Carbon $endDate)
+    private static function getMonitoringResponseQuery(Carbon $endDate): Builder
     {
         // If the end date is older than 7 days, query the archived responses.
         if ($endDate->lt(Date::now()->subWeek()->startOfDay())) {
@@ -572,6 +569,12 @@ class MonitoringResultService
         return MonitoringResponse::query();
     }
 
+    /**
+     * Get the grouping format for date-based queries based on the number of days in the period.
+     *
+     * @param  int  $days  The number of days in the period.
+     * @return string The date format string for grouping (e.g., '%Y-%m-%d %H' for hourly, '%Y-%m-%d' for daily).
+     */
     private static function getGrouping(int $days): string
     {
         return match (true) {
