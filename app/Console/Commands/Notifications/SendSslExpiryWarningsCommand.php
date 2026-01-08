@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands\Monitoring;
+namespace App\Console\Commands\Notifications;
 
 use App\Mail\SslExpiryWarningMail;
 use App\Models\MonitoringSslResult;
@@ -10,14 +10,14 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 
-class CheckSslExpiryCommand extends Command
+class SendSslExpiryWarningsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'monitoring:check-ssl-expiry';
+    protected $signature = 'notifications:send-ssl-expiry-warnings';
 
     /**
      * The console command description.

@@ -8,7 +8,6 @@ use App\Jobs\SendUnreadNotificationsReminder as SendUnreadNotificationsReminderJ
 use App\Models\MonitoringNotification;
 use App\Models\User;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class SendUnreadNotificationsReminderCommand extends Command
@@ -47,7 +46,7 @@ class SendUnreadNotificationsReminderCommand extends Command
             return Command::SUCCESS;
         }
 
-        $users = User::find($unreadCounts->keys());
+        $users = User::query()->find($unreadCounts->keys());
 
         foreach ($users as $user) {
             $unreadNotificationsCount = $unreadCounts->get($user->id);

@@ -43,7 +43,7 @@ Schedule::command('monitoring:aggregate-daily')->dailyAt('00:30');
 Schedule::command('monitoring:archive-responses')->weekly();
 
 // Check for expiring SSL certificates daily.
-Schedule::command('monitoring:check-ssl-expiry')->dailyAt('06:00')->withoutOverlapping();
+Schedule::command('notifications:send-ssl-expiry-warnings')->dailyAt('06:00')->withoutOverlapping();
 
 // Permanently delete soft-deleted monitorings and their data monthly.
 Schedule::command('monitoring:purge-soft-deleted')->monthly()->withoutOverlapping();
