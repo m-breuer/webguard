@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Notifications;
 
 use App\Enums\UserRole;
 use App\Models\MonitoringNotification;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Database\Query\Builder;
 
-class DeleteOldGuestNotifications extends Command
+class PruneGuestNotificationsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'notifications:delete-old-guest';
+    protected $signature = 'notifications:prune-guest';
 
     /**
      * The console command description.

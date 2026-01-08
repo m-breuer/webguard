@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Notifications;
 
 use App\Enums\NotificationType;
 use App\Jobs\SendStatusChangeNotificationEmail as SendStatusChangeNotificationEmailJob;
@@ -10,7 +10,7 @@ use App\Models\MonitoringNotification;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Database\Query\Builder;
 
-class SendStatusChangeNotificationEmail extends Command
+class SendStatusChangeNotificationEmailCommand extends Command
 {
     /**
      * The name and signature of the console command.

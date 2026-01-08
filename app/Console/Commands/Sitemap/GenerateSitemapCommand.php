@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Sitemap;
 
 use Illuminate\Console\Command;
 use Spatie\Sitemap\SitemapGenerator;
 
-class GenerateSitemap extends Command
+class GenerateSitemapCommand extends Command
 {
     /**
      * The name and signature of the console command.

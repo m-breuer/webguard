@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\User;
 
 use App\Enums\UserRole;
 use App\Models\Package;
@@ -10,14 +10,14 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 
-class CreateAdminUser extends Command
+class CreateAdminUserCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:admin {email?}';
+    protected $signature = 'user:create-admin {email?}';
 
     /**
      * The console command description.

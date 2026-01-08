@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Monitoring;
 
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
@@ -10,21 +10,21 @@ use App\Services\MonitoringResultService;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Database\Query\Builder;
 
-class AggregateDailyMonitoringResults extends Command
+class AggregateDailyResultsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'monitoring:aggregate-daily-results {days=1 : The number of past days to aggregate (default: 1)}';
+    protected $signature = 'monitoring:aggregate-daily {days=1 : The number of past days to aggregate (default: 1)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Aggregates daily monitoring results and cleans up raw data older than one day.';
+    protected $description = 'Aggregates daily monitoring results.';
 
     /**
      * Execute the console command.

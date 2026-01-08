@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Monitoring;
 
 use App\Models\Monitoring;
 use Illuminate\Console\Command;
 
-class DeleteMonitoring extends Command
+class DeleteMonitoringCommand extends Command
 {
     /**
      * The name and signature of the console command.

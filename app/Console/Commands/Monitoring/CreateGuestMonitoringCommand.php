@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Monitoring;
 
 use App\Enums\MonitoringType;
 use App\Enums\ServerInstance;
@@ -11,14 +11,14 @@ use App\Models\Monitoring;
 use App\Models\User;
 use Illuminate\Console\Command;
 
-class CreateGuestMonitoring extends Command
+class CreateGuestMonitoringCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:guest-monitoring';
+    protected $signature = 'monitoring:create-guest';
 
     /**
      * The console command description.

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Monitoring;
 
 use App\Models\MonitoringResponse;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
-class ArchiveMonitoringResponses extends Command
+class ArchiveMonitoringResponsesCommand extends Command
 {
     /**
      * The name and signature of the console command.
