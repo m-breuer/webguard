@@ -352,7 +352,7 @@ class MonitoringResultService
             ]);
         }
 
-        $grouping = self::getGrouping(Date::parse($startDate)->diffInDays($endDate));
+        $grouping = self::getGrouping((int) Date::parse($startDate)->diffInDays($endDate));
 
         $data = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
@@ -487,7 +487,7 @@ class MonitoringResultService
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
-            ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
+            ->keyBy(fn($result) => Date::parse($result->date)->toDateString());
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -526,7 +526,7 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
+            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn($value) => $value !== null);
 
             if (! empty($validUptimes)) {
                 $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
