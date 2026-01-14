@@ -23,90 +23,165 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 
 ## Core Technologies
 
+
+
 ### Backend
 
+
+
 * **Framework:** Laravel 12 (PHP 8.4) - *Chosen for robust MVC architecture and modern PHP features.*
+
 * **Package Manager:** Composer
+
 *   **API Authentication:** Laravel Sanctum
+
 *   **API Documentation:** Scribe
+
 *   **Social Authentication (Future):** Laravel Socialite - *Installed for future social login integrations, currently configured for GitHub.*
+
 *   **Cache & Queue:** Redis - *Utilized for high-performance caching and efficient queue management for asynchronous monitoring tasks, ensuring minimal latency.*
+
+* **Containerization:** Docker - *Used for production deployment, ensuring a consistent and reproducible environment.*
+
+
 
 ### Frontend
 
+
+
 * **Build Tool:** Vite
+
 * **CSS Framework:** Tailwind CSS
+
 * **JavaScript:**
+
     * **Reactive Components:** Alpine.js
+
     * **Data Visualization:** Chart.js
+
     * **HTTP Requests:** Axios
 
-## Getting Started
 
-To get started with WebGuard, you'll need to have the following prerequisites installed on your system:
 
-* PHP 8.4 or higher
-* Composer
-* Node.js & npm
-* A database (MySQL, PostgreSQL)
-* Redis
+## Deployment
 
-### Installation
 
-1.  **Clone the repository:**
 
-    ```bash
-    git clone https://github.com/m-breuer/webguard.git
-    cd webguard
-    ```
+WebGuard is designed to be deployed as a Docker container. The provided `Dockerfile` creates a production-ready image that can be deployed to any Docker-compatible hosting environment.
 
-2.  **Install PHP dependencies:**
 
-    ```bash
-    composer install
-    ```
 
-3.  **Install JavaScript dependencies:**
+### Build the Docker Image
 
-    ```bash
-    npm install
-    ```
 
-4.  **Set up your environment:**
 
-    * Copy the `.env.example` file to `.env`:
+To build the Docker image, run the following command in the root of the project:
 
-        ```bash
-        cp .env.example .env
-        ```
 
-    * Generate your application key:
 
-        ```bash
-        php artisan key:generate
-        ```
+```bash
 
-    * Configure your database and Redis connection details in the `.env` file.
+docker build -t webguard .
 
-5.  **Run the database migrations:**
+```
 
-    ```bash
-    php artisan migrate
-    ```
 
-6.  **Build the frontend assets:**
 
-    ```bash
-    npm run build
-    ```
+### Run the Docker Container
 
-7.  **Run the development server:**
 
-    ```bash
-    npm run dev
-    ```
 
-    This will start the Laravel development server, the queue worker, the Pail log viewer, and the Vite development server.
+To run the Docker container, you will need to provide the necessary environment variables. You can do this by creating a `.env` file or by passing the variables directly to the `docker run` command.
+
+
+
+```bash
+
+docker run -p 8000:80 -d --env-file .env webguard
+
+```
+
+
+
+This will start the WebGuard application and make it accessible at `http://localhost:8000`.
+
+
+
+### CI/CD
+
+
+
+The included GitHub Actions workflow in `.github/workflows/publish.yml` will automatically build and push the Docker image to the GitHub Container Registry. You can adapt this workflow to push the image to your preferred container registry.
+
+
+
+## Local Development (Herd)
+
+
+
+
+
+
+
+For local development, you can use Laravel Herd. Detailed setup instructions can be found in the [Herd Documentation](https://herd.laravel.com/docs).
+
+
+
+
+
+
+
+After cloning the repository, run the following commands to get started:
+
+
+
+
+
+
+
+```bash
+
+
+
+composer install
+
+
+
+npm install
+
+
+
+cp .env.example .env
+
+
+
+php artisan key:generate
+
+
+
+php artisan migrate --seed
+
+
+
+npm run dev
+
+
+
+```
+
+
+
+
+
+
+
+Ensure your database and Redis configurations in your `.env` file are set up correctly for your local environment.
+
+
+
+
+
+
 
 ## Contributing
 
