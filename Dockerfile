@@ -19,8 +19,6 @@ COPY composer.json .
 COPY composer.lock .
 RUN composer install --no-dev --optimize-autoloader
 COPY . .
-RUN php artisan migrate --force --no-interaction
-RUN php artisan scribe:generate
 RUN php artisan event:cache
 RUN php artisan view:cache
 RUN php artisan config:cache
