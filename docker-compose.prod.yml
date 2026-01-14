@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    image: serversideup/php:8.5-fpm-nginx
+    volumes:
+      - .:/var/www/html
+    environment:
+      PHP_UPLOAD_MAX_FILE_SIZE: "250M"
+      PHP_OPCACHE_ENABLE: "1"
+      AUTORUN_ENABLED: "true"
+    depends_on:
+      - database
+      - redis
+
+  database:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=webguard
+      - POSTGRES_USER=webguard
+      - POSTGRES_PASSWORD=webguard
+
+  redis:
+    image: redis:7-alpine
+
+  scheduler:
+    image: serversideup/php:8.5-fpm-nginx
+    command: php /var/www/html/artisan schedule:work --verbose --no-interaction
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - app
+
+  queue-worker:
+    image: serversideup/php:8.5-fpm-nginx
+    command: php /var/www/html/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600 --verbose --no-interaction
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - app
+      - redis

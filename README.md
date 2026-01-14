@@ -67,43 +67,47 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 
 
 
-WebGuard is designed to be deployed as a Docker container. The provided `Dockerfile` creates a production-ready image that can be deployed to any Docker-compatible hosting environment.
 
 
 
-### Build the Docker Image
+
+WebGuard is designed to be deployed using Docker Compose. The provided `docker-compose.prod.yml` file creates a production-ready environment that can be deployed to any Docker-compatible hosting environment.
 
 
 
-To build the Docker image, run the following command in the root of the project:
 
 
 
-```bash
 
-docker build -t webguard .
-
-```
+To deploy the application, run the following command in the root of the project:
 
 
 
-### Run the Docker Container
 
-
-
-To run the Docker container, you will need to provide the necessary environment variables. You can do this by creating a `.env` file or by passing the variables directly to the `docker run` command.
 
 
 
 ```bash
 
-docker run -p 8000:80 -d --env-file .env webguard
+
+
+docker-compose -f docker-compose.prod.yml up -d
+
+
 
 ```
 
 
 
-This will start the WebGuard application and make it accessible at `http://localhost:8000`.
+
+
+
+
+This will start the WebGuard application and all the necessary services. You will need to configure your web server to proxy requests to the `app` service on port `80`.
+
+
+
+
 
 
 
@@ -111,7 +115,11 @@ This will start the WebGuard application and make it accessible at `http://local
 
 
 
-The included GitHub Actions workflow in `.github/workflows/publish.yml` will automatically build and push the Docker image to the GitHub Container Registry. You can adapt this workflow to push the image to your preferred container registry.
+
+
+
+
+You can adapt your CI/CD pipeline to use the `docker-compose.prod.yml` file to deploy the application.
 
 
 
