@@ -46,3 +46,10 @@ services:
     depends_on:
       - app
       - redis
+
+  node:
+    image: node:24-alpine
+    working_dir: /var/w ww/html
+    volumes:
+      - .:/var/www/html
+    entrypoint: [ "npm" ]
