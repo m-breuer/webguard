@@ -94,7 +94,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             }
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = humanizeDistance(this.lastCheckedAtDate);
+                this.lastCheckedAtHuman = formatDate(this.lastCheckedAtDate, 'L LTS');
                 this.lastCheckedAt = responseData.checked_at;
             }
             if (responseData.interval) {
@@ -186,10 +186,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
         this.countdown = window.setInterval(() => {
             dayjs.locale(this.currentLocale);
-
-            if (this.lastCheckedAtDate) {
-                this.lastCheckedAtHuman = formatDate(dayjs(), 'L LTS');
-            }
 
             if (this.sinceDate) {
                 this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
