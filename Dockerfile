@@ -12,7 +12,7 @@ RUN npm install
 RUN npm run build
 
 # Stage 2: Backend dependency production
-FROM serversideup/php:8.5-frankenphp AS backend
+FROM serversideup/php:8.5-fpm-nginx AS backend
 WORKDIR /app
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY composer.json .
@@ -25,20 +25,12 @@ RUN php artisan config:cache
 RUN php artisan route:cache
 
 # Stage 3: Final image
-FROM serversideup/php:8.5-frankenphp
+FROM serversideup/php:8.5-fpm-nginx
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
-ENV DOCKER_CHANNEL=stable
-ENV DOCKER_VERSION=5:24.0.7-1~debian.11~bullseye
-ENV SUPERCRON_CRON_IN_CONTAINER=false
-ENV LARAVEL_OCTANE=false
-ENV PHP_OPCACHE_ENABLE=true
-ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
-ENV PHP_OPCACHE_REVALIDATE_FREQ=0
-ENV PHP_OPCACHE_JIT=1255
-ENV PHP_OPCACHE_JIT_BUFFER_SIZE=256M
-ENV PHP_MEMORY_LIMIT=512M
-ENV PHP_MAX_EXECUTION_TIME=60
+ENV PHP_UPLOAD_MAX_FILE_SIZE="250M"
+ENV PHP_OPCACHE_ENABLE="1"
+ENV AUTORUN_ENABLED="true"
 
 COPY --from=frontend /app/public/build /app/public/build
 COPY --from=backend /app /app
