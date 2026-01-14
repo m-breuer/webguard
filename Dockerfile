@@ -17,9 +17,8 @@ WORKDIR /app
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY composer.json .
 COPY composer.lock .
-RUN composer install --no-dev --no-scripts --no-autoloader
+RUN composer install --no-dev --optimize-autoloader
 COPY . .
-RUN composer dump-autoload --optimize --classmap-authoritative
 RUN php artisan migrate --force --no-interaction
 RUN php artisan scribe:generate
 RUN php artisan event:cache
