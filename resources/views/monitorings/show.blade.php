@@ -126,8 +126,8 @@
                             <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
                         </div>
                     </template>
-                    <template x-if="interval">
-                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + interval + '{{ __('monitoring.detail.seconds_short') }}'"
+                    <template x-if="intervalHuman">
+                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + intervalHuman"
                             class="text-gray-400"></x-paragraph>
                     </template>
                 </div>

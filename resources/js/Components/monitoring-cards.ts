@@ -52,9 +52,9 @@ export default (
         const [statusData, heatmapData] = await Promise.all([statusPromise, heatmapPromise]);
 
         if (statusData) {
-            this.statusMap[monitoringId] = statusData.status;
-            this.sinceDateMap[monitoringId] = statusData.since;
-            this.sinceMap[monitoringId] = statusData.since ? humanizeDistance(statusData.since, { withoutSuffix: true }) : '';
+            this.statusMap = { ...this.statusMap, [monitoringId]: statusData.status };
+            this.sinceDateMap = { ...this.sinceDateMap, [monitoringId]: statusData.since };
+            this.sinceMap = { ...this.sinceMap, [monitoringId]: statusData.since ? humanizeDistance(statusData.since, { withoutSuffix: true }) : '' };
         }
 
         if (heatmapData) {
@@ -81,9 +81,5 @@ export default (
 
     init(this: MonitoringCardLoaderComponent) {
         this.loadAll();
-
-        setInterval(() => {
-            this.updateSince();
-        }, 60000);
     }
 });

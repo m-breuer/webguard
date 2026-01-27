@@ -23,11 +23,6 @@ use Illuminate\Support\Facades\Date;
 class ApiController extends Controller
 {
     /**
-     * The interval in seconds for how long the cronjob data should be cached.
-     */
-    protected int $cronjobInterval = 60;
-
-    /**
      * Retrieves all data for a given monitoring instance.
      *
      * @response {
@@ -131,7 +126,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
-            $this->cronjobInterval,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -167,7 +162,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getResponseTimes($monitoring, $startDate, $endDate, $loadAggregatedData),
-            $this->cronjobInterval,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -208,14 +203,14 @@ class ApiController extends Controller
      * "status": "UP",
      * "since": "2021-01-01 00:00:00",
      * "checked_at": "2021-01-01 00:00:00",
-     * "next": "2021-01-01 00:01:00",
-     * "interval": 60
+     * "next": "2021-01-01 00:15:00",
+     * "interval": 900
      * }
      */
     public function status(Monitoring $monitoring): JsonResponse
     {
         $statusSince = MonitoringResultService::getStatusSince($monitoring);
-        $statusNow = MonitoringResultService::getStatusNow($monitoring, $this->cronjobInterval);
+        $statusNow = MonitoringResultService::getStatusNow($monitoring);
 
         $data = array_merge($statusSince, $statusNow);
 
@@ -251,7 +246,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getIncidents($monitoring, $startDate, $endDate),
-            $this->cronjobInterval,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -280,7 +275,7 @@ class ApiController extends Controller
                 'issuer' => $monitoring->sslResult?->issuer,
                 'issue_date' => optional($monitoring->sslResult?->issued_at)?->toIso8601String(),
             ],
-            $this->cronjobInterval,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 

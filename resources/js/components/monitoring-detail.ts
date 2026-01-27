@@ -16,6 +16,7 @@ interface MonitoringDetailComponent {
     nextCheckInDate: Date | null;
     lastCheckedAtHuman: string | null;
     interval: number | null;
+    intervalHuman: string | null;
     countdown: number | null;
     uptimeStats: Record<string, any>;
     sslValid: boolean | null;
@@ -40,8 +41,6 @@ interface MonitoringDetailComponent {
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
-    startCountdown(this: MonitoringDetailComponent): void;
-    init(this: MonitoringDetailComponent): void;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -61,21 +60,18 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     nextCheckInDate: null,
     lastCheckedAtHuman: null,
     interval: null,
+    intervalHuman: null,
     countdown: null,
     uptimeStats: {} as Record<string, any>,
     sslValid: null as boolean | null,
     sslExpiration: null as string | null,
     sslIssuer: null as string | null,
     sslIssueDate: null as string | null,
-
     performanceChartInstance: null as Chart | null,
     responseStats: {} as Record<string, any>,
-
     chartLoading: false,
     responseStatsLoaded: {} as Record<string, boolean>,
-
     totalDowntime: null as string | null,
-
     isDarkMode: document.documentElement.classList.contains('dark'),
     selectedRange: '1', // Default value for selected range
     uptimeCalendarData: [] as any[],
@@ -91,6 +87,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.status = responseData.status;
             if (responseData.since) {
                 this.sinceDate = new Date(responseData.since);
+                this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
             }
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
@@ -99,14 +96,15 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             }
             if (responseData.interval) {
                 this.interval = responseData.interval;
+                this.intervalHuman = humanizeDuration(responseData.interval, 'seconds');
             }
-            this.startCountdown();
         } catch (_) {
             this.status = null;
             this.since = null;
             this.lastCheckedAt = null;
             this.lastCheckedAtHuman = null;
             this.interval = null;
+            this.intervalHuman = null;
         }
     },
 
@@ -177,23 +175,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.loading = false;
         }
     },
-
-    // Start the countdown timers for last and next check
-    startCountdown(this: MonitoringDetailComponent): void {
-        if (this.countdown) {
-            clearInterval(this.countdown);
-        }
-
-        this.countdown = window.setInterval(() => {
-            dayjs.locale(this.currentLocale);
-
-            if (this.sinceDate) {
-                this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
-            }
-        }, 1000);
-    },
-
-
 
     // Loads uptime data for predefined intervals and supplements it with downtime duration
     async loadUptime(this: MonitoringDetailComponent): Promise<void> {
@@ -394,11 +375,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         } finally {
             this.uptimeCalendarLoading = false;
         }
-    },
-
-    init(this: MonitoringDetailComponent) {
-        this.loadHeatmap();
-        this.loadPerformanceChart();
     },
 
     chartLabels: chartLabels

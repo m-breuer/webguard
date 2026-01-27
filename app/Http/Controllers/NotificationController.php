@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
+use App\Models\Scopes\UserScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,10 +39,12 @@ class NotificationController extends Controller
         return view('notifications.index', compact('statusChangeNotifications', 'sslExpiryNotifications', 'showRead'));
     }
 
-    public function markAsRead(MonitoringNotification $monitoringNotification): RedirectResponse
+    public function markAsRead(string $notificationId): RedirectResponse
     {
-        $monitoringNotification->read = true;
-        $monitoringNotification->save();
+        $model = MonitoringNotification::query()->withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
+
+        $model->read = true;
+        $model->save();
 
         return back()->with('success', __('notifications.messages.notification_marked_as_read'));
     }
