@@ -43,7 +43,7 @@
         },
         markAsRead(event, notificationId, route) {
             event.preventDefault();
-            axios.post(route, { _method: 'POST', notification_id: notificationId })
+            axios.post(route)
                 .then(() => document.getElementById(notificationId).remove());
         }
     }">
