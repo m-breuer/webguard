@@ -41,7 +41,6 @@ interface MonitoringDetailComponent {
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
-    init(this: MonitoringDetailComponent): void;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -174,14 +173,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.heatmap = [];
         } finally {
             this.loading = false;
-        }
-    },
-
-    // Start the countdown timers for last and next check
-    startCountdown(this: MonitoringDetailComponent): void {
-        dayjs.locale(this.currentLocale);
-
-        if (this.sinceDate) {
         }
     },
 
@@ -384,13 +375,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         } finally {
             this.uptimeCalendarLoading = false;
         }
-    },
-
-    init(this: MonitoringDetailComponent) {
-        dayjs.locale(this.currentLocale);
-
-        this.loadHeatmap();
-        this.loadPerformanceChart();
     },
 
     chartLabels: chartLabels
