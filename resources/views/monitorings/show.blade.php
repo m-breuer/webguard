@@ -127,7 +127,7 @@
                         </div>
                     </template>
                     <template x-if="interval">
-                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + interval + '{{ __('monitoring.detail.seconds_short') }}'"
+                        <x-paragraph x-text="getFormattedInterval()"
                             class="text-gray-400"></x-paragraph>
                     </template>
                 </div>

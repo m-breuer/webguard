@@ -53,12 +53,14 @@ class MonitoringResultService
         $startDate = Date::now()->subHours(23)->startOfHour();
         $endDate = Date::now()->endOfHour();
 
+        $interval = (int) config('monitoring.interval', 15);
+
         $raw = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
             ->selectRaw("DATE_FORMAT(created_at, '%Y-%m-%d %H') as period,
-                SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) as uptime,
-                SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) as downtime,
-                SUM(CASE WHEN status NOT IN ('up', 'down') THEN 1 ELSE 0 END) as unknown
+                SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) * {$interval} as uptime,
+                SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) * {$interval} as downtime,
+                SUM(CASE WHEN status NOT IN ('up', 'down') THEN 1 ELSE 0 END) * {$interval} as unknown
             ")
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('period')
@@ -264,8 +266,9 @@ class MonitoringResultService
      *   "interval": 60
      * }
      */
-    public static function getStatusNow(Monitoring $monitoring, int $cronjobInterval = 60): array
+    public static function getStatusNow(Monitoring $monitoring, int $cronjobInterval = null): array
     {
+        $cronjobInterval ??= (int) config('monitoring.interval', 15) * 60;
         $latest = $monitoring->latestResponseResult;
 
         return [

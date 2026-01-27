@@ -58,9 +58,8 @@ return [
         'no_data' => 'Loading data...',
         'last_check' => 'Last check',
         'interval' => 'Checked every',
-        'seconds_short' => 's',
         'last_24_hours' => 'Last 24 Hours',
-        'downtime' => 'Downtime',
+        'downtime' => 'downtime',
         'incidents' => [
             'heading' => 'Incidents',
             'no_incidents' => 'No incidents recorded in this period.',
