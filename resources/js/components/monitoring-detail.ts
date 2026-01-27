@@ -43,7 +43,6 @@ interface MonitoringDetailComponent {
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
     startCountdown(this: MonitoringDetailComponent): void;
     init(this: MonitoringDetailComponent): void;
-    getFormattedInterval(this: MonitoringDetailComponent): string;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -404,13 +403,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     init(this: MonitoringDetailComponent) {
         this.loadHeatmap();
         this.loadPerformanceChart();
-    },
-
-    getFormattedInterval(this: MonitoringDetailComponent): string {
-        if (!this.interval) {
-            return '';
-        }
-        return `{{ __('monitoring.detail.interval') }} ${humanizeDuration(this.interval, 'seconds')}`;
     },
 
     chartLabels: chartLabels
