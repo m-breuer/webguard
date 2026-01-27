@@ -79,13 +79,13 @@
                     updateUrl() {
                         const url = new URL(window.location.href);
                         const params = new URLSearchParams(window.location.search);
-
+                
                         if (this.selectedTypes.length > 0) {
                             params.set('types', this.selectedTypes.join(','));
                         } else {
                             params.delete('types');
                         }
-
+                
                         url.search = params.toString();
                         window.location.href = url.toString();
                     }
@@ -107,13 +107,13 @@
                             updateStatus() {
                                 const url = new URL(window.location.href);
                                 const params = new URLSearchParams(window.location.search);
-
+                        
                                 if (this.selectedStatus) {
                                     params.set('lifecycle', this.selectedStatus);
                                 } else {
                                     params.delete('lifecycle');
                                 }
-
+                        
                                 url.search = params.toString();
                                 window.location.href = url.toString();
                             }
@@ -137,12 +137,12 @@
                             updateSort() {
                                 const url = new URL(window.location.href);
                                 const params = new URLSearchParams(window.location.search);
-
+                        
                                 params.set('sort', this.selectedSort);
-
+                        
                                 const types = params.get('types');
                                 const search = params.get('search');
-
+                        
                                 url.search = params.toString();
                                 window.location.href = url.toString();
                             }
@@ -166,12 +166,13 @@
             </x-container>
         @endif
 
-        <div x-show="monitoringIds.length === 0">
+        <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }})">
+            <div x-show="monitoringIds.length === 0">
                 <x-container class="text-center">
                     <x-heading type="h2">
                         {{ __('monitoring.no_monitoring.title') }}
                     </x-heading>
-                    <x-paragraph>
+                    <x-paragraph space="true">
                         {{ __('monitoring.no_monitoring.text') }}
                     </x-paragraph>
                     <x-primary-button :href="route('monitorings.create')">
@@ -180,10 +181,11 @@
                 </x-container>
             </div>
 
-            <template x-for="id in monitoringIds" :key="id" x-show="Object.keys(statusMap).length > 0"
-                x-cloak>
-                <div x-bind:style="monitoringIds.length === 0 ? 'display:none' : ''">
-                    <x-container space="true">
+            <template x-for="id in monitoringIds" :key="id" x-cloak>
+
+                <div>
+
+                    <x-container space="true" class="monitoring-card">
                         <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-3">
                             <div class="space-y-1">
                                 <x-heading type="h2"
