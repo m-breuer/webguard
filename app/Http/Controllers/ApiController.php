@@ -126,7 +126,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
-(int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -162,7 +162,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getResponseTimes($monitoring, $startDate, $endDate, $loadAggregatedData),
-(int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -246,7 +246,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getIncidents($monitoring, $startDate, $endDate),
-(int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -275,7 +275,7 @@ class ApiController extends Controller
                 'issuer' => $monitoring->sslResult?->issuer,
                 'issue_date' => optional($monitoring->sslResult?->issued_at)?->toIso8601String(),
             ],
-(int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 15) * 60,
             'monitoring:' . $monitoring->id
         );
 

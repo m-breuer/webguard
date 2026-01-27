@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use Illuminate\Http\Request;
 use App\Enums\NotificationType;
+use App\Models\MonitoringNotification;
 use App\Models\Scopes\UserScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use App\Models\MonitoringNotification;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
@@ -41,10 +41,10 @@ class NotificationController extends Controller
 
     public function markAsRead(string $notificationId): RedirectResponse
     {
-        $monitoringNotification = MonitoringNotification::withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
+        $model = MonitoringNotification::query()->withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
 
-        $monitoringNotification->read = true;
-        $monitoringNotification->save();
+        $model->read = true;
+        $model->save();
 
         return back()->with('success', __('notifications.messages.notification_marked_as_read'));
     }

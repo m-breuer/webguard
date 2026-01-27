@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\User;
