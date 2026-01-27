@@ -46,6 +46,7 @@ export default (
     currentLocale: getCurrentDayjsLocale(),
 
     async loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void> {
+        console.log('monitoring-cards loadCard', monitoringId);
         const statusPromise = fetch(`/api/monitorings/${monitoringId}/status`).then(res => res.ok ? res.json() : null).catch(() => null);
         const heatmapPromise = fetch(`/api/monitorings/${monitoringId}/heatmap`).then(res => res.ok ? res.json() : null).catch(() => null);
 
@@ -66,6 +67,7 @@ export default (
     },
 
     async loadAll(this: MonitoringCardLoaderComponent): Promise<void> {
+        console.log('monitoring-cards loadAll', this.monitoringIds);
         this.hasMonitorings = this.monitoringIds.length > 0;
         if (!this.hasMonitorings) return;
 
@@ -80,6 +82,7 @@ export default (
     },
 
     init(this: MonitoringCardLoaderComponent) {
+        console.log('monitoring-cards init');
         this.loadAll();
     }
 });

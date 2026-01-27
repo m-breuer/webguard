@@ -166,8 +166,7 @@
             </x-container>
         @endif
 
-        <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }})" x-init="init()" x-cloak>
-            <div x-show="monitoringIds.length === 0">
+        <div x-show="monitoringIds.length === 0">
                 <x-container class="text-center">
                     <x-heading type="h2">
                         {{ __('monitoring.no_monitoring.title') }}
