@@ -81,9 +81,5 @@ export default (
 
     init(this: MonitoringCardLoaderComponent) {
         this.loadAll();
-
-        setInterval(() => {
-            this.updateSince();
-        }, 60000);
     }
 });

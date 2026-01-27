@@ -41,7 +41,6 @@ interface MonitoringDetailComponent {
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
-    startCountdown(this: MonitoringDetailComponent): void;
     init(this: MonitoringDetailComponent): void;
 }
 
@@ -69,15 +68,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     sslExpiration: null as string | null,
     sslIssuer: null as string | null,
     sslIssueDate: null as string | null,
-
     performanceChartInstance: null as Chart | null,
     responseStats: {} as Record<string, any>,
-
     chartLoading: false,
     responseStatsLoaded: {} as Record<string, boolean>,
-
     totalDowntime: null as string | null,
-
     isDarkMode: document.documentElement.classList.contains('dark'),
     selectedRange: '1', // Default value for selected range
     uptimeCalendarData: [] as any[],
@@ -93,6 +88,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.status = responseData.status;
             if (responseData.since) {
                 this.sinceDate = new Date(responseData.since);
+                this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
             }
             if (responseData.checked_at) {
                 this.lastCheckedAtDate = new Date(responseData.checked_at);
@@ -103,7 +99,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                 this.interval = responseData.interval;
                 this.intervalHuman = humanizeDuration(responseData.interval, 'seconds');
             }
-            this.startCountdown();
         } catch (_) {
             this.status = null;
             this.since = null;
@@ -184,20 +179,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
     // Start the countdown timers for last and next check
     startCountdown(this: MonitoringDetailComponent): void {
-        if (this.countdown) {
-            clearInterval(this.countdown);
+        dayjs.locale(this.currentLocale);
+
+        if (this.sinceDate) {
         }
-
-        this.countdown = window.setInterval(() => {
-            dayjs.locale(this.currentLocale);
-
-            if (this.sinceDate) {
-                this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
-            }
-        }, 1000);
     },
-
-
 
     // Loads uptime data for predefined intervals and supplements it with downtime duration
     async loadUptime(this: MonitoringDetailComponent): Promise<void> {
@@ -401,6 +387,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     },
 
     init(this: MonitoringDetailComponent) {
+        dayjs.locale(this.currentLocale);
+
         this.loadHeatmap();
         this.loadPerformanceChart();
     },
