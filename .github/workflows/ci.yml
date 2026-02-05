@@ -1,25 +1,25 @@
-name: Test
+name: CI
 
 on:
-  workflow_run:
-    workflows: ["Lint"]
-    types:
-      - completed
-  push:
-    branches:
-      - main
+  pull_request:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
 
 jobs:
-  test-pr:
-    name: "Run Tests (PR)"
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+  lint:
+    name: "Auto-Fixes (Pint & Rector)"
+    if: "!contains(github.event.head_commit.message, 'ci: auto-fixes')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Use the head_sha of the workflow_run to get the correct PR commit
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.head_ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -40,25 +40,29 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Prepare environment
-        run: |
-          cp .env.testing .env
-          php artisan key:generate
-          chmod -R 777 storage bootstrap/cache
+      - name: Run Rector
+        run: ./vendor/bin/rector process --ansi
 
-      - name: Run migrations
-        run: php artisan migrate --force
+      - name: Run Pint
+        run: ./vendor/bin/pint
 
-      - name: Run tests
-        run: php artisan test
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'ci: auto-fixes from pint and rector'
+          branch: ${{ github.head_ref }}
+          commit_options: '--no-verify'
 
-  test-main:
-    name: "Run Tests (Main)"
-    if: github.event_name == 'push'
+  test:
+    name: "Run Tests"
+    if: "always() && !contains(github.event.head_commit.message, 'ci: auto-fixes')"
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2

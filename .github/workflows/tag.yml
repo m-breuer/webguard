@@ -1,10 +1,9 @@
 name: Tag
 
 on:
-  workflow_run:
-    workflows: ["Test"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -12,12 +11,8 @@ permissions:
 jobs:
   create-tag:
     name: "Create Tag"
-    # This condition ensures the tag is created only if the 'Test' workflow
-    # completed successfully and was triggered by a push to the 'main' branch.
     if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+      !contains(github.event.head_commit.message, 'chore(deps): daily dependency update')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
