@@ -41,10 +41,10 @@ class NotificationController extends Controller
 
     public function markAsRead(string $notificationId): RedirectResponse
     {
-        $model = MonitoringNotification::query()->withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
+        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
 
-        $model->read = true;
-        $model->save();
+        $monitoringNotification->read = true;
+        $monitoringNotification->save();
 
         return back()->with('success', __('notifications.messages.notification_marked_as_read'));
     }
