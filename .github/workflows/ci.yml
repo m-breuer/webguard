@@ -45,6 +45,7 @@ jobs:
         commit_options: '--no-verify'
 
   test:
+    needs: auto-fixes
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
