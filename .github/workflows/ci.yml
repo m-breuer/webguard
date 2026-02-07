@@ -5,7 +5,7 @@ on:
 
 
 jobs:
-  lint:
+  auto-fixes:
     name: "Auto-Fixes (Pint & Rector)"
     if: "!contains(github.event.head_commit.message, 'ci: auto-fixes')"
     runs-on: ubuntu-latest
