@@ -3,94 +3,83 @@ name: CI
 on:
   pull_request:
 
-permissions:
-  contents: write
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
-  cancel-in-progress: true
-
 jobs:
   lint:
     name: "Auto-Fixes (Pint & Rector)"
     if: "!contains(github.event.head_commit.message, 'ci: auto-fixes')"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: redis, sockets, zip
-          tools: composer
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: redis, sockets, zip
+        tools: composer
 
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
-        id: composer-cache
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+    - name: Cache Composer dependencies
+      uses: actions/cache@v4
+      id: composer-cache
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+    - name: Install dependencies
+      run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Run Rector
-        run: ./vendor/bin/rector process --ansi
+    - name: Run Rector
+      run: ./vendor/bin/rector process --ansi
 
-      - name: Run Pint
-        run: ./vendor/bin/pint
+    - name: Run Pint
+      run: ./vendor/bin/pint
 
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'ci: auto-fixes from pint and rector'
-          branch: ${{ github.head_ref }}
-          commit_options: '--no-verify'
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: 'ci: auto-fixes from pint and rector'
+        commit_options: '--no-verify'
 
   test:
-    name: "Run Tests"
-    if: "always() && !contains(github.event.head_commit.message, 'ci: auto-fixes')"
-    needs: lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: redis, sockets, zip
-          tools: composer
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, pdo_mysql, curl, intl, gd, zip, bz2, opcache, xdebug, gmp, ldap, pdo_sqlite, sqlite3, pspell, snmp, tidy
+        coverage: xdebug
 
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
-        id: composer-cache
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+    - name: Cache Composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
 
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+    - name: Install Dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: Prepare environment
-        run: |
-          cp .env.testing .env
-          php artisan key:generate
-          chmod -R 777 storage bootstrap/cache
+    - name: Prepare Environment
+      run: |
+        cp .env.testing .env
+        php artisan key:generate
 
-      - name: Run migrations
-        run: php artisan migrate --force
+    - name: Set permissions
+      run: chmod -R 777 storage bootstrap/cache
 
-      - name: Run tests
-        run: php artisan test
+    - name: Run tests
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: ':memory:'
+      run: |
+        php artisan migrate --force
+        php artisan db:seed --force
+        php artisan test
