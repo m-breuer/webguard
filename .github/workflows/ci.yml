@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
 
+
 jobs:
   lint:
     name: "Auto-Fixes (Pint & Rector)"
@@ -15,7 +16,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: redis, sockets, zip
         tools: composer
 
@@ -52,7 +53,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: mbstring, pdo_mysql, curl, intl, gd, zip, bz2, opcache, xdebug, gmp, ldap, pdo_sqlite, sqlite3, pspell, snmp, tidy
         coverage: xdebug
 
