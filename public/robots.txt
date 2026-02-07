@@ -1,2 +1,5 @@
 User-agent: *
-Disallow: /
+
+Disallow: /api/
+
+Sitemap: https://webguard.m-breuer.dev/sitemap.xml
