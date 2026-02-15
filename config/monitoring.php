@@ -13,5 +13,5 @@ return [
     | is used throughout the application to ensure consistency.
     |
     */
-    'interval' => 15,
+    'interval' => 5,
 ];

@@ -17,5 +17,5 @@ it('returns the correct interval in the status endpoint', function () {
     $response = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
 
     $response->assertOk();
-    $response->assertJson(['interval' => 900]);
+    $response->assertJson(['interval' => 300]);
 });
