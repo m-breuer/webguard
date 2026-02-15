@@ -126,7 +126,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
-            (int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -162,7 +162,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getResponseTimes($monitoring, $startDate, $endDate, $loadAggregatedData),
-            (int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -189,7 +189,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getHeatmap($monitoring, $start_date, $end_date),
-            now()->addMinutes(15),
+            now()->addMinutes(5),
             'monitoring:' . $monitoring->id
         );
 
@@ -203,8 +203,8 @@ class ApiController extends Controller
      * "status": "UP",
      * "since": "2021-01-01 00:00:00",
      * "checked_at": "2021-01-01 00:00:00",
-     * "next": "2021-01-01 00:15:00",
-     * "interval": 900
+     * "next": "2021-01-01 00:05:00",
+     * "interval": 300
      * }
      */
     public function status(Monitoring $monitoring): JsonResponse
@@ -246,7 +246,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             fn (): Collection => MonitoringResultService::getIncidents($monitoring, $startDate, $endDate),
-            (int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
 
@@ -275,7 +275,7 @@ class ApiController extends Controller
                 'issuer' => $monitoring->sslResult?->issuer,
                 'issue_date' => optional($monitoring->sslResult?->issued_at)?->toIso8601String(),
             ],
-            (int) config('monitoring.interval', 15) * 60,
+            (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
 
