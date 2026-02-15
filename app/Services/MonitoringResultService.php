@@ -53,7 +53,7 @@ class MonitoringResultService
         $startDate = Date::now()->subHours(23)->startOfHour();
         $endDate = Date::now()->endOfHour();
 
-        $interval = (int) config('monitoring.interval', 15);
+        $interval = (int) config('monitoring.interval', 5);
 
         $raw = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id)
@@ -263,12 +263,12 @@ class MonitoringResultService
      *   "status": "up",
      *   "checked_at": "2024-01-01T12:00:00Z",
      *   "next": "2024-01-01T12:01:00Z",
-     *   "interval": 900
+     *   "interval": 300
      * }
      */
     public static function getStatusNow(Monitoring $monitoring, ?int $cronjobInterval = null): array
     {
-        $cronjobInterval ??= (int) config('monitoring.interval', 15) * 60;
+        $cronjobInterval ??= (int) config('monitoring.interval', 5) * 60;
         $latest = $monitoring->latestResponseResult;
 
         return [
@@ -406,7 +406,7 @@ class MonitoringResultService
      *   {
      *     "down_at": "01.01.2024 10:00:00",
      *     "up_at": "01.01.2024 10:15:00",
-     *     "duration": "15 minutes"
+     *     "duration": "5 minutes"
      *   },
      *   {
      *     "down_at": "01.01.2024 08:00:00",

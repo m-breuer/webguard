@@ -153,7 +153,7 @@ if (!window.webguardWidgetInitialized) {
         // Initial render
         fetchAndRenderWidget();
 
-        // Refresh every 15 minutes
-        setInterval(fetchAndRenderWidget, 900000);
+        // Refresh every 5 minutes
+        setInterval(fetchAndRenderWidget, 300000);
     })();
 }
