@@ -27,6 +27,13 @@
                     <x-paragraph>{{ __('admin.dashboard.apis.description') }}</x-paragraph>
                 </x-container>
             </a>
+
+            <a href="{{ route('admin.server-instances.index') }}">
+                <x-container class="h-full">
+                    <x-heading type="h2" space="true">{{ __('admin.dashboard.instances.heading') }}</x-heading>
+                    <x-paragraph>{{ __('admin.dashboard.instances.description') }}</x-paragraph>
+                </x-container>
+            </a>
         </div>
     </x-main>
 </x-app-layout>

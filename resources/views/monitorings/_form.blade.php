@@ -1,7 +1,6 @@
 @php
     use App\Enums\MonitoringType;
     use App\Enums\MonitoringLifecycleStatus;
-    use App\Enums\ServerInstance;
     use App\Enums\HttpMethod;
 @endphp
 
@@ -191,9 +190,9 @@
     <div class="mt-4">
         <x-input-label for="preferred_location" :value="__('monitoring.form.preferred_location')" />
         <x-select-input id="preferred_location" class="mt-1 block w-full" name="preferred_location" required>
-            @foreach (ServerInstance::cases() as $instance)
-                <option value="{{ $instance->value }}" @selected(old('preferred_location', $monitoring->preferred_location?->value ?? ServerInstance::DE_1->value) === $instance->value)>
-                    {{ $instance->value }}
+            @foreach ($serverInstances as $instance)
+                <option value="{{ $instance->code }}" @selected(old('preferred_location', $monitoring->preferred_location ?? $serverInstances->first()?->code) === $instance->code)>
+                    {{ $instance->code }}
                 </option>
             @endforeach
         </x-select-input>

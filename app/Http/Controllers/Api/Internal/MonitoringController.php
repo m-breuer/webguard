@@ -23,6 +23,10 @@ class MonitoringController extends Controller
             'response_time' => ['nullable', 'numeric', 'min:0'],
         ]);
 
+        if (! $this->isMonitoringAllowedForInstance($request, $validated['monitoring_id'])) {
+            return response()->json(['message' => 'Unauthorized monitoring'], 403);
+        }
+
         MonitoringResponse::query()->create($validated);
 
         return response()->json(['message' => 'Monitoring response stored successfully.']);
@@ -35,6 +39,10 @@ class MonitoringController extends Controller
             'down_at' => ['required', 'date'],
         ]);
 
+        if (! $this->isMonitoringAllowedForInstance($request, $validated['monitoring_id'])) {
+            return response()->json(['message' => 'Unauthorized monitoring'], 403);
+        }
+
         Incident::query()->firstOrCreate(['monitoring_id' => $validated['monitoring_id'], 'up_at' => null], $validated);
 
         return response()->json(['message' => 'Incident stored successfully.']);
@@ -42,6 +50,10 @@ class MonitoringController extends Controller
 
     public function updateIncident(Request $request, Monitoring $monitoring)
     {
+        if (! $this->isMonitoringAllowedForInstance($request, $monitoring->id)) {
+            return response()->json(['message' => 'Unauthorized monitoring'], 403);
+        }
+
         $validated = $request->validate([
             'up_at' => ['required', 'date'],
         ]);
@@ -69,8 +81,26 @@ class MonitoringController extends Controller
             'issued_at' => ['nullable', 'date'],
         ]);
 
+        if (! $this->isMonitoringAllowedForInstance($request, $validated['monitoring_id'])) {
+            return response()->json(['message' => 'Unauthorized monitoring'], 403);
+        }
+
         MonitoringSslResult::query()->updateOrCreate(['monitoring_id' => $validated['monitoring_id']], $validated);
 
         return response()->json(['message' => 'SSL result stored successfully.']);
+    }
+
+    private function isMonitoringAllowedForInstance(Request $request, string $monitoringId): bool
+    {
+        $instanceCode = (string) $request->attributes->get('authenticated_instance_code');
+
+        if ($instanceCode === '') {
+            return false;
+        }
+
+        return Monitoring::query()
+            ->where('id', $monitoringId)
+            ->where('preferred_location', $instanceCode)
+            ->exists();
     }
 }

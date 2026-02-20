@@ -13,7 +13,4 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    server: {
-        host: 'webguard-core.test'
-    },
 });

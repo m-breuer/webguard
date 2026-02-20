@@ -167,6 +167,7 @@ return [
         'deleted' => 'Monitoring deleted successfully.',
         'results_deleted' => 'Monitoring results will be deleted shortly.',
         'public_label_slug_will_be_generated' => 'The public label URL will be generated after saving.',
+        'no_server_instances' => 'No active server instances are available. Please contact an administrator.',
     ],
     'general' => [
         'monitoring_id' => 'Monitoring :id',
