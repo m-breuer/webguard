@@ -44,6 +44,9 @@ jobs:
     - name: Run Pint
       run: ./vendor/bin/pint
 
+    - name: Ensure local PR branch exists
+      run: git checkout -B "${{ github.head_ref }}"
+
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
