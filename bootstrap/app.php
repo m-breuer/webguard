@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(SetLocaleMiddleware::class);
+        $middleware->preventRequestsDuringMaintenance([
+            'api/v1/internal/*',
+            'api/monitorings/*',
+        ]);
         $middleware->alias([
             'role' => CheckUserRole::class,
             'auth.instance' => AuthenticateInstance::class,
