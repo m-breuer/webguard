@@ -9,6 +9,7 @@ use App\Enums\MonitoringType;
 use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
+use App\Models\ServerInstance;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -104,8 +105,14 @@ class MonitoringController extends Controller
         }
 
         $types = MonitoringType::cases();
+        $serverInstances = ServerInstance::query()->active()->orderBy('code')->get(['code']);
 
-        return view('monitorings.create', ['types' => $types]);
+        if ($serverInstances->isEmpty()) {
+            return to_route('monitorings.index')
+                ->withErrors(['preferred_location' => __('monitoring.messages.no_server_instances')]);
+        }
+
+        return view('monitorings.create', ['types' => $types, 'serverInstances' => $serverInstances]);
     }
 
     /**
@@ -154,8 +161,13 @@ class MonitoringController extends Controller
         abort_if(Auth::user()->isGuest(), 403);
 
         $types = MonitoringType::cases();
+        $serverInstances = ServerInstance::query()
+            ->where('is_active', true)
+            ->orWhere('code', $monitoring->preferred_location)
+            ->orderBy('code')
+            ->get(['code']);
 
-        return view('monitorings.edit', ['monitoring' => $monitoring, 'types' => $types]);
+        return view('monitorings.edit', ['monitoring' => $monitoring, 'types' => $types, 'serverInstances' => $serverInstances]);
     }
 
     /**

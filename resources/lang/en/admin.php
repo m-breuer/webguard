@@ -18,11 +18,38 @@ return [
             'heading' => 'Manage API Access',
             'description' => 'Generate keys, view logs, and manage usage.',
         ],
+        'instances' => [
+            'heading' => 'Manage Server Instances',
+            'description' => 'Manage crawler instance codes and internal API keys.',
+        ],
     ],
     'server_instances' => [
         'title' => 'Server Instances',
-        'list' => 'List of Server Instances',
-        'link_to_instance' => 'Go to Instance',
+        'fields' => [
+            'code' => 'Instance Code',
+            'api_key' => 'Instance API Key',
+            'status' => 'Status',
+            'active' => 'Active',
+            'inactive' => 'Inactive',
+            'actions' => 'Actions',
+            'created_at' => 'Created',
+            'updated_at' => 'Updated',
+        ],
+        'messages' => [
+            'confirm_delete' => 'Are you sure you want to delete this instance?',
+            'no_instances' => 'No server instances found.',
+            'instance_created' => 'Server instance created successfully.',
+            'instance_updated' => 'Server instance updated successfully.',
+            'instance_deleted' => 'Server instance deleted successfully.',
+            'instance_in_use' => 'Server instance is in use and cannot be deleted.',
+            'api_key_optional' => 'Leave empty to keep the current API key.',
+        ],
+        'create' => [
+            'title' => 'Create Server Instance',
+        ],
+        'edit' => [
+            'title' => 'Edit Server Instance',
+        ],
     ],
     'packages' => [
         'title' => 'Packages',

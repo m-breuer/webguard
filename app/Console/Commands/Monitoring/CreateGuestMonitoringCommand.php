@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Console\Commands\Monitoring;
 
 use App\Enums\MonitoringType;
-use App\Enums\ServerInstance;
 use App\Enums\UserRole;
 use App\Models\Monitoring;
+use App\Models\ServerInstance;
 use App\Models\User;
 use Illuminate\Console\Command;
 
@@ -42,6 +42,7 @@ class CreateGuestMonitoringCommand extends Command
 
         $name = $this->ask('Enter the name for the monitoring');
         $target = $this->ask('Enter the target for the monitoring');
+        $defaultInstanceCode = ServerInstance::query()->active()->orderBy('code')->value('code') ?? 'de-1';
 
         $monitoring = Monitoring::query()->create([
             'user_id' => $guestUser->id,
@@ -49,7 +50,7 @@ class CreateGuestMonitoringCommand extends Command
             'name' => $name,
             'target' => $target,
             'timeout' => 5,
-            'preferred_location' => ServerInstance::DE_1,
+            'preferred_location' => $defaultInstanceCode,
             'public_label_enabled' => true,
             'email_notification_on_failure' => false,
         ]);

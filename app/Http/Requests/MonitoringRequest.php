@@ -7,7 +7,6 @@ namespace App\Http\Requests;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
-use App\Enums\ServerInstance;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -152,7 +151,7 @@ class MonitoringRequest extends FormRequest
                     }
                 },
             ],
-            'preferred_location' => ['required', Rule::enum(ServerInstance::class)],
+            'preferred_location' => ['required', 'string', Rule::exists('server_instances', 'code')->where('is_active', true)],
             'public_label_enabled' => ['boolean'],
             'email_notification_on_failure' => ['boolean'],
             'maintenance_from' => ['nullable', 'date'],

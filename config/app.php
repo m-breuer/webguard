@@ -133,5 +133,4 @@ return [
     | This key is used to authenticate requests from the scraper instances.
     |
     */
-    'webguard_instance_api_key' => env('WEBGUARD_INSTANCE_API_KEY'),
 ];

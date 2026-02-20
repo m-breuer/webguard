@@ -18,11 +18,38 @@ return [
             'heading' => 'API-Zugriff verwalten',
             'description' => 'API-Schlüssel generieren, Protokolle anzeigen und Nutzung verwalten.',
         ],
+        'instances' => [
+            'heading' => 'Serverinstanzen verwalten',
+            'description' => 'Crawler-Instanz-Codes und interne API-Schlüssel verwalten.',
+        ],
     ],
     'server_instances' => [
         'title' => 'Serverinstanzen',
-        'list' => 'Liste der Serverinstanzen',
-        'link_to_instance' => 'Zur Instanz',
+        'fields' => [
+            'code' => 'Instanzcode',
+            'api_key' => 'Instanz-API-Schlüssel',
+            'status' => 'Status',
+            'active' => 'Aktiv',
+            'inactive' => 'Inaktiv',
+            'actions' => 'Aktionen',
+            'created_at' => 'Erstellt',
+            'updated_at' => 'Aktualisiert',
+        ],
+        'messages' => [
+            'confirm_delete' => 'Möchten Sie diese Instanz wirklich löschen?',
+            'no_instances' => 'Keine Serverinstanzen gefunden.',
+            'instance_created' => 'Serverinstanz erfolgreich erstellt.',
+            'instance_updated' => 'Serverinstanz erfolgreich aktualisiert.',
+            'instance_deleted' => 'Serverinstanz erfolgreich gelöscht.',
+            'instance_in_use' => 'Serverinstanz wird verwendet und kann nicht gelöscht werden.',
+            'api_key_optional' => 'Leer lassen, um den aktuellen API-Schlüssel zu behalten.',
+        ],
+        'create' => [
+            'title' => 'Serverinstanz erstellen',
+        ],
+        'edit' => [
+            'title' => 'Serverinstanz bearbeiten',
+        ],
     ],
     'packages' => [
         'title' => 'Pakete',

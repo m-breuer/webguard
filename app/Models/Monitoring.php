@@ -7,7 +7,6 @@ namespace App\Models;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
-use App\Enums\ServerInstance;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -242,7 +241,7 @@ class Monitoring extends Model
             'http_headers' => 'array',
             'public_label_enabled' => 'boolean',
             'email_notification_on_failure' => 'boolean',
-            'preferred_location' => ServerInstance::class,
+            'preferred_location' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
