@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,7 +54,8 @@ class ServerInstance extends Model
     /**
      * Scope a query to active server instances.
      */
-    public function scopeActive(Builder $builder): Builder
+    #[Scope]
+    protected function active(Builder $builder): Builder
     {
         return $builder->where('is_active', true);
     }
@@ -60,9 +63,11 @@ class ServerInstance extends Model
     /**
      * Hash plain-text API keys before persisting.
      */
-    public function setApiKeyHashAttribute(string $value): void
+    protected function apiKeyHash(): Attribute
     {
-        $this->attributes['api_key_hash'] = Hash::make($value);
+        return Attribute::make(set: function (string $value) {
+            return ['api_key_hash' => Hash::make($value)];
+        });
     }
 
     /**

@@ -25,9 +25,9 @@ class ServerInstanceController extends Controller
         return view('admin.server-instances.create');
     }
 
-    public function store(StoreServerInstanceRequest $request): RedirectResponse
+    public function store(StoreServerInstanceRequest $storeServerInstanceRequest): RedirectResponse
     {
-        $validated = $request->validated();
+        $validated = $storeServerInstanceRequest->validated();
 
         ServerInstance::query()->create([
             'code' => $validated['code'],
@@ -43,9 +43,9 @@ class ServerInstanceController extends Controller
         return view('admin.server-instances.edit', ['instance' => $serverInstance]);
     }
 
-    public function update(UpdateServerInstanceRequest $request, ServerInstance $serverInstance): RedirectResponse
+    public function update(UpdateServerInstanceRequest $updateServerInstanceRequest, ServerInstance $serverInstance): RedirectResponse
     {
-        $validated = $request->validated();
+        $validated = $updateServerInstanceRequest->validated();
 
         $data = [
             'code' => $validated['code'],

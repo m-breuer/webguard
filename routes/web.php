@@ -18,9 +18,9 @@ use Spatie\Sitemap\Tags\Url;
 Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
-Route::get('/', fn() => view('welcome'))->name('welcome');
+Route::get('/', fn () => view('welcome'))->name('welcome');
 
-Route::get('demo', fn() => view('demo'))->name('demo');
+Route::get('demo', fn () => view('demo'))->name('demo');
 
 // TODO: Add content to these pages
 // Route::get('/terms-of-use', fn() => view('terms-of-use'))->name('terms.show');
@@ -46,7 +46,7 @@ Route::get('/widget.js', function () {
 
 Route::middleware(['auth'])->group(function (): void {
 
-    Route::get('/dashboard', fn() => to_route('monitorings.index'))->name('dashboard');
+    Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
 
     Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
@@ -70,7 +70,7 @@ Route::middleware(['auth'])->group(function (): void {
     });
 
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'role:admin'], function (): void {
-        Route::get('/', fn() => view('admin.dashboard'))->name('dashboard');
+        Route::get('/', fn () => view('admin.dashboard'))->name('dashboard');
         Route::resource('/users', UserController::class)->except(['show'])->names('users');
         Route::post('/users/{user}/verify', [UserController::class, 'verify'])->name('users.verify');
         Route::resource('/packages', PackageController::class)->except(['show'])->names('packages');
