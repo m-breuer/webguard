@@ -22,11 +22,11 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $instance = ServerInstance::query()->firstOrCreate(
+        $serverInstance = ServerInstance::query()->firstOrCreate(
             ['code' => 'de-1'],
             ['api_key_hash' => 'test-token-1234567890', 'is_active' => true]
         );
-        $instance->update([
+        $serverInstance->update([
             'api_key_hash' => 'test-token-1234567890',
             'is_active' => true,
         ]);
@@ -34,21 +34,21 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
         $monitoring = Monitoring::factory()->create([
             'user_id' => $user->id,
             'type' => MonitoringType::HTTP,
-            'preferred_location' => $instance->code,
+            'preferred_location' => $serverInstance->code,
         ]);
 
         Artisan::call('down');
 
         try {
             $internalV1Response = $this->withHeaders([
-                'X-INSTANCE-CODE' => $instance->code,
+                'X-INSTANCE-CODE' => $serverInstance->code,
                 'X-API-KEY' => 'test-token-1234567890',
-            ])->getJson(route('v1.internal.monitorings.list', ['location' => $instance->code]));
+            ])->getJson(route('v1.internal.monitorings.list', ['location' => $serverInstance->code]));
 
-            $internalV1Response->assertStatus(200);
+            $internalV1Response->assertOk();
 
             $legacyInternalResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/status');
-            $legacyInternalResponse->assertStatus(200);
+            $legacyInternalResponse->assertOk();
         } finally {
             Artisan::call('up');
         }
