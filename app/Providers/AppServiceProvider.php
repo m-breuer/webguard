@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Observers\IncidentObserver;
 use App\Observers\MonitoringResponseObserver;
 use App\Observers\UserObserver;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -34,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
         if (env('APP_ENV') === 'production') {
             URL::forceScheme('https');
         }
+
+        Model::preventLazyLoading(! app()->isProduction());
 
         Incident::observe(IncidentObserver::class);
         MonitoringResponse::observe(MonitoringResponseObserver::class);
