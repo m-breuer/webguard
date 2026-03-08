@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["...", "python311Packages.supervisor"]
+nixPkgs = ["...", "bun", "python311Packages.supervisor"]
 
 [phases.build]
 cmds = [
@@ -9,6 +9,8 @@ cmds = [
     "chmod +x /assets/start.sh",
     "chmod -R 775 /app/storage /app/bootstrap/cache",
     "chown -R www-data:www-data /app/storage /app/bootstrap/cache",
+    "bun install --frozen-lockfile",
+    "bun run build",
     "...",
 ]
 
@@ -20,7 +22,7 @@ cmd = '/assets/start.sh'
 #!/bin/bash
 
 # Transform the nginx configuration
-node /assets/scripts/prestart.mjs /assets/nginx.template.conf /etc/nginx.conf
+bun /assets/scripts/prestart.mjs /assets/nginx.template.conf /etc/nginx.conf
 
 # Start supervisor
 supervisord -c /etc/supervisord.conf -n
