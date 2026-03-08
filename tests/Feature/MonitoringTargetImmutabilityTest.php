@@ -40,9 +40,9 @@ class MonitoringTargetImmutabilityTest extends TestCase
 
     public function test_target_can_be_set_when_creating_monitoring(): void
     {
-        $response = $this->actingAs($this->user)->post(route('monitorings.store'), $this->creationPayload());
+        $testResponse = $this->actingAs($this->user)->post(route('monitorings.store'), $this->creationPayload());
 
-        $response->assertRedirect(route('monitorings.index'));
+        $testResponse->assertRedirect(route('monitorings.index'));
         $this->assertDatabaseHas('monitorings', [
             'user_id' => $this->user->id,
             'name' => 'Primary Ping',
@@ -60,11 +60,11 @@ class MonitoringTargetImmutabilityTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $response = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
 
-        $response->assertOk();
-        $response->assertSee(__('monitoring.form.target_immutable_help'));
-        $response->assertDontSee('name="target"', false);
+        $testResponse->assertOk();
+        $testResponse->assertSee(__('monitoring.form.target_immutable_help'));
+        $testResponse->assertDontSeeHtml('name="target"');
     }
 
     public function test_crafted_update_payload_cannot_change_target(): void
@@ -81,9 +81,9 @@ class MonitoringTargetImmutabilityTest extends TestCase
             'target' => '9.9.9.9',
         ]);
 
-        $response = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), $payload);
+        $testResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), $payload);
 
-        $response->assertRedirect(route('monitorings.show', $monitoring));
+        $testResponse->assertRedirect(route('monitorings.show', $monitoring));
         $monitoring->refresh();
 
         $this->assertSame('Renamed Monitor', $monitoring->name);
