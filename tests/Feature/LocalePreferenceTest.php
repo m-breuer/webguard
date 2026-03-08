@@ -28,6 +28,26 @@ class LocalePreferenceTest extends TestCase
         $localizedPage->assertSeeHtml('lang="de"');
     }
 
+    public function test_language_switch_is_visible_for_guests_in_top_navigation(): void
+    {
+        $testResponse = $this->get('/');
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('id="language-switch-guest"');
+    }
+
+    public function test_language_switch_is_hidden_for_authenticated_users_in_top_navigation(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+
+        $testResponse = $this->actingAs($user)->get('/monitorings');
+
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeHtml('id="language-switch-desktop"');
+        $testResponse->assertDontSeeHtml('id="language-switch-mobile"');
+    }
+
     public function test_authenticated_user_locale_in_database_overrides_cookie_value(): void
     {
         Package::factory()->create();
