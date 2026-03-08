@@ -22,7 +22,11 @@ class SetLocaleMiddleware
     {
         if (Auth::check()) {
             $user = Auth::user();
-            App::setLocale($user->locale);
+            $locale = SupportedLanguage::isSupported($user->locale)
+                ? $user->locale
+                : $this->resolveLocaleFromCookieOrHeader($request);
+
+            App::setLocale($locale);
 
             // Set theme based on user preference
             if ($user->theme === 'dark') {
@@ -33,12 +37,26 @@ class SetLocaleMiddleware
                 session(['theme' => 'system']);
             }
         } else {
-            // Fallback to default locale if user is not logged in
-            App::setLocale(SupportedLanguage::default()->value);
+            App::setLocale($this->resolveLocaleFromCookieOrHeader($request));
             // Fallback to system theme if user is not logged in
             session(['theme' => 'system']);
         }
 
         return $next($request);
+    }
+
+    private function resolveLocaleFromCookieOrHeader(Request $request): string
+    {
+        $cookieLocale = $request->cookie(SupportedLanguage::cookieName());
+        if (SupportedLanguage::isSupported($cookieLocale)) {
+            return $cookieLocale;
+        }
+
+        $preferredLanguage = $request->getPreferredLanguage(SupportedLanguage::values());
+        if (SupportedLanguage::isSupported($preferredLanguage)) {
+            return $preferredLanguage;
+        }
+
+        return SupportedLanguage::default()->value;
     }
 }

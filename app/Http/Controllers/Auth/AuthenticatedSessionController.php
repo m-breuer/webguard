@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\SupportedLanguage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\RedirectResponse;
@@ -41,7 +42,19 @@ class AuthenticatedSessionController extends Controller
 
         $loginRequest->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $userLocale = Auth::user()?->locale;
+        if (! SupportedLanguage::isSupported($userLocale)) {
+            $userLocale = SupportedLanguage::default()->value;
+        }
+
+        return redirect()->intended(route('dashboard', absolute: false))
+            ->withCookie(
+                cookie(
+                    SupportedLanguage::cookieName(),
+                    $userLocale,
+                    SupportedLanguage::cookieDurationMinutes()
+                )
+            );
     }
 
     /**

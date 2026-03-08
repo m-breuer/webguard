@@ -56,7 +56,15 @@ class ProfileController extends Controller
         // Update the theme in the session immediately after saving
         session(['theme' => $profileRequest->user()->theme]);
 
-        return to_route('profile.edit')->with('success', __('profile.messages.profile_updated'));
+        return to_route('profile.edit')
+            ->with('success', __('profile.messages.profile_updated'))
+            ->withCookie(
+                cookie(
+                    SupportedLanguage::cookieName(),
+                    $profileRequest->user()->locale,
+                    SupportedLanguage::cookieDurationMinutes()
+                )
+            );
     }
 
     /**

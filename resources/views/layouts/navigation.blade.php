@@ -33,6 +33,7 @@
             </div>
 
             <div class="hidden sm:ms-6 sm:flex sm:items-center">
+                <x-language-switch id="language-switch-desktop" class="mr-3" />
 
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -105,6 +106,9 @@
                     {{ __('admin.title') }}
                 </x-responsive-nav-link>
             @endif
+        </div>
+        <div class="px-4 pb-3 pt-2">
+            <x-language-switch id="language-switch-mobile" />
         </div>
         <div class="border-t border-gray-200 pb-1 pt-4">
             <div class="px-4">
