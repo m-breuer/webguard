@@ -1,0 +1,21 @@
+services:
+  php:
+    build:
+      context: .
+      target: development
+      args:
+        - USER_ID=${USER_ID:-1000}
+        - GROUP_ID=${GROUP_ID:-1000}
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: local
+      AUTORUN_DEBUG: "true"
+
+  queue-default:
+    command: php artisan queue:work redis --queue=${DOCKER_QUEUE_NAME:-default} --sleep=${DOCKER_QUEUE_SLEEP:-1} --tries=${DOCKER_QUEUE_TRIES:-1} --max-time=${DOCKER_QUEUE_MAX_TIME:-3600}
+
+  node:
+    volumes:
+      - ./:/var/www/html
+      - webguard_node_modules:/var/www/html/node_modules
