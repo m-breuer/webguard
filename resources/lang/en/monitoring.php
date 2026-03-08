@@ -120,6 +120,7 @@ return [
         'select_type' => 'Select Monitoring Type',
         'name' => 'Name',
         'target' => 'Target',
+        'target_immutable_help' => 'Target URL cannot be changed after creation.',
         'port' => 'Port',
         'keyword' => 'Keyword',
         'timeout' => 'HTTP Timeout (in seconds)',

@@ -58,15 +58,23 @@
 
     <div class="mt-4">
         <x-input-label for="target" :value="__('monitoring.form.target')" />
-        <x-text-input id="target" type="text" name="target" x-model="target" required
-            x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
-                type === '{{ MonitoringType::PING->value }}' ?
-                '{{ __('monitoring.form.placeholders.ping_target') }}' :
-                type === '{{ MonitoringType::KEYWORD->value }}' ?
-                '{{ __('monitoring.form.placeholders.http_target') }}' :
-                type === '{{ MonitoringType::PORT->value }}' ?
-                '{{ __('monitoring.form.placeholders.port_target') }}' : ''" />
-        <x-input-error :messages="$errors->get('target')" />
+        @if (isset($monitoring))
+            <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
+                class="cursor-not-allowed" />
+            <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('monitoring.form.target_immutable_help') }}
+            </x-paragraph>
+        @else
+            <x-text-input id="target" type="text" name="target" x-model="target" required
+                x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
+                    type === '{{ MonitoringType::PING->value }}' ?
+                    '{{ __('monitoring.form.placeholders.ping_target') }}' :
+                    type === '{{ MonitoringType::KEYWORD->value }}' ?
+                    '{{ __('monitoring.form.placeholders.http_target') }}' :
+                    type === '{{ MonitoringType::PORT->value }}' ?
+                    '{{ __('monitoring.form.placeholders.port_target') }}' : ''" />
+            <x-input-error :messages="$errors->get('target')" />
+        @endif
     </div>
 
     <template x-if="type === '{{ MonitoringType::PORT->value }}'">

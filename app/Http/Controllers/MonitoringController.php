@@ -182,6 +182,7 @@ class MonitoringController extends Controller
         abort_if(Auth::user()->isGuest(), 403);
 
         $validated = $monitoringRequest->validated();
+        unset($validated['target']);
 
         if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {
             $validated['public_label_enabled'] = false;
