@@ -37,7 +37,9 @@
                             {{ __('app.name') }}
                         </x-span>
                     </a>
-                    <x-language-switch id="language-switch-guest" />
+                    @guest
+                        <x-language-switch id="language-switch-guest" />
+                    @endguest
                 </div>
             </div>
         </nav>
