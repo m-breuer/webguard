@@ -99,6 +99,19 @@ return [
             'down' => 'Down',
             'unknown' => 'Unknown',
         ],
+        'custom_range' => [
+            'heading' => 'Custom Range',
+            'help' => 'Select a date range to calculate uptime and incidents for that exact period.',
+            'from' => 'From',
+            'until' => 'Until',
+            'uptime' => 'Uptime',
+            'incidents' => 'Incidents',
+            'loading' => 'Loading custom range statistics...',
+            'errors' => [
+                'invalid_date_range' => 'Until date must be after or equal to from date.',
+                'load_failed' => 'Failed to load custom range statistics.',
+            ],
+        ],
         'widget' => [
             'heading' => 'Embed Widget',
             'description' => 'Embed a live monitoring widget on your website or dashboard.',

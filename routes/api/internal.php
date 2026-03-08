@@ -12,6 +12,7 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
     Route::get('/{monitoring}/uptime-downtime', [ApiController::class, 'uptimeDowntime']);
     Route::get('/{monitoring}/response-times', [ApiController::class, 'responseTimes']);
     Route::get('/{monitoring}/incidents', [ApiController::class, 'incidents']);
+    Route::get('/{monitoring}/custom-range-stats', [ApiController::class, 'customRangeStats']);
     Route::get('/{monitoring}/heatmap', [ApiController::class, 'uptimeHeatmap']);
     Route::get('/{monitoring}/ssl', [ApiController::class, 'sslStatus']);
     Route::get('/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar']);

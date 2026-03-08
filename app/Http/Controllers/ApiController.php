@@ -254,6 +254,62 @@ class ApiController extends Controller
     }
 
     /**
+     * Retrieves uptime percentage and incident count for a custom date range.
+     *
+     * @queryParam from date required Range start date. Example: 2026-01-01
+     * @queryParam until date required Range end date. Example: 2026-01-31
+     *
+     * @response {
+     *   "from": "2026-01-01",
+     *   "until": "2026-01-31",
+     *   "uptime_percentage": 99.85,
+     *   "incidents_count": 2
+     * }
+     */
+    public function customRangeStats(Monitoring $monitoring, Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'from' => ['required', 'date'],
+            'until' => ['required', 'date', 'after_or_equal:from'],
+        ]);
+
+        $startDate = Date::parse($validated['from'])->startOfDay();
+        $endDate = Date::parse($validated['until'])->endOfDay();
+
+        $loadAggregatedData = $startDate->diffInDays($endDate) > 1;
+
+        if ($monitoring->created_at->diffInDays(now()) < 1) {
+            $loadAggregatedData = false;
+        }
+
+        $cacheKey = sprintf(
+            'monitoring:%s:custom-range-stats:%s:%s',
+            $monitoring->id,
+            $startDate->format('Ymd'),
+            $endDate->format('Ymd')
+        );
+
+        $data = $this->cacheAndReturn(
+            $cacheKey,
+            function () use ($monitoring, $startDate, $endDate, $loadAggregatedData): array {
+                $uptimeDowntime = MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData);
+                $incidentsCount = MonitoringResultService::getIncidents($monitoring, $startDate, $endDate)->count();
+
+                return [
+                    'from' => $startDate->toDateString(),
+                    'until' => $endDate->toDateString(),
+                    'uptime_percentage' => (float) ($uptimeDowntime['uptime']['percentage'] ?? 0.0),
+                    'incidents_count' => $incidentsCount,
+                ];
+            },
+            (int) config('monitoring.interval', 5) * 60,
+            'monitoring:' . $monitoring->id
+        );
+
+        return response()->json($data);
+    }
+
+    /**
      * Retrieves the SSL status for a given monitoring instance.
      *
      * @response {
