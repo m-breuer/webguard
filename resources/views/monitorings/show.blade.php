@@ -80,6 +80,7 @@
     <x-main x-init="loadStatus();
     loadHeatmap();
     loadUptime();
+    loadCustomRangeStats();
     loadSslStatus();
     loadPerformanceChart(selectedRange);
     loadIncidents(selectedRange);
@@ -91,6 +92,8 @@
         max: '{{ __('monitoring.detail.response_time.max_label') }}',
         yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
         xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
+        customRangeInvalidDate: '{{ __('monitoring.detail.custom_range.errors.invalid_date_range') }}',
+        customRangeLoadError: '{{ __('monitoring.detail.custom_range.errors.load_failed') }}',
     }))">
 
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -188,6 +191,53 @@
                     </x-paragraph>
                 </x-container>
             @endforeach
+
+            <x-container id="uptime-card-custom-range">
+                <x-heading type="h2">{{ __('monitoring.detail.custom_range.heading') }}</x-heading>
+                <x-paragraph class="mt-2 text-sm text-gray-500">
+                    {{ __('monitoring.detail.custom_range.help') }}
+                </x-paragraph>
+
+                <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div>
+                        <x-input-label for="custom-range-from" :value="__('monitoring.detail.custom_range.from')" />
+                        <input id="custom-range-from" type="date" x-model="customRangeFrom" :max="customRangeUntil"
+                            max="{{ now()->toDateString() }}" @change="loadCustomRangeStats()"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+                    <div>
+                        <x-input-label for="custom-range-until" :value="__('monitoring.detail.custom_range.until')" />
+                        <input id="custom-range-until" type="date" x-model="customRangeUntil" :min="customRangeFrom"
+                            max="{{ now()->toDateString() }}" @change="loadCustomRangeStats()"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+                </div>
+
+                <template x-if="customRangeStatsLoading">
+                    <div class="mt-4" x-transition.opacity>
+                        <x-loading-indicator>{{ __('monitoring.detail.custom_range.loading') }}</x-loading-indicator>
+                    </div>
+                </template>
+
+                <template x-if="!customRangeStatsLoading && customRangeStatsError">
+                    <x-paragraph class="mt-4 text-sm font-medium text-red-600" x-text="customRangeStatsError"></x-paragraph>
+                </template>
+
+                <template x-if="!customRangeStatsLoading && !customRangeStatsError">
+                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                            <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.uptime') }}</x-paragraph>
+                            <x-paragraph class="text-2xl font-bold text-purple-600"
+                                x-text="customRangeStats ? customRangeStats.uptimePercentage.toFixed(2) + '%' : '—%'">—%</x-paragraph>
+                        </div>
+                        <div>
+                            <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.incidents') }}</x-paragraph>
+                            <x-paragraph class="text-2xl font-semibold"
+                                x-text="customRangeStats ? customRangeStats.incidentsCount : '—'">—</x-paragraph>
+                        </div>
+                    </div>
+                </template>
+            </x-container>
 
             @if ($monitoring->type === MonitoringType::HTTP || $monitoring->type === MonitoringType::KEYWORD)
                 <x-container>

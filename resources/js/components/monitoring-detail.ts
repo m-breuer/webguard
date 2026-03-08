@@ -30,6 +30,14 @@ interface MonitoringDetailComponent {
     totalDowntime: string | null;
     isDarkMode: boolean;
     selectedRange: string;
+    customRangeFrom: string;
+    customRangeUntil: string;
+    customRangeStats: {
+        uptimePercentage: number;
+        incidentsCount: number;
+    } | null;
+    customRangeStatsLoading: boolean;
+    customRangeStatsError: string | null;
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
     chartLabels: Record<string, string>;
@@ -38,6 +46,7 @@ interface MonitoringDetailComponent {
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
     loadUptime(this: MonitoringDetailComponent): Promise<void>;
+    loadCustomRangeStats(this: MonitoringDetailComponent): Promise<void>;
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
@@ -74,6 +83,14 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     totalDowntime: null as string | null,
     isDarkMode: document.documentElement.classList.contains('dark'),
     selectedRange: '1', // Default value for selected range
+    customRangeFrom: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+    customRangeUntil: dayjs().format('YYYY-MM-DD'),
+    customRangeStats: null as {
+        uptimePercentage: number;
+        incidentsCount: number;
+    } | null,
+    customRangeStatsLoading: false,
+    customRangeStatsError: null as string | null,
     uptimeCalendarData: [] as any[],
     uptimeCalendarLoading: false,
 
@@ -201,6 +218,44 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         const results = await Promise.all(promises);
 
         this.uptimeStats = Object.assign({}, ...results);
+    },
+
+    // Loads uptime percentage and incident count for a custom date range.
+    async loadCustomRangeStats(this: MonitoringDetailComponent): Promise<void> {
+        if (dayjs(this.customRangeUntil).isBefore(dayjs(this.customRangeFrom), 'day')) {
+            this.customRangeStatsError = this.chartLabels.customRangeInvalidDate;
+            this.customRangeStats = null;
+
+            return;
+        }
+
+        this.customRangeStatsLoading = true;
+        this.customRangeStatsError = null;
+
+        try {
+            const query = new URLSearchParams({
+                from: this.customRangeFrom,
+                until: this.customRangeUntil,
+            });
+
+            const response = await fetch(`/api/monitorings/${monitoringId}/custom-range-stats?${query.toString()}`);
+
+            if (!response.ok) {
+                throw new Error(`Custom range stats request failed: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+
+            this.customRangeStats = {
+                uptimePercentage: responseData.uptime_percentage ?? 0,
+                incidentsCount: responseData.incidents_count ?? 0,
+            };
+        } catch (_) {
+            this.customRangeStats = null;
+            this.customRangeStatsError = this.chartLabels.customRangeLoadError;
+        } finally {
+            this.customRangeStatsLoading = false;
+        }
     },
 
     // Loads SSL certificate status and related metadata

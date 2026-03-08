@@ -99,6 +99,19 @@ return [
             'down' => 'Nicht verfügbar',
             'unknown' => 'Unbekannt',
         ],
+        'custom_range' => [
+            'heading' => 'Benutzerdefinierter Zeitraum',
+            'help' => 'Wählen Sie einen Zeitraum, um Verfügbarkeit und Vorfälle für genau diesen Zeitraum zu berechnen.',
+            'from' => 'Von',
+            'until' => 'Bis',
+            'uptime' => 'Verfügbarkeit',
+            'incidents' => 'Vorfälle',
+            'loading' => 'Benutzerdefinierte Statistiken werden geladen...',
+            'errors' => [
+                'invalid_date_range' => 'Das Bis-Datum muss nach oder gleich dem Von-Datum sein.',
+                'load_failed' => 'Benutzerdefinierte Statistiken konnten nicht geladen werden.',
+            ],
+        ],
         'widget' => [
             'heading' => 'Widget einbetten',
             'description' => 'Betten Sie ein Live-Überwachungs-Widget auf Ihrer Website oder Ihrem Dashboard ein.',
