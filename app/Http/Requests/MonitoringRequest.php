@@ -39,29 +39,9 @@ class MonitoringRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(MonitoringType::class)],
-            'target' => [
-                'required',
-                'string',
-                'max:255',
-                function ($attribute, $value, $fail): void {
-                    $type = $this->input('type');
-
-                    if (($type === MonitoringType::HTTP->value || $type === MonitoringType::KEYWORD->value) && ! filter_var($value, FILTER_VALIDATE_URL)) {
-                        $fail(sprintf('The %s must be a valid URL for type %s.', $attribute, $type));
-                    }
-
-                    if ($type === MonitoringType::PING->value && ! filter_var($value, FILTER_VALIDATE_IP)) {
-                        $fail(sprintf('The %s must be a valid IP address for type %s.', $attribute, $type));
-                    }
-
-                    if ($type === MonitoringType::PORT->value && (! filter_var($value, FILTER_VALIDATE_IP) && ! filter_var($value, FILTER_VALIDATE_URL))) {
-                        $fail(sprintf('The %s must be a valid IP address or URL for type %s.', $attribute, $type));
-                    }
-                },
-            ],
             'port' => ['nullable', 'required_if:type,port', 'integer', 'min:1', 'max:65535'],
             'keyword' => ['nullable', 'required_if:type,keyword', 'string', 'max:255'],
             'status' => ['required', Rule::enum(MonitoringLifecycleStatus::class)],
@@ -157,6 +137,12 @@ class MonitoringRequest extends FormRequest
             'maintenance_from' => ['nullable', 'date'],
             'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
         ];
+
+        if ($this->isMethod('post')) {
+            $rules['target'] = $this->targetRules();
+        }
+
+        return $rules;
     }
 
     /**
@@ -171,5 +157,34 @@ class MonitoringRequest extends FormRequest
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'email_notification_on_failure' => $this->boolean('email_notification_on_failure'),
         ]);
+    }
+
+    /**
+     * Get validation rules for the target field during monitoring creation.
+     *
+     * @return array<int, ValidationRule|callable|string>
+     */
+    private function targetRules(): array
+    {
+        return [
+            'required',
+            'string',
+            'max:255',
+            function ($attribute, $value, $fail): void {
+                $type = $this->input('type');
+
+                if (($type === MonitoringType::HTTP->value || $type === MonitoringType::KEYWORD->value) && ! filter_var($value, FILTER_VALIDATE_URL)) {
+                    $fail(sprintf('The %s must be a valid URL for type %s.', $attribute, $type));
+                }
+
+                if ($type === MonitoringType::PING->value && ! filter_var($value, FILTER_VALIDATE_IP)) {
+                    $fail(sprintf('The %s must be a valid IP address for type %s.', $attribute, $type));
+                }
+
+                if ($type === MonitoringType::PORT->value && (! filter_var($value, FILTER_VALIDATE_IP) && ! filter_var($value, FILTER_VALIDATE_URL))) {
+                    $fail(sprintf('The %s must be a valid IP address or URL for type %s.', $attribute, $type));
+                }
+            },
+        ];
     }
 }

@@ -201,6 +201,12 @@ class Monitoring extends Model
     {
         parent::boot();
 
+        static::updating(function (self $monitoring): void {
+            if ($monitoring->isDirty('target')) {
+                $monitoring->target = (string) $monitoring->getOriginal('target');
+            }
+        });
+
         static::addGlobalScope('user', function (Builder $builder): void {
             if (Auth::check()) {
                 $builder->where('user_id', Auth::user()->id);

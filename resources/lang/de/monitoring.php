@@ -120,6 +120,7 @@ return [
         'select_type' => 'Überwachungstyp auswählen',
         'name' => 'Name',
         'target' => 'Ziel',
+        'target_immutable_help' => 'Die Ziel-URL kann nach der Erstellung nicht mehr geaendert werden.',
         'port' => 'Port',
         'keyword' => 'Schlüsselwort',
         'timeout' => 'HTTP-Timeout (in Sekunden)',
