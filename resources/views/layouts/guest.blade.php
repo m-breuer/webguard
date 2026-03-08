@@ -27,10 +27,26 @@
 </head>
 
 <body class="font-sans text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100">
-    <div class="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-3 dark:bg-gray-900">
-        <main class="w-full overflow-hidden bg-white p-6 shadow-md dark:bg-gray-800 sm:max-w-xl sm:rounded-lg">
-            {{ $slot }}
-        </main>
+    <div class="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
+        <nav class="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center justify-between">
+                    <a href="{{ route('welcome') }}" class="flex items-center">
+                        <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
+                        <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                            {{ __('app.name') }}
+                        </x-span>
+                    </a>
+                    <x-language-switch id="language-switch-guest" />
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 items-center justify-center p-3">
+            <main class="w-full overflow-hidden bg-white p-6 shadow-md dark:bg-gray-800 sm:max-w-xl sm:rounded-lg">
+                {{ $slot }}
+            </main>
+        </div>
 
         @include('components.footer')
     </div>

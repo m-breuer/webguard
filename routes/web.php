@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -21,6 +22,8 @@ Route::get('/auth/github/callback', [SocialiteController::class, 'handleProvider
 Route::get('/', fn () => view('welcome'))->name('welcome');
 
 Route::get('demo', fn () => view('demo'))->name('demo');
+
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 // TODO: Add content to these pages
 // Route::get('/terms-of-use', fn() => view('terms-of-use'))->name('terms.show');
