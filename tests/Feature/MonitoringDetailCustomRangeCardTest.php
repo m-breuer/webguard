@@ -20,12 +20,12 @@ class MonitoringDetailCustomRangeCardTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $response = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
 
-        $response->assertOk();
-        $response->assertSee(__('monitoring.detail.custom_range.heading'));
-        $response->assertSee('id="uptime-card-custom-range"', false);
-        $response->assertSee('id="custom-range-from"', false);
-        $response->assertSee('id="custom-range-until"', false);
+        $testResponse->assertOk();
+        $testResponse->assertSee(__('monitoring.detail.custom_range.heading'));
+        $testResponse->assertSeeHtml('id="uptime-card-custom-range"');
+        $testResponse->assertSeeHtml('id="custom-range-from"');
+        $testResponse->assertSeeHtml('id="custom-range-until"');
     }
 }

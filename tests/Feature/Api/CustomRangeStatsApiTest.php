@@ -9,7 +9,7 @@ use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
 class CustomRangeStatsApiTest extends TestCase
@@ -21,28 +21,28 @@ class CustomRangeStatsApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create([
-            'created_at' => Carbon::now()->subHours(6),
+            'created_at' => Date::now()->subHours(6),
         ]);
 
         Incident::query()->create([
             'monitoring_id' => $monitoring->id,
-            'down_at' => Carbon::today()->addHours(1),
-            'up_at' => Carbon::today()->addHours(2),
+            'down_at' => Date::today()->addHours(1),
+            'up_at' => Date::today()->addHours(2),
         ]);
 
         $url = '/api/v1/monitorings/' . $monitoring->id
-            . '/custom-range-stats?from=' . Carbon::today()->toDateString()
-            . '&until=' . Carbon::today()->toDateString();
+            . '/custom-range-stats?from=' . Date::today()->toDateString()
+            . '&until=' . Date::today()->toDateString();
 
-        $response = $this->actingAs($user)->getJson($url);
+        $testResponse = $this->actingAs($user)->getJson($url);
 
-        $response->assertOk();
-        $response->assertJsonPath('incidents_count', 1);
-        $response->assertJsonPath('from', Carbon::today()->toDateString());
-        $response->assertJsonPath('until', Carbon::today()->toDateString());
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('incidents_count', 1);
+        $testResponse->assertJsonPath('from', Date::today()->toDateString());
+        $testResponse->assertJsonPath('until', Date::today()->toDateString());
 
         $expectedUptimePercentage = ((24 * 60 - 60) / (24 * 60)) * 100;
-        $this->assertEqualsWithDelta($expectedUptimePercentage, (float) $response->json('uptime_percentage'), 0.0001);
+        $this->assertEqualsWithDelta($expectedUptimePercentage, (float) $testResponse->json('uptime_percentage'), 0.0001);
     }
 
     public function test_validates_custom_range_date_order(): void
@@ -51,11 +51,11 @@ class CustomRangeStatsApiTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $response = $this->actingAs($user)->getJson(
+        $testResponse = $this->actingAs($user)->getJson(
             '/api/v1/monitorings/' . $monitoring->id . '/custom-range-stats?from=2026-02-10&until=2026-02-09'
         );
 
-        $response->assertUnprocessable();
-        $response->assertJsonValidationErrors(['until']);
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['until']);
     }
 }
