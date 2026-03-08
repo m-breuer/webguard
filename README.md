@@ -47,7 +47,7 @@ To get started with WebGuard, you'll need to have the following prerequisites in
 
 * PHP 8.4 or higher
 * Composer
-* Node.js & npm
+* Bun
 * A database (MySQL, PostgreSQL)
 * Redis
 
@@ -69,7 +69,7 @@ To get started with WebGuard, you'll need to have the following prerequisites in
 3.  **Install JavaScript dependencies:**
 
     ```bash
-    npm install
+    bun install
     ```
 
 4.  **Set up your environment:**
@@ -97,13 +97,13 @@ To get started with WebGuard, you'll need to have the following prerequisites in
 6.  **Build the frontend assets:**
 
     ```bash
-    npm run build
+    bun run build
     ```
 
 7.  **Run the development server:**
 
     ```bash
-    npm run dev
+    bun run dev
     ```
 
     This will start the Laravel development server, the queue worker, the Pail log viewer, and the Vite development server.
