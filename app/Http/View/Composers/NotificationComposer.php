@@ -19,7 +19,12 @@ class NotificationComposer
         $unreadNotificationsCount = 0;
 
         if (Auth::check()) {
-            $unreadNotificationsCount = Auth::user()->unreadNotifications()->count();
+            if (request()->attributes->has('unread_notifications_count')) {
+                $unreadNotificationsCount = (int) request()->attributes->get('unread_notifications_count');
+            } else {
+                $unreadNotificationsCount = Auth::user()->unreadNotifications()->count();
+                request()->attributes->set('unread_notifications_count', $unreadNotificationsCount);
+            }
         }
 
         $view->with('unreadNotificationsCount', $unreadNotificationsCount);
