@@ -23,6 +23,7 @@ class NotificationController extends Controller
             $builder->where('read', false);
         }
         $statusChangeNotifications = $builder
+            ->with(['monitoring:id,name'])
             ->orderBy('read')->latest()
             ->limit(5)
             ->get();
@@ -32,6 +33,7 @@ class NotificationController extends Controller
             $sslExpiryNotificationsQuery->where('read', false);
         }
         $sslExpiryNotifications = $sslExpiryNotificationsQuery
+            ->with(['monitoring:id,name'])
             ->orderBy('read')->latest()
             ->limit(5)
             ->get();
@@ -68,6 +70,7 @@ class NotificationController extends Controller
             $builder->where('read', false);
         }
         $notifications = $builder
+            ->with(['monitoring:id,name'])
             ->orderBy('read')->latest()
             ->offset($offset)
             ->limit($limit + 1) // Fetch one more to check if there are more
