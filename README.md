@@ -41,72 +41,195 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
     * **Data Visualization:** Chart.js
     * **HTTP Requests:** Axios
 
-## Getting Started
+## Docker Local Development (Recommended)
 
-To get started with WebGuard, you'll need to have the following prerequisites installed on your system:
+The repository includes a Docker development stack with:
 
-* PHP 8.4 or higher
-* Composer
-* Bun
-* A database (MySQL, PostgreSQL)
-* Redis
+* Traefik reverse proxy (domain routing + optional HTTPS on `:443`)
+* `serversideup/php:8.5-fpm-nginx` for Laravel app serving
+* Redis for queues and caching
+* MySQL
+* Bun service for Vite and frontend builds
+* Dedicated worker container with `serversideup/php:8.5-cli`
 
-### Installation
+### Prerequisites
 
-1.  **Clone the repository:**
+* Docker with Docker Compose plugin
 
-    ```bash
-    git clone https://github.com/m-breuer/webguard.git
-    cd webguard
-    ```
+### Start the environment
 
-2.  **Install PHP dependencies:**
+1. **Clone and enter the repository**
 
-    ```bash
-    composer install
-    ```
+   ```bash
+   git clone https://github.com/m-breuer/webguard.git
+   cd webguard
+   ```
 
-3.  **Install JavaScript dependencies:**
+2. **Prepare your app environment file**
 
-    ```bash
-    bun install
-    ```
+   ```bash
+   cp .env.example .env
+   ```
 
-4.  **Set up your environment:**
+   Docker-specific defaults (Redis queue/cache, MySQL host, internal API URL) are in `.env.docker`.
+   Adjust that file if you need different local values.
 
-    * Copy the `.env.example` file to `.env`:
+### Environment Variables For Docker
 
-        ```bash
-        cp .env.example .env
-        ```
+WebGuard Docker reads both files:
 
-    * Generate your application key:
+* `.env` (Laravel base config)
+* `.env.docker` (Docker overrides; loaded after `.env`)
 
-        ```bash
-        php artisan key:generate
-        ```
+`docker-compose.yml` interpolation (`${...}` in image tags, ports, hostnames, and MySQL container values) reads from `.env`.
 
-    * Configure your database and Redis connection details in the `.env` file.
+Set these values before first start:
 
-5.  **Run the database migrations:**
+* Required in `.env`:
+  * `APP_NAME=WebGuard`
+  * `APP_URL=http://webguard.localhost`
+  * `APP_KEY=` (leave empty first, then run `php artisan key:generate` once)
+  * `DOCKER_APP_HOST=webguard.localhost`
+  * `DOCKER_HTTP_PORT=80`
+  * `DOCKER_HTTPS_PORT=443`
+  * `DOCKER_VITE_PORT=5173`
 
-    ```bash
-    php artisan migrate
-    ```
+* Required Docker runtime values (already provided in `.env.docker`):
+  * `DB_CONNECTION=mysql`
+  * `DB_HOST=mysql`
+  * `DB_PORT=3306`
+  * `DB_DATABASE=webguard_core`
+  * `DB_USERNAME=webguard`
+  * `DB_PASSWORD=webguard`
+  * `CACHE_STORE=redis`
+  * `QUEUE_CONNECTION=redis`
+  * `REDIS_HOST=redis`
+  * `REDIS_PORT=6379`
 
-6.  **Build the frontend assets:**
+* Required in `.env` for the MySQL container itself:
+  * `DOCKER_MYSQL_DATABASE=webguard_core`
+  * `DOCKER_MYSQL_USER=webguard`
+  * `DOCKER_MYSQL_PASSWORD=webguard`
+  * `DOCKER_MYSQL_ROOT_PASSWORD=root`
+  * `DOCKER_MYSQL_PORT=3306`
 
-    ```bash
-    bun run build
-    ```
+* Optional integration values in `.env.docker` (for `webguard-instance`):
+  * `WEBGUARD_CORE_INTERNAL_API_URL=http://webguard-core/api/v1/internal`
+  * `WEBGUARD_INSTANCE_CODE=...`
+  * `WEBGUARD_INSTANCE_API_KEY=...`
 
-7.  **Run the development server:**
+3. **Start everything with one command**
 
-    ```bash
-    bun run dev
-    ```
+   ```bash
+   ./start-dev.sh
+   ```
 
-    This will start the Laravel development server, the queue worker, the Pail log viewer, and the Vite development server.
+4. **Initialize Laravel once (new setup)**
+
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan key:generate
+   docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate
+   ```
+
+### Access URLs
+
+* App over Traefik (HTTP): [http://webguard.localhost](http://webguard.localhost)
+* App over Traefik (HTTPS): [https://webguard.localhost](https://webguard.localhost)
+* Vite dev server: [http://localhost:5173](http://localhost:5173)
+
+For frontend HMR in Docker, open the app over HTTP (`http://webguard.localhost`) so Vite assets are loaded from `http://webguard.localhost:5173`.
+
+### Hosts entries
+
+No hosts entry is required for `*.localhost` domains in modern systems.
+
+If you switch to a custom local domain, add a hosts entry like:
+
+```text
+127.0.0.1 webguard.test
+```
+
+### Common commands
+
+* Run migrations:
+
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate
+  ```
+
+* Run queue worker manually:
+
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.override.yml exec queue-default php artisan queue:work redis --once
+  ```
+
+* Build frontend assets with Bun:
+
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
+  ```
+
+* Run Bun install in the Node container:
+
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun install
+  ```
+
+## webguard-instance Integration (Docker Networking)
+
+The Docker stack uses a shared bridge network named `webguard-network`.
+For cross-project communication, attach `webguard-instance` to that same network and call:
+
+* Internal WebGuard API base URL: `http://webguard-core/api/v1/internal`
+* Auth headers required by WebGuard:
+  * `X-INSTANCE-CODE`
+  * `X-API-KEY`
+
+Example `docker-compose` snippet in `webguard-instance-v2`:
+
+```yaml
+services:
+  webguard-instance:
+    networks:
+      - webguard-network
+    environment:
+      WEBGUARD_CORE_API_URL: http://webguard-core/api/v1/internal
+
+networks:
+  webguard-network:
+    external: true
+```
+
+The API key must match the configured server instance in WebGuard Admin.
+
+## Native Setup (Without Docker)
+
+If you prefer running services directly on your host machine, use the classic Laravel setup:
+
+1. Install dependencies:
+
+   ```bash
+   composer install
+   bun install
+   ```
+
+2. Configure `.env` and generate an app key:
+
+   ```bash
+   php artisan key:generate
+   ```
+
+3. Run migrations:
+
+   ```bash
+   php artisan migrate
+   ```
+
+4. Run development processes:
+
+   ```bash
+   bun run dev
+   ```
 
 ## Contributing
 
