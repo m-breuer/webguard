@@ -124,7 +124,8 @@ class MonitoringResultService
                 ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
                 ->selectRaw('
                     SUM(uptime_minutes) as uptime_minutes,
-                    SUM(downtime_minutes) as downtime_minutes
+                    SUM(downtime_minutes) as downtime_minutes,
+                    SUM(incidents_count) as incidents_count
                 ')
                 ->first();
 
@@ -144,6 +145,7 @@ class MonitoringResultService
                 'downtime' => [
                     'minutes' => $aggregatedData->downtime_minutes ?? 0,
                     'percentage' => $downtimePercentage,
+                    'incidents_count' => (int) ($aggregatedData->incidents_count ?? 0),
                 ],
             ]);
         }
@@ -211,6 +213,7 @@ class MonitoringResultService
                 'minutes' => $overallDowntimeMinutes,
                 'percentage' => $overallDowntimePercentage,
                 'total' => (int) ($data->downtime_total ?? 0),
+                'incidents_count' => $incidents->count(),
             ],
         ]);
     }
@@ -440,6 +443,16 @@ class MonitoringResultService
                 'up_at' => $upAt?->toIso8601String(),
             ];
         });
+    }
+
+    /**
+     * Returns incident count in a date range.
+     */
+    public static function countIncidents(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): int
+    {
+        return (int) $monitoring->incidents()
+            ->whereBetween('down_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+            ->count();
     }
 
     /**

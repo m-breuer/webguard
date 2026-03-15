@@ -293,7 +293,7 @@ class ApiController extends Controller
             $cacheKey,
             function () use ($monitoring, $startDate, $endDate, $loadAggregatedData): array {
                 $uptimeDowntime = MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData);
-                $incidentsCount = MonitoringResultService::getIncidents($monitoring, $startDate, $endDate)->count();
+                $incidentsCount = MonitoringResultService::countIncidents($monitoring, $startDate, $endDate);
 
                 return [
                     'from' => $startDate->toDateString(),
