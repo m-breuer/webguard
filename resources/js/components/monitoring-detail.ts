@@ -202,14 +202,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         };
 
         const promises = Object.entries(intervals).map(async ([label, days]) => {
-            const uptimePromise = fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
-            const incidentsPromise = fetch(`/api/monitorings/${monitoringId}/incidents?days=${days}`).then(res => res.ok ? res.json() : null);
-
-            const [uptimeData, incidentsData] = await Promise.all([uptimePromise, incidentsPromise]);
+            const uptimeData = await fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
 
             if (uptimeData && uptimeData.downtime) {
                 uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
-                uptimeData.downtime.incidents_count = incidentsData ? incidentsData.length : 0;
+                uptimeData.downtime.incidents_count = Number(uptimeData.downtime.incidents_count ?? 0);
             }
 
             return { [label]: uptimeData };
