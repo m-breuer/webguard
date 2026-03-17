@@ -81,10 +81,9 @@
     loadHeatmap();
     loadUptime();
     loadCustomRangeStats();
-    loadSslStatus();
     loadPerformanceChart(selectedRange);
     loadIncidents(selectedRange);
-    loadUptimeCalendar();" x-data="Object.assign({
+    initializeDeferredLoads();" x-data="Object.assign({
         selectedRange: 1
     }, monitoringDetail('{{ $monitoring->id }}', {
         min: '{{ __('monitoring.detail.response_time.min_label') }}',
@@ -277,7 +276,7 @@
             @endif
         </div>
 
-        <div class="my-4">
+        <div class="my-4" id="uptime-calendar-{{ $monitoring->id }}">
             <x-heading type="h2" class="mb-2">{{ __('monitoring.detail.calendar.heading') }}</x-heading>
 
             <template x-if="uptimeCalendarLoading">
