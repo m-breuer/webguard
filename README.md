@@ -56,7 +56,7 @@ The standard deployment stack contains:
 * `mysql`
 * `redis`
 
-Use [`.env.example`](/Users/marcel/Developer/webguard-core/.env.example) as the starting point for `.env`, then set at least:
+Use `.env.example` as the starting point for `.env`, then set at least:
 
 ```env
 APP_ENV=production
@@ -136,7 +136,7 @@ The local override adds everything that should only exist during development:
 
 ### Local environment values
 
-[`.env.example`](/Users/marcel/Developer/webguard-core/.env.example) is the only Docker environment template and already contains the local defaults:
+`.env.example` is the only Docker environment template and already contains the local defaults:
 
 * `APP_URL=http://webguard.test`
 * `DB_HOST=mysql`
