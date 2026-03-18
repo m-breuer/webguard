@@ -593,7 +593,7 @@ class MonitoringResultService
         }
 
         // Ensure downtime doesn't exceed the total period.
-        $overallDowntimeMinutes = (int) min($totalDowntimeMinutes, $totalMinutesInPeriod);
+        $overallDowntimeMinutes = min($totalDowntimeMinutes, $totalMinutesInPeriod);
 
         // Calculate uptime minutes.
         $overallUptimeMinutes = $totalMinutesInPeriod - $overallDowntimeMinutes;
