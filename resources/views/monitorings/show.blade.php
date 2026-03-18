@@ -207,7 +207,9 @@
                 <x-container id="uptime-card-{{ $key }}">
                     <x-heading type="h2" class="capitalize">{{ $label }}</x-heading>
                     <x-paragraph class="text-2xl font-bold text-purple-600"
-                        x-text="uptimeStats['{{ $key }}']?.uptime?.percentage.toFixed(2) + '%' ?? '—%'">
+                        x-text="uptimeStats['{{ $key }}']?.has_data && uptimeStats['{{ $key }}']?.uptime?.percentage !== null
+                            ? uptimeStats['{{ $key }}'].uptime.percentage.toFixed(2) + '%'
+                            : '—'">
                         —%
                     </x-paragraph>
                     <x-paragraph class="text-gray-400"
@@ -256,7 +258,9 @@
                         <div>
                             <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.uptime') }}</x-paragraph>
                             <x-paragraph class="text-2xl font-bold text-purple-600"
-                                x-text="customRangeStats ? customRangeStats.uptimePercentage.toFixed(2) + '%' : '—%'">—%</x-paragraph>
+                                x-text="customRangeStats?.hasData && customRangeStats.uptimePercentage !== null
+                                    ? customRangeStats.uptimePercentage.toFixed(2) + '%'
+                                    : '—'">—</x-paragraph>
                         </div>
                         <div>
                             <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.incidents') }}</x-paragraph>
