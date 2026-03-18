@@ -3,6 +3,8 @@
     use App\Enums\MonitoringLifecycleStatus;
     use App\Enums\MonitoringStatus;
 
+    $currentUser = Auth::user();
+    $canCreateMonitoring = ! $currentUser->isGuest() && $monitoringsTotal < $currentUser->package->monitoring_limit;
     $monitoringIds = json_encode(collect($monitorings->items())->pluck('id'));
     $monitoringNames = json_encode($monitorings->pluck('name', 'id'));
     $monitoringTargets = json_encode($monitorings->pluck('target', 'id'));
@@ -18,7 +20,7 @@
             {{ __('monitoring.title') }}
         </x-heading>
 
-        @if (!Auth::user()->isGuest() && $monitoringsTotal < Auth::user()->package->monitoring_limit)
+        @if ($canCreateMonitoring)
             <x-primary-button :href="route('monitorings.create')" class="sm:ml-auto">
                 {{ __('button.create') }}
             </x-primary-button>
@@ -175,9 +177,11 @@
                     <x-paragraph space="true">
                         {{ __('monitoring.no_monitoring.text') }}
                     </x-paragraph>
-                    <x-primary-button :href="route('monitorings.create')">
-                        {{ __('button.create') }}
-                    </x-primary-button>
+                    @if ($canCreateMonitoring)
+                        <x-primary-button :href="route('monitorings.create')">
+                            {{ __('button.create') }}
+                        </x-primary-button>
+                    @endif
                 </x-container>
             </div>
 
