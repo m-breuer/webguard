@@ -70,10 +70,10 @@ class AggregateDailyResultsCommand extends Command
 
                 $this->info(sprintf(
                     '    -> Uptime: %.2f%% (%d min, Total: %d) | Downtime: %.2f%% (%d min, Total: %d) | Avg RT: %.2f ms (Min: %.2f, Max: %.2f) | Incidents: %d',
-                    $uptimeDowntime['uptime']['percentage'],
+                    $uptimeDowntime['uptime']['percentage'] ?? 0.0,
                     $uptimeDowntime['uptime']['minutes'],
                     $uptimeDowntime['uptime']['total'], // uptime_total
-                    $uptimeDowntime['downtime']['percentage'],
+                    $uptimeDowntime['downtime']['percentage'] ?? 0.0,
                     $uptimeDowntime['downtime']['minutes'],
                     $uptimeDowntime['downtime']['total'], // downtime_total
                     $responseTimes['aggregated']['avg'],

@@ -33,7 +33,8 @@ interface MonitoringDetailComponent {
     customRangeFrom: string;
     customRangeUntil: string;
     customRangeStats: {
-        uptimePercentage: number;
+        uptimePercentage: number | null;
+        hasData: boolean;
         incidentsCount: number;
     } | null;
     customRangeStatsLoading: boolean;
@@ -89,7 +90,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     customRangeFrom: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
     customRangeUntil: dayjs().format('YYYY-MM-DD'),
     customRangeStats: null as {
-        uptimePercentage: number;
+        uptimePercentage: number | null;
+        hasData: boolean;
         incidentsCount: number;
     } | null,
     customRangeStatsLoading: false,
@@ -249,7 +251,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const responseData = await response.json();
 
             this.customRangeStats = {
-                uptimePercentage: responseData.uptime_percentage ?? 0,
+                uptimePercentage: responseData.uptime_percentage ?? null,
+                hasData: Boolean(responseData.has_data),
                 incidentsCount: responseData.incidents_count ?? 0,
             };
         } catch (_) {

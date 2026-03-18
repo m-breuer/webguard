@@ -263,6 +263,8 @@ class ApiController extends Controller
      *   "from": "2026-01-01",
      *   "until": "2026-01-31",
      *   "uptime_percentage": 99.85,
+     *   "has_data": true,
+     *   "tracking_started_at": "2026-01-15T12:00:00Z",
      *   "incidents_count": 2
      * }
      */
@@ -298,7 +300,9 @@ class ApiController extends Controller
                 return [
                     'from' => $startDate->toDateString(),
                     'until' => $endDate->toDateString(),
-                    'uptime_percentage' => (float) ($uptimeDowntime['uptime']['percentage'] ?? 0.0),
+                    'uptime_percentage' => $uptimeDowntime['uptime']['percentage'],
+                    'has_data' => (bool) ($uptimeDowntime['has_data'] ?? false),
+                    'tracking_started_at' => $uptimeDowntime['tracking_started_at'],
                     'incidents_count' => $incidentsCount,
                 ];
             },
