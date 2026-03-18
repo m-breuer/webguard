@@ -94,6 +94,7 @@ class MonitoringResultService
      * @param  Carbon  $startDate  The start date of the period.
      * @param  Carbon  $endDate  The end date of the period.
      * @param  bool  $loadAggregatedData  Whether to load aggregated data if available. Defaults to false.
+     * @param  bool  $includeIntradayRawData  Whether to include raw intraday data when using aggregated mode.
      * @return Collection{
      *     data: array{from: Carbon, to: Carbon},
      *     uptime: array{minutes: int, percentage: float, total: int},
@@ -116,7 +117,13 @@ class MonitoringResultService
      *   }
      * }
      */
-    public static function getUptimeDowntime(Monitoring $monitoring, Carbon $startDate, Carbon $endDate, bool $loadAggregatedData = false): Collection
+    public static function getUptimeDowntime(
+        Monitoring $monitoring,
+        Carbon $startDate,
+        Carbon $endDate,
+        bool $loadAggregatedData = false,
+        bool $includeIntradayRawData = true
+    ): Collection
     {
         $startDate = $startDate->copy();
         $endDate = $endDate->copy();
@@ -130,7 +137,7 @@ class MonitoringResultService
         }
 
         if ($loadAggregatedData) {
-            return self::getAggregatedUptimeDowntime($monitoring, $startDate, $endDate);
+            return self::getAggregatedUptimeDowntime($monitoring, $startDate, $endDate, $includeIntradayRawData);
         }
 
         return self::getRawUptimeDowntime($monitoring, $startDate, $endDate);
@@ -375,6 +382,52 @@ class MonitoringResultService
     }
 
     /**
+     * Returns incident count for aggregated ranges and optionally adds intraday raw incidents.
+     */
+    public static function getAggregatedIncidentsCount(
+        Monitoring $monitoring,
+        Carbon $startDate,
+        Carbon $endDate,
+        bool $includeIntradayRawData = true
+    ): int {
+        $startDate = $startDate->copy()->startOfDay();
+        $endDate = $endDate->copy()->endOfDay();
+
+        if ($endDate->isFuture()) {
+            $endDate = Date::now();
+        }
+
+        if ($startDate->gt($endDate)) {
+            return 0;
+        }
+
+        $today = Date::today();
+        $historicalEndDate = $includeIntradayRawData
+            ? $endDate->copy()->min($today->copy()->subDay()->endOfDay())
+            : $endDate->copy();
+
+        $incidentsCount = 0;
+
+        if ($startDate->lte($historicalEndDate)) {
+            $incidentsCount += (int) $monitoring->dailyResults()
+                ->whereBetween('date', [$startDate->toDateString(), $historicalEndDate->toDateString()])
+                ->sum('incidents_count');
+        }
+
+        if (! $includeIntradayRawData || $endDate->lt($today)) {
+            return $incidentsCount;
+        }
+
+        $liveStartDate = $startDate->copy()->max($today);
+
+        if ($liveStartDate->gt($endDate)) {
+            return $incidentsCount;
+        }
+
+        return $incidentsCount + self::countIncidents($monitoring, $liveStartDate, $endDate);
+    }
+
+    /**
      * Get daily uptime data for a calendar view for a given monitoring.
      *
      * @param  Monitoring  $monitoring  The monitoring instance.
@@ -418,7 +471,6 @@ class MonitoringResultService
         }
 
         $dailyUptimeData = [];
-        $currentDate = Date::today();
 
         $historicalData = MonitoringDailyResult::query()
             ->where('monitoring_id', $monitoring->id)
@@ -426,11 +478,6 @@ class MonitoringResultService
             ->select(['date', 'uptime_percentage', 'uptime_minutes', 'downtime_minutes'])
             ->get()
             ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
-
-        $currentDayUptimeData = null;
-        if ($currentDate->between($startDate, $endDate)) {
-            $currentDayUptimeData = self::getUptimeDowntime($monitoring, $currentDate, $currentDate->copy()->endOfDay(), false);
-        }
 
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
@@ -451,23 +498,11 @@ class MonitoringResultService
                 $uptimeMinutes = 0;
                 $downtimeMinutes = 0;
 
-                if ($currentDay->between($startDate, $endDate)) {
-                    if ($currentDay->lt($currentDate)) {
-                        if ($historicalData->has($dateString)) {
-                            $result = $historicalData[$dateString];
-                            $uptimePercentage = $result->uptime_percentage;
-                            $uptimeMinutes = (int) ($result->uptime_minutes ?? 0);
-                            $downtimeMinutes = (int) ($result->downtime_minutes ?? 0);
-                        }
-                    } elseif ($currentDay->eq($currentDate) && $currentDayUptimeData !== null) {
-                        if (($currentDayUptimeData['uptime']['minutes'] ?? 0) === 0 && ($currentDayUptimeData['downtime']['minutes'] ?? 0) === 0) {
-                            $uptimePercentage = null;
-                        } else {
-                            $uptimePercentage = $currentDayUptimeData['uptime']['percentage'];
-                            $uptimeMinutes = (int) ($currentDayUptimeData['uptime']['minutes'] ?? 0);
-                            $downtimeMinutes = (int) ($currentDayUptimeData['downtime']['minutes'] ?? 0);
-                        }
-                    }
+                if ($currentDay->between($startDate, $endDate) && $historicalData->has($dateString)) {
+                    $result = $historicalData[$dateString];
+                    $uptimePercentage = $result->uptime_percentage;
+                    $uptimeMinutes = (int) ($result->uptime_minutes ?? 0);
+                    $downtimeMinutes = (int) ($result->downtime_minutes ?? 0);
                 }
 
                 $monthlyMinutes[$monthYear]['uptime_minutes'] += $uptimeMinutes;
@@ -483,8 +518,8 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $uptimeMinutes = $monthlyMinutes[$monthYear]['uptime_minutes'] ?? 0;
-            $downtimeMinutes = $monthlyMinutes[$monthYear]['downtime_minutes'] ?? 0;
+            $uptimeMinutes = (int) ($monthlyMinutes[$monthYear]['uptime_minutes'] ?? 0);
+            $downtimeMinutes = (int) ($monthlyMinutes[$monthYear]['downtime_minutes'] ?? 0);
             $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
             $monthlyAverage = $totalTrackedMinutes > 0 ? ($uptimeMinutes / $totalTrackedMinutes) * 100 : null;
 
@@ -497,9 +532,15 @@ class MonitoringResultService
         return $filteredAndAggregatedData;
     }
 
-    private static function getAggregatedUptimeDowntime(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
-    {
-        $trackingStartedAt = self::getTrackingStartedAt($monitoring);
+    private static function getAggregatedUptimeDowntime(
+        Monitoring $monitoring,
+        Carbon $startDate,
+        Carbon $endDate,
+        bool $includeIntradayRawData = true
+    ): Collection {
+        $trackingStartedAt = $includeIntradayRawData
+            ? self::getTrackingStartedAt($monitoring)
+            : self::getTrackingStartedAtFromDailyResults($monitoring);
 
         if (! $trackingStartedAt || $trackingStartedAt->gt($endDate)) {
             return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0);
@@ -512,7 +553,9 @@ class MonitoringResultService
         $incidentsCount = 0;
 
         $today = Date::today();
-        $historicalEndDate = $endDate->copy()->min($today->copy()->subDay()->endOfDay());
+        $historicalEndDate = $includeIntradayRawData
+            ? $endDate->copy()->min($today->copy()->subDay()->endOfDay())
+            : $endDate->copy();
 
         if ($startDate->lte($historicalEndDate)) {
             $aggregatedData = $monitoring->dailyResults()
@@ -533,7 +576,7 @@ class MonitoringResultService
             $incidentsCount += (int) ($aggregatedData->incidents_count ?? 0);
         }
 
-        if ($endDate->gte($today)) {
+        if ($includeIntradayRawData && $endDate->gte($today)) {
             $liveStartDate = $startDate->copy()->max($today);
             $liveUptimeDowntime = self::getRawUptimeDowntime($monitoring, $liveStartDate, $endDate);
 
@@ -710,5 +753,16 @@ class MonitoringResultService
         ])->filter()->map(fn ($date): Carbon => Date::parse($date))->sort()->first();
 
         return $trackingStartedAt instanceof Carbon ? $trackingStartedAt : null;
+    }
+
+    private static function getTrackingStartedAtFromDailyResults(Monitoring $monitoring): ?Carbon
+    {
+        $trackingStartedAt = $monitoring->dailyResults()->min('date');
+
+        if (! $trackingStartedAt) {
+            return null;
+        }
+
+        return Date::parse($trackingStartedAt)->startOfDay();
     }
 }

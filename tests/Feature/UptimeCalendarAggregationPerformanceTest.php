@@ -18,7 +18,7 @@ class UptimeCalendarAggregationPerformanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_calendar_generation_avoids_per_month_uptime_requeries(): void
+    public function test_calendar_generation_avoids_raw_requeries_for_monthly_averages(): void
     {
         Date::setTestNow('2026-03-18 12:00:00');
 
@@ -60,11 +60,11 @@ class UptimeCalendarAggregationPerformanceTest extends TestCase
         );
 
         $selectCount = collect(DB::getQueryLog())
-            ->filter(fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
+            ->filter(fn (array $entry): bool => str_starts_with(strtolower($entry['query']), 'select'))
             ->count();
 
         $this->assertArrayHasKey('2025-03', $result);
         $this->assertArrayHasKey('2026-02', $result);
-        $this->assertLessThanOrEqual(2, $selectCount);
+        $this->assertLessThanOrEqual(1, $selectCount);
     }
 }
