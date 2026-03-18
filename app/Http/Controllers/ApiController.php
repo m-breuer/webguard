@@ -114,18 +114,21 @@ class ApiController extends Controller
         $days = (int) ($validated['days'] ?? 30);
         $startDate = now()->subDays($days)->startOfDay();
         $endDate = now()->endOfDay();
+        $isIntradayRange = $days <= 1;
 
-        $loadAggregatedData = ($days > 1);
+        $loadAggregatedData = ! $isIntradayRange;
 
         if ($monitoring->created_at->diffInDays(now()) < 1) {
             $loadAggregatedData = false;
         }
 
+        $includeIntradayRawData = $isIntradayRange;
+
         $cacheKey = sprintf('monitoring:%s:uptime:%s:%s:%s', $monitoring->id, $days, $startDate->format('Ymd'), $endDate->format('Ymd'));
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
+            fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData, $includeIntradayRawData),
             (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
@@ -277,12 +280,15 @@ class ApiController extends Controller
 
         $startDate = Date::parse($validated['from'])->startOfDay();
         $endDate = Date::parse($validated['until'])->endOfDay();
+        $isIntradayRange = $startDate->isSameDay($endDate);
 
-        $loadAggregatedData = $startDate->diffInDays($endDate) > 1;
+        $loadAggregatedData = ! $isIntradayRange;
 
         if ($monitoring->created_at->diffInDays(now()) < 1) {
             $loadAggregatedData = false;
         }
+
+        $includeIntradayRawData = $isIntradayRange;
 
         $cacheKey = sprintf(
             'monitoring:%s:custom-range-stats:%s:%s',
@@ -293,9 +299,17 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            function () use ($monitoring, $startDate, $endDate, $loadAggregatedData): array {
-                $uptimeDowntime = MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData);
-                $incidentsCount = MonitoringResultService::countIncidents($monitoring, $startDate, $endDate);
+            function () use ($monitoring, $startDate, $endDate, $loadAggregatedData, $includeIntradayRawData): array {
+                $uptimeDowntime = MonitoringResultService::getUptimeDowntime(
+                    $monitoring,
+                    $startDate,
+                    $endDate,
+                    $loadAggregatedData,
+                    $includeIntradayRawData
+                );
+                $incidentsCount = $loadAggregatedData
+                    ? MonitoringResultService::getAggregatedIncidentsCount($monitoring, $startDate, $endDate, $includeIntradayRawData)
+                    : MonitoringResultService::countIncidents($monitoring, $startDate, $endDate);
 
                 return [
                     'from' => $startDate->toDateString(),
