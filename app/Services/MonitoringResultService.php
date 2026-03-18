@@ -423,35 +423,55 @@ class MonitoringResultService
         $historicalData = MonitoringDailyResult::query()
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->select(['date', 'uptime_percentage', 'uptime_minutes', 'downtime_minutes'])
             ->get()
             ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
+        $currentDayUptimeData = null;
+        if ($currentDate->between($startDate, $endDate)) {
+            $currentDayUptimeData = self::getUptimeDowntime($monitoring, $currentDate, $currentDate->copy()->endOfDay(), false);
+        }
+
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
+        $monthlyMinutes = [];
         foreach ($carbonPeriod as $monthDate) {
             $monthYear = $monthDate->format('Y-m');
             $daysInMonth = $monthDate->daysInMonth;
             $monthDays = [];
+            $monthlyMinutes[$monthYear] = [
+                'uptime_minutes' => 0,
+                'downtime_minutes' => 0,
+            ];
 
             for ($day = 1; $day <= $daysInMonth; $day++) {
                 $currentDay = $monthDate->copy()->setDay($day)->startOfDay();
                 $dateString = $currentDay->toDateString();
                 $uptimePercentage = null;
+                $uptimeMinutes = 0;
+                $downtimeMinutes = 0;
 
                 if ($currentDay->between($startDate, $endDate)) {
                     if ($currentDay->lt($currentDate)) {
                         if ($historicalData->has($dateString)) {
-                            $uptimePercentage = $historicalData[$dateString]->uptime_percentage;
+                            $result = $historicalData[$dateString];
+                            $uptimePercentage = $result->uptime_percentage;
+                            $uptimeMinutes = (int) ($result->uptime_minutes ?? 0);
+                            $downtimeMinutes = (int) ($result->downtime_minutes ?? 0);
                         }
-                    } elseif ($currentDay->eq($currentDate)) {
-                        $currentDayUptimeData = self::getUptimeDowntime($monitoring, $currentDay, $currentDay->copy()->endOfDay(), false);
+                    } elseif ($currentDay->eq($currentDate) && $currentDayUptimeData !== null) {
                         if (($currentDayUptimeData['uptime']['minutes'] ?? 0) === 0 && ($currentDayUptimeData['downtime']['minutes'] ?? 0) === 0) {
                             $uptimePercentage = null;
                         } else {
                             $uptimePercentage = $currentDayUptimeData['uptime']['percentage'];
+                            $uptimeMinutes = (int) ($currentDayUptimeData['uptime']['minutes'] ?? 0);
+                            $downtimeMinutes = (int) ($currentDayUptimeData['downtime']['minutes'] ?? 0);
                         }
                     }
                 }
+
+                $monthlyMinutes[$monthYear]['uptime_minutes'] += $uptimeMinutes;
+                $monthlyMinutes[$monthYear]['downtime_minutes'] += $downtimeMinutes;
 
                 $monthDays[] = [
                     'date' => $currentDay->toIso8601String(),
@@ -463,30 +483,15 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $validUptimes = array_filter(array_column($days, 'uptime_percentage'), fn ($value) => $value !== null);
+            $uptimeMinutes = $monthlyMinutes[$monthYear]['uptime_minutes'] ?? 0;
+            $downtimeMinutes = $monthlyMinutes[$monthYear]['downtime_minutes'] ?? 0;
+            $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
+            $monthlyAverage = $totalTrackedMinutes > 0 ? ($uptimeMinutes / $totalTrackedMinutes) * 100 : null;
 
-            if (! empty($validUptimes)) {
-                $monthStartDate = Date::createFromFormat('Y-m', $monthYear)->startOfMonth();
-                $monthEndDate = Date::createFromFormat('Y-m', $monthYear)->endOfMonth();
-
-                $calculationStartDate = $monthStartDate->max($startDate);
-                $calculationEndDate = $monthEndDate->min($endDate);
-
-                $isPastMonth = $calculationEndDate->isPast();
-
-                $uptimeData = self::getUptimeDowntime($monitoring, $calculationStartDate, $calculationEndDate->copy()->endOfDay(), $isPastMonth);
-                $monthlyAverage = $uptimeData['uptime']['percentage'];
-
-                $filteredAndAggregatedData[$monthYear] = [
-                    'days' => $days,
-                    'monthly_average_uptime' => $monthlyAverage,
-                ];
-            } else {
-                $filteredAndAggregatedData[$monthYear] = [
-                    'days' => $days,
-                    'monthly_average_uptime' => null,
-                ];
-            }
+            $filteredAndAggregatedData[$monthYear] = [
+                'days' => $days,
+                'monthly_average_uptime' => $monthlyAverage,
+            ];
         }
 
         return $filteredAndAggregatedData;
