@@ -123,8 +123,7 @@ class MonitoringResultService
         Carbon $endDate,
         bool $loadAggregatedData = false,
         bool $includeIntradayRawData = true
-    ): Collection
-    {
+    ): Collection {
         $startDate = $startDate->copy();
         $endDate = $endDate->copy();
 
@@ -518,8 +517,8 @@ class MonitoringResultService
 
         $filteredAndAggregatedData = [];
         foreach ($dailyUptimeData as $monthYear => $days) {
-            $uptimeMinutes = (int) ($monthlyMinutes[$monthYear]['uptime_minutes'] ?? 0);
-            $downtimeMinutes = (int) ($monthlyMinutes[$monthYear]['downtime_minutes'] ?? 0);
+            $uptimeMinutes = $monthlyMinutes[$monthYear]['uptime_minutes'] ?? 0;
+            $downtimeMinutes = $monthlyMinutes[$monthYear]['downtime_minutes'] ?? 0;
             $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
             $monthlyAverage = $totalTrackedMinutes > 0 ? ($uptimeMinutes / $totalTrackedMinutes) * 100 : null;
 
