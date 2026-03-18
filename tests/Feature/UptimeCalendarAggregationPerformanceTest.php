@@ -10,8 +10,8 @@ use App\Models\Package;
 use App\Models\User;
 use App\Services\MonitoringResultService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class UptimeCalendarAggregationPerformanceTest extends TestCase
@@ -60,7 +60,7 @@ class UptimeCalendarAggregationPerformanceTest extends TestCase
         );
 
         $selectCount = collect(DB::getQueryLog())
-            ->filter(fn (array $entry): bool => str_starts_with(strtolower($entry['query']), 'select'))
+            ->filter(fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
             ->count();
 
         $this->assertArrayHasKey('2025-03', $result);
