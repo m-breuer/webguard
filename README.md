@@ -25,7 +25,7 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 
 ### Backend
 
-* **Framework:** Laravel 12 (PHP 8.4) - *Chosen for robust MVC architecture and modern PHP features.*
+* **Framework:** Laravel 12 (PHP 8.5) - *Chosen for robust MVC architecture and modern PHP features.*
 * **Package Manager:** Composer
 *   **API Authentication:** Laravel Sanctum
 *   **API Documentation:** Scribe
@@ -41,115 +41,113 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
     * **Data Visualization:** Chart.js
     * **HTTP Requests:** Axios
 
-## Docker Local Development (Recommended)
+## Docker Deployment
 
-The repository includes a Docker development stack with:
+This repository now uses two Docker modes:
 
-* Traefik reverse proxy (domain routing + optional HTTPS on `:443`)
-* `serversideup/php:8.5-fpm-nginx` for Laravel app serving
-* Redis for queues and caching
+* `docker-compose.yml`: standard deployment stack
+* `docker-compose.override.yml`: local development additions only
+
+The standard deployment stack contains:
+
+* `php`
+* `schedule`
+* `queue-default`
+* `mysql`
+* `redis`
+
+Use [`.env.example`](/Users/marcel/Developer/webguard-core/.env.example) as the starting point for `.env`, then set at least:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://webguard.example.com
+APP_KEY=base64:...
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=webguard_core
+DB_USERNAME=webguard
+DB_PASSWORD=super-secret-password
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=null
+WEBGUARD_CORE_INTERNAL_API_URL=https://webguard.example.com/api/v1/internal
+WEBGUARD_INSTANCE_CODE=...
+WEBGUARD_INSTANCE_API_KEY=...
+```
+
+The application listens internally on port `8080`.
+If you use Traefik or another reverse proxy in front of the deployment, route traffic to the `php` service on that port.
+
+## Docker Local Development
+
+The local override adds everything that should only exist during development:
+
+* Traefik
+* Bun / Vite
 * MySQL
-* Bun service for Vite and frontend builds
-* Dedicated worker container with `serversideup/php:8.5-cli`
+* Redis
+* bind mounts for the application code
 
-### Prerequisites
+### Local setup
 
-* Docker with Docker Compose plugin
-
-### Start the environment
-
-1. **Clone and enter the repository**
+1. Clone and enter the repository:
 
    ```bash
    git clone https://github.com/m-breuer/webguard.git
    cd webguard
    ```
 
-2. **Prepare your app environment file**
+2. Create your local environment file:
 
    ```bash
    cp .env.example .env
    ```
 
-   Docker-specific defaults (Redis queue/cache, MySQL host, internal API URL) are in `.env.docker`.
-   Adjust that file if you need different local values.
+3. Add a hosts entry for the local domain:
 
-### Environment Variables For Docker
+   ```text
+   127.0.0.1 webguard.test
+   ```
 
-WebGuard Docker reads both files:
-
-* `.env` (Laravel base config)
-* `.env.docker` (Docker overrides; loaded after `.env`)
-
-`docker-compose.yml` interpolation (`${...}` in image tags, ports, hostnames, and MySQL container values) reads from `.env`.
-
-Set these values before first start:
-
-* Required in `.env`:
-  * `APP_NAME=WebGuard`
-  * `APP_URL=http://webguard.localhost`
-  * `APP_KEY=` (leave empty first, then run `php artisan key:generate` once)
-  * `DOCKER_APP_HOST=webguard.localhost`
-  * `DOCKER_HTTP_PORT=80`
-  * `DOCKER_HTTPS_PORT=443`
-  * `DOCKER_VITE_PORT=5173`
-
-* Required Docker runtime values (already provided in `.env.docker`):
-  * `DB_CONNECTION=mysql`
-  * `DB_HOST=mysql`
-  * `DB_PORT=3306`
-  * `DB_DATABASE=webguard_core`
-  * `DB_USERNAME=webguard`
-  * `DB_PASSWORD=webguard`
-  * `CACHE_STORE=redis`
-  * `QUEUE_CONNECTION=redis`
-  * `REDIS_HOST=redis`
-  * `REDIS_PORT=6379`
-
-* Required in `.env` for the MySQL container itself:
-  * `DOCKER_MYSQL_DATABASE=webguard_core`
-  * `DOCKER_MYSQL_USER=webguard`
-  * `DOCKER_MYSQL_PASSWORD=webguard`
-  * `DOCKER_MYSQL_ROOT_PASSWORD=root`
-  * `DOCKER_MYSQL_PORT=3306`
-
-* Optional integration values in `.env.docker` (for `webguard-instance`):
-  * `WEBGUARD_CORE_INTERNAL_API_URL=http://webguard-core/api/v1/internal`
-  * `WEBGUARD_INSTANCE_CODE=...`
-  * `WEBGUARD_INSTANCE_API_KEY=...`
-
-3. **Start everything with one command**
+4. Start the local stack:
 
    ```bash
    ./start-dev.sh
    ```
 
-4. **Initialize Laravel once (new setup)**
+5. Initialize Laravel once:
 
    ```bash
    docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan key:generate
    docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate
    ```
 
-### Access URLs
+`start-dev.sh` builds the local stack, starts it, and opens a shell inside the `php` container.
 
-* App over Traefik (HTTP): [http://webguard.localhost](http://webguard.localhost)
-* App over Traefik (HTTPS): [https://webguard.localhost](https://webguard.localhost)
-* Vite dev server: [http://localhost:5173](http://localhost:5173)
+### Local URLs
 
-For frontend HMR in Docker, open the app over HTTP (`http://webguard.localhost`) so Vite assets are loaded from `http://webguard.localhost:5173`.
+* App: [http://webguard.test](http://webguard.test)
+* HTTPS app: [https://webguard.test](https://webguard.test)
+* Vite: [http://webguard.test:5173](http://webguard.test:5173)
 
-### Hosts entries
+### Local environment values
 
-No hosts entry is required for `*.localhost` domains in modern systems.
+[`.env.example`](/Users/marcel/Developer/webguard-core/.env.example) is the only Docker environment template and already contains the local defaults:
 
-If you switch to a custom local domain, add a hosts entry like:
+* `APP_URL=http://webguard.test`
+* `DB_HOST=mysql`
+* `REDIS_HOST=redis`
+* `CACHE_STORE=redis`
+* `QUEUE_CONNECTION=redis`
+* `DOCKER_APP_HOST=webguard.test`
 
-```text
-127.0.0.1 webguard.test
-```
+If you already have an older `.env`, update at least the `APP_URL`, `DB_*`, `REDIS_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, and `VITE_*` values before using Docker.
 
-### Common commands
+### Local commands
 
 * Run migrations:
 
@@ -157,35 +155,35 @@ If you switch to a custom local domain, add a hosts entry like:
   docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate
   ```
 
-* Run queue worker manually:
+* Run one queue job:
 
   ```bash
   docker compose -f docker-compose.yml -f docker-compose.override.yml exec queue-default php artisan queue:work redis --once
   ```
 
-* Build frontend assets with Bun:
+* Build frontend assets:
 
   ```bash
   docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
   ```
 
-* Run Bun install in the Node container:
+* Install frontend dependencies:
 
   ```bash
   docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun install
   ```
 
-## webguard-instance Integration (Docker Networking)
+## webguard-instance Integration (Local Docker)
 
-The Docker stack uses a shared bridge network named `webguard-network`.
-For cross-project communication, attach `webguard-instance` to that same network and call:
+The local stack uses the shared Docker network `webguard-network`.
+Because the local Traefik service also has the network alias `webguard.test`, other containers on the same network can reach WebGuard through the same URL as your browser.
 
-* Internal WebGuard API base URL: `http://webguard-core/api/v1/internal`
-* Auth headers required by WebGuard:
-  * `X-INSTANCE-CODE`
-  * `X-API-KEY`
+That means `webguard-instance` can use either:
 
-Example `docker-compose` snippet in `webguard-instance-v2`:
+* `http://webguard.test/api/v1/internal`
+* `http://webguard-core/api/v1/internal`
+
+Example:
 
 ```yaml
 services:
@@ -193,14 +191,12 @@ services:
     networks:
       - webguard-network
     environment:
-      WEBGUARD_CORE_API_URL: http://webguard-core/api/v1/internal
+      WEBGUARD_CORE_API_URL: http://webguard.test/api/v1/internal
 
 networks:
   webguard-network:
     external: true
 ```
-
-The API key must match the configured server instance in WebGuard Admin.
 
 ## Native Setup (Without Docker)
 
@@ -218,6 +214,8 @@ If you prefer running services directly on your host machine, use the classic La
    ```bash
    php artisan key:generate
    ```
+
+   For a native setup, change `DB_HOST`, `REDIS_HOST`, `CACHE_STORE`, and `QUEUE_CONNECTION` away from the Docker defaults from `.env.example`.
 
 3. Run migrations:
 

@@ -1,25 +1,43 @@
-services:
-  traefik:
-    image: traefik:${DOCKER_TRAEFIK_VERSION:-v3.6.6}
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:${DOCKER_TRAEFIK_WEB_PORT:-80}
-      - --entrypoints.websecure.address=:${DOCKER_TRAEFIK_WEBSECURE_PORT:-443}
-    ports:
-      - "${DOCKER_HTTP_PORT:-80}:${DOCKER_TRAEFIK_WEB_PORT:-80}"
-      - "${DOCKER_HTTPS_PORT:-443}:${DOCKER_TRAEFIK_WEBSECURE_PORT:-443}"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - webguard-network
+x-app-environment: &app-environment
+  APP_NAME: "${APP_NAME:-WebGuard}"
+  APP_ENV: "${APP_ENV:-production}"
+  APP_DEBUG: "${APP_DEBUG:-false}"
+  APP_KEY: "${APP_KEY:-}"
+  APP_URL: "${APP_URL:-https://webguard.example.com}"
+  APP_TIMEZONE: "${APP_TIMEZONE:-Europe/Berlin}"
+  APP_LOCALE: "${APP_LOCALE:-en}"
+  APP_FALLBACK_LOCALE: "${APP_FALLBACK_LOCALE:-en}"
+  LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
+  LOG_LEVEL: "${LOG_LEVEL:-info}"
+  SESSION_DRIVER: "${SESSION_DRIVER:-database}"
+  SESSION_LIFETIME: "${SESSION_LIFETIME:-120}"
+  DB_CONNECTION: "${DB_CONNECTION:-mysql}"
+  DB_HOST: "${DB_HOST:-mysql}"
+  DB_PORT: "${DB_PORT:-3306}"
+  DB_DATABASE: "${DB_DATABASE:-webguard_core}"
+  DB_USERNAME: "${DB_USERNAME:-webguard}"
+  DB_PASSWORD: "${DB_PASSWORD:-webguard}"
+  CACHE_STORE: "${CACHE_STORE:-redis}"
+  QUEUE_CONNECTION: "${QUEUE_CONNECTION:-redis}"
+  REDIS_CLIENT: "${REDIS_CLIENT:-phpredis}"
+  REDIS_HOST: "${REDIS_HOST:-redis}"
+  REDIS_PASSWORD: "${REDIS_PASSWORD:-null}"
+  REDIS_PORT: "${REDIS_PORT:-6379}"
+  REDIS_QUEUE_CONNECTION: "${REDIS_QUEUE_CONNECTION:-default}"
+  REDIS_QUEUE: "${REDIS_QUEUE:-default}"
+  WEBGUARD_CORE_INTERNAL_API_URL: "${WEBGUARD_CORE_INTERNAL_API_URL:-http://webguard-core/api/v1/internal}"
+  WEBGUARD_INSTANCE_CODE: "${WEBGUARD_INSTANCE_CODE:-}"
+  WEBGUARD_INSTANCE_API_KEY: "${WEBGUARD_INSTANCE_API_KEY:-}"
 
+services:
   php:
     build:
       context: .
-      target: ${DOCKER_PHP_TARGET:-production}
-    image: ${DOCKER_PHP_IMAGE:-webguard-core-php:local}
+      target: production
+    image: ${DOCKER_PHP_IMAGE:-webguard-core-php:latest}
+    restart: unless-stopped
     environment:
+      <<: *app-environment
       SSL_MODE: "${DOCKER_SSL_MODE:-off}"
       PHP_MEMORY_LIMIT: "${DOCKER_PHP_MEMORY_LIMIT:-512M}"
       PHP_UPLOAD_MAX_FILE_SIZE: "${DOCKER_PHP_UPLOAD_MAX_FILE_SIZE:-100M}"
@@ -30,25 +48,16 @@ services:
       AUTORUN_LARAVEL_MIGRATION_FORCE: "true"
       AUTORUN_LARAVEL_OPTIMIZE: "true"
       AUTORUN_LARAVEL_STORAGE_LINK: "true"
+    expose:
+      - "${DOCKER_PHP_INTERNAL_PORT:-8080}"
     volumes:
       - config:/config
       - data:/data
-    env_file:
-      - .env
-      - .env.docker
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.webguard.rule=Host(`${DOCKER_APP_HOST:-webguard.localhost}`)
-      - traefik.http.routers.webguard.entrypoints=web
-      - traefik.http.services.webguard.loadbalancer.server.port=${DOCKER_PHP_INTERNAL_PORT:-8080}
-      - traefik.http.routers.webguard-secure.rule=Host(`${DOCKER_APP_HOST:-webguard.localhost}`)
-      - traefik.http.routers.webguard-secure.entrypoints=websecure
-      - traefik.http.routers.webguard-secure.tls=true
     networks:
       webguard-network:
         aliases:
@@ -56,10 +65,10 @@ services:
           - webguard-api
 
   schedule:
-    build:
-      context: .
-      target: ${DOCKER_WORKER_TARGET:-worker}
+    image: ${DOCKER_WORKER_IMAGE:-webguard-core-worker:latest}
+    restart: unless-stopped
     environment:
+      <<: *app-environment
       PHP_MEMORY_LIMIT: "${DOCKER_WORKER_MEMORY_LIMIT:-2048M}"
       PHP_UPLOAD_MAX_FILE_SIZE: "${DOCKER_WORKER_UPLOAD_MAX_FILE_SIZE:-100M}"
       PHP_MAX_EXECUTION_TIME: "${DOCKER_WORKER_MAX_EXECUTION_TIME:-3600}"
@@ -67,35 +76,29 @@ services:
       AUTORUN_ENABLED: "false"
     command: php artisan schedule:work --verbose --no-interaction
     stop_signal: SIGTERM
-    env_file:
-      - .env
-      - .env.docker
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "healthcheck-schedule"]
-      start_period: 10s
     networks:
       - webguard-network
 
   queue-default:
     build:
       context: .
-      target: ${DOCKER_WORKER_TARGET:-worker}
+      target: worker
+    image: ${DOCKER_WORKER_IMAGE:-webguard-core-worker:latest}
+    restart: unless-stopped
     environment:
+      <<: *app-environment
       PHP_MEMORY_LIMIT: "${DOCKER_WORKER_MEMORY_LIMIT:-2048M}"
       PHP_UPLOAD_MAX_FILE_SIZE: "${DOCKER_WORKER_UPLOAD_MAX_FILE_SIZE:-100M}"
       PHP_MAX_EXECUTION_TIME: "${DOCKER_WORKER_MAX_EXECUTION_TIME:-3600}"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "false"
-    command: php artisan queue:work redis --queue=${DOCKER_QUEUE_NAME:-default} --sleep=${DOCKER_QUEUE_SLEEP:-1} --tries=${DOCKER_QUEUE_TRIES:-1} --max-time=${DOCKER_QUEUE_MAX_TIME:-3600}
+    command: php artisan queue:work redis --queue=${QUEUE_WORKER_QUEUE:-default} --sleep=${QUEUE_WORKER_SLEEP:-1} --tries=${QUEUE_WORKER_TRIES:-1} --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
     stop_signal: SIGTERM
-    env_file:
-      - .env
-      - .env.docker
     depends_on:
       mysql:
         condition: service_healthy
@@ -107,21 +110,27 @@ services:
     networks:
       - webguard-network
 
-  node:
-    build:
-      context: .
-      dockerfile: docker/node/Dockerfile
-    command: ["bun", "run", "dev", "--port", "${DOCKER_VITE_PORT:-5173}"]
-    env_file:
-      - .env
-      - .env.docker
-    ports:
-      - "${DOCKER_VITE_PORT:-5173}:${DOCKER_VITE_PORT:-5173}"
+  mysql:
+    image: mysql:${DOCKER_MYSQL_VERSION:-8.4}
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root}"
+      MYSQL_DATABASE: "${DB_DATABASE:-webguard_core}"
+      MYSQL_USER: "${DB_USERNAME:-webguard}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-webguard}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - webguard-network
 
   redis:
     image: redis:${DOCKER_REDIS_VERSION:-8.4}-alpine
+    restart: unless-stopped
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -130,25 +139,6 @@ services:
       retries: 20
     volumes:
       - redis_data:/data
-    networks:
-      - webguard-network
-
-  mysql:
-    image: mysql:${DOCKER_MYSQL_VERSION:-8.4}
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DOCKER_MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${DOCKER_MYSQL_DATABASE:-webguard_core}
-      MYSQL_USER: ${DOCKER_MYSQL_USER:-webguard}
-      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD:-webguard}
-    ports:
-      - "${DOCKER_MYSQL_PORT:-3306}:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - webguard-network
 
@@ -161,9 +151,7 @@ volumes:
     driver: local
   redis_data:
     driver: local
-  webguard_node_modules:
-    driver: local
 
 networks:
   webguard-network:
-    name: webguard-network
+    name: ${DOCKER_NETWORK_NAME:-webguard-network}

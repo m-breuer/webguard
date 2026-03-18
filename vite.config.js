@@ -7,12 +7,12 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
-        origin: process.env.VITE_DEV_SERVER_URL ?? 'http://webguard.localhost:5173',
+        origin: process.env.VITE_DEV_SERVER_URL ?? 'http://webguard.test:5173',
         cors: {
-            origin: process.env.APP_URL ?? 'http://webguard.localhost',
+            origin: process.env.APP_URL ?? 'http://webguard.test',
         },
         hmr: {
-            host: process.env.VITE_HMR_HOST ?? 'webguard.localhost',
+            host: process.env.VITE_HMR_HOST ?? 'webguard.test',
             port: 5173,
             clientPort: 5173,
         },
