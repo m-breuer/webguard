@@ -60,7 +60,7 @@ class UptimeCalendarAggregationPerformanceTest extends TestCase
         );
 
         $selectCount = collect(DB::getQueryLog())
-            ->filter(fn (array $entry): bool => str_starts_with(strtolower($entry['query']), 'select'))
+            ->filter(fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
             ->count();
 
         $this->assertArrayHasKey('2025-03', $result);
