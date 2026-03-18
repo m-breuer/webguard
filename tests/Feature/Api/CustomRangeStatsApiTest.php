@@ -96,12 +96,6 @@ class CustomRangeStatsApiTest extends TestCase
             'updated_at' => $trackingStartedAt,
         ]);
 
-        Incident::query()->create([
-            'monitoring_id' => $monitoring->id,
-            'down_at' => $trackingStartedAt,
-            'up_at' => null,
-        ]);
-
         $testResponse = $this->actingAs($user)->getJson(
             '/api/v1/monitorings/' . $monitoring->id . '/custom-range-stats?from=2026-03-18&until=2026-03-18'
         );
