@@ -49,7 +49,7 @@ class LegalController extends Controller
         }
 
         /** @var array{operator_name: string, street: string, postal_code: string, city: string, country: string, email: string, phone: string} $imprint */
-        return array_map(static fn (mixed $value): string => (string) $value, $imprint);
+        return array_map(static fn (mixed $value): string => $value, $imprint);
     }
 
     private function encodeContactPayload(string $value): string
