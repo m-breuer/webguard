@@ -155,7 +155,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function unreadNotifications(): HasManyThrough
     {
-        return $this->hasManyThrough(MonitoringNotification::class, Monitoring::class)->where('read', false);
+        return $this->hasManyThrough(MonitoringNotification::class, Monitoring::class)->unread();
     }
 
     /**

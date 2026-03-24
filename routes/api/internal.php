@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\NotificationBoardController;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/notifications/status-board', NotificationBoardController::class)->name('notifications.status-board');
 
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {
     Route::get('/{monitoring}', [ApiController::class, 'all']);
@@ -11,6 +14,7 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
     Route::get('/{monitoring}/status', [ApiController::class, 'status']);
     Route::get('/{monitoring}/uptime-downtime', [ApiController::class, 'uptimeDowntime']);
     Route::get('/{monitoring}/response-times', [ApiController::class, 'responseTimes']);
+    Route::get('/{monitoring}/checks', [ApiController::class, 'checks']);
     Route::get('/{monitoring}/incidents', [ApiController::class, 'incidents']);
     Route::get('/{monitoring}/custom-range-stats', [ApiController::class, 'customRangeStats']);
     Route::get('/{monitoring}/heatmap', [ApiController::class, 'uptimeHeatmap']);

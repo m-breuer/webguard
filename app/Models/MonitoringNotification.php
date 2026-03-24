@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Enums\NotificationType;
 use App\Models\Scopes\UserScope;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,6 +62,21 @@ class MonitoringNotification extends Model
      */
     protected $appends = ['created_at_for_humans', 'translated_message'];
 
+    public static function extractStatusChangeIdentifierFromMessage(string $message): string
+    {
+        $normalized = mb_strtolower(mb_trim($message));
+
+        if (str_contains($normalized, 'down')) {
+            return 'down';
+        }
+
+        if (str_contains($normalized, 'up')) {
+            return 'up';
+        }
+
+        return 'unknown';
+    }
+
     /**
      * @return BelongsTo<Monitoring, $this>
      */
@@ -68,9 +85,70 @@ class MonitoringNotification extends Model
         return $this->belongsTo(Monitoring::class);
     }
 
+    public function statusChangeIdentifier(bool $maintenanceActive = false): string
+    {
+        if ($maintenanceActive) {
+            return 'maintenance';
+        }
+
+        return self::extractStatusChangeIdentifierFromMessage($this->message);
+    }
+
+    public function statusChangeKey(bool $maintenanceActive = false): string
+    {
+        return 'notifications.status_change.' . $this->statusChangeIdentifier($maintenanceActive);
+    }
+
     protected static function booted(): void
     {
         static::addGlobalScope(new UserScope());
+    }
+
+    /**
+     * Scope notifications by type.
+     */
+    #[Scope]
+    protected function ofType(Builder $builder, NotificationType|string $type): Builder
+    {
+        $value = $type instanceof NotificationType ? $type->value : $type;
+
+        return $builder->where('type', $value);
+    }
+
+    /**
+     * Scope notifications to status change entries.
+     */
+    #[Scope]
+    protected function statusChange(Builder $builder): Builder
+    {
+        return $builder->ofType(NotificationType::STATUS_CHANGE);
+    }
+
+    /**
+     * Scope notifications to SSL expiry entries.
+     */
+    #[Scope]
+    protected function sslExpiry(Builder $builder): Builder
+    {
+        return $builder->ofType(NotificationType::SSL_EXPIRY);
+    }
+
+    /**
+     * Scope notifications to read entries.
+     */
+    #[Scope]
+    protected function read(Builder $builder): Builder
+    {
+        return $builder->where('read', true);
+    }
+
+    /**
+     * Scope notifications to unread entries.
+     */
+    #[Scope]
+    protected function unread(Builder $builder): Builder
+    {
+        return $builder->where('read', false);
     }
 
     /**
@@ -90,14 +168,10 @@ class MonitoringNotification extends Model
     {
         return Attribute::make(get: function () {
             if ($this->type === NotificationType::STATUS_CHANGE) {
-                $message = $this->message;
-                $status = '';
+                $status = self::extractStatusChangeIdentifierFromMessage($this->message);
 
-                if (in_array($message, ['UP', 'DOWN'])) {
-                    $status = mb_strtolower($message);
-                } else {
-                    // Handle old format for existing notifications
-                    $status = mb_strtolower(str_replace('Monitoring status changed to ', '', $message));
+                if (! in_array($status, ['up', 'down'], true)) {
+                    return $this->message;
                 }
 
                 return __('notifications.status_messages.' . $status, ['name' => $this->monitoring->name]);

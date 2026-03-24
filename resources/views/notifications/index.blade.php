@@ -21,7 +21,7 @@
     </x-slot>
 
     <x-main x-data="{
-        statusChangeOffset: {{ $statusChangeNotifications->count() }},
+        statusChangeOffset: {{ $statusBoardEntries->count() }},
         sslExpiryOffset: {{ $sslExpiryNotifications->count() }},
         loadMoreNotifications(type) {
             let offset = type === 'status_change' ? this.statusChangeOffset : this.sslExpiryOffset;
@@ -47,7 +47,7 @@
                 .then(() => document.getElementById(notificationId).remove());
         }
     }">
-        @if ($sslExpiryNotifications->isEmpty() && $statusChangeNotifications->isEmpty())
+        @if ($sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty())
             <x-container>
                 <x-paragraph>{{ __('notifications.no_notifications') }}</x-paragraph>
             </x-container>
@@ -70,17 +70,16 @@
                 </div>
             @endif
 
-            @if ($statusChangeNotifications->isNotEmpty())
+            @if ($statusBoardEntries->isNotEmpty())
                 <div class="mb-8">
                     <x-heading type="h2"
-                        space=true>{{ __('notifications.status_change_notifications') }}</x-heading>
+                        space=true>{{ __('notifications.status_board.heading') }}</x-heading>
                     <div id="status-change-notifications">
-                        @include('notifications.partials.notification_list', [
-                            'notifications' => $statusChangeNotifications,
-                            'type' => 'status_change',
+                        @include('notifications.partials.status_board_list', [
+                            'entries' => $statusBoardEntries,
                         ])
                     </div>
-                    @if ($statusChangeNotifications->count() >= 5)
+                    @if ($statusChangeHasMore)
                         <div class="mt-4 text-center" id="status-change-load-more-container">
                             <x-primary-button
                                 @click="loadMoreNotifications('status_change')">{{ __('notifications.load_more') }}</x-primary-button>

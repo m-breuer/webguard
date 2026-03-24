@@ -49,6 +49,7 @@ class MonitoringResponseArchived extends Model
         'id',
         'monitoring_id',
         'status',
+        'http_status_code',
         'response_time',
         'created_at',
         'updated_at',
@@ -72,6 +73,7 @@ class MonitoringResponseArchived extends Model
     protected function casts(): array
     {
         return [
+            'http_status_code' => 'integer',
             'response_time' => 'float',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

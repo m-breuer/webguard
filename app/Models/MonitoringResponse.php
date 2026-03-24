@@ -67,6 +67,7 @@ class MonitoringResponse extends Model
     protected $fillable = [
         'monitoring_id',
         'status',
+        'http_status_code',
         'response_time',
     ];
 
@@ -106,6 +107,7 @@ class MonitoringResponse extends Model
     {
         return [
             'status' => MonitoringStatus::class,
+            'http_status_code' => 'integer',
             'response_time' => 'float',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

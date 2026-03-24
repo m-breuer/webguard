@@ -146,6 +146,32 @@ class Monitoring extends Model
     }
 
     /**
+     * @return HasOne<MonitoringNotification, $this>
+     */
+    public function latestStatusChangeNotification(): HasOne
+    {
+        return $this->hasOne(MonitoringNotification::class, 'monitoring_id')->ofMany(
+            ['created_at' => 'max', 'id' => 'max'],
+            function (Builder $builder): void {
+                $builder->statusChange();
+            }
+        );
+    }
+
+    /**
+     * @return HasOne<MonitoringNotification, $this>
+     */
+    public function latestUnreadStatusChangeNotification(): HasOne
+    {
+        return $this->hasOne(MonitoringNotification::class, 'monitoring_id')->ofMany(
+            ['created_at' => 'max', 'id' => 'max'],
+            function (Builder $builder): void {
+                $builder->statusChange()->unread();
+            }
+        );
+    }
+
+    /**
      * @return HasMany<MonitoringNotification, $this>
      */
     public function notifications(): HasMany

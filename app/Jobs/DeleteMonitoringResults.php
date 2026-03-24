@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\Monitoring;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Class DeleteMonitoringResults
@@ -15,7 +16,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class DeleteMonitoringResults implements ShouldQueue
 {
-    use \Illuminate\Foundation\Queue\Queueable;
+    use Queueable;
 
     /**
      * Create a new job instance.
