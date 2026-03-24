@@ -23,10 +23,7 @@ class RegistrationTermsAcceptanceTest extends TestCase
 
     public function test_registration_requires_terms_acceptance(): void
     {
-        $registrationData = [
-            ...$this->validRegistrationData(),
-            'privacy' => '1',
-        ];
+        $registrationData = $this->validRegistrationData();
 
         $testResponse = $this->post('/register', $registrationData);
 
@@ -40,7 +37,6 @@ class RegistrationTermsAcceptanceTest extends TestCase
         $registrationData = [
             ...$this->validRegistrationData(),
             'terms' => '1',
-            'privacy' => '1',
         ];
 
         $testResponse = $this->post('/register', $registrationData);
@@ -52,6 +48,7 @@ class RegistrationTermsAcceptanceTest extends TestCase
 
         $this->assertNotNull($user);
         $this->assertInstanceOf(Carbon::class, $user->terms_accepted_at);
+        $this->assertInstanceOf(Carbon::class, $user->privacy_accepted_at);
     }
 
     /**

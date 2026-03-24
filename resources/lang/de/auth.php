@@ -16,8 +16,7 @@ return [
         'button' => 'Registrieren',
         'login_button' => 'Zum Login',
         'already_registered' => 'Bereits registriert?',
-        'terms_agreement' => 'Ich akzeptiere die <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Nutzungsbedingungen</a>.',
-        'privacy_agreement' => 'Ich habe die <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Datenschutzerklärung</a> gelesen und akzeptiere sie.',
+        'terms_agreement' => 'Ich akzeptiere die <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Nutzungsbedingungen</a> und die <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Datenschutzerklärung</a>.',
     ],
     'login' => [
         'title' => 'Anmelden',

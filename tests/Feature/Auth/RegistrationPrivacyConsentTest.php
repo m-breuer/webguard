@@ -20,7 +20,7 @@ class RegistrationPrivacyConsentTest extends TestCase
         Package::factory()->create(['price' => 0, 'is_selectable' => true]);
     }
 
-    public function test_registration_fails_when_privacy_policy_is_not_accepted(): void
+    public function test_registration_fails_when_combined_legal_consent_is_not_accepted(): void
     {
         $testResponse = $this->from(route('login', ['mode' => 'register']))->post(route('register'), [
             'form_mode' => 'register',
@@ -28,18 +28,17 @@ class RegistrationPrivacyConsentTest extends TestCase
             'email' => 'jane@example.test',
             'password' => 'password',
             'password_confirmation' => 'password',
-            'terms' => '1',
         ]);
 
         $testResponse->assertRedirect(route('login', ['mode' => 'register']));
-        $testResponse->assertSessionHasErrors('privacy');
+        $testResponse->assertSessionHasErrors('terms');
         $this->assertGuest();
         $this->assertDatabaseMissing('users', [
             'email' => 'jane@example.test',
         ]);
     }
 
-    public function test_registration_stores_privacy_accepted_timestamp_after_acceptance(): void
+    public function test_registration_stores_privacy_accepted_timestamp_after_combined_acceptance(): void
     {
         $testResponse = $this->post(route('register'), [
             'form_mode' => 'register',
@@ -48,7 +47,6 @@ class RegistrationPrivacyConsentTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'terms' => '1',
-            'privacy' => '1',
         ]);
 
         $testResponse->assertRedirect('/dashboard');
