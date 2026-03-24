@@ -27,6 +27,7 @@ return [
         'title' => 'Server Instances',
         'fields' => [
             'code' => 'Instance Code',
+            'ip_address' => 'IPv4 Address',
             'api_key' => 'Instance API Key',
             'status' => 'Status',
             'active' => 'Active',

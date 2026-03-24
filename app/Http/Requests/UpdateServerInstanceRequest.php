@@ -27,6 +27,7 @@ class UpdateServerInstanceRequest extends FormRequest
 
         return [
             'code' => ['required', 'string', 'max:32', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('server_instances', 'code')->ignore($instanceId)],
+            'ip_address' => ['required', 'ipv4'],
             'api_key' => ['nullable', 'string', 'min:16', 'max:255'],
             'is_active' => ['boolean'],
         ];

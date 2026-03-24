@@ -27,6 +27,7 @@ return [
         'title' => 'Serverinstanzen',
         'fields' => [
             'code' => 'Instanzcode',
+            'ip_address' => 'IPv4-Adresse',
             'api_key' => 'Instanz-API-Schlüssel',
             'status' => 'Status',
             'active' => 'Aktiv',
