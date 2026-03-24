@@ -18,7 +18,7 @@ class ThemePreferenceTest extends TestCase
         $testResponse = $this->withSession(['theme' => 'dark'])->get('/');
 
         $testResponse->assertOk();
-        $testResponse->assertSee('data-theme="system"', false);
+        $testResponse->assertSeeHtml('data-theme="system"');
     }
 
     public function test_authenticated_user_theme_comes_from_database_and_not_session(): void
@@ -33,7 +33,7 @@ class ThemePreferenceTest extends TestCase
             ->get('/');
 
         $testResponse->assertOk();
-        $testResponse->assertSee('data-theme="light"', false);
+        $testResponse->assertSeeHtml('data-theme="light"');
     }
 
     public function test_authenticated_dark_theme_from_database_sets_dark_class(): void
@@ -48,6 +48,6 @@ class ThemePreferenceTest extends TestCase
             ->get('/');
 
         $testResponse->assertOk();
-        $testResponse->assertSee('class="dark" data-theme="dark"', false);
+        $testResponse->assertSeeHtml('class="dark" data-theme="dark"');
     }
 }
