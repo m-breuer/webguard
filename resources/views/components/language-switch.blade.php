@@ -24,11 +24,11 @@
     $isMarketingVariant = $variant === 'marketing';
 
     $triggerClasses = $isMarketingVariant
-        ? 'focus:outline-hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-slate-100 transition hover:border-slate-500 hover:bg-slate-800 focus:ring-2 focus:ring-emerald-300'
+        ? 'focus:outline-hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 focus:ring-2 focus:ring-emerald-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800 dark:focus:ring-emerald-300'
         : 'focus:outline-hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 transition hover:border-gray-400 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:border-gray-500 dark:hover:bg-gray-600';
 
     $menuClasses = $isMarketingVariant
-        ? 'py-1 bg-slate-950 ring-1 ring-slate-700'
+        ? 'py-1 bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700'
         : 'py-1 bg-white dark:bg-gray-800';
 @endphp
 
@@ -48,7 +48,7 @@
                     <input type="hidden" name="locale" value="{{ $locale }}">
                     <button type="submit"
                         class="{{ $isMarketingVariant
-                            ? 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-slate-100 transition hover:bg-slate-800'
+                            ? 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800'
                             : 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700' }}">
                         <span class="flex items-center gap-2">
                             <x-language-flag :locale="$locale" class="h-5 w-5 rounded-full" />
