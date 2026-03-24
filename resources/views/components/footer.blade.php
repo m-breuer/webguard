@@ -5,11 +5,21 @@
                 &copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('legal.footer.content') }}
             </x-paragraph>
 
-            <nav aria-label="{{ __('monitoring_locations.footer_link') }}">
-                <a href="{{ route('monitoring-locations') }}"
-                    class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
-                    {{ __('monitoring_locations.footer_link') }}
-                </a>
+            <nav aria-label="{{ __('imprint.footer_nav_aria') }}">
+                <ul class="flex items-center gap-4">
+                    <li>
+                        <a href="{{ route('monitoring-locations') }}"
+                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            {{ __('monitoring_locations.footer_link') }}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('imprint') }}"
+                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            {{ __('imprint.footer_link') }}
+                        </a>
+                    </li>
+                </ul>
             </nav>
         </div>
     </x-main>
