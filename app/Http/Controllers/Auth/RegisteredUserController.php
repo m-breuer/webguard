@@ -51,6 +51,7 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
             'terms' => ['accepted'],
+            'privacy' => ['accepted'],
         ]);
 
         $model = User::query()->create([
@@ -59,6 +60,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'role' => UserRole::REGULAR,
             'terms_accepted_at' => now(),
+            'privacy_accepted_at' => now(),
         ]);
 
         event(new Registered($model));

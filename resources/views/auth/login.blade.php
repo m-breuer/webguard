@@ -153,17 +153,26 @@
                             <x-input-error :messages="$errors->get('password_confirmation')" />
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-4 space-y-3">
                             <label for="register_terms" class="inline-flex items-start">
                                 <input id="register_terms" name="terms" type="checkbox" value="1"
-                                    class="shadow-xs focus:ring-3 mt-0.5 rounded-sm border-gray-300 text-purple-600 focus:border-purple-300 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
+                                    class="mt-0.5 rounded-sm border-gray-300 text-purple-600 shadow-xs focus:border-purple-300 focus:ring-3 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
                                     @checked(old('terms')) required>
                                 <span class="ms-2 text-sm text-gray-600 dark:text-gray-300">
                                     {!! __('auth.register.terms_agreement', ['terms_link' => route('terms-of-use')]) !!}
                                 </span>
                             </label>
-
                             <x-input-error :messages="$errors->get('terms')" />
+
+                            <label for="privacy" class="inline-flex items-start">
+                                <input id="privacy" name="privacy" type="checkbox" value="1"
+                                    class="mt-0.5 rounded-sm border-gray-300 text-purple-600 shadow-xs focus:border-purple-300 focus:ring-3 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
+                                    @checked(old('privacy')) required>
+                                <span class="ms-2 text-sm text-gray-600 dark:text-gray-300">
+                                    {!! __('auth.register.privacy_agreement', ['privacy_link' => route('gdpr')]) !!}
+                                </span>
+                            </label>
+                            <x-input-error :messages="$errors->get('privacy')" />
                         </div>
 
                         <div class="mt-4 flex flex-wrap items-center gap-3">

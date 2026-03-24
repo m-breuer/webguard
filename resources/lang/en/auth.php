@@ -17,6 +17,7 @@ return [
         'login_button' => 'Back to Login',
         'already_registered' => 'Already registered?',
         'terms_agreement' => 'I accept the <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Terms of Use</a>.',
+        'privacy_agreement' => 'I have read and accept the <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a>.',
     ],
     'login' => [
         'title' => 'Login',

@@ -11,15 +11,7 @@ class LegalController extends Controller
 {
     public function imprint(): View
     {
-        $imprint = [
-            'operator_name' => $this->requiredImprintValue('operator_name'),
-            'street' => $this->requiredImprintValue('street'),
-            'postal_code' => $this->requiredImprintValue('postal_code'),
-            'city' => $this->requiredImprintValue('city'),
-            'country' => $this->requiredImprintValue('country'),
-            'email' => $this->requiredImprintValue('email'),
-            'phone' => $this->requiredImprintValue('phone'),
-        ];
+        $imprint = $this->resolveImprintConfiguration();
 
         return view('imprint', [
             'imprint' => [
@@ -40,8 +32,25 @@ class LegalController extends Controller
     public function gdpr(): View
     {
         return view('gdpr', [
+            'imprint' => $this->resolveImprintConfiguration(),
             ...$this->contactRevealPayloads(),
         ]);
+    }
+
+    /**
+     * @return array{operator_name: string, street: string, postal_code: string, city: string, country: string, email: string, phone: string}
+     */
+    private function resolveImprintConfiguration(): array
+    {
+        return [
+            'operator_name' => $this->requiredImprintValue('operator_name'),
+            'street' => $this->requiredImprintValue('street'),
+            'postal_code' => $this->requiredImprintValue('postal_code'),
+            'city' => $this->requiredImprintValue('city'),
+            'country' => $this->requiredImprintValue('country'),
+            'email' => $this->requiredImprintValue('email'),
+            'phone' => $this->requiredImprintValue('phone'),
+        ];
     }
 
     /**
