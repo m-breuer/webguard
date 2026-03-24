@@ -33,8 +33,8 @@ class NotificationPaginationStateTest extends TestCase
 
         $testResponse->assertOk();
 
-        foreach ($visibleNotificationIds as $notificationId) {
-            $testResponse->assertSeeHtml('id="' . $notificationId . '"');
+        foreach ($visibleNotificationIds as $visibleNotificationId) {
+            $testResponse->assertSeeHtml('id="' . $visibleNotificationId . '"');
         }
 
         foreach ($hiddenNotificationIds as $hiddenNotificationId) {
@@ -59,8 +59,8 @@ class NotificationPaginationStateTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSee('currentLimit: 6');
 
-        foreach ($visibleNotificationIds as $notificationId) {
-            $testResponse->assertSeeHtml('id="' . $notificationId . '"');
+        foreach ($visibleNotificationIds as $visibleNotificationId) {
+            $testResponse->assertSeeHtml('id="' . $visibleNotificationId . '"');
         }
 
         foreach ($hiddenNotificationIds as $hiddenNotificationId) {
@@ -85,8 +85,8 @@ class NotificationPaginationStateTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSee('currentLimit: 5');
 
-        foreach ($visibleNotificationIds as $notificationId) {
-            $testResponse->assertSeeHtml('id="' . $notificationId . '"');
+        foreach ($visibleNotificationIds as $visibleNotificationId) {
+            $testResponse->assertSeeHtml('id="' . $visibleNotificationId . '"');
         }
 
         foreach ($hiddenNotificationIds as $hiddenNotificationId) {

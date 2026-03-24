@@ -53,8 +53,9 @@
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-3">
+                        <x-language-switch id="language-switch-guest" variant="marketing" />
+
                         @guest
-                            <x-language-switch id="language-switch-guest" />
                             <x-secondary-button :href="route('login')"
                                 class="hidden border-slate-700 bg-slate-950 text-slate-100 normal-case tracking-normal hover:border-slate-500 hover:bg-slate-800 sm:inline-flex">
                                 {{ __('welcome.nav.login') }}
