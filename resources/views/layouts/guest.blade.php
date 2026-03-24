@@ -1,3 +1,7 @@
+@props([
+    'cardWidth' => 'sm:max-w-xl',
+])
+
 <!DOCTYPE html>
 @php
     $theme = auth()->check() ? auth()->user()->theme : 'system';
@@ -49,7 +53,7 @@
         </nav>
 
         <div class="flex flex-1 items-center justify-center p-3">
-            <main class="w-full overflow-hidden bg-white p-6 shadow-md dark:bg-gray-800 sm:max-w-xl sm:rounded-lg">
+            <main class="w-full overflow-hidden bg-white p-6 shadow-md dark:bg-gray-800 {{ $cardWidth }} sm:rounded-lg">
                 {{ $slot }}
             </main>
         </div>
