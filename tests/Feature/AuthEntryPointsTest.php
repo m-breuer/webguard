@@ -13,8 +13,8 @@ class AuthEntryPointsTest extends TestCase
         $testResponse = $this->get(route('login'));
 
         $testResponse->assertOk();
-        $testResponse->assertSee('href="' . route('register') . '"', false);
-        $testResponse->assertSee('href="' . route('login', ['guest' => 'true']) . '"', false);
+        $testResponse->assertSeeHtml('href="' . route('register') . '"');
+        $testResponse->assertSeeHtml('href="' . route('login', ['guest' => 'true']) . '"');
     }
 
     public function test_register_page_has_secondary_login_button(): void
@@ -22,7 +22,7 @@ class AuthEntryPointsTest extends TestCase
         $testResponse = $this->get(route('register'));
 
         $testResponse->assertOk();
-        $testResponse->assertSee('href="' . route('login') . '"', false);
+        $testResponse->assertSeeHtml('href="' . route('login') . '"');
     }
 
     public function test_demo_route_is_removed(): void
@@ -35,6 +35,6 @@ class AuthEntryPointsTest extends TestCase
         $testResponse = $this->get(route('welcome'));
 
         $testResponse->assertOk();
-        $testResponse->assertSee('href="' . route('login', ['guest' => 'true']) . '"', false);
+        $testResponse->assertSeeHtml('href="' . route('login', ['guest' => 'true']) . '"');
     }
 }
