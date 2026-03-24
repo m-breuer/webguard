@@ -15,8 +15,8 @@ class VerifiedEmailRequiredTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->unverified()->create();
 
-        $dashboardResponse = $this->actingAs($user)->get(route('dashboard'));
-        $dashboardResponse->assertRedirect(route('verification.notice'));
+        $testResponse = $this->actingAs($user)->get(route('dashboard'));
+        $testResponse->assertRedirect(route('verification.notice'));
 
         $monitoringsResponse = $this->actingAs($user)->get(route('monitorings.index'));
         $monitoringsResponse->assertRedirect(route('verification.notice'));
@@ -27,8 +27,8 @@ class VerifiedEmailRequiredTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $dashboardResponse = $this->actingAs($user)->get(route('dashboard'));
-        $dashboardResponse->assertRedirect(route('monitorings.index'));
+        $testResponse = $this->actingAs($user)->get(route('dashboard'));
+        $testResponse->assertRedirect(route('monitorings.index'));
 
         $monitoringsResponse = $this->actingAs($user)->get(route('monitorings.index'));
         $monitoringsResponse->assertOk();
