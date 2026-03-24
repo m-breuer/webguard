@@ -32,7 +32,7 @@ class ArchiveMonitoringResponsesCommandTest extends TestCase
 
         $monitoringWithoutMaintenance = Monitoring::factory()->for($user)->create();
 
-        $maintenanceResponse = MonitoringResponse::query()->forceCreate([
+        $monitoringResponse = MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoringInMaintenance->id,
             'status' => MonitoringStatus::DOWN,
             'http_status_code' => 503,
@@ -52,11 +52,11 @@ class ArchiveMonitoringResponsesCommandTest extends TestCase
 
         Artisan::call('monitoring:archive-responses');
 
-        $this->assertDatabaseMissing('monitoring_response_results', ['id' => $maintenanceResponse->id]);
+        $this->assertDatabaseMissing('monitoring_response_results', ['id' => $monitoringResponse->id]);
         $this->assertDatabaseMissing('monitoring_response_results', ['id' => $regularResponse->id]);
 
         $this->assertDatabaseHas('monitoring_response_archived', [
-            'id' => $maintenanceResponse->id,
+            'id' => $monitoringResponse->id,
             'monitoring_id' => $monitoringInMaintenance->id,
             'status' => MonitoringStatus::UNKNOWN->value,
             'http_status_code' => null,

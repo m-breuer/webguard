@@ -27,6 +27,7 @@ class ServerInstance extends Model
      */
     protected $fillable = [
         'code',
+        'ip_address',
         'api_key_hash',
         'is_active',
     ];
@@ -76,6 +77,7 @@ class ServerInstance extends Model
     protected function casts(): array
     {
         return [
+            'ip_address' => 'string',
             'is_active' => 'boolean',
         ];
     }

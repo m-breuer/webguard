@@ -7,6 +7,12 @@
 </div>
 
 <div class="mt-4">
+    <x-input-label for="ip_address" :value="__('admin.server_instances.fields.ip_address')" />
+    <x-text-input id="ip_address" type="text" name="ip_address" :value="old('ip_address', $instance->ip_address ?? '')" required />
+    <x-input-error :messages="$errors->get('ip_address')" class="mt-2" />
+</div>
+
+<div class="mt-4">
     <x-input-label for="api_key" :value="__('admin.server_instances.fields.api_key')" />
     <x-text-input id="api_key" type="text" name="api_key" :value="old('api_key')" :required="!isset($instance)" />
     @if (isset($instance))
