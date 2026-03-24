@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ session('theme', 'system') === 'dark' ? 'dark' : '' }}" data-theme="{{ session('theme', 'system') }}">
+@php
+    $theme = auth()->check() ? auth()->user()->theme : 'system';
+    if (! in_array($theme, ['light', 'dark', 'system'], true)) {
+        $theme = 'system';
+    }
+@endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
 
 <head>
     <meta charset="utf-8">
@@ -34,39 +40,38 @@
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
 
-<body class="bg-slate-950 font-sans antialiased text-slate-100">
-    <div class="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <div class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.2),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.2),transparent_42%)]"></div>
+<body class="bg-slate-50 font-sans antialiased text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div
+        class="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <div
+            class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.14),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.14),transparent_42%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.2),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.2),transparent_42%)]">
+        </div>
 
-        <header class="border-b border-slate-800/70 bg-slate-950/80 backdrop-blur-sm">
+        <header class="border-b border-slate-200/80 bg-white/85 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/80">
             <nav aria-label="{{ __('welcome.nav.aria') }}">
                 <x-main class="flex w-full items-center justify-between py-4">
                     <a href="{{ route('welcome') }}" class="flex items-center gap-3">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('welcome.nav.logo_alt') }}" class="h-9 w-9">
-                        <x-span class="text-lg font-bold tracking-tight text-white">{{ __('app.name') }}</x-span>
+                        <x-span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{{ __('app.name') }}</x-span>
                     </a>
 
                     <div class="hidden items-center gap-8 md:flex">
-                        <a href="#features" class="text-sm font-medium text-slate-200 transition hover:text-emerald-300">{{ __('welcome.nav.features') }}</a>
-                        <a href="#proof" class="text-sm font-medium text-slate-200 transition hover:text-emerald-300">{{ __('welcome.nav.proof') }}</a>
-                        <a href="#pricing-cta" class="text-sm font-medium text-slate-200 transition hover:text-emerald-300">{{ __('welcome.nav.get_started') }}</a>
+                        <a href="#features" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.features') }}</a>
+                        <a href="#proof" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.proof') }}</a>
+                        <a href="#pricing-cta" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.get_started') }}</a>
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-3">
                         <x-language-switch id="language-switch-guest" variant="marketing" />
 
                         @guest
-                            <x-secondary-button :href="route('login')"
-                                class="hidden border-slate-700 bg-slate-950 text-slate-100 normal-case tracking-normal hover:border-slate-500 hover:bg-slate-800 sm:inline-flex">
+                            <x-primary-button :href="route('login')"
+                                class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                                 {{ __('welcome.nav.login') }}
-                            </x-secondary-button>
-                            <x-primary-button :href="route('register')"
-                                class="bg-emerald-400 text-slate-950 normal-case tracking-normal hover:bg-emerald-300 focus:ring-emerald-300">
-                                {{ __('welcome.nav.signup') }}
                             </x-primary-button>
                         @else
                             <x-primary-button :href="route('dashboard')"
-                                class="bg-emerald-400 text-slate-950 normal-case tracking-normal hover:bg-emerald-300 focus:ring-emerald-300">
+                                class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                                 {{ __('welcome.nav.dashboard') }}
                             </x-primary-button>
                         @endguest

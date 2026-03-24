@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ session('theme', 'system') === 'dark' ? 'dark' : '' }}" data-theme="{{ session('theme', 'system') }}">
+@php
+    $theme = auth()->check() ? auth()->user()->theme : 'system';
+    if (! in_array($theme, ['light', 'dark', 'system'], true)) {
+        $theme = 'system';
+    }
+@endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
 
 <head>
     <meta charset="utf-8">

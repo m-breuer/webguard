@@ -18,7 +18,6 @@ return [
         'proof' => 'Vertrauen',
         'get_started' => 'Loslegen',
         'login' => 'Anmelden',
-        'signup' => 'Konto erstellen',
         'dashboard' => 'Dashboard',
     ],
 
@@ -28,7 +27,6 @@ return [
         'subtitle' => 'WebGuard gibt Ihrem Team sofortige Sichtbarkeit auf Uptime, Incidents, SSL-Risiken und Antwortzeiten über Websites, APIs und Infrastruktur-Endpunkte hinweg.',
         'primary_cta' => 'In Minuten Monitoring starten',
         'secondary_cta' => 'Beispiel-Statusseite ansehen',
-        'tertiary_cta' => 'Sie haben bereits ein Konto?',
         'metrics' => [
             '1' => [
                 'label' => 'Checks',
@@ -145,8 +143,6 @@ return [
 
     'testimonial' => [
         'quote' => 'Wir haben drei getrennte Monitoring-Tools durch WebGuard ersetzt. Heute erkennen wir Incidents früher und veröffentlichen in Minuten klare Status-Updates für Kunden.',
-        'author' => 'Lena Hoffmann',
-        'role' => 'Platform Lead bei Northline Commerce',
     ],
 
     'case_study' => [
