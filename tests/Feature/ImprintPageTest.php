@@ -21,8 +21,8 @@ class ImprintPageTest extends TestCase
         $testResponse->assertSeeText(__('imprint.contact_hidden'));
         $testResponse->assertDontSeeText('max@example.test');
         $testResponse->assertDontSeeText('+49 1512 3456789');
-        $testResponse->assertSee('data-email-payload=', false);
-        $testResponse->assertSee('data-phone-payload=', false);
+        $testResponse->assertSeeHtml('data-email-payload=');
+        $testResponse->assertSeeHtml('data-phone-payload=');
     }
 
     public function test_impressum_route_redirects_to_imprint(): void
