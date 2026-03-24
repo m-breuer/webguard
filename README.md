@@ -4,7 +4,7 @@
 
 > 💡 **System Architecture Note:** This repository contains the **Management Core & API**. For the distributed scanning node/worker, please visit the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
 
-WebGuard is a powerful, open-source web monitoring service built with Laravel 12. It's designed to help you track website uptime, response times, and SSL certificate statuses with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
+WebGuard is a powerful, open-source web monitoring service built with Laravel 13. It's designed to help you track website uptime, response times, and SSL certificate statuses with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
 
 The application features a user-friendly dashboard for at-a-glance statistics, a comprehensive admin panel for user and package management, and a REST API for programmatic access and integration with other systems.
 
@@ -20,17 +20,20 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 * **Embeddable Widget:** Display your website's monitoring status on external sites with a simple JavaScript widget.
 * **Flexible Notifications:** Receive notifications for status changes and SSL expiry via in-app notifications and email.
 * **Public Status Pages:** Create public status pages for your monitorings to keep your users informed.
+* **Global Language Switch:** Switch between supported languages from both public and authenticated top navigation.
+* **Landing Navigation Anchors:** Landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
 
 ## Core Technologies
 
 ### Backend
 
-* **Framework:** Laravel 12 (PHP 8.4) - *Chosen for robust MVC architecture and modern PHP features.*
+* **Framework:** Laravel 13 (PHP 8.4+) - *Chosen for robust MVC architecture and modern PHP features.*
 * **Package Manager:** Composer
 *   **API Authentication:** Laravel Sanctum
 *   **API Documentation:** Scribe
 *   **Social Authentication (Future):** Laravel Socialite - *Installed for future social login integrations, currently configured for GitHub.*
 *   **Cache & Queue:** Redis - *Utilized for high-performance caching and efficient queue management for asynchronous monitoring tasks, ensuring minimal latency.*
+*   **Testing:** Pest + Pest Browser Plugin
 
 ### Frontend
 
@@ -107,6 +110,12 @@ To get started with WebGuard, you'll need to have the following prerequisites in
     ```
 
     This will start the Laravel development server, the queue worker, the Pail log viewer, and the Vite development server.
+
+8.  **Run the test suite:**
+
+    ```bash
+    php artisan test
+    ```
 
 ## Contributing
 
