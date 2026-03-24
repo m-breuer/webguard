@@ -7,13 +7,10 @@ namespace Tests\Feature;
 use App\Enums\SupportedLanguage;
 use App\Models\Package;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class GdprPageTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -21,12 +18,19 @@ class GdprPageTest extends TestCase
         $this->configureImprint();
     }
 
-    public function test_gdpr_page_is_publicly_available(): void
+    public function test_gdpr_page_is_publicly_available_and_hides_contact_data_until_reveal(): void
     {
         $testResponse = $this->get(route('gdpr'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('gdpr.hero.title'));
+        $testResponse->assertSeeText(__('imprint.actions.reveal_contact'));
+        $testResponse->assertSeeText(__('imprint.contact_hidden'));
+        $testResponse->assertDontSeeText('max@example.test');
+        $testResponse->assertDontSeeText('+49 1512 3456789');
+        $testResponse->assertSeeHtml('data-email-payload=');
+        $testResponse->assertSeeHtml('data-phone-payload=');
+        $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
     }
 
     public function test_datenschutz_route_redirects_to_gdpr(): void
@@ -36,12 +40,11 @@ class GdprPageTest extends TestCase
         $testResponse->assertRedirect(route('gdpr'));
     }
 
-    public function test_gdpr_page_is_noindex_and_nofollow(): void
+    public function test_privacy_policy_route_redirects_to_gdpr(): void
     {
-        $testResponse = $this->get(route('gdpr'));
+        $testResponse = $this->get('/privacy-policy');
 
-        $testResponse->assertOk();
-        $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
+        $testResponse->assertRedirect(route('gdpr'));
     }
 
     public function test_gdpr_page_is_included_in_sitemap(): void
@@ -68,6 +71,7 @@ class GdprPageTest extends TestCase
         $this->assertIsString($robotsContent);
         $this->assertStringContainsString('Disallow: /gdpr', $robotsContent);
         $this->assertStringContainsString('Disallow: /datenschutz', $robotsContent);
+        $this->assertStringContainsString('Disallow: /privacy-policy', $robotsContent);
     }
 
     public function test_accept_language_header_is_used_for_gdpr_page(): void
@@ -77,7 +81,7 @@ class GdprPageTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('lang="de"');
-        $testResponse->assertSeeText('Datenschutzerklaerung');
+        $testResponse->assertSeeText(__('gdpr.hero.title', [], 'de'));
     }
 
     public function test_authenticated_user_locale_from_profile_has_priority_on_gdpr_page(): void
@@ -93,7 +97,7 @@ class GdprPageTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('lang="en"');
-        $testResponse->assertSeeText('Privacy Policy');
+        $testResponse->assertSeeText(__('gdpr.hero.title', [], 'en'));
     }
 
     private function configureImprint(): void

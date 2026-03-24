@@ -55,16 +55,6 @@
                             {{ $imprint['country'] }}
                         </dd>
                     </div>
-
-                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-3">
-                        <dt class="min-w-44 font-semibold text-slate-900 dark:text-slate-100">{{ __('gdpr.fields.email') }}</dt>
-                        <dd><a href="mailto:{{ $imprint['email'] }}" class="underline">{{ $imprint['email'] }}</a></dd>
-                    </div>
-
-                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-3">
-                        <dt class="min-w-44 font-semibold text-slate-900 dark:text-slate-100">{{ __('gdpr.fields.phone') }}</dt>
-                        <dd><a href="tel:{{ $imprint['phone'] }}" class="underline">{{ $imprint['phone'] }}</a></dd>
-                    </div>
                 </dl>
             </section>
 
@@ -182,10 +172,32 @@
                 <x-paragraph class="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
                     {{ __('gdpr.sections.contact.lead') }}
                 </x-paragraph>
-                <x-paragraph class="mt-2 text-sm leading-7 text-slate-700 dark:text-slate-300">
-                    <a href="mailto:{{ $imprint['email'] }}" class="underline">{{ $imprint['email'] }}</a>
+
+                <x-paragraph class="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    {{ __('imprint.contact_hint') }}
                 </x-paragraph>
-                <x-paragraph class="mt-2 text-sm leading-7 text-slate-700 dark:text-slate-300">
+
+                <div class="mt-4">
+                    <x-primary-button type="button" data-imprint-reveal data-email-payload="{{ $email_payload }}"
+                        data-phone-payload="{{ $phone_payload }}"
+                        class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
+                        {{ __('imprint.actions.reveal_contact') }}
+                    </x-primary-button>
+                </div>
+
+                <dl class="mt-4 space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-3">
+                        <dt class="min-w-44 font-semibold text-slate-900 dark:text-slate-100">{{ __('gdpr.fields.email') }}</dt>
+                        <dd id="imprint-email">{{ __('imprint.contact_hidden') }}</dd>
+                    </div>
+
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-3">
+                        <dt class="min-w-44 font-semibold text-slate-900 dark:text-slate-100">{{ __('gdpr.fields.phone') }}</dt>
+                        <dd id="imprint-phone">{{ __('imprint.contact_hidden') }}</dd>
+                    </div>
+                </dl>
+
+                <x-paragraph class="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
                     {{ __('gdpr.sections.contact.complaint') }}
                 </x-paragraph>
             </section>

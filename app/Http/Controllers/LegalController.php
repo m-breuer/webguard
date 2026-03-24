@@ -22,10 +22,18 @@ class LegalController extends Controller
         ]);
     }
 
+    public function termsOfUse(): View
+    {
+        return view('terms-of-use', [
+            ...$this->contactRevealPayloads(),
+        ]);
+    }
+
     public function gdpr(): View
     {
         return view('gdpr', [
             'imprint' => $this->resolveImprintConfiguration(),
+            ...$this->contactRevealPayloads(),
         ]);
     }
 
@@ -34,22 +42,35 @@ class LegalController extends Controller
      */
     private function resolveImprintConfiguration(): array
     {
-        $imprint = [
-            'operator_name' => config('imprint.operator_name'),
-            'street' => config('imprint.street'),
-            'postal_code' => config('imprint.postal_code'),
-            'city' => config('imprint.city'),
-            'country' => config('imprint.country'),
-            'email' => config('imprint.email'),
-            'phone' => config('imprint.phone'),
+        return [
+            'operator_name' => $this->requiredImprintValue('operator_name'),
+            'street' => $this->requiredImprintValue('street'),
+            'postal_code' => $this->requiredImprintValue('postal_code'),
+            'city' => $this->requiredImprintValue('city'),
+            'country' => $this->requiredImprintValue('country'),
+            'email' => $this->requiredImprintValue('email'),
+            'phone' => $this->requiredImprintValue('phone'),
         ];
+    }
 
-        foreach ($imprint as $key => $value) {
-            throw_if(blank($value), RuntimeException::class, "Missing required imprint configuration value: {$key}");
-        }
+    /**
+     * @return array{email_payload: string, phone_payload: string}
+     */
+    private function contactRevealPayloads(): array
+    {
+        return [
+            'email_payload' => $this->encodeContactPayload($this->requiredImprintValue('email')),
+            'phone_payload' => $this->encodeContactPayload($this->requiredImprintValue('phone')),
+        ];
+    }
 
-        /** @var array{operator_name: string, street: string, postal_code: string, city: string, country: string, email: string, phone: string} $imprint */
-        return array_map(static fn (mixed $value): string => $value, $imprint);
+    private function requiredImprintValue(string $key): string
+    {
+        $value = config("imprint.{$key}");
+
+        throw_if(blank($value), RuntimeException::class, "Missing required imprint configuration value: {$key}");
+
+        return (string) $value;
     }
 
     private function encodeContactPayload(string $value): string

@@ -24,6 +24,7 @@ Route::get('/auth/github/callback', [SocialiteController::class, 'handleProvider
 Route::get('/', fn () => view('welcome'))->name('welcome');
 Route::get('/monitoring-locations', MonitoringLocationsController::class)->name('monitoring-locations');
 Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
+Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])->name('terms-of-use');
 Route::get('/gdpr', [LegalController::class, 'gdpr'])->name('gdpr');
 
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
@@ -34,6 +35,7 @@ Route::get('/sitemap.xml', function () {
         ->add(Url::create(route('welcome')))
         ->add(Url::create(route('monitoring-locations')))
         ->add(Url::create(route('imprint')))
+        ->add(Url::create(route('terms-of-use')))
         ->add(Url::create(route('gdpr')))
         ->toResponse(request());
 })->name('sitemap');

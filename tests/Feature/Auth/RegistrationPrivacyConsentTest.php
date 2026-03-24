@@ -28,6 +28,7 @@ class RegistrationPrivacyConsentTest extends TestCase
             'email' => 'jane@example.test',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'terms' => '1',
         ]);
 
         $testResponse->assertRedirect(route('login', ['mode' => 'register']));
@@ -46,6 +47,7 @@ class RegistrationPrivacyConsentTest extends TestCase
             'email' => 'jane@example.test',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'terms' => '1',
             'privacy' => '1',
         ]);
 
