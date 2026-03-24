@@ -1,4 +1,12 @@
 <x-app-layout>
+    @php
+        $showReadEnabledQuery = request()->query();
+        $showReadEnabledQuery['show_read'] = 1;
+
+        $showReadDisabledQuery = request()->query();
+        unset($showReadDisabledQuery['show_read']);
+    @endphp
+
     <x-slot name="header">
         <x-heading type="h1">
             {{ __('notifications.title') }}
@@ -8,7 +16,7 @@
             <label for="show_read" class="inline-flex items-center">
                 <input type="checkbox" id="show_read" name="show_read" value="1"
                     class="shadow-xs focus:ring-3 rounded-sm border-gray-300 text-purple-600 focus:border-purple-300 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
-                    onchange="const url = new URL(window.location.href); if (this.checked) { url.searchParams.set('show_read', '1'); } else { url.searchParams.delete('show_read'); } window.location.href = url.toString();"
+                    onchange="window.location.href = this.checked ? '{{ route('notifications.index', $showReadEnabledQuery) }}' : '{{ route('notifications.index', $showReadDisabledQuery) }}'"
                     {{ $showRead ? 'checked' : '' }}>
                 <span class="ms-2">{{ __('notifications.show_read_notifications') }}</span>
             </label>
