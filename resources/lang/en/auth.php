@@ -16,7 +16,7 @@ return [
         'button' => 'Register',
         'login_button' => 'Back to Login',
         'already_registered' => 'Already registered?',
-        'terms_agreement' => 'I agree to the <a href=":terms_link" target="_blank" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Terms of Use</a> and <a href=":policy_link" target="_blank" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Privacy Policy</a>',
+        'terms_agreement' => 'I accept the <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Terms of Use</a>.',
     ],
     'login' => [
         'title' => 'Login',

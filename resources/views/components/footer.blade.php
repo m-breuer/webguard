@@ -19,6 +19,12 @@
                             {{ __('imprint.footer_link') }}
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('terms-of-use') }}"
+                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            {{ __('legal.terms_of_use.footer_link') }}
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>

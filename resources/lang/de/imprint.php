@@ -13,7 +13,7 @@ return [
     'hero' => [
         'eyebrow' => 'Rechtliche Angaben',
         'title' => 'Impressum',
-        'subtitle' => 'Angaben gemaess Paragraf 5 TMG.',
+        'subtitle' => 'Angaben gemäß Paragraf 5 TMG.',
     ],
     'sections' => [
         'operator' => 'Betreiber',
@@ -22,7 +22,7 @@ return [
         'disclaimer' => 'Projekt-Hinweis',
     ],
     'fields' => [
-        'full_name' => 'Vollstaendiger Name',
+        'full_name' => 'Vollständiger Name',
         'email' => 'E-Mail',
         'phone' => 'Telefonnummer',
     ],

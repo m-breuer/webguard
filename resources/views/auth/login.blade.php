@@ -153,7 +153,18 @@
                             <x-input-error :messages="$errors->get('password_confirmation')" />
                         </div>
 
-                        <input type="hidden" name="terms" value="1">
+                        <div class="mt-4">
+                            <label for="register_terms" class="inline-flex items-start">
+                                <input id="register_terms" name="terms" type="checkbox" value="1"
+                                    class="shadow-xs focus:ring-3 mt-0.5 rounded-sm border-gray-300 text-purple-600 focus:border-purple-300 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
+                                    @checked(old('terms')) required>
+                                <span class="ms-2 text-sm text-gray-600 dark:text-gray-300">
+                                    {!! __('auth.register.terms_agreement', ['terms_link' => route('terms-of-use')]) !!}
+                                </span>
+                            </label>
+
+                            <x-input-error :messages="$errors->get('terms')" />
+                        </div>
 
                         <div class="mt-4 flex flex-wrap items-center gap-3">
                             <x-primary-button>
