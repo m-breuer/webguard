@@ -41,4 +41,3 @@ class NotificationBoardController extends Controller
         ]);
     }
 }
-

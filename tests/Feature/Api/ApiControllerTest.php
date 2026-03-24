@@ -24,10 +24,10 @@ class ApiControllerTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $response = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
 
-        $response->assertOk();
-        $response->assertJson(['interval' => 300]);
+        $testResponse->assertOk();
+        $testResponse->assertJson(['interval' => 300]);
     }
 
     public function test_returns_status_metadata_and_translation_keys_in_status_endpoint(): void
@@ -43,14 +43,14 @@ class ApiControllerTest extends TestCase
             'response_time' => 220.0,
         ]);
 
-        $response = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
 
-        $response->assertOk();
-        $response->assertJsonPath('status_code', 503);
-        $response->assertJsonPath('status_identifier', 'status.server_error');
-        $response->assertJsonPath('status_key', 'notifications.status.server_error');
-        $response->assertJsonPath('monitoring.name', $monitoring->name);
-        $response->assertJsonPath('monitoring.target', $monitoring->target);
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('status_code', 503);
+        $testResponse->assertJsonPath('status_identifier', 'status.server_error');
+        $testResponse->assertJsonPath('status_key', 'notifications.status.server_error');
+        $testResponse->assertJsonPath('monitoring.name', $monitoring->name);
+        $testResponse->assertJsonPath('monitoring.target', $monitoring->target);
     }
 
     public function test_results_endpoint_exposes_http_status_code_for_historical_entries(): void
@@ -80,13 +80,13 @@ class ApiControllerTest extends TestCase
             'updated_at' => $archivedCheckedAt,
         ]);
 
-        $response = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?limit=10');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?limit=10');
 
-        $response->assertOk();
-        $response->assertJsonPath('meta.count', 2);
-        $response->assertJsonPath('data.0.http_status_code', 204);
-        $response->assertJsonPath('data.0.status_identifier', 'status.success');
-        $response->assertJsonPath('data.1.http_status_code', 503);
-        $response->assertJsonPath('data.1.status_identifier', 'status.server_error');
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('meta.count', 2);
+        $testResponse->assertJsonPath('data.0.http_status_code', 204);
+        $testResponse->assertJsonPath('data.0.status_identifier', 'status.success');
+        $testResponse->assertJsonPath('data.1.http_status_code', 503);
+        $testResponse->assertJsonPath('data.1.status_identifier', 'status.server_error');
     }
 }

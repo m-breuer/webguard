@@ -222,7 +222,7 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             function () use ($monitoring, $startDate, $endDate, $limit): array {
-                $liveQuery = DB::table('monitoring_response_results')
+                $builder = DB::table('monitoring_response_results')
                     ->selectRaw("'live' as source, id, status, http_status_code, response_time, created_at")
                     ->where('monitoring_id', $monitoring->id);
 
@@ -231,13 +231,12 @@ class ApiController extends Controller
                     ->where('monitoring_id', $monitoring->id);
 
                 if ($startDate !== null) {
-                    $liveQuery->whereBetween('created_at', [$startDate, $endDate]);
+                    $builder->whereBetween('created_at', [$startDate, $endDate]);
                     $archivedQuery->whereBetween('created_at', [$startDate, $endDate]);
                 }
 
                 $rows = DB::query()
-                    ->fromSub($liveQuery->unionAll($archivedQuery), 'monitoring_results')
-                    ->orderByDesc('created_at')
+                    ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')->latest()
                     ->orderByDesc('id')
                     ->limit($limit)
                     ->get();
@@ -524,5 +523,4 @@ class ApiController extends Controller
 
         return $callback();
     }
-
 }

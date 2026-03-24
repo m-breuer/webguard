@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Api\NotificationBoardController;
+use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/notifications/status-board', NotificationBoardController::class)->name('notifications.status-board');

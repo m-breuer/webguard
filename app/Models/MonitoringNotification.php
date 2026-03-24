@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\NotificationType;
 use App\Models\Scopes\UserScope;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -61,54 +62,27 @@ class MonitoringNotification extends Model
      */
     protected $appends = ['created_at_for_humans', 'translated_message'];
 
+    public static function extractStatusChangeIdentifierFromMessage(string $message): string
+    {
+        $normalized = mb_strtolower(mb_trim($message));
+
+        if (str_contains($normalized, 'down')) {
+            return 'down';
+        }
+
+        if (str_contains($normalized, 'up')) {
+            return 'up';
+        }
+
+        return 'unknown';
+    }
+
     /**
      * @return BelongsTo<Monitoring, $this>
      */
     public function monitoring(): BelongsTo
     {
         return $this->belongsTo(Monitoring::class);
-    }
-
-    /**
-     * Scope notifications by type.
-     */
-    public function scopeOfType(Builder $builder, NotificationType|string $type): Builder
-    {
-        $value = $type instanceof NotificationType ? $type->value : $type;
-
-        return $builder->where('type', $value);
-    }
-
-    /**
-     * Scope notifications to status change entries.
-     */
-    public function scopeStatusChange(Builder $builder): Builder
-    {
-        return $builder->ofType(NotificationType::STATUS_CHANGE);
-    }
-
-    /**
-     * Scope notifications to SSL expiry entries.
-     */
-    public function scopeSslExpiry(Builder $builder): Builder
-    {
-        return $builder->ofType(NotificationType::SSL_EXPIRY);
-    }
-
-    /**
-     * Scope notifications to read entries.
-     */
-    public function scopeRead(Builder $builder): Builder
-    {
-        return $builder->where('read', true);
-    }
-
-    /**
-     * Scope notifications to unread entries.
-     */
-    public function scopeUnread(Builder $builder): Builder
-    {
-        return $builder->where('read', false);
     }
 
     public function statusChangeIdentifier(bool $maintenanceActive = false): string
@@ -125,24 +99,56 @@ class MonitoringNotification extends Model
         return 'notifications.status_change.' . $this->statusChangeIdentifier($maintenanceActive);
     }
 
-    public static function extractStatusChangeIdentifierFromMessage(string $message): string
-    {
-        $normalized = mb_strtolower(trim($message));
-
-        if (str_contains($normalized, 'down')) {
-            return 'down';
-        }
-
-        if (str_contains($normalized, 'up')) {
-            return 'up';
-        }
-
-        return 'unknown';
-    }
-
     protected static function booted(): void
     {
         static::addGlobalScope(new UserScope());
+    }
+
+    /**
+     * Scope notifications by type.
+     */
+    #[Scope]
+    protected function ofType(Builder $builder, NotificationType|string $type): Builder
+    {
+        $value = $type instanceof NotificationType ? $type->value : $type;
+
+        return $builder->where('type', $value);
+    }
+
+    /**
+     * Scope notifications to status change entries.
+     */
+    #[Scope]
+    protected function statusChange(Builder $builder): Builder
+    {
+        return $builder->ofType(NotificationType::STATUS_CHANGE);
+    }
+
+    /**
+     * Scope notifications to SSL expiry entries.
+     */
+    #[Scope]
+    protected function sslExpiry(Builder $builder): Builder
+    {
+        return $builder->ofType(NotificationType::SSL_EXPIRY);
+    }
+
+    /**
+     * Scope notifications to read entries.
+     */
+    #[Scope]
+    protected function read(Builder $builder): Builder
+    {
+        return $builder->where('read', true);
+    }
+
+    /**
+     * Scope notifications to unread entries.
+     */
+    #[Scope]
+    protected function unread(Builder $builder): Builder
+    {
+        return $builder->where('read', false);
     }
 
     /**

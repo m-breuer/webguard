@@ -33,7 +33,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
             'preferred_location' => $serverInstance->code,
         ]);
 
-        $response = $this->withHeaders([
+        $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])->postJson(route('v1.internal.monitoring-responses.store'), [
@@ -43,7 +43,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
             'response_time' => 210.7,
         ]);
 
-        $response->assertOk();
+        $testResponse->assertOk();
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::DOWN->value,
@@ -68,7 +68,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
             'preferred_location' => $serverInstance->code,
         ]);
 
-        $response = $this->withHeaders([
+        $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])->postJson(route('v1.internal.monitoring-responses.store'), [
@@ -78,7 +78,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
             'response_time' => 90.3,
         ]);
 
-        $response->assertUnprocessable();
-        $response->assertJsonValidationErrors(['http_status_code']);
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['http_status_code']);
     }
 }

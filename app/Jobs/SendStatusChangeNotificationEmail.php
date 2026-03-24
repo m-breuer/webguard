@@ -8,6 +8,7 @@ use App\Mail\StatusChangeNotificationMail;
 use App\Models\MonitoringNotification;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Mail;
  */
 class SendStatusChangeNotificationEmail implements ShouldQueue
 {
-    use \Illuminate\Foundation\Queue\Queueable;
+    use Queueable;
 
     /**
      * Create a new job instance.

@@ -36,7 +36,7 @@ class NotificationStatusBoardTest extends TestCase
             'updated_at' => Date::now()->subMinutes(5),
         ]);
 
-        $olderNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -59,8 +59,8 @@ class NotificationStatusBoardTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('notifications.index', ['show_read' => true]));
 
         $testResponse->assertOk();
-        $testResponse->assertSee('id="' . $latestNotification->id . '"', false);
-        $testResponse->assertDontSee('id="' . $olderNotification->id . '"', false);
+        $testResponse->assertSeeHtml('id="' . $latestNotification->id . '"');
+        $testResponse->assertDontSeeHtml('id="' . $monitoringNotification->id . '"');
     }
 
     public function test_status_board_api_returns_status_category_keys_and_badges(): void
