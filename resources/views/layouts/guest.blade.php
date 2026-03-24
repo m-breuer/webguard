@@ -1,5 +1,5 @@
 @props([
-    'cardWidth' => 'sm:max-w-xl',
+    'cardWidth' => 'sm:max-w-7xl',
 ])
 
 <!DOCTYPE html>

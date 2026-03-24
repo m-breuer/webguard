@@ -16,29 +16,29 @@ return [
         'logo_alt' => 'WebGuard logo',
         'features' => 'Features',
         'proof' => 'Proof',
-        'get_started' => 'Get Started',
+        'get_started' => 'Try the project',
         'login' => 'Login',
         'dashboard' => 'Dashboard',
     ],
 
     'hero' => [
-        'eyebrow' => 'Reliable monitoring for critical services',
-        'title' => 'Catch downtime before your users do.',
-        'subtitle' => 'WebGuard gives your team instant visibility into uptime, incidents, SSL risks, and response times across websites, APIs, and infrastructure endpoints.',
+        'eyebrow' => 'Personal monitoring project',
+        'title' => 'WebGuard is my personal service for reliable monitoring.',
+        'subtitle' => 'I built WebGuard to monitor my own websites and APIs. This instance is publicly available so you can test the features without any commercial commitment.',
         'primary_cta' => 'Start Monitoring in Minutes',
-        'secondary_cta' => 'View Sample Status Page',
+        'secondary_cta' => 'Open demo access',
         'metrics' => [
             '1' => [
-                'label' => 'Checks',
-                'value' => '24/7 monitoring with fast intervals',
+                'label' => 'Setup',
+                'value' => 'Personal project for daily monitoring',
             ],
             '2' => [
-                'label' => 'Alerts',
-                'value' => 'Multi-channel incident notifications',
+                'label' => 'Intervals',
+                'value' => '24/7 checks with flexible cadence',
             ],
             '3' => [
-                'label' => 'Trust',
-                'value' => 'GDPR-ready operations and clear reporting',
+                'label' => 'Regions',
+                'value' => 'Selectable per monitor for faster diagnosis',
             ],
         ],
     ],
@@ -46,7 +46,7 @@ return [
     'feature_section' => [
         'eyebrow' => 'Complete Coverage',
         'title' => 'Everything you need to monitor service health',
-        'subtitle' => 'Build confidence with broad protocol checks, instant alerting, historical performance trends, and a transparent status experience for your customers.',
+        'subtitle' => 'These are the capabilities I rely on in daily use: practical checks, useful alerts, and reliable history in one place.',
     ],
 
     'features' => [
@@ -136,30 +136,30 @@ return [
     ],
 
     'trust' => [
-        'eyebrow' => 'Trust and Transparency',
-        'title' => 'Built for teams that cannot afford blind spots',
-        'subtitle' => 'WebGuard combines clear reporting, proactive safeguards, and transparent communication patterns.',
+        'eyebrow' => 'Project context',
+        'title' => 'Why I built WebGuard',
+        'subtitle' => 'WebGuard started as a personal monitoring project. This public instance is for testing and exploration, not as a commercial product sale.',
     ],
 
     'testimonial' => [
-        'quote' => 'We replaced three disconnected monitoring tools with WebGuard. We now catch incidents earlier and publish clear customer-facing status updates in minutes.',
+        'quote' => 'Region selection and flexible intervals are the strongest parts for me. I can quickly tell whether an issue is regional, and my monitors have become much more reliable.',
     ],
 
     'case_study' => [
-        'title' => 'Case Study: Faster incident response',
-        'text' => 'After standardizing checks and notification rules in WebGuard, a SaaS support team reduced detection and escalation gaps during peak traffic windows.',
+        'title' => 'Real-world setup from my own stack',
+        'text' => 'For my services, I run fixed intervals, multi-region checks, and clear alert rules per endpoint. That helps me detect outages early and classify them as local or global faster.',
         'metrics' => [
             '1' => [
-                'label' => 'Downtime impact',
-                'value' => '-38% in 90 days',
+                'label' => 'Regions per check',
+                'value' => 'EU + US',
             ],
             '2' => [
-                'label' => 'Mean time to detect',
-                'value' => 'Under 2 minutes',
+                'label' => 'Default interval',
+                'value' => '60 seconds',
             ],
             '3' => [
-                'label' => 'Status update speed',
-                'value' => '2.4x faster',
+                'label' => 'Active monitor types',
+                'value' => 'HTTP, Ping, Keyword, Port',
             ],
         ],
     ],
@@ -167,23 +167,19 @@ return [
     'badges' => [
         'uptime' => [
             'title' => 'Uptime Focus',
-            'text' => 'Monitoring architecture and dashboard workflows are optimized for availability-first operations.',
-        ],
-        'gdpr' => [
-            'title' => 'GDPR-Ready',
-            'text' => 'Privacy-aware data handling and European-focused compliance principles support regulated teams.',
+            'text' => 'The monitoring setup is tuned for stable availability checks and fast outage classification.',
         ],
         'transparent' => [
             'title' => 'Transparent Monitoring',
-            'text' => 'Public labels, historical uptime context, and open-source components support accountable operations.',
+            'text' => 'Public status information and clear history make day-to-day service behavior easy to understand.',
         ],
     ],
 
     'final_cta' => [
-        'title' => 'Create Your Free Account and launch your first monitor today.',
-        'text' => 'Move from reactive firefighting to proactive reliability with a setup that takes minutes, not days.',
-        'primary' => 'Create Your Free Account',
-        'secondary' => 'View Sample Status Page',
+        'title' => 'Try WebGuard without commitment',
+        'text' => 'There is no product sale here. You can test the service directly via login or with the demo access.',
+        'primary' => 'Go to Login',
+        'secondary' => 'Start Demo Access',
     ],
 
     'guest_login' => [
