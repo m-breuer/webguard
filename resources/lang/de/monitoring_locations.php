@@ -26,5 +26,15 @@ return [
         'title' => 'Warum das wichtig ist',
         'text' => 'Wenn Quell-IPs von Ihrer Infrastruktur blockiert werden, können Checks fehlschlagen, obwohl Ihr Service erreichbar ist. Das Allow-Listing dieser IPs reduziert False Negatives.',
     ],
+    'guidance' => [
+        'title' => 'Wichtig vor dem Aktivieren von Checks',
+        'text' => 'Prüfen Sie, ob die unten aufgeführten IP-Adressen oder Bereiche in Ihrer Infrastruktur freigegeben sind. Werden sie blockiert, können Monitoring-Anfragen als Bot-Traffic eingestuft und abgewiesen werden.',
+        'checklist_title' => 'Kurzcheck',
+        'items' => [
+            '1' => 'IP-Adressen in Firewall, WAF oder CDN-Allow-List eintragen.',
+            '2' => 'Sicherstellen, dass Security-Regeln Monitoring-Traffic nicht als Bot blockieren.',
+            '3' => 'Nach Änderungen einen Test-Check ausführen und Ergebnisse prüfen.',
+        ],
+    ],
     'footer_link' => 'Monitoring-Standorte',
 ];

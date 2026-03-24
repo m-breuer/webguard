@@ -7,7 +7,7 @@
     <x-slot:canonical>{{ route('monitoring-locations') }}</x-slot:canonical>
 
     <main class="py-14 lg:py-20">
-        <x-main class="w-full space-y-10">
+        <x-main class="w-full space-y-10 lg:space-y-12">
             <header class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
                 <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
                     {{ __('monitoring_locations.hero.eyebrow') }}
@@ -19,6 +19,28 @@
                     {{ __('monitoring_locations.hero.subtitle') }}
                 </x-paragraph>
             </header>
+
+            <section class="rounded-3xl border border-amber-200 bg-amber-50/80 p-8 dark:border-amber-900/50 dark:bg-amber-950/20 sm:p-10">
+                <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
+                    {{ __('monitoring_locations.guidance.title') }}
+                </x-heading>
+                <x-paragraph class="mt-3 text-base leading-7 text-slate-700 dark:text-slate-300">
+                    {{ __('monitoring_locations.guidance.text') }}
+                </x-paragraph>
+
+                <x-paragraph class="mt-5 text-sm font-semibold uppercase tracking-[0.08em] text-slate-700 dark:text-slate-300">
+                    {{ __('monitoring_locations.guidance.checklist_title') }}
+                </x-paragraph>
+
+                <ul class="mt-3 space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    @foreach ([1, 2, 3] as $item)
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1 inline-block h-2 w-2 flex-none rounded-full bg-amber-500 dark:bg-amber-300"></span>
+                            <span>{{ __('monitoring_locations.guidance.items.' . $item) }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
 
             <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
                 <div class="overflow-x-auto">
@@ -62,7 +84,7 @@
                 <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
                     {{ __('monitoring_locations.note.title') }}
                 </x-heading>
-                <x-paragraph class="mt-3 text-base leading-7 text-slate-700 dark:text-slate-300">
+                <x-paragraph class="mt-4 text-base leading-7 text-slate-700 dark:text-slate-300">
                     {{ __('monitoring_locations.note.text') }}
                 </x-paragraph>
             </section>

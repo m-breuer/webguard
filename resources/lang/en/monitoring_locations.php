@@ -26,5 +26,15 @@ return [
         'title' => 'Why this matters',
         'text' => 'If source IPs are blocked by your infrastructure, checks may fail although your service is healthy. Allow-listing these IPs reduces false negatives.',
     ],
+    'guidance' => [
+        'title' => 'Important before enabling checks',
+        'text' => 'Please verify that the IP addresses or ranges listed below are allow-listed in your infrastructure. If they are blocked, monitoring requests may be flagged as bot traffic and rejected.',
+        'checklist_title' => 'Quick checklist',
+        'items' => [
+            '1' => 'Add the IP addresses to your firewall, WAF, or CDN allow-list.',
+            '2' => 'Ensure security rules do not classify monitoring requests as bots.',
+            '3' => 'Run a test check after changes and validate the result.',
+        ],
+    ],
     'footer_link' => 'Monitoring Locations',
 ];
