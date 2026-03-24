@@ -43,27 +43,23 @@
 
         <x-slot name="content">
             @foreach ($languages as $locale => $language)
-                <form method="POST" action="{{ route('locale.switch') }}">
-                    @csrf
-                    <input type="hidden" name="locale" value="{{ $locale }}">
-                    <button type="submit" @click.stop="$event.stopPropagation()"
-                        class="{{ $isMarketingVariant
-                            ? 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800'
-                            : 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700' }}">
-                        <span class="flex items-center gap-2">
-                            <x-language-flag :locale="$locale" class="h-5 w-5 rounded-full" />
-                            <span class="font-semibold">{{ $language['code'] }}</span>
-                        </span>
+                <a href="{{ route('locale.switch', ['locale' => $locale]) }}"
+                    class="{{ $isMarketingVariant
+                        ? 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800'
+                        : 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700' }}">
+                    <span class="flex items-center gap-2">
+                        <x-language-flag :locale="$locale" class="h-5 w-5 rounded-full" />
+                        <span class="font-semibold">{{ $language['code'] }}</span>
+                    </span>
 
-                        @if ($locale === $currentLocale)
-                            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd"
-                                    d="M16.704 5.29a1 1 0 01.006 1.414l-8 8a1 1 0 01-1.42-.004l-4-4a1 1 0 111.414-1.414l3.293 3.292 7.296-7.29a1 1 0 011.41.002z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        @endif
-                    </button>
-                </form>
+                    @if ($locale === $currentLocale)
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M16.704 5.29a1 1 0 01.006 1.414l-8 8a1 1 0 01-1.42-.004l-4-4a1 1 0 111.414-1.414l3.293 3.292 7.296-7.29a1 1 0 011.41.002z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    @endif
+                </a>
             @endforeach
         </x-slot>
     </x-dropdown>

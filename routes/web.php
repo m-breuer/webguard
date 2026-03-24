@@ -25,7 +25,7 @@ Route::get('/', fn () => view('welcome'))->name('welcome');
 Route::get('/monitoring-locations', MonitoringLocationsController::class)->name('monitoring-locations');
 Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
 
-Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
+Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 // TODO: Add content to these pages
 // Route::get('/terms-of-use', fn() => view('terms-of-use'))->name('terms.show');
