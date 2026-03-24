@@ -151,7 +151,7 @@ return [
         'metrics' => [
             '1' => [
                 'label' => 'Regions per check',
-                'value' => 'EU + US',
+                'value' => 'DE',
             ],
             '2' => [
                 'label' => 'Default interval',
