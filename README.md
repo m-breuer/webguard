@@ -117,13 +117,6 @@ To get started with WebGuard, you'll need to have the following prerequisites in
     php artisan test
     ```
 
-    Browser regression tests (for UI flows like the landing-page language switch) require built frontend assets:
-
-    ```bash
-    bun run build
-    php artisan test tests/Browser/WelcomeLanguageSwitchTest.php
-    ```
-
 ## Contributing
 
 We welcome contributions from the community! If you'd like to contribute to WebGuard, please follow these steps:
