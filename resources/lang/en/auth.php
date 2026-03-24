@@ -63,6 +63,13 @@ return [
         'register' => 'Register',
         'demo' => 'Demo access',
     ],
+    'github_consent' => [
+        'title' => 'Legal Consent Required',
+        'description' => 'Before continuing with GitHub, please confirm the Terms of Use and Privacy Policy.',
+        'button' => 'Continue with GitHub',
+        'cancel' => 'Cancel',
+        'expired' => 'The GitHub login flow expired. Please start again.',
+    ],
     'guest_login' => [
         'no_guest_user_found' => 'No guest user found.',
     ],

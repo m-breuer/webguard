@@ -63,6 +63,13 @@ return [
         'register' => 'Registrieren',
         'demo' => 'Demo-Zugang',
     ],
+    'github_consent' => [
+        'title' => 'Rechtliche Zustimmung erforderlich',
+        'description' => 'Bevor Sie mit GitHub fortfahren, bestätigen Sie bitte Nutzungsbedingungen und Datenschutzerklärung.',
+        'button' => 'Mit GitHub fortfahren',
+        'cancel' => 'Abbrechen',
+        'expired' => 'Die GitHub-Anmeldung ist abgelaufen. Bitte starten Sie den Login erneut.',
+    ],
     'guest_login' => [
         'no_guest_user_found' => 'Kein Gastbenutzer gefunden.',
     ],
