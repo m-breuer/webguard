@@ -28,6 +28,19 @@ class LocalePreferenceTest extends TestCase
         $localizedPage->assertSeeHtml('lang="de"');
     }
 
+    public function test_anonymous_user_can_switch_locale_via_get_link(): void
+    {
+        $testResponse = $this->withHeader('referer', url('/'))
+            ->get(route('locale.switch', ['locale' => SupportedLanguage::DE->value]));
+
+        $testResponse->assertRedirect(url('/'));
+        $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value);
+
+        $localizedPage = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value)->get('/');
+        $localizedPage->assertOk();
+        $localizedPage->assertSeeHtml('lang="de"');
+    }
+
     public function test_language_switch_is_visible_for_guests_in_top_navigation(): void
     {
         $testResponse = $this->get('/');
