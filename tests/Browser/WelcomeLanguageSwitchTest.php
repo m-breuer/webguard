@@ -11,9 +11,9 @@ it('allows guests to switch language on the welcome page', function () {
 
     $deLocaleButtonSelector = 'form:has(input[name="locale"][value="de"]) > button[type="submit"]';
 
-    $page = visit('/')->withLocale('en-US');
+    $pendingAwaitablePage = visit('/')->withLocale('en-US');
 
-    $page->assertScript('document.documentElement.lang', 'en')
+    $pendingAwaitablePage->assertScript('document.documentElement.lang', 'en')
         ->click('#language-switch-guest')
         ->assertVisible($deLocaleButtonSelector)
         ->click($deLocaleButtonSelector)
