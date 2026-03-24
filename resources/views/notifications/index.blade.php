@@ -8,7 +8,7 @@
             <label for="show_read" class="inline-flex items-center">
                 <input type="checkbox" id="show_read" name="show_read" value="1"
                     class="shadow-xs focus:ring-3 rounded-sm border-gray-300 text-purple-600 focus:border-purple-300 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
-                    onchange="window.location.href = this.checked ? '{{ route('notifications.index', ['show_read' => true]) }}' : '{{ route('notifications.index') }}'"
+                    onchange="const url = new URL(window.location.href); if (this.checked) { url.searchParams.set('show_read', '1'); } else { url.searchParams.delete('show_read'); } window.location.href = url.toString();"
                     {{ $showRead ? 'checked' : '' }}>
                 <span class="ms-2">{{ __('notifications.show_read_notifications') }}</span>
             </label>
@@ -23,6 +23,19 @@
     <x-main x-data="{
         statusChangeOffset: {{ $statusBoardEntries->count() }},
         sslExpiryOffset: {{ $sslExpiryNotifications->count() }},
+        currentLimit: {{ $limit }},
+        isEmpty: {{ $sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() ? 'true' : 'false' }},
+        syncLimitWithUrl(limit) {
+            const parsedLimit = Number.parseInt(limit, 10);
+            const nextLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
+            const url = new URL(window.location.href);
+            url.searchParams.set('limit', String(nextLimit));
+            const query = url.searchParams.toString();
+            window.history.replaceState({}, '', query ? `${url.pathname}?${query}` : url.pathname);
+        },
+        updateEmptyState() {
+            this.isEmpty = this.$root.querySelectorAll('.notification-entry').length === 0;
+        },
         loadMoreNotifications(type) {
             let offset = type === 'status_change' ? this.statusChangeOffset : this.sslExpiryOffset;
             axios.post('{{ route('notifications.loadMore') }}', {
@@ -39,19 +52,36 @@
                         this.sslExpiryOffset += response.data.count;
                         if (!response.data.hasMore) document.getElementById('ssl-expiry-load-more-container').style.display = 'none';
                     }
+                    const updatedOffset = type === 'status_change' ? this.statusChangeOffset : this.sslExpiryOffset;
+                    this.currentLimit = Math.max(this.currentLimit, updatedOffset);
+                    this.syncLimitWithUrl(this.currentLimit);
+                    this.updateEmptyState();
                 });
         },
-        markAsRead(event, notificationId, route) {
+        markAsRead(event, notificationId, route, type) {
             event.preventDefault();
             axios.post(route)
-                .then(() => document.getElementById(notificationId).remove());
+                .then(() => {
+                    const entry = document.getElementById(notificationId);
+                    if (!entry) {
+                        return;
+                    }
+
+                    entry.remove();
+                    if (type === 'status_change') {
+                        this.statusChangeOffset = Math.max(0, this.statusChangeOffset - 1);
+                    } else {
+                        this.sslExpiryOffset = Math.max(0, this.sslExpiryOffset - 1);
+                    }
+                    this.updateEmptyState();
+                });
         }
-    }">
-        @if ($sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty())
-            <x-container>
-                <x-paragraph>{{ __('notifications.no_notifications') }}</x-paragraph>
-            </x-container>
-        @else
+    }" x-init="syncLimitWithUrl(currentLimit)">
+        <x-container id="notifications-empty-state" x-cloak x-show="isEmpty">
+            <x-paragraph>{{ __('notifications.no_notifications') }}</x-paragraph>
+        </x-container>
+
+        <div x-cloak x-show="!isEmpty">
             @if ($sslExpiryNotifications->isNotEmpty())
                 <div class="mb-8">
                     <x-heading type="h2" space=true>{{ __('notifications.ssl_expiry_notifications') }}</x-heading>
@@ -61,7 +91,7 @@
                             'type' => 'ssl_expiry',
                         ])
                     </div>
-                    @if ($sslExpiryNotifications->count() >= 5)
+                    @if ($sslExpiryHasMore)
                         <div class="mt-4 text-center" id="ssl-expiry-load-more-container">
                             <x-primary-button
                                 @click="loadMoreNotifications('ssl_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
@@ -87,6 +117,6 @@
                     @endif
                 </div>
             @endif
-        @endif
+        </div>
     </x-main>
 </x-app-layout>

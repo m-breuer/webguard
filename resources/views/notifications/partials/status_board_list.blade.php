@@ -14,7 +14,7 @@
             : __('notifications.labels.not_available');
     @endphp
     <x-container space="true"
-        class="{{ $entry['read'] ? ' !text-gray-500 dark:!text-gray-500' : '' }} notification-board-entry mb-3"
+        class="{{ $entry['read'] ? ' !text-gray-500 dark:!text-gray-500' : '' }} notification-board-entry notification-entry mb-3"
         id="{{ $entry['notification_id'] }}">
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div class="min-w-0 space-y-2">
@@ -61,7 +61,7 @@
                 </x-badge>
                 @if (!$entry['read'])
                     <x-primary-button class="mark-as-read-button text-xs"
-                        @click="markAsRead(event, '{{ $entry['notification_id'] }}', '{{ route('notifications.markAsRead', $entry['notification_id']) }}')">{{ __('notifications.mark_as_read') }}</x-primary-button>
+                        @click="markAsRead(event, '{{ $entry['notification_id'] }}', '{{ route('notifications.markAsRead', $entry['notification_id']) }}', 'status_change')">{{ __('notifications.mark_as_read') }}</x-primary-button>
                 @endif
             </div>
         </div>

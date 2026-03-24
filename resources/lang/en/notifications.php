@@ -13,7 +13,7 @@ return [
     'mark_as_read' => 'Mark as Read',
     'mark_all_as_read' => 'Mark all as read',
     'read' => 'Read',
-    'no_notifications' => 'Nothing to explore. Everything is up to date.',
+    'no_notifications' => 'Nothing to discover. Everything is up to date.',
     'no_notifications_of_this_type' => 'No notifications of this type.',
     'show_read_notifications' => 'Show Read Notifications',
     'labels' => [
