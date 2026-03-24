@@ -52,7 +52,7 @@ class CreateGuestMonitoringCommand extends Command
             'timeout' => 5,
             'preferred_location' => $defaultInstanceCode,
             'public_label_enabled' => true,
-            'email_notification_on_failure' => false,
+            'notification_on_failure' => false,
         ]);
 
         $this->info("Monitoring '{$monitoring->name}' created successfully for guest user.");

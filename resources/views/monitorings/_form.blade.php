@@ -14,7 +14,7 @@
     target: @js(old('target', $monitoring->target ?? '')),
     timeoutValue: {{ old('timeout', $monitoring->timeout ?? 5) }},
     publicLabelEnabled: @js(old('public_label_enabled', $monitoring->public_label_enabled ?? false)),
-    emailNotificationOnFailure: @js(old('email_notification_on_failure', $monitoring->email_notification_on_failure ?? true)),
+    notificationOnFailure: @js(old('notification_on_failure', $monitoring->notification_on_failure ?? true)),
     init() {
         if (!@js(isset($monitoring))) {
             if ((this.type === '{{ MonitoringType::HTTP->value }}' || this.type === '{{ MonitoringType::KEYWORD->value }}') && (!this.target || !this.target.startsWith('http'))) {
@@ -183,15 +183,15 @@
     </div>
 
     <div class="mt-4">
-        <x-input-label for="email_notification_on_failure" :value="__('monitoring.form.email_notification_on_failure')" />
+        <x-input-label for="notification_on_failure" :value="__('monitoring.form.notification_on_failure')" />
         <label class="relative inline-flex cursor-pointer items-center">
-            <input type="checkbox" name="email_notification_on_failure" value="1" class="peer sr-only"
-                x-model="emailNotificationOnFailure" @if (old('email_notification_on_failure', $monitoring->email_notification_on_failure ?? true)) checked @endif>
+            <input type="checkbox" name="notification_on_failure" value="1" class="peer sr-only"
+                x-model="notificationOnFailure" @if (old('notification_on_failure', $monitoring->notification_on_failure ?? true)) checked @endif>
             <div
                 class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-purple-800">
             </div>
             <span
-                class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('monitoring.form.email_notification_on_failure_enabled') }}</span>
+                class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('monitoring.form.notification_on_failure_enabled') }}</span>
         </label>
     </div>
 

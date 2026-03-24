@@ -36,7 +36,7 @@ class SendStatusChangeNotificationEmailCommand extends Command
         $notifications = MonitoringNotification::query()->statusChange()
             ->where('sent', false)
             ->whereHas('monitoring', function (Builder $builder) {
-                $builder->where('email_notification_on_failure', true);
+                $builder->where('notification_on_failure', true);
             })
             ->get();
 

@@ -133,7 +133,7 @@ class MonitoringRequest extends FormRequest
             ],
             'preferred_location' => ['required', 'string', Rule::exists('server_instances', 'code')->where('is_active', true)],
             'public_label_enabled' => ['boolean'],
-            'email_notification_on_failure' => ['boolean'],
+            'notification_on_failure' => ['boolean'],
             'maintenance_from' => ['nullable', 'date'],
             'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
         ];
@@ -155,7 +155,7 @@ class MonitoringRequest extends FormRequest
         $this->merge([
             'type' => mb_strtolower((string) $this->input('type')),
             'public_label_enabled' => $this->boolean('public_label_enabled'),
-            'email_notification_on_failure' => $this->boolean('email_notification_on_failure'),
+            'notification_on_failure' => $this->boolean('notification_on_failure'),
         ]);
     }
 
