@@ -32,7 +32,7 @@ class MonitoringListController extends Controller
         $builder = Monitoring::query()
             ->where('status', 'active')
             ->where('preferred_location', $location)
-            ->with('latestResponseResult:id,monitoring_id,http_status_code');
+            ->with('latestResponseResult');
 
         if ($type) {
             $builder->where('type', $type);
