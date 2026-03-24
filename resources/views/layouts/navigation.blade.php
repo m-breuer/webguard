@@ -32,7 +32,9 @@
                 </div>
             </div>
 
-            <div class="hidden sm:ms-6 sm:flex sm:items-center">
+            <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-3">
+                <x-language-switch id="language-switch-desktop" />
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
@@ -70,7 +72,9 @@
                 </x-dropdown>
             </div>
 
-            <div class="flex items-center sm:hidden">
+            <div class="flex items-center gap-2 sm:hidden">
+                <x-language-switch id="language-switch-mobile" />
+
                 <button @click="open = ! open"
                     class="focus:outline-hidden inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">

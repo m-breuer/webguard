@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\SupportedLanguage;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,13 +44,7 @@ class ProfileRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            'locale' => ['required', 'string', 'max:10', Rule::in(array_keys($this->getLanguages()))],
             'theme' => ['required', 'string', Rule::in(['light', 'dark', 'system'])],
         ];
-    }
-
-    public function getLanguages(): array
-    {
-        return SupportedLanguage::toArray();
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\SupportedLanguage;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use Illuminate\Http\RedirectResponse;
@@ -28,12 +27,9 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $filteredLanguages = SupportedLanguage::toArray();
-
         return view('profile.edit', [
             'user' => $request->user(),
             'token' => $request->user()->currentAccessToken(),
-            'languages' => $filteredLanguages,
         ]);
     }
 
@@ -57,14 +53,7 @@ class ProfileController extends Controller
         session(['theme' => $profileRequest->user()->theme]);
 
         return to_route('profile.edit')
-            ->with('success', __('profile.messages.profile_updated'))
-            ->withCookie(
-                cookie(
-                    SupportedLanguage::cookieName(),
-                    $profileRequest->user()->locale,
-                    SupportedLanguage::cookieDurationMinutes()
-                )
-            );
+            ->with('success', __('profile.messages.profile_updated'));
     }
 
     /**
