@@ -1,5 +1,16 @@
-<footer>
-    <x-paragraph class="my-4 text-center text-sm text-gray-500">
-        &copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('legal.footer.content') }}
-    </x-paragraph>
+<footer class="border-t border-slate-200/80 bg-white/80 dark:border-slate-800/70 dark:bg-slate-950/80">
+    <x-main class="w-full py-5">
+        <div class="flex flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
+            <x-paragraph class="text-sm text-gray-500">
+                &copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('legal.footer.content') }}
+            </x-paragraph>
+
+            <nav aria-label="{{ __('monitoring_locations.footer_link') }}">
+                <a href="{{ route('monitoring-locations') }}"
+                    class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                    {{ __('monitoring_locations.footer_link') }}
+                </a>
+            </nav>
+        </div>
+    </x-main>
 </footer>
