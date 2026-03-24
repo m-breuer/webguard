@@ -34,7 +34,7 @@
                 <x-text-checkbox id="remember_me" name="remember" label="{{ __('auth.login.remember') }}" />
             </div>
 
-            <div class="mt-4 flex items-center">
+            <div class="mt-4 flex items-center gap-3">
                 @if (Route::has('password.request'))
                     <a class="focus:outline-hidden rounded-md text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                         href="{{ route('password.request') }}">
@@ -45,6 +45,16 @@
                 <x-primary-button>
                     {{ __('auth.login.button') }}
                 </x-primary-button>
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+                <x-secondary-button :href="route('register')">
+                    {{ __('auth.login.register_button') }}
+                </x-secondary-button>
+
+                <x-secondary-button :href="route('login', ['guest' => 'true'])">
+                    {{ __('auth.login.demo_button') }}
+                </x-secondary-button>
             </div>
         </form>
 

@@ -60,10 +60,14 @@
         --}}
         <input type="hidden" name="terms" value="1">
 
-        <div class="mt-4">
+        <div class="mt-4 flex flex-wrap items-center gap-3">
             <x-primary-button>
                 {{ __('auth.register.button') }}
             </x-primary-button>
+
+            <x-secondary-button :href="route('login')">
+                {{ __('auth.register.login_button') }}
+            </x-secondary-button>
         </div>
     </form>
 
