@@ -17,6 +17,7 @@ return [
         'login_button' => 'Zum Login',
         'already_registered' => 'Bereits registriert?',
         'terms_agreement' => 'Ich stimme den <a href=":terms_link" target="_blank" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Nutzungsbedingungen</a> und der <a href=":policy_link" target="_blank" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Datenschutzrichtlinie</a> zu',
+        'privacy_agreement' => 'Ich habe die <a href=":privacy_link" target="_blank" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Datenschutzerklaerung</a> gelesen und akzeptiere sie.',
     ],
     'login' => [
         'title' => 'Anmelden',

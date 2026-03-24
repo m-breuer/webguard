@@ -11,6 +11,29 @@ class LegalController extends Controller
 {
     public function imprint(): View
     {
+        $imprint = $this->resolveImprintConfiguration();
+
+        return view('imprint', [
+            'imprint' => [
+                ...$imprint,
+                'email_payload' => $this->encodeContactPayload($imprint['email']),
+                'phone_payload' => $this->encodeContactPayload($imprint['phone']),
+            ],
+        ]);
+    }
+
+    public function gdpr(): View
+    {
+        return view('gdpr', [
+            'imprint' => $this->resolveImprintConfiguration(),
+        ]);
+    }
+
+    /**
+     * @return array{operator_name: string, street: string, postal_code: string, city: string, country: string, email: string, phone: string}
+     */
+    private function resolveImprintConfiguration(): array
+    {
         $imprint = [
             'operator_name' => config('imprint.operator_name'),
             'street' => config('imprint.street'),
@@ -26,15 +49,7 @@ class LegalController extends Controller
         }
 
         /** @var array{operator_name: string, street: string, postal_code: string, city: string, country: string, email: string, phone: string} $imprint */
-        $imprint = array_map(static fn (mixed $value): string => (string) $value, $imprint);
-
-        return view('imprint', [
-            'imprint' => [
-                ...$imprint,
-                'email_payload' => $this->encodeContactPayload($imprint['email']),
-                'phone_payload' => $this->encodeContactPayload($imprint['phone']),
-            ],
-        ]);
+        return array_map(static fn (mixed $value): string => (string) $value, $imprint);
     }
 
     private function encodeContactPayload(string $value): string

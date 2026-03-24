@@ -50,6 +50,7 @@ class CreateAdminUserCommand extends Command
             'role' => UserRole::ADMIN,
             'email_verified_at' => now(),
             'terms_accepted_at' => now(),
+            'privacy_accepted_at' => now(),
             'package_id' => Package::query()->latest()->first()->id,
         ]);
 
