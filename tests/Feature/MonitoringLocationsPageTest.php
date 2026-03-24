@@ -58,6 +58,6 @@ class MonitoringLocationsPageTest extends TestCase
         $testResponse = $this->get(route('sitemap'));
 
         $testResponse->assertOk();
-        $testResponse->assertSee(route('monitoring-locations'), false);
+        $testResponse->assertSeeHtml(route('monitoring-locations'));
     }
 }
