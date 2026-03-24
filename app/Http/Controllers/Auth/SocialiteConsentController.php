@@ -56,8 +56,11 @@ class SocialiteConsentController extends Controller
 
     private function hasPendingConsent(Request $request): bool
     {
-        return $request->session()->has(SocialiteController::SESSION_PENDING_EXISTING_USER_ID)
-            || $request->session()->has(SocialiteController::SESSION_PENDING_GITHUB_USER);
+        if ($request->session()->has(SocialiteController::SESSION_PENDING_EXISTING_USER_ID)) {
+            return true;
+        }
+
+        return $request->session()->has(SocialiteController::SESSION_PENDING_GITHUB_USER);
     }
 
     private function clearPendingConsentState(Request $request): void
