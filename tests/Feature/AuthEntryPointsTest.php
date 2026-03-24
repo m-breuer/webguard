@@ -51,4 +51,14 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('href="' . route('login', ['guest' => 'true']) . '"');
     }
+
+    public function test_register_mode_contains_privacy_policy_consent_checkbox(): void
+    {
+        $testResponse = $this->get(route('login', ['mode' => 'register']));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('id="privacy"');
+        $testResponse->assertSeeHtml('name="privacy"');
+        $testResponse->assertSeeHtml(route('gdpr'));
+    }
 }

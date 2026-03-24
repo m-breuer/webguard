@@ -38,6 +38,11 @@
             text-decoration: none;
             border-radius: 5px;
         }
+        .legal-links a {
+            color: #555;
+            text-decoration: underline;
+            margin: 0 4px;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +55,11 @@
         </div>
         <div class="footer">
             <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+            <p class="legal-links">
+                {{ __('mail.general.legal') }}:
+                <a href="{{ route('gdpr') }}">{{ __('gdpr.footer_link') }}</a>
+                <a href="{{ route('imprint') }}">{{ __('imprint.footer_link') }}</a>
+            </p>
         </div>
     </div>
 </body>

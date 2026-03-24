@@ -32,6 +32,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $remember_token
  * @property UserRole $role
  * @property Carbon|null $terms_accepted_at
+ * @property Carbon|null $privacy_accepted_at
  * @property string|null $package_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -65,6 +66,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'terms_accepted_at',
+        'privacy_accepted_at',
         'package_id',
         'locale',
         'theme',
@@ -167,6 +169,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
             'theme' => 'string',

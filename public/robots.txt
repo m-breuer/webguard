@@ -4,5 +4,7 @@ Allow: /
 Disallow: /api/
 Disallow: /imprint
 Disallow: /impressum
+Disallow: /gdpr
+Disallow: /datenschutz
 
 Sitemap: https://webguard.m-breuer.dev/sitemap.xml
