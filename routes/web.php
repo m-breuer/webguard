@@ -21,8 +21,6 @@ Route::get('/auth/github/callback', [SocialiteController::class, 'handleProvider
 
 Route::get('/', fn () => view('welcome'))->name('welcome');
 
-Route::get('demo', fn () => view('demo'))->name('demo');
-
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 // TODO: Add content to these pages
@@ -33,7 +31,6 @@ Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch
 Route::get('/sitemap.xml', function () {
     return Sitemap::create()
         ->add(Url::create(route('welcome')))
-        ->add(Url::create(route('demo')))
         // ->add(Url::create(route('terms.show')))
         // ->add(Url::create(route('policy.show')))
         ->toResponse(request());

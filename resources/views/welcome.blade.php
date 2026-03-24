@@ -49,7 +49,7 @@
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                             {{ __('button.login') }}
                         </x-primary-button>
-                        <x-secondary-button :href="route('demo')"
+                        <x-secondary-button :href="route('login', ['guest' => 'true'])"
                             class="border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800">
                             {{ __('welcome.hero.secondary_cta') }}
                         </x-secondary-button>
@@ -196,11 +196,11 @@
                 <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.trust.subtitle') }}</x-paragraph>
 
                 <div class="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <blockquote class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-950/70 lg:col-span-2">
+                    <blockquote class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-950/70 lg:col-span-1">
                         <x-paragraph class="text-lg leading-8 text-slate-800 dark:text-slate-100">“{{ __('welcome.testimonial.quote') }}”</x-paragraph>
                     </blockquote>
 
-                    <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-950/70">
+                    <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-950/70 lg:col-span-2">
                         <x-heading type="h3" class="text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.case_study.title') }}</x-heading>
                         <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.case_study.text') }}</x-paragraph>
                         <dl class="mt-5 space-y-3 text-sm">
@@ -235,7 +235,7 @@
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                             {{ __('welcome.final_cta.primary') }}
                         </x-primary-button>
-                        <x-secondary-button :href="route('demo')"
+                        <x-secondary-button :href="route('login', ['guest' => 'true'])"
                             class="border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-900">
                             {{ __('welcome.final_cta.secondary') }}
                         </x-secondary-button>
