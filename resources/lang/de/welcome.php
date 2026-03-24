@@ -4,41 +4,41 @@ declare(strict_types=1);
 
 return [
     'seo' => [
-        'title' => 'WebGuard - Uptime Monitoring, Alerts und öffentliche Statusseiten',
-        'description' => 'WebGuard hilft Teams bei HTTP-, Ping-, Keyword- und Port-Checks mit sofortigen Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Analysen und transparenten Statusseiten.',
-        'keywords' => 'Uptime Monitoring, Website Monitoring, Ping Monitoring, Keyword Monitoring, Port Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
-        'og_title' => 'WebGuard - Verfügbarkeit, Performance und Incidents früh erkennen',
-        'og_description' => 'Erkennen Sie Ausfälle frühzeitig mit HTTP-, Ping-, Keyword- und Port-Überwachung, Multi-Channel-Benachrichtigungen, SSL-Prüfungen und klaren Uptime-Reports.',
+        'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server und Ports',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword- und Port-Checks mit Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Ping Monitoring, Keyword Monitoring, Port Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
+        'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
+        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword- und Port-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
     ],
 
     'nav' => [
         'aria' => 'Primäre Navigation',
         'logo_alt' => 'WebGuard Logo',
         'features' => 'Funktionen',
-        'proof' => 'Vertrauen',
-        'get_started' => 'Projekt testen',
+        'proof' => 'Einordnung',
+        'get_started' => 'Kostenfrei nutzen',
         'login' => 'Anmelden',
         'dashboard' => 'Dashboard',
     ],
 
     'hero' => [
-        'eyebrow' => 'Eigenes Monitoring-Projekt',
-        'title' => 'WebGuard ist mein persönlicher Service für zuverlässiges Monitoring.',
-        'subtitle' => 'Ich habe WebGuard gebaut, um meine eigenen Websites und APIs zu überwachen. Diese Instanz stelle ich öffentlich bereit, damit Sie die Funktionen unverbindlich testen können.',
-        'primary_cta' => 'In Minuten Monitoring starten',
-        'secondary_cta' => 'Demozugang öffnen',
+        'eyebrow' => 'Kostenfrei nutzbare Monitoring-Software',
+        'title' => 'WebGuard bietet professionelles Monitoring für Teams und Einzelprojekte.',
+        'subtitle' => 'Die Plattform unterstützt die zuverlässige Überwachung von Services und Infrastruktur und kann ohne Lizenzkosten genutzt werden.',
+        'primary_cta' => 'Kostenfrei starten',
+        'secondary_cta' => 'Gastzugang nutzen',
         'metrics' => [
             '1' => [
-                'label' => 'Setup',
-                'value' => 'Eigenes Projekt für tägliches Monitoring',
+                'label' => 'Lizenz',
+                'value' => 'Kostenfrei für alle nutzbar',
             ],
             '2' => [
-                'label' => 'Intervall',
-                'value' => '24/7 Checks mit flexiblen Abständen',
+                'label' => 'Abdeckung',
+                'value' => 'HTTP, Ping, Keyword und Port',
             ],
             '3' => [
-                'label' => 'Regionen',
-                'value' => 'Auswahl pro Monitor für bessere Einordnung',
+                'label' => 'Betrieb',
+                'value' => '24/7 Checks mit flexiblen Intervallen',
             ],
         ],
     ],
@@ -46,7 +46,7 @@ return [
     'feature_section' => [
         'eyebrow' => 'Umfassende Abdeckung',
         'title' => 'Alles, was Sie für zuverlässiges Monitoring brauchen',
-        'subtitle' => 'Die Funktionen nutze ich selbst im Alltag: klare Checks, sinnvolle Alerts und verlässliche Verlaufsdaten an einem Ort.',
+        'subtitle' => 'WebGuard bündelt Checks, Benachrichtigungen und Verlaufsdaten in einem klaren, alltagstauglichen Workflow.',
     ],
 
     'features' => [
@@ -73,7 +73,7 @@ return [
         'notifications' => [
             'badge' => 'Alerts',
             'title' => 'Incident- und Status-Benachrichtigungen',
-            'text' => 'Erhalten Sie Incident-Updates über mehrere Kanäle, damit Teams schnell und konsistent reagieren.',
+            'text' => 'Erhalten Sie Incident-Updates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
         ],
         'ssl' => [
             'badge' => 'Sicherheit',
@@ -86,16 +86,16 @@ return [
             'text' => 'Analysieren Sie Trends, vergleichen Sie Monitor-Verhalten und berichten Sie über Zuverlässigkeit.',
         ],
         'multi_location' => [
-            'badge' => 'Rollout',
+            'badge' => 'Verteilung',
             'title' => 'Monitoring aus mehreren Regionen',
-            'text' => 'Regionenübergreifende Checks helfen, lokale Ausfälle zu isolieren und False Positives zu reduzieren.',
+            'text' => 'Regionenübergreifende Checks helfen, lokale Ausfälle zu isolieren und Fehlalarme zu reduzieren.',
         ],
     ],
 
     'visuals' => [
-        'eyebrow' => 'Produktvorschau',
-        'title' => 'Ein fokussierter Workflow für Operations-Teams',
-        'subtitle' => 'Vom Dashboard über Monitor-Details bis zu öffentlichen Status-Labels hält WebGuard den gesamten Incident-Kontext an einem Ort.',
+        'eyebrow' => 'Produktüberblick',
+        'title' => 'Ein klarer Workflow für Betrieb und Monitoring',
+        'subtitle' => 'Vom Dashboard über Monitor-Details bis zu öffentlichen Status-Labels bleibt der gesamte Incident-Kontext an einem Ort.',
         'previews' => [
             'dashboard' => [
                 'title' => 'Dashboard-Übersicht',
@@ -118,7 +118,7 @@ return [
     'workflow' => [
         'eyebrow' => 'So funktioniert es',
         'title' => 'Vom Setup bis zur Incident-Lösung in drei Schritten',
-        'subtitle' => 'WebGuard ist für schnelles Onboarding optimiert und bietet zugleich die Kontrolle, die erfahrene Teams erwarten.',
+        'subtitle' => 'Der Einstieg ist bewusst schlank gehalten und bietet zugleich genug Tiefe für den laufenden Betrieb.',
         'steps' => [
             '1' => [
                 'title' => 'Monitore erstellen',
@@ -136,18 +136,18 @@ return [
     ],
 
     'trust' => [
-        'eyebrow' => 'Projektkontext',
-        'title' => 'Warum ich WebGuard gebaut habe',
-        'subtitle' => 'WebGuard ist als eigenes Monitoring-Projekt entstanden. Ich stelle den Service hier öffentlich zum Testen bereit, ohne Kaufmodell oder Vertrieb.',
+        'eyebrow' => 'Grundprinzipien',
+        'title' => 'Transparente, kostenfreie Software für verlässliches Monitoring',
+        'subtitle' => 'WebGuard wird als allgemein nutzbare Software bereitgestellt. Der Fokus liegt auf stabiler Funktion, klarer Nachvollziehbarkeit und kostenfreiem Zugang statt Vertrieb.',
     ],
 
     'testimonial' => [
-        'quote' => 'Die Regionsauswahl und die flexiblen Intervalle sind für mich der größte Mehrwert. Ich sehe schnell, ob ein Problem regional ist, und meine Monitorings laufen dadurch deutlich zuverlässiger.',
+        'quote' => 'Die Kombination aus Regionen, flexiblen Intervallen und klaren Alerts hilft dabei, Störungen schneller zu erkennen und sauber einzuordnen.',
     ],
 
     'case_study' => [
-        'title' => 'Praxis-Setup aus meinem Alltag',
-        'text' => 'Für meine eigenen Services nutze ich pro Endpoint feste Intervalle, mehrere Regionen und klare Alarmregeln. So erkenne ich Ausfälle früh und kann schneller einschätzen, ob sie lokal oder global auftreten.',
+        'title' => 'Beispielkonfiguration für typische Services',
+        'text' => 'Eine robuste Basiskonfiguration nutzt feste Intervalle, mehrere Regionen und klare Alarmregeln pro Endpoint. So lassen sich Ausfälle früh erkennen und schneller als lokal oder global einstufen.',
         'metrics' => [
             '1' => [
                 'label' => 'Regionen pro Check',
@@ -158,7 +158,7 @@ return [
                 'value' => '60 Sekunden',
             ],
             '3' => [
-                'label' => 'Aktive Monitore',
+                'label' => 'Empfohlene Monitor-Typen',
                 'value' => 'HTTP, Ping, Keyword, Port',
             ],
         ],
@@ -166,25 +166,25 @@ return [
 
     'badges' => [
         'uptime' => [
-            'title' => 'Uptime-Fokus',
-            'text' => 'Die Monitoring-Architektur ist auf stabile Erreichbarkeitschecks und schnelle Einordnung von Ausfällen ausgerichtet.',
+            'title' => 'Stabilitätsfokus',
+            'text' => 'Die Monitoring-Architektur ist auf belastbare Erreichbarkeitschecks und schnelle Incident-Einordnung ausgerichtet.',
         ],
         'transparent' => [
-            'title' => 'Transparentes Monitoring',
-            'text' => 'Öffentliche Statusinformationen und nachvollziehbare Verläufe zeigen offen, wie der Service im Alltag läuft.',
+            'title' => 'Offen und nachvollziehbar',
+            'text' => 'Öffentliche Statusinformationen und klare Verläufe machen den Betrieb im Alltag transparent.',
         ],
     ],
 
     'final_cta' => [
-        'title' => 'WebGuard unverbindlich testen',
-        'text' => 'Hier findet kein Verkauf statt. Sie können den Service direkt per Login oder über den Demozugang ausprobieren.',
+        'title' => 'WebGuard kostenfrei nutzen',
+        'text' => 'Die Software steht ohne Kaufmodell zur Verfügung. Login oder Gastzugang reichen aus, um die zentralen Funktionen auszuprobieren.',
         'primary' => 'Zum Login',
-        'secondary' => 'Demozugang starten',
+        'secondary' => 'Gastzugang öffnen',
     ],
 
     'guest_login' => [
-        'title' => 'WebGuard erkunden',
-        'text' => 'Neugierig, wie WebGuard funktioniert? Melden Sie sich mit unserem Gastkonto an und überwachen Sie beliebte Websites wie Google oder Twitter. Keine Registrierung erforderlich.',
+        'title' => 'WebGuard ausprobieren',
+        'text' => 'Melden Sie sich mit dem Gastkonto an und erkunden Sie Dashboards, Checks und Benachrichtigungen direkt im laufenden Beispiel. Keine Registrierung erforderlich.',
         'button' => 'Als Gast anmelden',
     ],
 ];
