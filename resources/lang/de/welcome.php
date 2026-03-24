@@ -16,29 +16,29 @@ return [
         'logo_alt' => 'WebGuard Logo',
         'features' => 'Funktionen',
         'proof' => 'Vertrauen',
-        'get_started' => 'Loslegen',
+        'get_started' => 'Projekt testen',
         'login' => 'Anmelden',
         'dashboard' => 'Dashboard',
     ],
 
     'hero' => [
-        'eyebrow' => 'Zuverlässiges Monitoring für kritische Services',
-        'title' => 'Erkennen Sie Ausfälle, bevor es Ihre Nutzer tun.',
-        'subtitle' => 'WebGuard gibt Ihrem Team sofortige Sichtbarkeit auf Uptime, Incidents, SSL-Risiken und Antwortzeiten über Websites, APIs und Infrastruktur-Endpunkte hinweg.',
+        'eyebrow' => 'Eigenes Monitoring-Projekt',
+        'title' => 'WebGuard ist mein persönlicher Service für zuverlässiges Monitoring.',
+        'subtitle' => 'Ich habe WebGuard gebaut, um meine eigenen Websites und APIs zu überwachen. Diese Instanz stelle ich öffentlich bereit, damit Sie die Funktionen unverbindlich testen können.',
         'primary_cta' => 'In Minuten Monitoring starten',
-        'secondary_cta' => 'Beispiel-Statusseite ansehen',
+        'secondary_cta' => 'Demozugang öffnen',
         'metrics' => [
             '1' => [
-                'label' => 'Checks',
-                'value' => '24/7 Überwachung mit kurzen Intervallen',
+                'label' => 'Setup',
+                'value' => 'Eigenes Projekt für tägliches Monitoring',
             ],
             '2' => [
-                'label' => 'Alerts',
-                'value' => 'Incident-Benachrichtigungen über mehrere Kanäle',
+                'label' => 'Intervall',
+                'value' => '24/7 Checks mit flexiblen Abständen',
             ],
             '3' => [
-                'label' => 'Vertrauen',
-                'value' => 'DSGVO-fähige Prozesse und klare Reports',
+                'label' => 'Regionen',
+                'value' => 'Auswahl pro Monitor für bessere Einordnung',
             ],
         ],
     ],
@@ -46,7 +46,7 @@ return [
     'feature_section' => [
         'eyebrow' => 'Umfassende Abdeckung',
         'title' => 'Alles, was Sie für zuverlässiges Monitoring brauchen',
-        'subtitle' => 'Schaffen Sie Vertrauen mit breiten Protokoll-Checks, sofortigen Alerts, historischen Performance-Trends und transparentem Status für Ihre Kunden.',
+        'subtitle' => 'Die Funktionen nutze ich selbst im Alltag: klare Checks, sinnvolle Alerts und verlässliche Verlaufsdaten an einem Ort.',
     ],
 
     'features' => [
@@ -136,30 +136,30 @@ return [
     ],
 
     'trust' => [
-        'eyebrow' => 'Vertrauen und Transparenz',
-        'title' => 'Entwickelt für Teams ohne Blind Spots',
-        'subtitle' => 'WebGuard verbindet klare Reports, proaktive Absicherung und transparente Kommunikation.',
+        'eyebrow' => 'Projektkontext',
+        'title' => 'Warum ich WebGuard gebaut habe',
+        'subtitle' => 'WebGuard ist als eigenes Monitoring-Projekt entstanden. Ich stelle den Service hier öffentlich zum Testen bereit, ohne Kaufmodell oder Vertrieb.',
     ],
 
     'testimonial' => [
-        'quote' => 'Wir haben drei getrennte Monitoring-Tools durch WebGuard ersetzt. Heute erkennen wir Incidents früher und veröffentlichen in Minuten klare Status-Updates für Kunden.',
+        'quote' => 'Die Regionsauswahl und die flexiblen Intervalle sind für mich der größte Mehrwert. Ich sehe schnell, ob ein Problem regional ist, und meine Monitorings laufen dadurch deutlich zuverlässiger.',
     ],
 
     'case_study' => [
-        'title' => 'Case Study: Schnellere Incident-Reaktion',
-        'text' => 'Nach der Standardisierung von Checks und Benachrichtigungsregeln in WebGuard konnte ein SaaS-Supportteam Erkennungs- und Eskalationslücken in Lastspitzen deutlich reduzieren.',
+        'title' => 'Praxis-Setup aus meinem Alltag',
+        'text' => 'Für meine eigenen Services nutze ich pro Endpoint feste Intervalle, mehrere Regionen und klare Alarmregeln. So erkenne ich Ausfälle früh und kann schneller einschätzen, ob sie lokal oder global auftreten.',
         'metrics' => [
             '1' => [
-                'label' => 'Downtime-Auswirkung',
-                'value' => '-38 % in 90 Tagen',
+                'label' => 'Regionen pro Check',
+                'value' => 'EU + US',
             ],
             '2' => [
-                'label' => 'Mean Time to Detect',
-                'value' => 'Unter 2 Minuten',
+                'label' => 'Standard-Intervall',
+                'value' => '60 Sekunden',
             ],
             '3' => [
-                'label' => 'Geschwindigkeit Status-Update',
-                'value' => '2,4x schneller',
+                'label' => 'Aktive Monitore',
+                'value' => 'HTTP, Ping, Keyword, Port',
             ],
         ],
     ],
@@ -167,23 +167,19 @@ return [
     'badges' => [
         'uptime' => [
             'title' => 'Uptime-Fokus',
-            'text' => 'Monitoring-Architektur und Dashboard-Workflows sind auf availability-first Operations ausgelegt.',
-        ],
-        'gdpr' => [
-            'title' => 'DSGVO-fähig',
-            'text' => 'Datenschutzbewusste Verarbeitung und europäisch orientierte Compliance-Prinzipien unterstützen regulierte Teams.',
+            'text' => 'Die Monitoring-Architektur ist auf stabile Erreichbarkeitschecks und schnelle Einordnung von Ausfällen ausgerichtet.',
         ],
         'transparent' => [
             'title' => 'Transparentes Monitoring',
-            'text' => 'Öffentliche Labels, historische Uptime-Kontexte und Open-Source-Komponenten fördern nachvollziehbaren Betrieb.',
+            'text' => 'Öffentliche Statusinformationen und nachvollziehbare Verläufe zeigen offen, wie der Service im Alltag läuft.',
         ],
     ],
 
     'final_cta' => [
-        'title' => 'Erstellen Sie ein kostenloses Konto und starten Sie heute Ihren ersten Monitor.',
-        'text' => 'Wechseln Sie von reaktivem Firefighting zu proaktiver Zuverlässigkeit mit einem Setup in Minuten statt Tagen.',
-        'primary' => 'Kostenloses Konto erstellen',
-        'secondary' => 'Beispiel-Statusseite ansehen',
+        'title' => 'WebGuard unverbindlich testen',
+        'text' => 'Hier findet kein Verkauf statt. Sie können den Service direkt per Login oder über den Demozugang ausprobieren.',
+        'primary' => 'Zum Login',
+        'secondary' => 'Demozugang starten',
     ],
 
     'guest_login' => [

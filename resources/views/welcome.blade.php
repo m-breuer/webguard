@@ -214,8 +214,8 @@
                     </article>
                 </div>
 
-                <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    @foreach (['uptime', 'gdpr', 'transparent'] as $badge)
+                <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    @foreach (['uptime', 'transparent'] as $badge)
                         <article class="rounded-xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-950/70">
                             <x-heading type="h3" class="text-sm font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">{{ __('welcome.badges.' . $badge . '.title') }}</x-heading>
                             <x-paragraph class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.badges.' . $badge . '.text') }}</x-paragraph>
@@ -231,7 +231,7 @@
                     <x-heading type="h2" class="max-w-3xl text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.final_cta.title') }}</x-heading>
                     <x-paragraph class="mt-4 max-w-2xl text-lg text-slate-700 dark:text-slate-200">{{ __('welcome.final_cta.text') }}</x-paragraph>
                     <div class="mt-8 flex flex-wrap gap-3">
-                        <x-primary-button :href="route('register')"
+                        <x-primary-button :href="route('login')"
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                             {{ __('welcome.final_cta.primary') }}
                         </x-primary-button>
