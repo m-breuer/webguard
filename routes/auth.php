@@ -10,12 +10,13 @@ use App\Http\Controllers\Auth\GuestLoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::get('guest-login-credentials', GuestLoginController::class)->name('guest-login.credentials');
 
 Route::middleware('guest')->group(function (): void {
-    Route::get('register', [RegisteredUserController::class, 'create'])
+    Route::get('register', fn (): RedirectResponse => to_route('login', ['mode' => 'register']))
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);

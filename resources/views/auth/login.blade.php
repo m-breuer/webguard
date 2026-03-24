@@ -5,6 +5,8 @@
         $requestedMode = old('form_mode');
     } elseif (request()->boolean('guest')) {
         $requestedMode = 'demo';
+    } elseif (in_array(request()->query('mode'), ['login', 'register', 'demo'], true)) {
+        $requestedMode = (string) request()->query('mode');
     } elseif (($authMode ?? null) === 'register') {
         $requestedMode = 'register';
     } else {
@@ -14,7 +16,7 @@
     $initialMode = in_array($requestedMode, ['login', 'register', 'demo'], true) ? $requestedMode : 'login';
 @endphp
 
-<x-guest-layout card-width="sm:max-w-5xl">
+<x-guest-layout card-width="sm:max-w-7xl">
     <div x-data="guestLogin(@js($initialMode))" x-init="init()" data-initial-mode="{{ $initialMode }}">
         <x-auth-session-status class="mb-4" :status="session('status')" />
 
