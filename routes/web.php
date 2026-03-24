@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringLocationsController;
@@ -22,6 +23,7 @@ Route::get('/auth/github/callback', [SocialiteController::class, 'handleProvider
 
 Route::get('/', fn () => view('welcome'))->name('welcome');
 Route::get('/monitoring-locations', MonitoringLocationsController::class)->name('monitoring-locations');
+Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
 
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
@@ -34,6 +36,7 @@ Route::get('/sitemap.xml', function () {
     return Sitemap::create()
         ->add(Url::create(route('welcome')))
         ->add(Url::create(route('monitoring-locations')))
+        ->add(Url::create(route('imprint')))
         // ->add(Url::create(route('terms.show')))
         // ->add(Url::create(route('policy.show')))
         ->toResponse(request());
@@ -89,4 +92,5 @@ Route::group(
     }
 );
 
+require __DIR__ . '/redirects.php';
 require __DIR__ . '/auth.php';

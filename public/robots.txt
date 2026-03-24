@@ -1,6 +1,8 @@
 User-agent: *
 
-Allow: /monitoring-locations
+Allow: /
 Disallow: /api/
+Disallow: /imprint
+Disallow: /impressum
 
 Sitemap: https://webguard.m-breuer.dev/sitemap.xml
