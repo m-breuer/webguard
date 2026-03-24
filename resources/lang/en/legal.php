@@ -21,11 +21,13 @@ return [
                 'title' => 'Scope of Service',
                 'intro' => 'WebGuard currently provides monitoring and operational support features, including:',
                 'items' => [
-                    'Monitoring of websites, servers, and ports.',
-                    'Alerts and status notifications.',
-                    'Reporting and uptime visualizations.',
-                    'SSL certificate checks and expiry warnings.',
-                    'Related dashboard and operational support functions.',
+                    'HTTP, ping, keyword, and port monitoring for configured targets.',
+                    'SSL certificate checks and expiry warnings for supported endpoints.',
+                    'Status and incident tracking, response-time insights, and uptime/downtime visualizations.',
+                    'Public status labels when enabled by the user.',
+                    'Email notifications for status changes, SSL expiry, and unread reminders.',
+                    'Token-based API access for supported endpoints.',
+                    'Optional GitHub sign-in and demo/guest access.',
                 ],
             ],
             'obligations' => [
@@ -33,22 +35,25 @@ return [
                 'intro' => 'Users must comply with the following obligations:',
                 'items' => [
                     'Provide accurate and complete account and monitoring information.',
+                    'Monitor only systems, endpoints, and domains for which you are authorized.',
+                    'Protect credentials, API tokens, and optional authentication data used in checks.',
                     'Use WebGuard only for lawful purposes.',
-                    'Do not misuse, disrupt, overload, or interfere with the service.',
+                    'Do not misuse, disrupt, overload, or interfere with the service (including excessive automated access).',
                     'Do not attempt unauthorized access to systems or data.',
+                    'When enabling public labels, ensure no confidential information is exposed in monitoring names or target URLs.',
                 ],
             ],
             'liability' => [
                 'title' => 'Limitation of Liability',
-                'body' => 'WebGuard is provided "as is" and "as available". We do not guarantee uninterrupted availability, accuracy, or completeness of monitoring data. We are not liable for outages, false or delayed alerts, indirect damages, or losses resulting from downtime or reliance on reported data.',
+                'body' => 'WebGuard is provided "as is" and "as available". We do not guarantee uninterrupted availability, specific response times, or complete alert coverage. Monitoring data may be delayed or inaccurate due to external factors (for example network conditions, third-party outages, or target-system configuration). To the extent legally permitted, we are not liable for indirect or consequential damages, lost profits, outages, or losses resulting from reliance on reported monitoring data. Mandatory statutory liability remains unaffected.',
             ],
             'termination' => [
                 'title' => 'Termination Conditions',
-                'body' => 'We may suspend or terminate accounts at any time, especially in cases of misuse, legal violations, security risks, or interference with platform operations. Users may stop using the service and request account closure at any time.',
+                'body' => 'We may suspend or terminate accounts at any time, especially in cases of misuse, legal violations, security risks, or interference with platform operations. Users may stop using the service and delete their account at any time. As a non-commercial demonstration system, WebGuard may change, limit, or discontinue features at any time.',
             ],
             'governing_law' => [
                 'title' => 'Governing Law and Dispute Resolution',
-                'body' => 'These Terms are governed by the laws of the Federal Republic of Germany. To the extent legally permitted, the place of jurisdiction is the operator\'s registered seat.',
+                'body' => 'These Terms are governed by the laws of the Federal Republic of Germany. If you are a consumer, mandatory consumer protection provisions of your country of residence remain unaffected. To the extent legally permitted, the place of jurisdiction is the operator\'s registered seat.',
             ],
             'contact' => [
                 'title' => 'Contact Information',
@@ -56,7 +61,7 @@ return [
             ],
             'non_commercial' => [
                 'title' => 'Non-commercial Disclaimer',
-                'body' => 'WebGuard is currently operated as a non-commercial project for demonstration and testing purposes only.',
+                'body' => 'WebGuard is currently operated as a non-commercial project for demonstration and testing purposes only. In particular, there is no entitlement to paid service levels (SLA), compensation, or commercial support.',
             ],
         ],
         'footer_link' => 'Terms of Use',
