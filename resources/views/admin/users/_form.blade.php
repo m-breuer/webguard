@@ -10,26 +10,6 @@
     <x-input-label for="email" :value="__('user.fields.email')" />
     <x-text-input id="email" type="email" name="email" :value="old('email', $user->email ?? '')" required />
     <x-input-error :messages="$errors->get('email')" />
-
-    @if (isset($user) && $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail)
-        @if ($user->hasVerifiedEmail())
-            <p class="mt-2 text-sm text-green-600">
-                {{ __('user.messages.email_verified') }}
-            </p>
-        @else
-            <div class="mt-2">
-                <p class="text-sm text-red-600">
-                    {{ __('user.messages.email_unverified') }}
-                </p>
-                <form method="POST" action="{{ route('admin.users.verify', $user) }}" class="ml-4">
-                    @csrf
-                    <x-secondary-button type="submit">
-                        {{ __('user.actions.verify_email') }}
-                    </x-secondary-button>
-                </form>
-            </div>
-        @endif
-    @endif
 </div>
 
 <div class="mb-4">
