@@ -12,10 +12,10 @@
         "php": "^8.4",
         "ext-redis": "*",
         "knuckleswtf/scribe": "^5.5",
-        "laravel/framework": "^12",
+        "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.1",
         "laravel/socialite": "^5.24",
-        "laravel/tinker": "^2.10",
+        "laravel/tinker": "^3.0",
         "spatie/laravel-sitemap": "^7.3"
     },
     "require-dev": {

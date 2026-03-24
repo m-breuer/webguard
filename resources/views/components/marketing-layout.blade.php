@@ -47,7 +47,7 @@
             class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.14),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.14),transparent_42%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.2),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.2),transparent_42%)]">
         </div>
 
-        <header class="border-b border-slate-200/80 bg-white/85 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/80">
+        <header class="relative z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/80" style="z-index: 40;">
             <nav aria-label="{{ __('welcome.nav.aria') }}">
                 <x-main class="flex w-full items-center justify-between py-4">
                     <a href="{{ route('welcome') }}" class="flex items-center gap-3">
@@ -56,9 +56,9 @@
                     </a>
 
                     <div class="hidden items-center gap-8 md:flex">
-                        <a href="#features" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.features') }}</a>
-                        <a href="#proof" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.proof') }}</a>
-                        <a href="#pricing-cta" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.get_started') }}</a>
+                        <a href="{{ route('welcome') . '#features' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.features') }}</a>
+                        <a href="{{ route('welcome') . '#proof' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.proof') }}</a>
+                        <a href="{{ route('welcome') . '#pricing-cta' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.get_started') }}</a>
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-3">
