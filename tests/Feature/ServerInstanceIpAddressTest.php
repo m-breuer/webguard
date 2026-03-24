@@ -17,9 +17,9 @@ class ServerInstanceIpAddressTest extends TestCase
 
     public function test_admin_can_create_server_instance_with_valid_ipv4_address(): void
     {
-        $admin = $this->createAdminUser();
+        $user = $this->createAdminUser();
 
-        $testResponse = $this->actingAs($admin)->post(route('admin.server-instances.store'), [
+        $testResponse = $this->actingAs($user)->post(route('admin.server-instances.store'), [
             'code' => 'us-1',
             'ip_address' => '192.168.10.20',
             'api_key' => '1234567890abcdef',
@@ -37,10 +37,10 @@ class ServerInstanceIpAddressTest extends TestCase
 
     public function test_admin_cannot_create_server_instance_with_invalid_ipv4_address(): void
     {
-        $admin = $this->createAdminUser();
+        $user = $this->createAdminUser();
 
         $testResponse = $this->from(route('admin.server-instances.create'))
-            ->actingAs($admin)
+            ->actingAs($user)
             ->post(route('admin.server-instances.store'), [
                 'code' => 'us-2',
                 'ip_address' => '2001:db8::1',
@@ -58,16 +58,16 @@ class ServerInstanceIpAddressTest extends TestCase
 
     public function test_admin_can_update_server_instance_ipv4_address(): void
     {
-        $admin = $this->createAdminUser();
+        $user = $this->createAdminUser();
 
-        $instance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'eu-1',
             'ip_address' => '10.0.0.1',
             'api_key_hash' => '1234567890abcdef',
             'is_active' => true,
         ]);
 
-        $testResponse = $this->actingAs($admin)->put(route('admin.server-instances.update', $instance), [
+        $testResponse = $this->actingAs($user)->put(route('admin.server-instances.update', $serverInstance), [
             'code' => 'eu-1',
             'ip_address' => '10.0.0.2',
             'api_key' => '',
@@ -77,7 +77,7 @@ class ServerInstanceIpAddressTest extends TestCase
         $testResponse->assertRedirect(route('admin.server-instances.index'));
 
         $this->assertDatabaseHas('server_instances', [
-            'id' => $instance->id,
+            'id' => $serverInstance->id,
             'code' => 'eu-1',
             'ip_address' => '10.0.0.2',
             'is_active' => true,

@@ -50,23 +50,23 @@ class ArchiveMonitoringResponsesCommand extends Command
                 ])
                 ->where('created_at', '<', $archiveCutoffDate)
                 ->chunkById($chunkSize, function ($responses) use (&$archivedCount, &$deletedCount) {
-                    $dataToArchive = $responses->map(function (MonitoringResponse $response): array {
-                        $status = $response->status->value;
-                        $httpStatusCode = $response->http_status_code;
+                    $dataToArchive = $responses->map(function (MonitoringResponse $monitoringResponse): array {
+                        $status = $monitoringResponse->status->value;
+                        $httpStatusCode = $monitoringResponse->http_status_code;
 
-                        if ($this->isArchivedAsUnknown($response)) {
+                        if ($this->isArchivedAsUnknown($monitoringResponse)) {
                             $status = MonitoringStatus::UNKNOWN->value;
                             $httpStatusCode = null;
                         }
 
                         return [
-                            'id' => $response->id,
-                            'monitoring_id' => $response->monitoring_id,
+                            'id' => $monitoringResponse->id,
+                            'monitoring_id' => $monitoringResponse->monitoring_id,
                             'status' => $status,
                             'http_status_code' => $httpStatusCode,
-                            'response_time' => $response->response_time,
-                            'created_at' => $response->created_at,
-                            'updated_at' => $response->updated_at,
+                            'response_time' => $monitoringResponse->response_time,
+                            'created_at' => $monitoringResponse->created_at,
+                            'updated_at' => $monitoringResponse->updated_at,
                         ];
                     })->all();
 
@@ -87,20 +87,20 @@ class ArchiveMonitoringResponsesCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function isArchivedAsUnknown(MonitoringResponse $response): bool
+    private function isArchivedAsUnknown(MonitoringResponse $monitoringResponse): bool
     {
-        $monitoring = $response->monitoring;
+        $monitoring = $monitoringResponse->monitoring;
 
         if (! $monitoring instanceof Monitoring) {
             return false;
         }
 
-        if (! $response->created_at instanceof CarbonInterface) {
+        if (! $monitoringResponse->created_at instanceof CarbonInterface) {
             return false;
         }
 
         return $this->isUnderMaintenanceAt(
-            $response->created_at,
+            $monitoringResponse->created_at,
             $monitoring->maintenance_from,
             $monitoring->maintenance_until
         );
