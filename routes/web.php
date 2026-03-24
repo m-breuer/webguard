@@ -50,7 +50,7 @@ Route::get('/widget.js', function () {
     return response(file_get_contents(public_path('js/widget.js')))->header('Content-Type', 'application/javascript');
 })->name('widget.js');
 
-Route::middleware(['auth'])->group(function (): void {
+Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
 
