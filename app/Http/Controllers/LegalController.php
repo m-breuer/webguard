@@ -22,9 +22,7 @@ class LegalController extends Controller
         ];
 
         foreach ($imprint as $key => $value) {
-            if (blank($value)) {
-                throw new RuntimeException("Missing required imprint configuration value: {$key}");
-            }
+            throw_if(blank($value), RuntimeException::class, "Missing required imprint configuration value: {$key}");
         }
 
         /** @var array{operator_name: string, street: string, postal_code: string, city: string, country: string, email: string, phone: string} $imprint */
