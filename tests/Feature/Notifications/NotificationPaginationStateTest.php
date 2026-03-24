@@ -26,8 +26,8 @@ class NotificationPaginationStateTest extends TestCase
         $notifications = $this->createSslExpiryNotifications($user, 7);
 
         $sortedByNewest = array_reverse($notifications);
-        $visibleNotificationIds = array_map(fn (MonitoringNotification $notification): string => $notification->id, array_slice($sortedByNewest, 0, 5));
-        $hiddenNotificationIds = array_map(fn (MonitoringNotification $notification): string => $notification->id, array_slice($sortedByNewest, 5));
+        $visibleNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 0, 5));
+        $hiddenNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 5));
 
         $testResponse = $this->actingAs($user)->get(route('notifications.index'));
 
@@ -37,8 +37,8 @@ class NotificationPaginationStateTest extends TestCase
             $testResponse->assertSeeHtml('id="' . $notificationId . '"');
         }
 
-        foreach ($hiddenNotificationIds as $notificationId) {
-            $testResponse->assertDontSeeHtml('id="' . $notificationId . '"');
+        foreach ($hiddenNotificationIds as $hiddenNotificationId) {
+            $testResponse->assertDontSeeHtml('id="' . $hiddenNotificationId . '"');
         }
     }
 
@@ -51,8 +51,8 @@ class NotificationPaginationStateTest extends TestCase
         $notifications = $this->createSslExpiryNotifications($user, 7);
 
         $sortedByNewest = array_reverse($notifications);
-        $visibleNotificationIds = array_map(fn (MonitoringNotification $notification): string => $notification->id, array_slice($sortedByNewest, 0, 6));
-        $hiddenNotificationIds = array_map(fn (MonitoringNotification $notification): string => $notification->id, array_slice($sortedByNewest, 6));
+        $visibleNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 0, 6));
+        $hiddenNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 6));
 
         $testResponse = $this->actingAs($user)->get(route('notifications.index', ['limit' => 6]));
 
@@ -63,8 +63,8 @@ class NotificationPaginationStateTest extends TestCase
             $testResponse->assertSeeHtml('id="' . $notificationId . '"');
         }
 
-        foreach ($hiddenNotificationIds as $notificationId) {
-            $testResponse->assertDontSeeHtml('id="' . $notificationId . '"');
+        foreach ($hiddenNotificationIds as $hiddenNotificationId) {
+            $testResponse->assertDontSeeHtml('id="' . $hiddenNotificationId . '"');
         }
     }
 
@@ -77,8 +77,8 @@ class NotificationPaginationStateTest extends TestCase
         $notifications = $this->createSslExpiryNotifications($user, 7);
 
         $sortedByNewest = array_reverse($notifications);
-        $visibleNotificationIds = array_map(fn (MonitoringNotification $notification): string => $notification->id, array_slice($sortedByNewest, 0, 5));
-        $hiddenNotificationIds = array_map(fn (MonitoringNotification $notification): string => $notification->id, array_slice($sortedByNewest, 5));
+        $visibleNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 0, 5));
+        $hiddenNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 5));
 
         $testResponse = $this->actingAs($user)->get(route('notifications.index', ['limit' => -10]));
 
@@ -89,8 +89,8 @@ class NotificationPaginationStateTest extends TestCase
             $testResponse->assertSeeHtml('id="' . $notificationId . '"');
         }
 
-        foreach ($hiddenNotificationIds as $notificationId) {
-            $testResponse->assertDontSeeHtml('id="' . $notificationId . '"');
+        foreach ($hiddenNotificationIds as $hiddenNotificationId) {
+            $testResponse->assertDontSeeHtml('id="' . $hiddenNotificationId . '"');
         }
     }
 
@@ -99,7 +99,7 @@ class NotificationPaginationStateTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::SSL_EXPIRY,
             'message' => 'SSL certificate will expire soon.',
@@ -107,11 +107,11 @@ class NotificationPaginationStateTest extends TestCase
             'sent' => false,
         ]);
 
-        $beforeMarkResponse = $this->actingAs($user)->get(route('notifications.index'));
-        $beforeMarkResponse->assertOk();
-        $beforeMarkResponse->assertSeeHtml('id="notifications-empty-state"');
+        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('id="notifications-empty-state"');
 
-        $markAsReadResponse = $this->actingAs($user)->post(route('notifications.markAsRead', $notification->id));
+        $markAsReadResponse = $this->actingAs($user)->post(route('notifications.markAsRead', $monitoringNotification->id));
         $markAsReadResponse->assertRedirect();
 
         $afterMarkResponse = $this->actingAs($user)->get(route('notifications.index'));

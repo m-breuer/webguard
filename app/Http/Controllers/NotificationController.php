@@ -135,12 +135,12 @@ class NotificationController extends Controller
      * @return array{0: Collection<int, MonitoringNotification>, 1: bool}
      */
     private function loadNotificationsByType(
-        NotificationType $type,
+        NotificationType $notificationType,
         bool $showRead,
         int $offset,
         int $limit
     ): array {
-        $builder = MonitoringNotification::query()->ofType($type);
+        $builder = MonitoringNotification::query()->ofType($notificationType);
         if (! $showRead) {
             $builder->unread();
         }
