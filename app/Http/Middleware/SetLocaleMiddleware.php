@@ -27,19 +27,8 @@ class SetLocaleMiddleware
                 : $this->resolveLocaleFromCookieOrHeader($request);
 
             App::setLocale($locale);
-
-            // Set theme based on user preference
-            if ($user->theme === 'dark') {
-                session(['theme' => 'dark']);
-            } elseif ($user->theme === 'light') {
-                session(['theme' => 'light']);
-            } else { // system
-                session(['theme' => 'system']);
-            }
         } else {
             App::setLocale($this->resolveLocaleFromCookieOrHeader($request));
-            // Fallback to system theme if user is not logged in
-            session(['theme' => 'system']);
         }
 
         return $next($request);
