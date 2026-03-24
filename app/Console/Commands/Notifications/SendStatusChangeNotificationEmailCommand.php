@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Notifications;
 
-use App\Enums\NotificationType;
 use App\Jobs\SendStatusChangeNotificationEmail as SendStatusChangeNotificationEmailJob;
 use App\Models\MonitoringNotification;
 use Illuminate\Console\Command;
@@ -34,7 +33,7 @@ class SendStatusChangeNotificationEmailCommand extends Command
         $this->info('Sending status change notification emails...');
 
         // Filter on monitorings where users have enabled email notifications
-        $notifications = MonitoringNotification::query()->where('type', NotificationType::STATUS_CHANGE)
+        $notifications = MonitoringNotification::query()->statusChange()
             ->where('sent', false)
             ->whereHas('monitoring', function (Builder $builder) {
                 $builder->where('email_notification_on_failure', true);

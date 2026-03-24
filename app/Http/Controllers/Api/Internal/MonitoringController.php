@@ -20,6 +20,7 @@ class MonitoringController extends Controller
         $validated = $request->validate([
             'monitoring_id' => ['required', 'exists:monitorings,id'],
             'status' => ['required', Rule::enum(MonitoringStatus::class)],
+            'http_status_code' => ['nullable', 'integer', 'between:100,599'],
             'response_time' => ['nullable', 'numeric', 'min:0'],
         ]);
 

@@ -46,6 +46,7 @@ class ArchiveMonitoringResponsesCommand extends Command
                             'id' => $response->id,
                             'monitoring_id' => $response->monitoring_id,
                             'status' => $response->status,
+                            'http_status_code' => $response->http_status_code,
                             'response_time' => $response->response_time,
                             'created_at' => $response->created_at,
                             'updated_at' => $response->updated_at,

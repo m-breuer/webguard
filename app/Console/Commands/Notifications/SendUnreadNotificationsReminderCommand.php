@@ -34,7 +34,7 @@ class SendUnreadNotificationsReminderCommand extends Command
         $this->info('Checking for users with unread notifications...');
 
         $unreadCounts = MonitoringNotification::query()
-            ->where('read', false)
+            ->unread()
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
             ->select('monitorings.user_id', DB::raw('count(*) as total'))
             ->groupBy('monitorings.user_id')

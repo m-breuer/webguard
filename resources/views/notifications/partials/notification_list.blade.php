@@ -1,6 +1,6 @@
 @forelse($notifications as $notification)
     <x-container space="true"
-        class="{{ !$notification->read ?: ' !text-gray-500 dark:!text-gray-500' }} block items-center justify-between sm:flex"
+        class="{{ $notification->read ? ' !text-gray-500 dark:!text-gray-500' : '' }} block items-center justify-between sm:flex"
         id="{{ $notification->id }}">
         <div class="mb-4 sm:mb-0">
             <x-paragraph bold=true>{{ $notification->translated_message }}</x-paragraph>
