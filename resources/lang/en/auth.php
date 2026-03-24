@@ -16,8 +16,7 @@ return [
         'button' => 'Register',
         'login_button' => 'Back to Login',
         'already_registered' => 'Already registered?',
-        'terms_agreement' => 'I accept the <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Terms of Use</a>.',
-        'privacy_agreement' => 'I have read and accept the <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a>.',
+        'terms_agreement' => 'I accept the <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Terms of Use</a> and the <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a>.',
     ],
     'login' => [
         'title' => 'Login',
@@ -63,6 +62,13 @@ return [
         'login' => 'Login',
         'register' => 'Register',
         'demo' => 'Demo access',
+    ],
+    'github_consent' => [
+        'title' => 'Legal Consent Required',
+        'description' => 'Before continuing with GitHub, please confirm the Terms of Use and Privacy Policy.',
+        'button' => 'Continue with GitHub',
+        'cancel' => 'Cancel',
+        'expired' => 'The GitHub login flow expired. Please start again.',
     ],
     'guest_login' => [
         'no_guest_user_found' => 'No guest user found.',

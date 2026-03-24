@@ -16,8 +16,7 @@ return [
         'button' => 'Registrieren',
         'login_button' => 'Zum Login',
         'already_registered' => 'Bereits registriert?',
-        'terms_agreement' => 'Ich akzeptiere die <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Nutzungsbedingungen</a>.',
-        'privacy_agreement' => 'Ich habe die <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Datenschutzerklärung</a> gelesen und akzeptiere sie.',
+        'terms_agreement' => 'Ich akzeptiere die <a href=":terms_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Nutzungsbedingungen</a> und die <a href=":privacy_link" target="_blank" rel="noopener" class="underline hover:text-gray-900 dark:hover:text-gray-100">Datenschutzerklärung</a>.',
     ],
     'login' => [
         'title' => 'Anmelden',
@@ -63,6 +62,13 @@ return [
         'login' => 'Anmelden',
         'register' => 'Registrieren',
         'demo' => 'Demo-Zugang',
+    ],
+    'github_consent' => [
+        'title' => 'Rechtliche Zustimmung erforderlich',
+        'description' => 'Bevor Sie mit GitHub fortfahren, bestätigen Sie bitte Nutzungsbedingungen und Datenschutzerklärung.',
+        'button' => 'Mit GitHub fortfahren',
+        'cancel' => 'Abbrechen',
+        'expired' => 'Die GitHub-Anmeldung ist abgelaufen. Bitte starten Sie den Login erneut.',
     ],
     'guest_login' => [
         'no_guest_user_found' => 'Kein Gastbenutzer gefunden.',
