@@ -46,7 +46,7 @@
                 <form method="POST" action="{{ route('locale.switch') }}">
                     @csrf
                     <input type="hidden" name="locale" value="{{ $locale }}">
-                    <button type="submit"
+                    <button type="submit" @click.stop
                         class="{{ $isMarketingVariant
                             ? 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800'
                             : 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700' }}">
