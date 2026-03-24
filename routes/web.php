@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
@@ -20,6 +21,7 @@ Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProv
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
 Route::get('/', fn () => view('welcome'))->name('welcome');
+Route::get('/monitoring-locations', MonitoringLocationsController::class)->name('monitoring-locations');
 
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
@@ -31,6 +33,7 @@ Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch
 Route::get('/sitemap.xml', function () {
     return Sitemap::create()
         ->add(Url::create(route('welcome')))
+        ->add(Url::create(route('monitoring-locations')))
         // ->add(Url::create(route('terms.show')))
         // ->add(Url::create(route('policy.show')))
         ->toResponse(request());
