@@ -21,7 +21,7 @@ Route::get('/auth/github/callback', [SocialiteController::class, 'handleProvider
 
 Route::get('/', fn () => view('welcome'))->name('welcome');
 
-Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
+Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 // TODO: Add content to these pages
 // Route::get('/terms-of-use', fn() => view('terms-of-use'))->name('terms.show');
