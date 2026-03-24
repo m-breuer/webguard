@@ -21,6 +21,7 @@ return [
     'login' => [
         'title' => 'Login',
         'description' => 'Access your account to manage your monitorings.',
+        'demo_hint' => 'Demo credentials are prefilled. You can log in directly.',
         'email' => 'Email',
         'password' => 'Password',
         'remember' => 'Remember me',
@@ -55,6 +56,13 @@ return [
     'logout' => 'Log Out',
     'or_continue_with' => 'or continue with',
     'github_login' => 'Sign in with GitHub',
+    'auth_switch' => [
+        'title' => 'Choose your access',
+        'description' => 'Select what you want to do. The form updates on the right.',
+        'login' => 'Login',
+        'register' => 'Register',
+        'demo' => 'Demo access',
+    ],
     'guest_login' => [
         'no_guest_user_found' => 'No guest user found.',
     ],

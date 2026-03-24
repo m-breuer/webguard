@@ -21,6 +21,7 @@ return [
     'login' => [
         'title' => 'Anmelden',
         'description' => 'Greifen Sie auf Ihr Konto zu, um Ihre Überwachungen zu verwalten.',
+        'demo_hint' => 'Demo-Zugangsdaten sind vorausgefüllt. Sie können sich direkt anmelden.',
         'email' => 'E-Mail',
         'password' => 'Passwort',
         'remember' => 'Angemeldet bleiben',
@@ -55,6 +56,13 @@ return [
     'logout' => 'Abmelden',
     'or_continue_with' => 'oder fahre fort mit',
     'github_login' => 'Mit GitHub anmelden',
+    'auth_switch' => [
+        'title' => 'Zugang wählen',
+        'description' => 'Wählen Sie links den gewünschten Modus. Das Formular rechts passt sich direkt an.',
+        'login' => 'Anmelden',
+        'register' => 'Registrieren',
+        'demo' => 'Demo-Zugang',
+    ],
     'guest_login' => [
         'no_guest_user_found' => 'Kein Gastbenutzer gefunden.',
     ],
