@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\View\Composers;
 
+use App\Models\MonitoringNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -22,7 +23,7 @@ class NotificationComposer
             if (request()->attributes->has('unread_notifications_count')) {
                 $unreadNotificationsCount = (int) request()->attributes->get('unread_notifications_count');
             } else {
-                $unreadNotificationsCount = Auth::user()->unreadNotifications()->count();
+                $unreadNotificationsCount = MonitoringNotification::query()->unread()->count();
                 request()->attributes->set('unread_notifications_count', $unreadNotificationsCount);
             }
         }

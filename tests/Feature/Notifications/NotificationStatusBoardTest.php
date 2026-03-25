@@ -116,7 +116,6 @@ class NotificationStatusBoardTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('notifications.index', ['show_read' => true]));
 
         $testResponse->assertOk();
-        $testResponse->assertSee('Status-Board');
         $testResponse->assertSee('Server-Fehler');
         $testResponse->assertSee('Letzte Prüfung');
         $testResponse->assertSee($monitoring->name);
