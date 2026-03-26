@@ -1,7 +1,6 @@
 @php
     use App\Enums\MonitoringType;
     use App\Enums\MonitoringLifecycleStatus;
-    use App\Enums\ServerInstance;
     use App\Enums\HttpMethod;
 @endphp
 
