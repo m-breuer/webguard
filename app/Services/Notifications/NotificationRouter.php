@@ -141,9 +141,9 @@ class NotificationRouter
 
     private function logDelivery(
         User $user,
-        NotificationPayload $payload,
+        NotificationPayload $notificationPayload,
         string $channel,
-        NotificationDeliveryStatus $status,
+        NotificationDeliveryStatus $notificationDeliveryStatus,
         ?string $monitoringNotificationId = null,
         ?string $errorMessage = null,
         ?CarbonInterface $sentAt = null
@@ -152,9 +152,9 @@ class NotificationRouter
             'user_id' => $user->id,
             'monitoring_notification_id' => $monitoringNotificationId,
             'channel' => $channel,
-            'event_type' => $payload->eventType->value,
-            'status' => $status,
-            'payload' => $payload->toArray(),
+            'event_type' => $notificationPayload->eventType->value,
+            'status' => $notificationDeliveryStatus,
+            'payload' => $notificationPayload->toArray(),
             'error_message' => $errorMessage,
             'sent_at' => $sentAt,
         ]);
