@@ -69,50 +69,53 @@
             <x-paragraph>{{ __('profile.notification_settings.description') }}</x-paragraph>
 
             @if (!empty($showNotificationChannelsHint))
-                <div class="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-600 dark:bg-amber-950 dark:text-amber-200">
-                    {{ __('profile.notification_settings.hint_banner') }}
+                <div class="rounded-xl border border-amber-300 bg-amber-50/80 p-4 dark:border-amber-700 dark:bg-amber-950/30">
+                    <x-paragraph class="text-sm text-amber-900 dark:text-amber-200">
+                        {{ __('profile.notification_settings.hint_banner') }}
+                    </x-paragraph>
                 </div>
             @endif
 
-            <div class="space-y-6">
-                <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
-                    <div class="mb-3 flex items-center justify-between">
+            <div class="space-y-4">
+                <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <x-heading type="h3">{{ __('profile.notification_settings.channels.slack.title') }}</x-heading>
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="notification_channels[slack][enabled]" value="1"
-                                @checked(data_get($notificationChannels, 'slack.enabled', false))>
-                            <span>{{ __('profile.notification_settings.enabled') }}</span>
-                        </label>
+                        <x-text-checkbox id="notification_channels_slack_enabled" name="notification_channels[slack][enabled]"
+                            :checked="(bool) data_get($notificationChannels, 'slack.enabled', false)"
+                            :label="__('profile.notification_settings.enabled')" />
                     </div>
 
-                    <x-paragraph>{{ __('profile.notification_settings.channels.slack.help') }}</x-paragraph>
-                    <x-text-input id="notification_channels_slack_webhook_url" name="notification_channels[slack][webhook_url]" type="url"
-                        :value="data_get($notificationChannels, 'slack.webhook_url')" placeholder="https://hooks.slack.com/services/..." />
-                    <x-input-error :messages="$errors->get('notification_channels.slack.webhook_url')" />
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.slack.help') }}</x-paragraph>
 
-                    <div class="mt-3 grid gap-2 md:grid-cols-2">
+                    <div class="mt-4">
+                        <x-input-label for="notification_channels_slack_webhook_url" :value="__('profile.notification_settings.fields.slack_webhook_url')" />
+                        <x-text-input id="notification_channels_slack_webhook_url" name="notification_channels[slack][webhook_url]" type="url"
+                            :value="data_get($notificationChannels, 'slack.webhook_url')" placeholder="https://hooks.slack.com/services/..." />
+                        <x-input-error :messages="$errors->get('notification_channels.slack.webhook_url')" />
+                    </div>
+
+                    <div class="mt-4 grid gap-2 md:grid-cols-2">
                         @foreach ($eventTypes as $eventType)
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" name="notification_channels[slack][events][{{ $eventType }}]" value="1"
-                                    @checked(data_get($notificationChannels, 'slack.events.' . $eventType, false))>
-                                <span>{{ __('profile.notification_settings.events.' . $eventType) }}</span>
-                            </label>
+                            <x-text-checkbox
+                                id="notification_channels_slack_events_{{ $eventType }}"
+                                name="notification_channels[slack][events][{{ $eventType }}]"
+                                :checked="(bool) data_get($notificationChannels, 'slack.events.' . $eventType, false)"
+                                :label="__('profile.notification_settings.events.' . $eventType)" />
                         @endforeach
                     </div>
                 </div>
 
-                <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
-                    <div class="mb-3 flex items-center justify-between">
+                <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <x-heading type="h3">{{ __('profile.notification_settings.channels.telegram.title') }}</x-heading>
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="notification_channels[telegram][enabled]" value="1"
-                                @checked(data_get($notificationChannels, 'telegram.enabled', false))>
-                            <span>{{ __('profile.notification_settings.enabled') }}</span>
-                        </label>
+                        <x-text-checkbox id="notification_channels_telegram_enabled" name="notification_channels[telegram][enabled]"
+                            :checked="(bool) data_get($notificationChannels, 'telegram.enabled', false)"
+                            :label="__('profile.notification_settings.enabled')" />
                     </div>
 
-                    <x-paragraph>{{ __('profile.notification_settings.channels.telegram.help') }}</x-paragraph>
-                    <div class="grid gap-4 md:grid-cols-2">
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.telegram.help') }}</x-paragraph>
+
+                    <div class="mt-4 grid gap-4 md:grid-cols-2">
                         <div>
                             <x-input-label for="notification_channels_telegram_bot_token" :value="__('profile.notification_settings.fields.telegram_bot_token')" />
                             <x-text-input id="notification_channels_telegram_bot_token" name="notification_channels[telegram][bot_token]" type="text"
@@ -127,65 +130,69 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 grid gap-2 md:grid-cols-2">
+                    <div class="mt-4 grid gap-2 md:grid-cols-2">
                         @foreach ($eventTypes as $eventType)
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" name="notification_channels[telegram][events][{{ $eventType }}]" value="1"
-                                    @checked(data_get($notificationChannels, 'telegram.events.' . $eventType, false))>
-                                <span>{{ __('profile.notification_settings.events.' . $eventType) }}</span>
-                            </label>
+                            <x-text-checkbox
+                                id="notification_channels_telegram_events_{{ $eventType }}"
+                                name="notification_channels[telegram][events][{{ $eventType }}]"
+                                :checked="(bool) data_get($notificationChannels, 'telegram.events.' . $eventType, false)"
+                                :label="__('profile.notification_settings.events.' . $eventType)" />
                         @endforeach
                     </div>
                 </div>
 
-                <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
-                    <div class="mb-3 flex items-center justify-between">
+                <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <x-heading type="h3">{{ __('profile.notification_settings.channels.discord.title') }}</x-heading>
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="notification_channels[discord][enabled]" value="1"
-                                @checked(data_get($notificationChannels, 'discord.enabled', false))>
-                            <span>{{ __('profile.notification_settings.enabled') }}</span>
-                        </label>
+                        <x-text-checkbox id="notification_channels_discord_enabled" name="notification_channels[discord][enabled]"
+                            :checked="(bool) data_get($notificationChannels, 'discord.enabled', false)"
+                            :label="__('profile.notification_settings.enabled')" />
                     </div>
 
-                    <x-paragraph>{{ __('profile.notification_settings.channels.discord.help') }}</x-paragraph>
-                    <x-text-input id="notification_channels_discord_webhook_url" name="notification_channels[discord][webhook_url]" type="url"
-                        :value="data_get($notificationChannels, 'discord.webhook_url')" placeholder="https://discord.com/api/webhooks/..." />
-                    <x-input-error :messages="$errors->get('notification_channels.discord.webhook_url')" />
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.discord.help') }}</x-paragraph>
 
-                    <div class="mt-3 grid gap-2 md:grid-cols-2">
+                    <div class="mt-4">
+                        <x-input-label for="notification_channels_discord_webhook_url" :value="__('profile.notification_settings.fields.discord_webhook_url')" />
+                        <x-text-input id="notification_channels_discord_webhook_url" name="notification_channels[discord][webhook_url]" type="url"
+                            :value="data_get($notificationChannels, 'discord.webhook_url')" placeholder="https://discord.com/api/webhooks/..." />
+                        <x-input-error :messages="$errors->get('notification_channels.discord.webhook_url')" />
+                    </div>
+
+                    <div class="mt-4 grid gap-2 md:grid-cols-2">
                         @foreach ($eventTypes as $eventType)
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" name="notification_channels[discord][events][{{ $eventType }}]" value="1"
-                                    @checked(data_get($notificationChannels, 'discord.events.' . $eventType, false))>
-                                <span>{{ __('profile.notification_settings.events.' . $eventType) }}</span>
-                            </label>
+                            <x-text-checkbox
+                                id="notification_channels_discord_events_{{ $eventType }}"
+                                name="notification_channels[discord][events][{{ $eventType }}]"
+                                :checked="(bool) data_get($notificationChannels, 'discord.events.' . $eventType, false)"
+                                :label="__('profile.notification_settings.events.' . $eventType)" />
                         @endforeach
                     </div>
                 </div>
 
-                <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
-                    <div class="mb-3 flex items-center justify-between">
+                <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <x-heading type="h3">{{ __('profile.notification_settings.channels.webhook.title') }}</x-heading>
-                        <label class="inline-flex items-center gap-2">
-                            <input type="checkbox" name="notification_channels[webhook][enabled]" value="1"
-                                @checked(data_get($notificationChannels, 'webhook.enabled', false))>
-                            <span>{{ __('profile.notification_settings.enabled') }}</span>
-                        </label>
+                        <x-text-checkbox id="notification_channels_webhook_enabled" name="notification_channels[webhook][enabled]"
+                            :checked="(bool) data_get($notificationChannels, 'webhook.enabled', false)"
+                            :label="__('profile.notification_settings.enabled')" />
                     </div>
 
-                    <x-paragraph>{{ __('profile.notification_settings.channels.webhook.help') }}</x-paragraph>
-                    <x-text-input id="notification_channels_webhook_url" name="notification_channels[webhook][url]" type="url"
-                        :value="data_get($notificationChannels, 'webhook.url')" placeholder="https://example.com/webhook" />
-                    <x-input-error :messages="$errors->get('notification_channels.webhook.url')" />
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.webhook.help') }}</x-paragraph>
 
-                    <div class="mt-3 grid gap-2 md:grid-cols-2">
+                    <div class="mt-4">
+                        <x-input-label for="notification_channels_webhook_url" :value="__('profile.notification_settings.fields.webhook_url')" />
+                        <x-text-input id="notification_channels_webhook_url" name="notification_channels[webhook][url]" type="url"
+                            :value="data_get($notificationChannels, 'webhook.url')" placeholder="https://example.com/webhook" />
+                        <x-input-error :messages="$errors->get('notification_channels.webhook.url')" />
+                    </div>
+
+                    <div class="mt-4 grid gap-2 md:grid-cols-2">
                         @foreach ($eventTypes as $eventType)
-                            <label class="inline-flex items-center gap-2">
-                                <input type="checkbox" name="notification_channels[webhook][events][{{ $eventType }}]" value="1"
-                                    @checked(data_get($notificationChannels, 'webhook.events.' . $eventType, false))>
-                                <span>{{ __('profile.notification_settings.events.' . $eventType) }}</span>
-                            </label>
+                            <x-text-checkbox
+                                id="notification_channels_webhook_events_{{ $eventType }}"
+                                name="notification_channels[webhook][events][{{ $eventType }}]"
+                                :checked="(bool) data_get($notificationChannels, 'webhook.events.' . $eventType, false)"
+                                :label="__('profile.notification_settings.events.' . $eventType)" />
                         @endforeach
                     </div>
                 </div>

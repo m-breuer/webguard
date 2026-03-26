@@ -37,6 +37,9 @@ return [
         'fields' => [
             'telegram_bot_token' => 'Telegram Bot Token',
             'telegram_chat_id' => 'Telegram Chat ID',
+            'slack_webhook_url' => 'Slack Webhook URL',
+            'discord_webhook_url' => 'Discord Webhook URL',
+            'webhook_url' => 'Webhook URL',
         ],
         'channels' => [
             'slack' => [
