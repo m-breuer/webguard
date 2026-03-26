@@ -14,6 +14,12 @@ return new class() extends Migration
      */
     public function up(): void
     {
+        // Some environments may already have the table (for example from a partially
+        // completed rollout). In that case we treat this migration as fulfilled.
+        if (Schema::hasTable('notification_channel_deliveries')) {
+            return;
+        }
+
         Schema::create('notification_channel_deliveries', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('user_id')->constrained('users')->cascadeOnDelete();
