@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Enums\NotificationDeliveryStatus;
+use App\Enums\NotificationEventType;
 use App\Enums\NotificationType;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
@@ -59,6 +61,13 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
             return $request->url() === 'https://hooks.slack.test/services/test'
                 && data_get($request->data(), 'payload.event_type') === 'incident';
         });
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'monitoring_notification_id' => $notification->id,
+            'channel' => 'slack',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
     }
 
     public function test_command_respects_per_monitoring_notification_flag(): void
@@ -96,6 +105,6 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         $notification->refresh();
         $this->assertTrue($notification->sent);
         Http::assertNothingSent();
+        $this->assertDatabaseCount('notification_channel_deliveries', 0);
     }
 }
-

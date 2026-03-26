@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Enums\NotificationDeliveryStatus;
+use App\Enums\NotificationEventType;
 use App\Enums\NotificationType;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
@@ -67,6 +69,26 @@ class SendSslExpiryWarningsCommandTest extends TestCase
             'message' => 'SSL_EXPIRING',
             'sent' => true,
         ]);
+
+        $notification = MonitoringNotification::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('type', NotificationType::SSL_EXPIRY->value)
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'monitoring_notification_id' => $notification->id,
+            'channel' => 'slack',
+            'event_type' => NotificationEventType::SSL_EXPIRING->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'monitoring_notification_id' => $notification->id,
+            'channel' => 'webhook',
+            'event_type' => NotificationEventType::SSL_EXPIRING->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
     }
 
     public function test_ssl_command_respects_per_monitoring_notification_flag(): void
@@ -109,6 +131,6 @@ class SendSslExpiryWarningsCommandTest extends TestCase
                 ->where('type', NotificationType::SSL_EXPIRY->value)
                 ->count()
         );
+        $this->assertDatabaseCount('notification_channel_deliveries', 0);
     }
 }
-

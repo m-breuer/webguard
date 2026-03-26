@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services\Notifications;
 
+use App\Enums\NotificationDeliveryStatus;
 use App\Enums\NotificationEventType;
+use App\Models\NotificationChannelDelivery;
 use App\Models\User;
 use App\Services\Notifications\Channels\DiscordChannelDriver;
 use App\Services\Notifications\Channels\NotificationChannelDriver;
 use App\Services\Notifications\Channels\SlackChannelDriver;
 use App\Services\Notifications\Channels\TelegramChannelDriver;
 use App\Services\Notifications\Channels\WebhookChannelDriver;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -38,6 +41,7 @@ class NotificationRouter
     public function dispatch(User $user, NotificationPayload $payload): bool
     {
         $channels = $this->resolveChannelsForEvent($user, $payload->eventType);
+        $monitoringNotificationId = $this->resolveMonitoringNotificationId($payload);
 
         $hasSuccess = false;
 
@@ -54,12 +58,28 @@ class NotificationRouter
                     'user_id' => $user->id,
                     'event_type' => $payload->eventType->value,
                 ]);
+                $this->logDelivery(
+                    user: $user,
+                    payload: $payload,
+                    channel: $channel,
+                    status: NotificationDeliveryStatus::SKIPPED,
+                    monitoringNotificationId: $monitoringNotificationId,
+                    errorMessage: 'Channel is enabled but missing required credentials.'
+                );
 
                 continue;
             }
 
             try {
                 $driver->send($payload, $config);
+                $this->logDelivery(
+                    user: $user,
+                    payload: $payload,
+                    channel: $channel,
+                    status: NotificationDeliveryStatus::SENT,
+                    monitoringNotificationId: $monitoringNotificationId,
+                    sentAt: now()
+                );
                 $hasSuccess = true;
             } catch (Throwable $throwable) {
                 Log::error('Notification delivery failed.', [
@@ -68,6 +88,14 @@ class NotificationRouter
                     'event_type' => $payload->eventType->value,
                     'exception' => $throwable->getMessage(),
                 ]);
+                $this->logDelivery(
+                    user: $user,
+                    payload: $payload,
+                    channel: $channel,
+                    status: NotificationDeliveryStatus::FAILED,
+                    monitoringNotificationId: $monitoringNotificationId,
+                    errorMessage: $throwable->getMessage()
+                );
             }
         }
 
@@ -99,5 +127,36 @@ class NotificationRouter
 
         return $activeChannels;
     }
-}
 
+    private function resolveMonitoringNotificationId(NotificationPayload $payload): ?string
+    {
+        $notificationId = data_get($payload->meta, 'notification_id');
+
+        if (! is_string($notificationId) || $notificationId === '') {
+            return null;
+        }
+
+        return $notificationId;
+    }
+
+    private function logDelivery(
+        User $user,
+        NotificationPayload $payload,
+        string $channel,
+        NotificationDeliveryStatus $status,
+        ?string $monitoringNotificationId = null,
+        ?string $errorMessage = null,
+        ?CarbonInterface $sentAt = null
+    ): void {
+        NotificationChannelDelivery::query()->create([
+            'user_id' => $user->id,
+            'monitoring_notification_id' => $monitoringNotificationId,
+            'channel' => $channel,
+            'event_type' => $payload->eventType->value,
+            'status' => $status,
+            'payload' => $payload->toArray(),
+            'error_message' => $errorMessage,
+            'sent_at' => $sentAt,
+        ]);
+    }
+}

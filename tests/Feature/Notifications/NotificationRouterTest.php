@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notifications;
 
+use App\Enums\NotificationDeliveryStatus;
 use App\Enums\NotificationEventType;
 use App\Models\Package;
 use App\Models\User;
@@ -55,6 +56,18 @@ class NotificationRouterTest extends TestCase
 
         $this->assertTrue($wasDelivered);
         Http::assertSentCount(2);
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'slack',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::FAILED->value,
+        ]);
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'discord',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
     }
 
     public function test_router_skips_channels_without_enabled_event(): void
@@ -87,6 +100,43 @@ class NotificationRouterTest extends TestCase
 
         $this->assertFalse($wasDelivered);
         Http::assertNothingSent();
+        $this->assertDatabaseCount('notification_channel_deliveries', 0);
+    }
+
+    public function test_router_logs_skipped_delivery_for_misconfigured_channel(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'slack' => [
+                    'enabled' => true,
+                    'events' => ['incident' => true],
+                ],
+            ],
+        ]);
+
+        Http::fake();
+
+        $payload = new NotificationPayload(
+            eventType: NotificationEventType::INCIDENT,
+            title: 'Monitoring incident',
+            message: 'Service is down.',
+            severity: 'critical',
+            monitoringId: '01TEST',
+            monitoringName: 'API',
+            monitoringTarget: 'https://example.test',
+            occurredAt: now(),
+        );
+
+        $wasDelivered = app(NotificationRouter::class)->dispatch($user, $payload);
+
+        $this->assertFalse($wasDelivered);
+        Http::assertNothingSent();
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'slack',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SKIPPED->value,
+        ]);
     }
 }
-
