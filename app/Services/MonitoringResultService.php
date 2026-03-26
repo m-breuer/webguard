@@ -625,19 +625,17 @@ class MonitoringResultService
             return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0, 0, 0);
         }
 
-        $baseQuery = self::getMonitoringResponseQuery($endDate)
+        $builder = self::getMonitoringResponseQuery($endDate)
             ->where('monitoring_id', $monitoring->id);
 
-        $statusAtStart = (clone $baseQuery)
-            ->where('created_at', '<=', $effectiveStartDate)
-            ->orderByDesc('created_at')
+        $statusAtStart = (clone $builder)
+            ->where('created_at', '<=', $effectiveStartDate)->latest()
             ->orderByDesc('id')
             ->value('status');
 
-        $responses = (clone $baseQuery)
+        $responses = (clone $builder)
             ->select(['id', 'status', 'created_at'])
-            ->whereBetween('created_at', [$effectiveStartDate, $effectiveEndDate])
-            ->orderBy('created_at')
+            ->whereBetween('created_at', [$effectiveStartDate, $effectiveEndDate])->oldest()
             ->orderBy('id')
             ->get();
 
@@ -682,7 +680,7 @@ class MonitoringResultService
         // Calculate percentages based on minutes.
         // For 'total' (count of checks), we still need to query monitoring_responses.
         // This is separate from the duration calculation.
-        $data = (clone $baseQuery)
+        $data = (clone $builder)
             ->selectRaw("
                 SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) as uptime_total,
                 SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) as downtime_total,
