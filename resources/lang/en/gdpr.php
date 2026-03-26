@@ -32,7 +32,7 @@ return [
                 'Consent and auditability data (timestamps of acceptance for Terms of Use and Privacy Policy).',
                 'Monitoring configuration data (name, monitoring type, target, port, keyword, HTTP method, headers/body, optional credentials, preferred location, maintenance window, public label setting).',
                 'Monitoring result data (status, HTTP status codes, response times, SSL/TLS certificate data, incidents, and daily uptime/downtime aggregates).',
-                'Notification data (email notifications, delivery status, and read state).',
+                'Notification data (channel configuration, delivery status, and read state).',
                 'API data (personal access tokens, logged API routes, timestamps).',
                 'Optional for GitHub login: GitHub ID, OAuth token/refresh token, avatar URL, and linked email address.',
             ],
@@ -44,7 +44,7 @@ return [
             'purposes' => [
                 'Providing registration, login (including optional GitHub login), account management, and authentication.',
                 'Performing monitoring checks (HTTP, ping, keyword, port), incident detection, and uptime/performance reporting.',
-                'Sending service-related emails (for example verification, password reset, status changes, SSL expiry warnings, unread notification reminders).',
+                'Sending service-related messages (for example verification/password reset emails and incident/SSL alerts via configured channels).',
                 'Providing and securing API access (token handling, abuse protection, usage logging).',
                 'Security and operations (troubleshooting, fault analysis, integrity protection).',
             ],
@@ -61,7 +61,8 @@ return [
             'lead' => 'WebGuard uses external providers only where necessary to operate the service.',
             'items' => [
                 'Hosting and infrastructure providers (compute, storage, network, backups).',
-                'Email delivery providers for transactional emails (for example verification and monitoring notifications).',
+                'Email delivery providers for transactional account emails (for example verification and password reset).',
+                'Third-party APIs/webhook endpoints for user-configured notification channels (for example Slack, Telegram, Discord, custom webhooks).',
                 'GitHub as OAuth provider when you choose GitHub sign-in.',
                 'Operational and security tooling required for stable and secure delivery.',
             ],

@@ -45,6 +45,10 @@ return [
         'up' => 'Status der Überwachung :name wurde auf VERFÜGBAR geändert',
         'down' => 'Status der Überwachung :name wurde auf NICHT VERFÜGBAR geändert',
     ],
+    'ssl_messages' => [
+        'expiring' => 'Das SSL-Zertifikat für :name läuft bald ab.',
+        'expired' => 'Das SSL-Zertifikat für :name ist abgelaufen.',
+    ],
     'messages' => [
         'notification_marked_as_read' => 'Benachrichtigung als gelesen markiert.',
         'all_notifications_marked_as_read' => 'Alle Benachrichtigungen als gelesen markiert.',

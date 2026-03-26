@@ -17,8 +17,11 @@ Schedule::command('sitemap:generate')->dailyAt('02:00');
  * NOTIFICATIONS
  * =================================================================
  */
-// Send status change notifications immediately.
-Schedule::command('notifications:send-status-change-email')->everyMinute()->withoutOverlapping();
+// Dispatch status change notifications immediately.
+Schedule::command('notifications:dispatch-status-changes')->everyMinute()->withoutOverlapping();
+
+// Remind users weekly about unread notifications in their board.
+Schedule::command('notifications:remind-unread-weekly')->weeklyOn(1, '08:00')->withoutOverlapping();
 
 // Prune old read notifications daily.
 Schedule::command('notifications:prune-read')->dailyAt('01:00');
@@ -27,9 +30,6 @@ Schedule::command('notifications:prune-read')->dailyAt('01:00');
 Schedule::command('notifications:prune-guest')
     ->dailyAt('01:30')
     ->withoutOverlapping();
-
-// Send daily reminders for unread notifications.
-Schedule::command('notifications:remind-unread')->dailyAt('06:00')->withoutOverlapping();
 
 /**
  * =================================================================

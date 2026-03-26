@@ -45,6 +45,10 @@ return [
         'up' => 'Monitoring :name status changed to UP',
         'down' => 'Monitoring :name status changed to DOWN',
     ],
+    'ssl_messages' => [
+        'expiring' => 'SSL certificate for :name is expiring soon.',
+        'expired' => 'SSL certificate for :name has expired.',
+    ],
     'messages' => [
         'notification_marked_as_read' => 'Notification marked as read.',
         'all_notifications_marked_as_read' => 'All notifications marked as read.',

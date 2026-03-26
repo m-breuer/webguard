@@ -4,35 +4,29 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Notifications;
 
-use App\Jobs\SendUnreadNotificationsReminder as SendUnreadNotificationsReminderJob;
+use App\Mail\UnreadNotificationsReminderMail;
 use App\Models\MonitoringNotification;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class SendUnreadNotificationsReminderCommand extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
-    protected $signature = 'notifications:remind-unread';
+    protected $signature = 'notifications:remind-unread-weekly';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
-    protected $description = 'Sends daily reminders to users with unread notifications.';
+    protected $description = 'Sends weekly email reminders to users with unread board notifications.';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function handle(): int
     {
-        $this->info('Checking for users with unread notifications...');
-
         $unreadCounts = MonitoringNotification::query()
             ->unread()
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
@@ -41,22 +35,32 @@ class SendUnreadNotificationsReminderCommand extends Command
             ->pluck('total', 'user_id');
 
         if ($unreadCounts->isEmpty()) {
-            $this->info('No users with unread notifications found.');
-
             return Command::SUCCESS;
         }
 
-        $users = User::query()->find($unreadCounts->keys());
+        $users = User::query()->whereIn('id', $unreadCounts->keys())->get();
 
         foreach ($users as $user) {
-            $unreadNotificationsCount = $unreadCounts->get($user->id);
-            if ($unreadNotificationsCount > 0) {
-                $this->info("Sending reminder to {$user->email} for {$unreadNotificationsCount} unread notifications.");
-                dispatch(new SendUnreadNotificationsReminderJob($user, $unreadNotificationsCount));
+            $unreadNotificationsCount = (int) ($unreadCounts->get($user->id) ?? 0);
+            if ($unreadNotificationsCount < 1) {
+                continue;
+            }
+            if (blank($user->email)) {
+                continue;
+            }
+
+            try {
+                Mail::to($user->email)->send(
+                    (new UnreadNotificationsReminderMail($unreadNotificationsCount, $user))
+                        ->locale($user->locale ?? config('app.locale'))
+                );
+            } catch (Throwable $throwable) {
+                Log::error('Failed to send weekly unread notifications reminder.', [
+                    'user_id' => $user->id,
+                    'exception' => $throwable->getMessage(),
+                ]);
             }
         }
-
-        $this->info('Unread notifications reminder process completed.');
 
         return Command::SUCCESS;
     }

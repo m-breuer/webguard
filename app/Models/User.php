@@ -34,6 +34,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property Carbon|null $terms_accepted_at
  * @property Carbon|null $privacy_accepted_at
  * @property string|null $package_id
+ * @property array<string, mixed>|null $notification_channels
+ * @property Carbon|null $notification_channels_hint_seen_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -74,6 +76,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'github_token',
         'github_refresh_token',
         'avatar',
+        'notification_channels',
+        'notification_channels_hint_seen_at',
     ];
 
     /**
@@ -160,6 +164,23 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasManyThrough(MonitoringNotification::class, Monitoring::class)->unread();
     }
 
+    public function hasEnabledNotificationChannels(): bool
+    {
+        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+
+        foreach ($channels as $channel) {
+            if (! is_array($channel)) {
+                continue;
+            }
+
+            if ((bool) ($channel['enabled'] ?? false) === true) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -174,6 +195,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'role' => UserRole::class,
             'theme' => 'string',
+            'notification_channels' => 'array',
+            'notification_channels_hint_seen_at' => 'datetime',
         ];
     }
 }
