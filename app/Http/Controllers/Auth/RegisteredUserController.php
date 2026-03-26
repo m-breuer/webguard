@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login', [
+        return view(Login::class, [
             'authMode' => 'register',
         ]);
     }
