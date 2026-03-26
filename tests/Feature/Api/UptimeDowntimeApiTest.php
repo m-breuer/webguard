@@ -108,4 +108,49 @@ class UptimeDowntimeApiTest extends TestCase
         $this->assertEqualsWithDelta(((24 * 60 - 60) / (24 * 60)) * 100, (float) $testResponse->json('uptime.percentage'), 0.0001);
         $this->assertSame(1, (int) $testResponse->json('downtime.incidents_count'));
     }
+
+    public function test_multi_day_range_includes_unknown_share_from_aggregated_data(): void
+    {
+        Date::setTestNow('2026-03-18 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::now()->subDays(10),
+        ]);
+
+        $aggregatedDate = Date::now()->subDays(2)->startOfDay();
+
+        MonitoringDailyResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'date' => $aggregatedDate->toDateString(),
+            'uptime_total' => 2,
+            'downtime_total' => 3,
+            'unknown_total' => 4,
+            'uptime_percentage' => (600 / 1439) * 100,
+            'downtime_percentage' => (600 / 1439) * 100,
+            'unknown_percentage' => (239 / 1439) * 100,
+            'uptime_minutes' => 600,
+            'downtime_minutes' => 600,
+            'unknown_minutes' => 239,
+            'avg_response_time' => 120,
+            'min_response_time' => 120,
+            'max_response_time' => 120,
+            'incidents_count' => 3,
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('has_data', true);
+        $this->assertSame(600, (int) $testResponse->json('uptime.minutes'));
+        $this->assertSame(600, (int) $testResponse->json('downtime.minutes'));
+        $this->assertSame(239, (int) $testResponse->json('unknown.minutes'));
+        $this->assertSame(2, (int) $testResponse->json('uptime.total'));
+        $this->assertSame(3, (int) $testResponse->json('downtime.total'));
+        $this->assertSame(4, (int) $testResponse->json('unknown.total'));
+        $this->assertEqualsWithDelta((600 / 1439) * 100, (float) $testResponse->json('uptime.percentage'), 0.0001);
+        $this->assertEqualsWithDelta((600 / 1439) * 100, (float) $testResponse->json('downtime.percentage'), 0.0001);
+        $this->assertEqualsWithDelta((239 / 1439) * 100, (float) $testResponse->json('unknown.percentage'), 0.0001);
+    }
 }
