@@ -19,16 +19,12 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeText(__('auth.auth_switch.demo'));
     }
 
-    public function test_register_route_redirects_to_login_with_register_mode(): void
+    public function test_register_route_opens_unified_auth_view_in_register_mode(): void
     {
         $testResponse = $this->get(route('register'));
 
-        $testResponse->assertRedirect(route('login', ['mode' => 'register']));
-
-        $resolvedResponse = $this->followingRedirects()->get(route('register'));
-
-        $resolvedResponse->assertOk();
-        $resolvedResponse->assertSeeHtml('data-initial-mode="register"');
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-initial-mode="register"');
     }
 
     public function test_guest_query_opens_unified_auth_view_in_demo_mode(): void

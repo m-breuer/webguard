@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\Transform\Rector\String_\StringToClassConstantRector;
 use RectorLaravel\Set\LaravelLevelSetList;
 use RectorLaravel\Set\LaravelSetList;
 use RectorLaravel\Set\LaravelSetProvider;
@@ -41,5 +42,6 @@ return RectorConfig::configure()
     )
     ->withImportNames(true)
     ->withSkip([
+        StringToClassConstantRector::class,
         __DIR__ . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
     ]);

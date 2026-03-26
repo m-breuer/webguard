@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Observers\IncidentObserver;
 use App\Observers\MonitoringResponseObserver;
 use App\Observers\UserObserver;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\URL;
@@ -35,6 +36,20 @@ class AppServiceProvider extends ServiceProvider
         if (env('APP_ENV') === 'production') {
             URL::forceScheme('https');
         }
+
+        VerifyEmail::createUrlUsing(function (object $notifiable): string {
+            $temporarySignedPath = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(config('auth.verification.expire', 60)),
+                [
+                    'id' => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                ],
+                absolute: false
+            );
+
+            return url($temporarySignedPath);
+        });
 
         Model::preventLazyLoading(! app()->isProduction());
 

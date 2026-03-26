@@ -11,14 +11,12 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SocialiteConsentController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::get('guest-login-credentials', GuestLoginController::class)->name('guest-login.credentials');
 
 Route::middleware('guest')->group(function (): void {
-    Route::get('register', fn (): RedirectResponse => to_route('login', ['mode' => 'register']))
-        ->name('register');
+    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
@@ -50,7 +48,7 @@ Route::middleware('auth')->group(function (): void {
         ->name('verification.notice');
 
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['signed:relative', 'throttle:6,1'])
         ->name('verification.verify');
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
