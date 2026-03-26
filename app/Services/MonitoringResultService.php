@@ -98,7 +98,8 @@ class MonitoringResultService
      * @return Collection{
      *     data: array{from: Carbon, to: Carbon},
      *     uptime: array{minutes: int, percentage: float, total: int},
-     *     downtime: array{minutes: int, percentage: float, total: int}
+     *     downtime: array{minutes: int, percentage: float, total: int},
+     *     unknown: array{minutes: int, percentage: float, total: int}
      * } A collection containing uptime and downtime statistics.
      *
      * @example
@@ -132,7 +133,7 @@ class MonitoringResultService
         }
 
         if ($startDate->gt($endDate)) {
-            return self::buildUptimeDowntimeStats($startDate, $endDate, null, 0, 0, 0, 0, 0);
+            return self::buildUptimeDowntimeStats($startDate, $endDate, null, 0, 0, 0, 0, 0, 0, 0);
         }
 
         if ($loadAggregatedData) {
@@ -542,13 +543,15 @@ class MonitoringResultService
             : self::getTrackingStartedAtFromDailyResults($monitoring);
 
         if (! $trackingStartedAt || $trackingStartedAt->gt($endDate)) {
-            return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0);
+            return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0, 0, 0);
         }
 
         $uptimeMinutes = 0;
         $downtimeMinutes = 0;
+        $unknownMinutes = 0;
         $uptimeTotal = 0;
         $downtimeTotal = 0;
+        $unknownTotal = 0;
         $incidentsCount = 0;
 
         $today = Date::today();
@@ -562,16 +565,20 @@ class MonitoringResultService
                 ->selectRaw('
                     SUM(uptime_minutes) as uptime_minutes,
                     SUM(downtime_minutes) as downtime_minutes,
+                    SUM(unknown_minutes) as unknown_minutes,
                     SUM(uptime_total) as uptime_total,
                     SUM(downtime_total) as downtime_total,
+                    SUM(unknown_total) as unknown_total,
                     SUM(incidents_count) as incidents_count
                 ')
                 ->first();
 
             $uptimeMinutes += (int) ($aggregatedData->uptime_minutes ?? 0);
             $downtimeMinutes += (int) ($aggregatedData->downtime_minutes ?? 0);
+            $unknownMinutes += (int) ($aggregatedData->unknown_minutes ?? 0);
             $uptimeTotal += (int) ($aggregatedData->uptime_total ?? 0);
             $downtimeTotal += (int) ($aggregatedData->downtime_total ?? 0);
+            $unknownTotal += (int) ($aggregatedData->unknown_total ?? 0);
             $incidentsCount += (int) ($aggregatedData->incidents_count ?? 0);
         }
 
@@ -581,8 +588,10 @@ class MonitoringResultService
 
             $uptimeMinutes += (int) ($liveUptimeDowntime['uptime']['minutes'] ?? 0);
             $downtimeMinutes += (int) ($liveUptimeDowntime['downtime']['minutes'] ?? 0);
+            $unknownMinutes += (int) ($liveUptimeDowntime['unknown']['minutes'] ?? 0);
             $uptimeTotal += (int) ($liveUptimeDowntime['uptime']['total'] ?? 0);
             $downtimeTotal += (int) ($liveUptimeDowntime['downtime']['total'] ?? 0);
+            $unknownTotal += (int) ($liveUptimeDowntime['unknown']['total'] ?? 0);
             $incidentsCount += (int) ($liveUptimeDowntime['downtime']['incidents_count'] ?? 0);
         }
 
@@ -592,8 +601,10 @@ class MonitoringResultService
             $trackingStartedAt,
             $uptimeMinutes,
             $downtimeMinutes,
+            $unknownMinutes,
             $uptimeTotal,
             $downtimeTotal,
+            $unknownTotal,
             $incidentsCount
         );
     }
@@ -603,7 +614,7 @@ class MonitoringResultService
         $trackingStartedAt = self::getTrackingStartedAt($monitoring);
 
         if (! $trackingStartedAt || $trackingStartedAt->gt($endDate)) {
-            return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0);
+            return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0, 0, 0);
         }
 
         $effectiveStartDate = $startDate->copy()->max($trackingStartedAt);
@@ -611,54 +622,74 @@ class MonitoringResultService
 
         // A single result at the boundary does not define a measurable uptime window yet.
         if ($effectiveStartDate->gte($effectiveEndDate)) {
-            return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0);
+            return self::buildUptimeDowntimeStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0, 0, 0);
         }
 
-        // Calculate total minutes in the tracked period.
-        $totalMinutesInPeriod = (int) $effectiveStartDate->diffInMinutes($effectiveEndDate);
+        $builder = self::getMonitoringResponseQuery($endDate)
+            ->where('monitoring_id', $monitoring->id);
 
-        // Get total downtime minutes from incidents that were active during the period.
-        $incidents = $monitoring->incidents()
-            ->where('down_at', '<=', $effectiveEndDate)
-            ->where(function (Builder $builder) use ($effectiveStartDate) {
-                $builder->where('up_at', '>=', $effectiveStartDate)
-                    ->orWhereNull('up_at');
-            })
+        $statusAtStart = (clone $builder)
+            ->where('created_at', '<=', $effectiveStartDate)->latest()
+            ->orderByDesc('id')
+            ->value('status');
+
+        $responses = (clone $builder)
+            ->select(['id', 'status', 'created_at'])
+            ->whereBetween('created_at', [$effectiveStartDate, $effectiveEndDate])->oldest()
+            ->orderBy('id')
             ->get();
 
-        $totalDowntimeMinutes = 0;
-        foreach ($incidents as $incident) {
-            $downAt = Date::parse($incident->down_at);
-            $upAt = $incident->up_at ? Date::parse($incident->up_at) : Date::now();
+        $overallUptimeMinutes = 0;
+        $overallDowntimeMinutes = 0;
+        $overallUnknownMinutes = 0;
+        $cursor = $effectiveStartDate->copy();
+        $currentStatus = $statusAtStart;
 
-            $start = $downAt->max($effectiveStartDate);
-            $end = $upAt->min($effectiveEndDate);
+        foreach ($responses as $response) {
+            $responseTimestamp = Date::parse($response->created_at);
 
-            if ($start->lt($end)) {
-                $totalDowntimeMinutes += (int) $start->diffInMinutes($end);
+            if ($responseTimestamp->gt($cursor)) {
+                $segmentMinutes = (int) $cursor->diffInMinutes($responseTimestamp);
+                self::incrementMinutesByStatus(
+                    $currentStatus,
+                    $segmentMinutes,
+                    $overallUptimeMinutes,
+                    $overallDowntimeMinutes,
+                    $overallUnknownMinutes
+                );
+
+                $cursor = $responseTimestamp;
             }
+
+            $currentStatus = $response->status instanceof MonitoringStatus
+                ? $response->status->value
+                : (string) $response->status;
         }
 
-        // Ensure downtime doesn't exceed the total period.
-        $overallDowntimeMinutes = min($totalDowntimeMinutes, $totalMinutesInPeriod);
-
-        // Calculate uptime minutes.
-        $overallUptimeMinutes = $totalMinutesInPeriod - $overallDowntimeMinutes;
-
-        // Ensure uptime is not negative.
-        $overallUptimeMinutes = max(0, $overallUptimeMinutes);
+        if ($cursor->lt($effectiveEndDate)) {
+            $segmentMinutes = (int) $cursor->diffInMinutes($effectiveEndDate);
+            self::incrementMinutesByStatus(
+                $currentStatus,
+                $segmentMinutes,
+                $overallUptimeMinutes,
+                $overallDowntimeMinutes,
+                $overallUnknownMinutes
+            );
+        }
 
         // Calculate percentages based on minutes.
         // For 'total' (count of checks), we still need to query monitoring_responses.
         // This is separate from the duration calculation.
-        $data = self::getMonitoringResponseQuery($endDate)
-            ->where('monitoring_id', $monitoring->id)
+        $data = (clone $builder)
             ->selectRaw("
                 SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) as uptime_total,
-                SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) as downtime_total
+                SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) as downtime_total,
+                SUM(CASE WHEN status NOT IN ('up', 'down') THEN 1 ELSE 0 END) as unknown_total
             ")
             ->whereBetween('created_at', [$effectiveStartDate, $effectiveEndDate])
             ->first();
+
+        $incidentsCount = self::countOverlappingIncidents($monitoring, $effectiveStartDate, $effectiveEndDate);
 
         return self::buildUptimeDowntimeStats(
             $startDate,
@@ -666,10 +697,45 @@ class MonitoringResultService
             $trackingStartedAt,
             $overallUptimeMinutes,
             $overallDowntimeMinutes,
+            $overallUnknownMinutes,
             (int) ($data->uptime_total ?? 0),
             (int) ($data->downtime_total ?? 0),
-            $incidents->count()
+            (int) ($data->unknown_total ?? 0),
+            $incidentsCount
         );
+    }
+
+    private static function incrementMinutesByStatus(
+        string|MonitoringStatus|null $status,
+        int $minutes,
+        int &$uptimeMinutes,
+        int &$downtimeMinutes,
+        int &$unknownMinutes
+    ): void {
+        if ($minutes <= 0) {
+            return;
+        }
+
+        $statusValue = $status instanceof MonitoringStatus
+            ? $status->value
+            : $status;
+
+        match ($statusValue) {
+            MonitoringStatus::UP->value => $uptimeMinutes += $minutes,
+            MonitoringStatus::DOWN->value => $downtimeMinutes += $minutes,
+            default => $unknownMinutes += $minutes,
+        };
+    }
+
+    private static function countOverlappingIncidents(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): int
+    {
+        return (int) $monitoring->incidents()
+            ->where('down_at', '<=', $endDate)
+            ->where(function (Builder $builder) use ($startDate) {
+                $builder->where('up_at', '>=', $startDate)
+                    ->orWhereNull('up_at');
+            })
+            ->count();
     }
 
     /**
@@ -716,11 +782,13 @@ class MonitoringResultService
         ?Carbon $trackingStartedAt,
         int $uptimeMinutes,
         int $downtimeMinutes,
+        int $unknownMinutes,
         int $uptimeTotal,
         int $downtimeTotal,
+        int $unknownTotal,
         int $incidentsCount
     ): Collection {
-        $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
+        $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes + $unknownMinutes;
         $hasData = $totalTrackedMinutes > 0;
 
         return collect([
@@ -740,6 +808,11 @@ class MonitoringResultService
                 'percentage' => $hasData ? ($downtimeMinutes / $totalTrackedMinutes) * 100 : null,
                 'total' => $downtimeTotal,
                 'incidents_count' => $incidentsCount,
+            ],
+            'unknown' => [
+                'minutes' => $unknownMinutes,
+                'percentage' => $hasData ? ($unknownMinutes / $totalTrackedMinutes) * 100 : null,
+                'total' => $unknownTotal,
             ],
         ]);
     }

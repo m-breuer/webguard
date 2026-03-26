@@ -17,10 +17,13 @@ use Illuminate\Support\Carbon;
  * @property string $date
  * @property int $uptime_total
  * @property int $downtime_total
+ * @property int $unknown_total
  * @property float $uptime_percentage
  * @property float $downtime_percentage
+ * @property float $unknown_percentage
  * @property int $uptime_minutes
  * @property int $downtime_minutes
+ * @property int $unknown_minutes
  * @property float|null $avg_response_time
  * @property int|null $min_response_time
  * @property int|null $max_response_time
@@ -42,10 +45,13 @@ class MonitoringDailyResult extends Model
         'date',
         'uptime_total',
         'downtime_total',
+        'unknown_total',
         'uptime_percentage',
         'downtime_percentage',
+        'unknown_percentage',
         'uptime_minutes',
         'downtime_minutes',
+        'unknown_minutes',
         'avg_response_time',
         'min_response_time',
         'max_response_time',
@@ -66,8 +72,10 @@ class MonitoringDailyResult extends Model
             'date' => 'date',
             'uptime_percentage' => 'float',
             'downtime_percentage' => 'float',
+            'unknown_percentage' => 'float',
             'uptime_minutes' => 'integer',
             'downtime_minutes' => 'integer',
+            'unknown_minutes' => 'integer',
         ];
     }
 }

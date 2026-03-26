@@ -58,10 +58,13 @@ class AggregateDailyResultsCommand extends Command
                 ], [
                     'uptime_total' => $uptimeDowntime['uptime']['total'] ?? 0,
                     'downtime_total' => $uptimeDowntime['downtime']['total'] ?? 0,
+                    'unknown_total' => $uptimeDowntime['unknown']['total'] ?? 0,
                     'uptime_percentage' => $uptimeDowntime['uptime']['percentage'] ?? 0.0,
                     'downtime_percentage' => $uptimeDowntime['downtime']['percentage'] ?? 0.0,
+                    'unknown_percentage' => $uptimeDowntime['unknown']['percentage'] ?? 0.0,
                     'uptime_minutes' => $uptimeDowntime['uptime']['minutes'] ?? 0,
                     'downtime_minutes' => $uptimeDowntime['downtime']['minutes'] ?? 0,
+                    'unknown_minutes' => $uptimeDowntime['unknown']['minutes'] ?? 0,
                     'avg_response_time' => $responseTimes['aggregated']['avg'] ?? 0,
                     'min_response_time' => $responseTimes['aggregated']['min'] ?? 0,
                     'max_response_time' => $responseTimes['aggregated']['max'] ?? 0,
@@ -69,13 +72,16 @@ class AggregateDailyResultsCommand extends Command
                 ]);
 
                 $this->info(sprintf(
-                    '    -> Uptime: %.2f%% (%d min, Total: %d) | Downtime: %.2f%% (%d min, Total: %d) | Avg RT: %.2f ms (Min: %.2f, Max: %.2f) | Incidents: %d',
+                    '    -> Uptime: %.2f%% (%d min, Total: %d) | Downtime: %.2f%% (%d min, Total: %d) | Unknown: %.2f%% (%d min, Total: %d) | Avg RT: %.2f ms (Min: %.2f, Max: %.2f) | Incidents: %d',
                     $uptimeDowntime['uptime']['percentage'] ?? 0.0,
                     $uptimeDowntime['uptime']['minutes'],
                     $uptimeDowntime['uptime']['total'], // uptime_total
                     $uptimeDowntime['downtime']['percentage'] ?? 0.0,
                     $uptimeDowntime['downtime']['minutes'],
                     $uptimeDowntime['downtime']['total'], // downtime_total
+                    $uptimeDowntime['unknown']['percentage'] ?? 0.0,
+                    $uptimeDowntime['unknown']['minutes'] ?? 0,
+                    $uptimeDowntime['unknown']['total'] ?? 0,
                     $responseTimes['aggregated']['avg'],
                     $responseTimes['aggregated']['min'], // min_response_time
                     $responseTimes['aggregated']['max'], // max_response_time
