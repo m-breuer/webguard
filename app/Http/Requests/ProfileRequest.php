@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\NotificationChannel;
+use App\Enums\NotificationEventType;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * Class ProfileRequest
@@ -34,7 +37,7 @@ class ProfileRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -45,6 +48,52 @@ class ProfileRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'theme' => ['required', 'string', Rule::in(['light', 'dark', 'system'])],
+            'notification_channels' => ['nullable', 'array'],
+            'notification_channels.slack.webhook_url' => ['nullable', 'url', 'max:2048'],
+            'notification_channels.telegram.bot_token' => ['nullable', 'string', 'max:255'],
+            'notification_channels.telegram.chat_id' => ['nullable', 'string', 'max:255'],
+            'notification_channels.discord.webhook_url' => ['nullable', 'url', 'max:2048'],
+            'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048'],
         ];
+
+        foreach (NotificationChannel::values() as $channel) {
+            $prefix = sprintf('notification_channels.%s', $channel);
+            $rules[$prefix] = ['nullable', 'array'];
+            $rules[$prefix . '.enabled'] = ['nullable', 'boolean'];
+            $rules[$prefix . '.events'] = ['nullable', 'array'];
+
+            foreach (NotificationEventType::values() as $eventType) {
+                $rules[$prefix . '.events.' . $eventType] = ['nullable', 'boolean'];
+            }
+        }
+
+        return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($this->boolean('notification_channels.slack.enabled') && blank($this->input('notification_channels.slack.webhook_url'))) {
+                $validator->errors()->add('notification_channels.slack.webhook_url', __('validation.required'));
+            }
+
+            if ($this->boolean('notification_channels.discord.enabled') && blank($this->input('notification_channels.discord.webhook_url'))) {
+                $validator->errors()->add('notification_channels.discord.webhook_url', __('validation.required'));
+            }
+
+            if ($this->boolean('notification_channels.webhook.enabled') && blank($this->input('notification_channels.webhook.url'))) {
+                $validator->errors()->add('notification_channels.webhook.url', __('validation.required'));
+            }
+
+            if ($this->boolean('notification_channels.telegram.enabled')) {
+                if (blank($this->input('notification_channels.telegram.bot_token'))) {
+                    $validator->errors()->add('notification_channels.telegram.bot_token', __('validation.required'));
+                }
+
+                if (blank($this->input('notification_channels.telegram.chat_id'))) {
+                    $validator->errors()->add('notification_channels.telegram.chat_id', __('validation.required'));
+                }
+            }
+        });
     }
 }

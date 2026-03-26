@@ -32,7 +32,7 @@ return [
                 'Einwilligungs- und Nachweisdaten (Zeitstempel zur Zustimmung zu Nutzungsbedingungen und Datenschutzerklärung).',
                 'Monitoring-Konfigurationsdaten (Name, Monitoring-Typ, Zieladresse, Port, Keyword, HTTP-Methode, Header/Body, optionale Zugangsdaten, bevorzugter Standort, Wartungsfenster, Public-Label-Einstellung).',
                 'Monitoring-Ergebnisdaten (Status, HTTP-Statuscodes, Antwortzeiten, SSL/TLS-Zertifikatsdaten, Vorfälle, Tagesaggregate für Uptime/Downtime).',
-                'Benachrichtigungsdaten (E-Mail-Benachrichtigungen, Versandstatus, Lesezustand von Benachrichtigungen).',
+                'Benachrichtigungsdaten (Kanal-Konfiguration, Versandstatus, Lesezustand von Benachrichtigungen).',
                 'API-Daten (persönliche Access-Tokens, protokollierte API-Routen, Zeitstempel).',
                 'Optional bei GitHub-Login: GitHub-ID, OAuth-Token/Refresh-Token, Profilbild-URL und verknüpfte E-Mail-Adresse.',
             ],
@@ -44,7 +44,7 @@ return [
             'purposes' => [
                 'Bereitstellung von Registrierung, Login (inkl. optionalem GitHub-Login), Kontoverwaltung und Authentifizierung.',
                 'Durchführung von Monitoring-Prüfungen (HTTP, Ping, Keyword, Port), Incident-Erkennung sowie Berechnung von Uptime- und Performance-Auswertungen.',
-                'Versand servicebezogener E-Mails (z. B. Verifikation, Passwort-Reset, Statusänderungen, SSL-Ablaufwarnungen, Erinnerungen zu ungelesenen Benachrichtigungen).',
+                'Versand servicebezogener Nachrichten (z. B. Verifikations-/Passwort-Reset-E-Mails sowie Incident-/SSL-Benachrichtigungen über konfigurierte Kanäle).',
                 'Bereitstellung und Absicherung der API (Token-Verwaltung, Missbrauchsschutz, Nutzungsprotokollierung).',
                 'Sicherheits- und Betriebszwecke (Fehleranalyse, Störungsbehebung, Integritätsschutz).',
             ],
@@ -61,7 +61,8 @@ return [
             'lead' => 'WebGuard setzt externe Dienstleister ausschließlich ein, soweit dies für den Betrieb erforderlich ist.',
             'items' => [
                 'Hosting- und Infrastrukturanbieter (Compute, Storage, Netzwerk, Backups).',
-                'E-Mail-Versanddienstleister für transaktionale Nachrichten (z. B. Verifikations- und Benachrichtigungs-E-Mails).',
+                'E-Mail-Versanddienstleister für transaktionale Kontonachrichten (z. B. Verifikations- und Passwort-Reset-E-Mails).',
+                'Drittanbieter-APIs/Webhook-Endpunkte für vom Nutzer konfigurierte Benachrichtigungskanäle (z. B. Slack, Telegram, Discord, Custom Webhooks).',
                 'GitHub als OAuth-Anbieter, wenn Sie die Anmeldung über GitHub aktiv nutzen.',
                 'Betriebs- und Sicherheitswerkzeuge, soweit zur Fehleranalyse und Stabilität erforderlich.',
             ],

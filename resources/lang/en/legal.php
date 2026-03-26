@@ -25,7 +25,7 @@ return [
                     'SSL certificate checks and expiry warnings for supported endpoints.',
                     'Status and incident tracking, response-time insights, and uptime/downtime visualizations.',
                     'Public status labels when enabled by the user.',
-                    'Email notifications for status changes, SSL expiry, and unread reminders.',
+                    'Channel-based notifications for incidents and SSL events (for example Slack, Telegram, Discord, custom webhooks).',
                     'Token-based API access for supported endpoints.',
                     'Optional GitHub sign-in and demo/guest access.',
                 ],

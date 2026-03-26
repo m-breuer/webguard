@@ -177,6 +177,14 @@ class MonitoringNotification extends Model
                 return __('notifications.status_messages.' . $status, ['name' => $this->monitoring->name]);
             }
 
+            if ($this->type === NotificationType::SSL_EXPIRY) {
+                return match ($this->message) {
+                    'SSL_EXPIRED' => __('notifications.ssl_messages.expired', ['name' => $this->monitoring->name]),
+                    'SSL_EXPIRING' => __('notifications.ssl_messages.expiring', ['name' => $this->monitoring->name]),
+                    default => $this->message,
+                };
+            }
+
             // For other types, return the original message
             return $this->message;
         });

@@ -25,7 +25,7 @@ return [
                     'SSL-Zertifikatsprüfungen inkl. Ablaufwarnungen für geeignete Endpunkte.',
                     'Status- und Vorfallauswertung, Antwortzeiten sowie Uptime-/Downtime-Visualisierungen.',
                     'Öffentliche Status-Labels (Public Label), sofern vom Nutzer aktiviert.',
-                    'E-Mail-Benachrichtigungen zu Statusänderungen, SSL-Abläufen und ungelesenen Meldungen.',
+                    'Kanalbasierte Benachrichtigungen für Incidents und SSL-Events (z. B. Slack, Telegram, Discord, Custom Webhooks).',
                     'Tokenbasierter API-Zugriff für freigegebene Endpunkte.',
                     'Optionale Anmeldung über GitHub sowie Demo-/Gastzugang.',
                 ],
