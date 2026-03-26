@@ -21,11 +21,11 @@ class ProfileNotificationSettingsTest extends TestCase
             'notification_channels_hint_seen_at' => null,
         ]);
 
-        $firstResponse = $this->actingAs($user)->get(route('profile.edit'));
-        $firstResponse->assertOk();
-        $firstResponse->assertSeeText(__('profile.notification_settings.heading'));
-        $firstResponse->assertSeeText(__('profile.notification_settings.email_removed_notice'));
-        $firstResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
+        $testResponse = $this->actingAs($user)->get(route('profile.edit'));
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('profile.notification_settings.heading'));
+        $testResponse->assertSeeText(__('profile.notification_settings.email_removed_notice'));
+        $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
 
         $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));
         $secondResponse->assertOk();
@@ -97,4 +97,3 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertTrue((bool) data_get($user->notification_channels, 'webhook.events.ssl_expired'));
     }
 }
-

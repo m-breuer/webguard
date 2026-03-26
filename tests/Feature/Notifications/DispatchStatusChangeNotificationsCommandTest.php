@@ -40,7 +40,7 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
             'notification_on_failure' => true,
         ]);
 
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -54,8 +54,8 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
 
         Artisan::call('notifications:dispatch-status-changes');
 
-        $notification->refresh();
-        $this->assertTrue($notification->sent);
+        $monitoringNotification->refresh();
+        $this->assertTrue($monitoringNotification->sent);
 
         Http::assertSent(function ($request): bool {
             return $request->url() === 'https://hooks.slack.test/services/test'
@@ -63,7 +63,7 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         });
         $this->assertDatabaseHas('notification_channel_deliveries', [
             'user_id' => $user->id,
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'channel' => 'slack',
             'event_type' => NotificationEventType::INCIDENT->value,
             'status' => NotificationDeliveryStatus::SENT->value,
@@ -90,7 +90,7 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
             'notification_on_failure' => false,
         ]);
 
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -102,8 +102,8 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
 
         Artisan::call('notifications:dispatch-status-changes');
 
-        $notification->refresh();
-        $this->assertTrue($notification->sent);
+        $monitoringNotification->refresh();
+        $this->assertTrue($monitoringNotification->sent);
         Http::assertNothingSent();
         $this->assertDatabaseCount('notification_channel_deliveries', 0);
     }

@@ -6,8 +6,8 @@ namespace App\Services\Notifications\Channels;
 
 use App\Enums\NotificationChannel;
 use App\Services\Notifications\NotificationPayload;
-use RuntimeException;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class TelegramChannelDriver implements NotificationChannelDriver
 {
@@ -27,7 +27,7 @@ class TelegramChannelDriver implements NotificationChannelDriver
     /**
      * @param  array<string, mixed>  $config
      */
-    public function send(NotificationPayload $payload, array $config): void
+    public function send(NotificationPayload $notificationPayload, array $config): void
     {
         $botToken = (string) ($config['bot_token'] ?? '');
         $chatId = (string) ($config['chat_id'] ?? '');
@@ -36,12 +36,12 @@ class TelegramChannelDriver implements NotificationChannelDriver
         $response = Http::timeout(10)->post($endpoint, [
             'chat_id' => $chatId,
             'text' => implode("\n", [
-                $payload->title,
-                $payload->message,
-                'Severity: ' . $payload->severity,
-                'Event: ' . $payload->eventType->value,
-                'Monitoring: ' . ($payload->monitoringName ?? 'n/a'),
-                'Target: ' . ($payload->monitoringTarget ?? 'n/a'),
+                $notificationPayload->title,
+                $notificationPayload->message,
+                'Severity: ' . $notificationPayload->severity,
+                'Event: ' . $notificationPayload->eventType->value,
+                'Monitoring: ' . ($notificationPayload->monitoringName ?? 'n/a'),
+                'Target: ' . ($notificationPayload->monitoringTarget ?? 'n/a'),
             ]),
         ]);
 
@@ -50,4 +50,3 @@ class TelegramChannelDriver implements NotificationChannelDriver
         }
     }
 }
-

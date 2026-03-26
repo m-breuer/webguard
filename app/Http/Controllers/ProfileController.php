@@ -8,9 +8,9 @@ use App\Enums\NotificationChannel;
 use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
-use Illuminate\Support\Arr;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
@@ -127,7 +127,7 @@ class ProfileController extends Controller
     /**
      * @return array<string, array<string, mixed>>
      */
-    private function normalizeNotificationChannels(ProfileRequest $request): array
+    private function normalizeNotificationChannels(ProfileRequest $profileRequest): array
     {
         $eventTypes = NotificationEventType::values();
         $normalized = [];
@@ -136,25 +136,25 @@ class ProfileController extends Controller
             $events = [];
 
             foreach ($eventTypes as $eventType) {
-                $events[$eventType] = $request->boolean(sprintf('notification_channels.%s.events.%s', $channel, $eventType));
+                $events[$eventType] = $profileRequest->boolean(sprintf('notification_channels.%s.events.%s', $channel, $eventType));
             }
 
             $channelConfig = [
-                'enabled' => $request->boolean(sprintf('notification_channels.%s.enabled', $channel)),
+                'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
                 'events' => $events,
             ];
 
             if ($channel === NotificationChannel::SLACK->value || $channel === NotificationChannel::DISCORD->value) {
-                $channelConfig['webhook_url'] = trim((string) $request->input(sprintf('notification_channels.%s.webhook_url', $channel)));
+                $channelConfig['webhook_url'] = mb_trim((string) $profileRequest->input(sprintf('notification_channels.%s.webhook_url', $channel)));
             }
 
             if ($channel === NotificationChannel::WEBHOOK->value) {
-                $channelConfig['url'] = trim((string) $request->input('notification_channels.webhook.url'));
+                $channelConfig['url'] = mb_trim((string) $profileRequest->input('notification_channels.webhook.url'));
             }
 
             if ($channel === NotificationChannel::TELEGRAM->value) {
-                $channelConfig['bot_token'] = trim((string) $request->input('notification_channels.telegram.bot_token'));
-                $channelConfig['chat_id'] = trim((string) $request->input('notification_channels.telegram.chat_id'));
+                $channelConfig['bot_token'] = mb_trim((string) $profileRequest->input('notification_channels.telegram.bot_token'));
+                $channelConfig['chat_id'] = mb_trim((string) $profileRequest->input('notification_channels.telegram.chat_id'));
             }
 
             $normalized[$channel] = $channelConfig;

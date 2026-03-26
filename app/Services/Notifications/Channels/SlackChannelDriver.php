@@ -6,8 +6,8 @@ namespace App\Services\Notifications\Channels;
 
 use App\Enums\NotificationChannel;
 use App\Services\Notifications\NotificationPayload;
-use RuntimeException;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class SlackChannelDriver implements NotificationChannelDriver
 {
@@ -27,12 +27,12 @@ class SlackChannelDriver implements NotificationChannelDriver
     /**
      * @param  array<string, mixed>  $config
      */
-    public function send(NotificationPayload $payload, array $config): void
+    public function send(NotificationPayload $notificationPayload, array $config): void
     {
         $webhookUrl = (string) ($config['webhook_url'] ?? '');
         $response = Http::timeout(10)->post($webhookUrl, [
-            'text' => $payload->title . "\n" . $payload->message,
-            'payload' => $payload->toArray(),
+            'text' => $notificationPayload->title . "\n" . $notificationPayload->message,
+            'payload' => $notificationPayload->toArray(),
         ]);
 
         if (! $response->successful()) {
@@ -40,4 +40,3 @@ class SlackChannelDriver implements NotificationChannelDriver
         }
     }
 }
-

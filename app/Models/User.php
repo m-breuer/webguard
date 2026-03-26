@@ -168,12 +168,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
 
-        foreach ($channels as $config) {
-            if (! is_array($config)) {
+        foreach ($channels as $channel) {
+            if (! is_array($channel)) {
                 continue;
             }
 
-            if ((bool) ($config['enabled'] ?? false) === true) {
+            if ((bool) ($channel['enabled'] ?? false) === true) {
                 return true;
             }
         }

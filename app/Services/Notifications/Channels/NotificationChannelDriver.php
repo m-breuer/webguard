@@ -18,6 +18,5 @@ interface NotificationChannelDriver
     /**
      * @param  array<string, mixed>  $config
      */
-    public function send(NotificationPayload $payload, array $config): void;
+    public function send(NotificationPayload $notificationPayload, array $config): void;
 }
-

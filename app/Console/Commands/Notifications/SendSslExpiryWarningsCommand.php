@@ -50,8 +50,10 @@ class SendSslExpiryWarningsCommand extends Command
         foreach ($sslResults as $sslResult) {
             $monitoring = $sslResult->monitoring;
             $user = $monitoring->user;
-
-            if (! $monitoring || ! $user) {
+            if (! $monitoring) {
+                continue;
+            }
+            if (! $user) {
                 continue;
             }
 

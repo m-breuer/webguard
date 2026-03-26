@@ -19,4 +19,3 @@ enum NotificationEventType: string
         return array_column(self::cases(), 'value');
     }
 }
-

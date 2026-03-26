@@ -38,10 +38,10 @@ class NotificationRouter
         ];
     }
 
-    public function dispatch(User $user, NotificationPayload $payload): bool
+    public function dispatch(User $user, NotificationPayload $notificationPayload): bool
     {
-        $channels = $this->resolveChannelsForEvent($user, $payload->eventType);
-        $monitoringNotificationId = $this->resolveMonitoringNotificationId($payload);
+        $channels = $this->resolveChannelsForEvent($user, $notificationPayload->eventType);
+        $monitoringNotificationId = $this->resolveMonitoringNotificationId($notificationPayload);
 
         $hasSuccess = false;
 
@@ -56,11 +56,11 @@ class NotificationRouter
                 Log::warning('Skipping misconfigured notification channel.', [
                     'channel' => $channel,
                     'user_id' => $user->id,
-                    'event_type' => $payload->eventType->value,
+                    'event_type' => $notificationPayload->eventType->value,
                 ]);
                 $this->logDelivery(
                     user: $user,
-                    payload: $payload,
+                    payload: $notificationPayload,
                     channel: $channel,
                     status: NotificationDeliveryStatus::SKIPPED,
                     monitoringNotificationId: $monitoringNotificationId,
@@ -71,10 +71,10 @@ class NotificationRouter
             }
 
             try {
-                $driver->send($payload, $config);
+                $driver->send($notificationPayload, $config);
                 $this->logDelivery(
                     user: $user,
-                    payload: $payload,
+                    payload: $notificationPayload,
                     channel: $channel,
                     status: NotificationDeliveryStatus::SENT,
                     monitoringNotificationId: $monitoringNotificationId,
@@ -85,12 +85,12 @@ class NotificationRouter
                 Log::error('Notification delivery failed.', [
                     'channel' => $channel,
                     'user_id' => $user->id,
-                    'event_type' => $payload->eventType->value,
+                    'event_type' => $notificationPayload->eventType->value,
                     'exception' => $throwable->getMessage(),
                 ]);
                 $this->logDelivery(
                     user: $user,
-                    payload: $payload,
+                    payload: $notificationPayload,
                     channel: $channel,
                     status: NotificationDeliveryStatus::FAILED,
                     monitoringNotificationId: $monitoringNotificationId,
@@ -105,7 +105,7 @@ class NotificationRouter
     /**
      * @return array<string, array<string, mixed>>
      */
-    private function resolveChannelsForEvent(User $user, NotificationEventType $eventType): array
+    private function resolveChannelsForEvent(User $user, NotificationEventType $notificationEventType): array
     {
         $configuredChannels = is_array($user->notification_channels) ? $user->notification_channels : [];
         $activeChannels = [];
@@ -118,7 +118,7 @@ class NotificationRouter
             }
 
             $enabled = (bool) ($channelConfig['enabled'] ?? false);
-            $eventEnabled = (bool) data_get($channelConfig, 'events.' . $eventType->value, false);
+            $eventEnabled = (bool) data_get($channelConfig, 'events.' . $notificationEventType->value, false);
 
             if ($enabled && $eventEnabled) {
                 $activeChannels[$channel] = $channelConfig;
@@ -128,9 +128,9 @@ class NotificationRouter
         return $activeChannels;
     }
 
-    private function resolveMonitoringNotificationId(NotificationPayload $payload): ?string
+    private function resolveMonitoringNotificationId(NotificationPayload $notificationPayload): ?string
     {
-        $notificationId = data_get($payload->meta, 'notification_id');
+        $notificationId = data_get($notificationPayload->meta, 'notification_id');
 
         if (! is_string($notificationId) || $notificationId === '') {
             return null;
@@ -141,9 +141,9 @@ class NotificationRouter
 
     private function logDelivery(
         User $user,
-        NotificationPayload $payload,
+        NotificationPayload $notificationPayload,
         string $channel,
-        NotificationDeliveryStatus $status,
+        NotificationDeliveryStatus $notificationDeliveryStatus,
         ?string $monitoringNotificationId = null,
         ?string $errorMessage = null,
         ?CarbonInterface $sentAt = null
@@ -152,9 +152,9 @@ class NotificationRouter
             'user_id' => $user->id,
             'monitoring_notification_id' => $monitoringNotificationId,
             'channel' => $channel,
-            'event_type' => $payload->eventType->value,
-            'status' => $status,
-            'payload' => $payload->toArray(),
+            'event_type' => $notificationPayload->eventType->value,
+            'status' => $notificationDeliveryStatus,
+            'payload' => $notificationPayload->toArray(),
             'error_message' => $errorMessage,
             'sent_at' => $sentAt,
         ]);

@@ -6,8 +6,8 @@ namespace App\Services\Notifications\Channels;
 
 use App\Enums\NotificationChannel;
 use App\Services\Notifications\NotificationPayload;
-use RuntimeException;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class WebhookChannelDriver implements NotificationChannelDriver
 {
@@ -27,14 +27,13 @@ class WebhookChannelDriver implements NotificationChannelDriver
     /**
      * @param  array<string, mixed>  $config
      */
-    public function send(NotificationPayload $payload, array $config): void
+    public function send(NotificationPayload $notificationPayload, array $config): void
     {
         $url = (string) ($config['url'] ?? '');
-        $response = Http::timeout(10)->post($url, $payload->toArray());
+        $response = Http::timeout(10)->post($url, $notificationPayload->toArray());
 
         if (! $response->successful()) {
             throw new RuntimeException('Webhook notification failed with status ' . $response->status());
         }
     }
 }
-

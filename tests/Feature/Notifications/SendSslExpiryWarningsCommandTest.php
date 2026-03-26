@@ -70,21 +70,21 @@ class SendSslExpiryWarningsCommandTest extends TestCase
             'sent' => true,
         ]);
 
-        $notification = MonitoringNotification::query()
+        $monitoringNotification = MonitoringNotification::query()
             ->where('monitoring_id', $monitoring->id)
             ->where('type', NotificationType::SSL_EXPIRY->value)
             ->firstOrFail();
 
         $this->assertDatabaseHas('notification_channel_deliveries', [
             'user_id' => $user->id,
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'channel' => 'slack',
             'event_type' => NotificationEventType::SSL_EXPIRING->value,
             'status' => NotificationDeliveryStatus::SENT->value,
         ]);
         $this->assertDatabaseHas('notification_channel_deliveries', [
             'user_id' => $user->id,
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'channel' => 'webhook',
             'event_type' => NotificationEventType::SSL_EXPIRING->value,
             'status' => NotificationDeliveryStatus::SENT->value,

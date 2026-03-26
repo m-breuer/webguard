@@ -42,8 +42,10 @@ class SendUnreadNotificationsReminderCommand extends Command
 
         foreach ($users as $user) {
             $unreadNotificationsCount = (int) ($unreadCounts->get($user->id) ?? 0);
-
-            if ($unreadNotificationsCount < 1 || blank($user->email)) {
+            if ($unreadNotificationsCount < 1) {
+                continue;
+            }
+            if (blank($user->email)) {
                 continue;
             }
 

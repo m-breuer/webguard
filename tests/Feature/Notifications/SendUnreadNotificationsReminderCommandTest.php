@@ -57,12 +57,12 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
 
         Artisan::call('notifications:remind-unread-weekly');
 
-        Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $mail) use ($userWithUnread): bool {
-            return $mail->hasTo($userWithUnread->email)
-                && $mail->unreadNotificationsCount === 2;
+        Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($userWithUnread): bool {
+            return $unreadNotificationsReminderMail->hasTo($userWithUnread->email)
+                && $unreadNotificationsReminderMail->unreadNotificationsCount === 2;
         });
-        Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $mail) use ($userWithoutUnread): bool {
-            return $mail->hasTo($userWithoutUnread->email);
+        Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($userWithoutUnread): bool {
+            return $unreadNotificationsReminderMail->hasTo($userWithoutUnread->email);
         });
     }
 

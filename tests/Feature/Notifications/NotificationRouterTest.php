@@ -41,7 +41,7 @@ class NotificationRouterTest extends TestCase
             'https://discord.test/*' => Http::response(['ok' => true], 204),
         ]);
 
-        $payload = new NotificationPayload(
+        $notificationPayload = new NotificationPayload(
             eventType: NotificationEventType::INCIDENT,
             title: 'Monitoring incident',
             message: 'Service is down.',
@@ -52,7 +52,7 @@ class NotificationRouterTest extends TestCase
             occurredAt: now(),
         );
 
-        $wasDelivered = app(NotificationRouter::class)->dispatch($user, $payload);
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload);
 
         $this->assertTrue($wasDelivered);
         Http::assertSentCount(2);
@@ -85,7 +85,7 @@ class NotificationRouterTest extends TestCase
 
         Http::fake();
 
-        $payload = new NotificationPayload(
+        $notificationPayload = new NotificationPayload(
             eventType: NotificationEventType::INCIDENT,
             title: 'Monitoring incident',
             message: 'Service is down.',
@@ -96,7 +96,7 @@ class NotificationRouterTest extends TestCase
             occurredAt: now(),
         );
 
-        $wasDelivered = app(NotificationRouter::class)->dispatch($user, $payload);
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload);
 
         $this->assertFalse($wasDelivered);
         Http::assertNothingSent();
@@ -117,7 +117,7 @@ class NotificationRouterTest extends TestCase
 
         Http::fake();
 
-        $payload = new NotificationPayload(
+        $notificationPayload = new NotificationPayload(
             eventType: NotificationEventType::INCIDENT,
             title: 'Monitoring incident',
             message: 'Service is down.',
@@ -128,7 +128,7 @@ class NotificationRouterTest extends TestCase
             occurredAt: now(),
         );
 
-        $wasDelivered = app(NotificationRouter::class)->dispatch($user, $payload);
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload);
 
         $this->assertFalse($wasDelivered);
         Http::assertNothingSent();

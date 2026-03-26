@@ -72,7 +72,7 @@ class DispatchStatusChangeNotificationsCommand extends Command
                     '%s (%s) changed status to %s.',
                     $monitoring->name,
                     $monitoring->target,
-                    strtoupper($identifier)
+                    mb_strtoupper($identifier)
                 ),
                 severity: $eventType === NotificationEventType::INCIDENT ? 'critical' : 'info',
                 monitoringId: $monitoring->id,
@@ -91,4 +91,3 @@ class DispatchStatusChangeNotificationsCommand extends Command
         return Command::SUCCESS;
     }
 }
-

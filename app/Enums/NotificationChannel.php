@@ -19,4 +19,3 @@ enum NotificationChannel: string
         return array_column(self::cases(), 'value');
     }
 }
-

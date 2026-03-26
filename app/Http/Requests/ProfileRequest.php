@@ -11,7 +11,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 /**
  * Class ProfileRequest
@@ -70,9 +69,9 @@ class ProfileRequest extends FormRequest
         return $rules;
     }
 
-    public function withValidator(Validator $validator): void
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
     {
-        $validator->after(function (Validator $validator): void {
+        $validator->after(function (\Illuminate\Contracts\Validation\Validator $validator): void {
             if ($this->boolean('notification_channels.slack.enabled') && blank($this->input('notification_channels.slack.webhook_url'))) {
                 $validator->errors()->add('notification_channels.slack.webhook_url', __('validation.required'));
             }
