@@ -33,8 +33,7 @@ return new class() extends Migration
             $table->string('auth_username')->nullable();
             $table->string('auth_password')->nullable();
             $table->boolean('public_label_enabled')->default(false);
-            $table->enum('preferred_location', App\Enums\ServerInstance::values())
-                ->default(App\Enums\ServerInstance::DE_1);
+            $table->string('preferred_location')->default('de-1');
 
             $table->timestamps();
         });
