@@ -27,7 +27,6 @@ return [
         'heading' => 'Notification Settings',
         'description' => 'Configure your global notification channels. These settings apply to all monitorings.',
         'enabled' => 'Enabled',
-        'email_removed_notice' => 'Email notifications are no longer available for incidents and SSL events.',
         'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
         'events' => [
             'incident' => 'Incident',

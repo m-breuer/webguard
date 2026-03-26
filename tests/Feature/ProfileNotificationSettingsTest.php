@@ -24,7 +24,6 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('profile.edit'));
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
-        $testResponse->assertSeeText(__('profile.notification_settings.email_removed_notice'));
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
 
         $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));

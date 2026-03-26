@@ -27,7 +27,6 @@ return [
         'heading' => 'Benachrichtigungseinstellungen',
         'description' => 'Konfigurieren Sie Ihre globalen Benachrichtigungskanäle. Diese Einstellungen gelten für alle Überwachungen.',
         'enabled' => 'Aktiviert',
-        'email_removed_notice' => 'E-Mail-Benachrichtigungen sind für Incidents und SSL-Events nicht mehr verfügbar.',
         'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
         'events' => [
             'incident' => 'Incident',
