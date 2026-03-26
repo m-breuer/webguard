@@ -7,6 +7,7 @@ use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Enums\NotificationType;
+use App\Enums\ServerInstance;
 use App\Enums\UserRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -27,7 +28,7 @@ return new class() extends Migration
             $table->string('type')->default(MonitoringType::HTTP->value)->change();
             $table->string('status')->default(MonitoringLifecycleStatus::ACTIVE->value)->change();
             $table->string('http_method')->nullable()->change();
-            $table->string('preferred_location')->default('de-1')->change();
+            $table->string('preferred_location')->default(ServerInstance::DE_1->value)->change();
         });
 
         Schema::table('monitoring_response_results', function (Blueprint $table) {
@@ -52,7 +53,7 @@ return new class() extends Migration
             $table->enum('type', MonitoringType::values())->default(MonitoringType::HTTP->value)->change();
             $table->enum('status', MonitoringLifecycleStatus::values())->default(MonitoringLifecycleStatus::ACTIVE->value)->change();
             $table->enum('http_method', HttpMethod::values())->nullable()->change();
-            $table->enum('preferred_location', ['de-1'])->default('de-1')->change();
+            $table->enum('preferred_location', ServerInstance::values())->default(ServerInstance::DE_1->value)->change();
         });
 
         Schema::table('monitoring_response_results', function (Blueprint $table) {
