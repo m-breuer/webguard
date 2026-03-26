@@ -59,12 +59,12 @@ class NotificationRouter
                     'event_type' => $notificationPayload->eventType->value,
                 ]);
                 $this->logDelivery(
-                    user: $user,
-                    payload: $notificationPayload,
-                    channel: $channel,
-                    status: NotificationDeliveryStatus::SKIPPED,
-                    monitoringNotificationId: $monitoringNotificationId,
-                    errorMessage: 'Channel is enabled but missing required credentials.'
+                    $user,
+                    $notificationPayload,
+                    $channel,
+                    NotificationDeliveryStatus::SKIPPED,
+                    $monitoringNotificationId,
+                    'Channel is enabled but missing required credentials.'
                 );
 
                 continue;
@@ -73,11 +73,11 @@ class NotificationRouter
             try {
                 $driver->send($notificationPayload, $config);
                 $this->logDelivery(
-                    user: $user,
-                    payload: $notificationPayload,
-                    channel: $channel,
-                    status: NotificationDeliveryStatus::SENT,
-                    monitoringNotificationId: $monitoringNotificationId,
+                    $user,
+                    $notificationPayload,
+                    $channel,
+                    NotificationDeliveryStatus::SENT,
+                    $monitoringNotificationId,
                     sentAt: now()
                 );
                 $hasSuccess = true;
@@ -89,12 +89,12 @@ class NotificationRouter
                     'exception' => $throwable->getMessage(),
                 ]);
                 $this->logDelivery(
-                    user: $user,
-                    payload: $notificationPayload,
-                    channel: $channel,
-                    status: NotificationDeliveryStatus::FAILED,
-                    monitoringNotificationId: $monitoringNotificationId,
-                    errorMessage: $throwable->getMessage()
+                    $user,
+                    $notificationPayload,
+                    $channel,
+                    NotificationDeliveryStatus::FAILED,
+                    $monitoringNotificationId,
+                    $throwable->getMessage()
                 );
             }
         }
