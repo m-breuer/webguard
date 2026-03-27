@@ -93,6 +93,7 @@ The local override adds everything that should only exist during development:
 * Bun / Vite
 * MySQL
 * Redis
+* Mailpit
 * bind mounts for the application code
 
 ### Local setup
@@ -136,6 +137,7 @@ The local override adds everything that should only exist during development:
 * App: [http://webguard.test](http://webguard.test)
 * HTTPS app: [https://webguard.test](https://webguard.test)
 * Vite: [http://webguard.test:5173](http://webguard.test:5173)
+* Mailpit UI: [http://localhost:8025](http://localhost:8025)
 
 ### Local environment values
 
@@ -146,7 +148,11 @@ The local override adds everything that should only exist during development:
 * `REDIS_HOST=redis`
 * `CACHE_STORE=redis`
 * `QUEUE_CONNECTION=redis`
+* `MAIL_MAILER=smtp`
+* `MAIL_HOST=mailpit`
+* `MAIL_PORT=1025`
 * `DOCKER_APP_HOST=webguard.test`
+* `DOCKER_MAILPIT_UI_PORT=8025`
 
 If you already have an older `.env`, update at least the `APP_URL`, `DB_*`, `REDIS_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, and `VITE_*` values before using Docker.
 

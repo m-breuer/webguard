@@ -16,6 +16,15 @@ services:
         aliases:
           - "${DOCKER_APP_HOST:-webguard.test}"
 
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${DOCKER_MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - webguard-network
+
   php:
     build:
       context: .
@@ -41,6 +50,12 @@ services:
       REDIS_HOST: "redis"
       REDIS_PASSWORD: "null"
       REDIS_PORT: "6379"
+      MAIL_MAILER: "smtp"
+      MAIL_HOST: "mailpit"
+      MAIL_PORT: "1025"
+      MAIL_USERNAME: "null"
+      MAIL_PASSWORD: "null"
+      MAIL_ENCRYPTION: "null"
       AUTORUN_DEBUG: "true"
     depends_on:
       mysql:
@@ -75,6 +90,12 @@ services:
       REDIS_HOST: "redis"
       REDIS_PASSWORD: "null"
       REDIS_PORT: "6379"
+      MAIL_MAILER: "smtp"
+      MAIL_HOST: "mailpit"
+      MAIL_PORT: "1025"
+      MAIL_USERNAME: "null"
+      MAIL_PASSWORD: "null"
+      MAIL_ENCRYPTION: "null"
 
   queue-default:
     volumes:
@@ -95,6 +116,12 @@ services:
       REDIS_HOST: "redis"
       REDIS_PASSWORD: "null"
       REDIS_PORT: "6379"
+      MAIL_MAILER: "smtp"
+      MAIL_HOST: "mailpit"
+      MAIL_PORT: "1025"
+      MAIL_USERNAME: "null"
+      MAIL_PASSWORD: "null"
+      MAIL_ENCRYPTION: "null"
 
   node:
     build:
