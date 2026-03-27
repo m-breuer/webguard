@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\Monitoring;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Class DeleteMonitoringResults
@@ -19,10 +16,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class DeleteMonitoringResults implements ShouldQueue
 {
-    use Dispatchable;
-    use InteractsWithQueue;
     use Queueable;
-    use SerializesModels;
 
     /**
      * Create a new job instance.

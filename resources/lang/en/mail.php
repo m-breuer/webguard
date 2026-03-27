@@ -30,5 +30,6 @@ return [
     ],
     'general' => [
         'team_name' => 'The WebGuard Team',
+        'legal' => 'Legal',
     ],
 ];

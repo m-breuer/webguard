@@ -81,10 +81,9 @@
     loadHeatmap();
     loadUptime();
     loadCustomRangeStats();
-    loadSslStatus();
     loadPerformanceChart(selectedRange);
     loadIncidents(selectedRange);
-    loadUptimeCalendar();" x-data="Object.assign({
+    initializeDeferredLoads();" x-data="Object.assign({
         selectedRange: 1
     }, monitoringDetail('{{ $monitoring->id }}', {
         min: '{{ __('monitoring.detail.response_time.min_label') }}',
@@ -104,11 +103,21 @@
                     <div x-show="status"
                         :class="status === 'up' ? 'text-green-500' : (status === 'down' ? 'text-red-500' :
                             'text-yellow-500')">
-                        <x-span x-text="status === 'up' ? '🟢' : (status === 'down' ? '🔴' : '🟡')"></x-span>
-                        <x-span x-text="status ? status.toUpperCase() : ''" class="font-bold"></x-span>
-                        <x-span x-show="since" x-text="'{{ __('monitoring.index.table.since') }} ' + since"
+                        <div>
+                            <x-span x-text="status === 'up' ? '🟢' : (status === 'down' ? '🔴' : '🟡')"></x-span>
+                            <x-span x-text="status ? status.toUpperCase() : ''" class="font-bold"></x-span>
+                        </div>
+                        <x-paragraph x-show="since" x-text="'{{ __('monitoring.index.table.since') }} ' + since"
                             class="text-gray-400">
-                        </x-span>
+                        </x-paragraph>
+                        <template x-if="lastCheckedAt">
+                            <x-paragraph x-text="'{{ __('monitoring.detail.last_check') }} ' + lastCheckedAtHuman"
+                                class="text-gray-400"></x-paragraph>
+                        </template>
+                        <template x-if="intervalHuman">
+                            <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + intervalHuman"
+                                class="text-gray-400"></x-paragraph>
+                        </template>
                     </div>
                     <template x-if="!status">
                         <div x-transition.opacity>
@@ -118,23 +127,42 @@
                 </div>
             </x-container>
 
-            <x-container>
-                <x-heading type="h2">{{ __('monitoring.detail.last_check') }}</x-heading>
-                <div>
-                    <template x-if="lastCheckedAt">
-                        <x-paragraph x-text="lastCheckedAtHuman"></x-paragraph>
+            @if ($monitoring->type === MonitoringType::HTTP || $monitoring->type === MonitoringType::KEYWORD)
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.ssl.heading') }}</x-heading>
+
+                    <template x-if="sslValid===true">
+                        <div>
+                            <x-paragraph
+                                class="font-bold text-green-600 dark:text-green-600">{{ __('monitoring.detail.ssl.valid') }}</x-paragraph>
+                            <x-paragraph class=""
+                                x-text="'{{ __('monitoring.detail.ssl.expires_in') }}: ' + sslExpiration"></x-paragraph>
+                            <template x-if="sslIssueDate">
+                                <x-paragraph class=""
+                                    x-text="'{{ __('monitoring.detail.ssl.issued_on') }}: ' + sslIssueDate"></x-paragraph>
+                            </template>
+                            <template x-if="sslIssuer">
+                                <x-paragraph class=""
+                                    x-text="'{{ __('monitoring.detail.ssl.issued_from') }}: ' + sslIssuer"></x-paragraph>
+                            </template>
+
+                        </div>
                     </template>
-                    <template x-if="!lastCheckedAt">
+
+                    <template x-if="sslValid === false">
+                        <div>
+                            <x-paragraph
+                                class="font-bold text-red-600 dark:text-red-600">{{ __('monitoring.detail.ssl.expired') }}</x-paragraph>
+                        </div>
+                    </template>
+
+                    <template x-if="sslValid === null">
                         <div x-transition.opacity>
                             <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
                         </div>
                     </template>
-                    <template x-if="intervalHuman">
-                        <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + intervalHuman"
-                            class="text-gray-400"></x-paragraph>
-                    </template>
-                </div>
-            </x-container>
+                </x-container>
+            @endif
 
             <x-container>
                 <x-heading type="h2">{{ __('monitoring.detail.last_24_hours') }}</x-heading>
@@ -179,7 +207,9 @@
                 <x-container id="uptime-card-{{ $key }}">
                     <x-heading type="h2" class="capitalize">{{ $label }}</x-heading>
                     <x-paragraph class="text-2xl font-bold text-purple-600"
-                        x-text="uptimeStats['{{ $key }}']?.uptime?.percentage.toFixed(2) + '%' ?? '—%'">
+                        x-text="uptimeStats['{{ $key }}']?.has_data && uptimeStats['{{ $key }}']?.uptime?.percentage !== null
+                            ? uptimeStats['{{ $key }}'].uptime.percentage.toFixed(2) + '%'
+                            : '—'">
                         —%
                     </x-paragraph>
                     <x-paragraph class="text-gray-400"
@@ -228,7 +258,9 @@
                         <div>
                             <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.uptime') }}</x-paragraph>
                             <x-paragraph class="text-2xl font-bold text-purple-600"
-                                x-text="customRangeStats ? customRangeStats.uptimePercentage.toFixed(2) + '%' : '—%'">—%</x-paragraph>
+                                x-text="customRangeStats?.hasData && customRangeStats.uptimePercentage !== null
+                                    ? customRangeStats.uptimePercentage.toFixed(2) + '%'
+                                    : '—'">—</x-paragraph>
                         </div>
                         <div>
                             <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.incidents') }}</x-paragraph>
@@ -238,46 +270,9 @@
                     </div>
                 </template>
             </x-container>
-
-            @if ($monitoring->type === MonitoringType::HTTP || $monitoring->type === MonitoringType::KEYWORD)
-                <x-container>
-                    <x-heading type="h2">{{ __('monitoring.detail.ssl.heading') }}</x-heading>
-
-                    <template x-if="sslValid===true">
-                        <div>
-                            <x-paragraph
-                                class="font-bold text-green-600 dark:text-green-600">{{ __('monitoring.detail.ssl.valid') }}</x-paragraph>
-                            <x-paragraph class=""
-                                x-text="'{{ __('monitoring.detail.ssl.expires_in') }}: ' + sslExpiration"></x-paragraph>
-                            <template x-if="sslIssueDate">
-                                <x-paragraph class=""
-                                    x-text="'{{ __('monitoring.detail.ssl.issued_on') }}: ' + sslIssueDate"></x-paragraph>
-                            </template>
-                            <template x-if="sslIssuer">
-                                <x-paragraph class=""
-                                    x-text="'{{ __('monitoring.detail.ssl.issued_from') }}: ' + sslIssuer"></x-paragraph>
-                            </template>
-
-                        </div>
-                    </template>
-
-                    <template x-if="sslValid === false">
-                        <div>
-                            <x-paragraph
-                                class="font-bold text-red-600 dark:text-red-600">{{ __('monitoring.detail.ssl.expired') }}</x-paragraph>
-                        </div>
-                    </template>
-
-                    <template x-if="sslValid === null">
-                        <div x-transition.opacity>
-                            <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
-                        </div>
-                    </template>
-                </x-container>
-            @endif
         </div>
 
-        <div class="my-4">
+        <div class="my-4" id="uptime-calendar-{{ $monitoring->id }}">
             <x-heading type="h2" class="mb-2">{{ __('monitoring.detail.calendar.heading') }}</x-heading>
 
             <template x-if="uptimeCalendarLoading">

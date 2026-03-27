@@ -1,5 +1,13 @@
 User-agent: *
 
+Allow: /
 Disallow: /api/
+Disallow: /imprint
+Disallow: /impressum
+Disallow: /terms-of-use
+Disallow: /agb
+Disallow: /gdpr
+Disallow: /privacy-policy
+Disallow: /datenschutz
 
 Sitemap: https://webguard.m-breuer.dev/sitemap.xml

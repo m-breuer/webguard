@@ -31,6 +31,7 @@ class ServerInstanceController extends Controller
 
         ServerInstance::query()->create([
             'code' => $validated['code'],
+            'ip_address' => $validated['ip_address'],
             'api_key_hash' => $validated['api_key'],
             'is_active' => $validated['is_active'] ?? false,
         ]);
@@ -49,6 +50,7 @@ class ServerInstanceController extends Controller
 
         $data = [
             'code' => $validated['code'],
+            'ip_address' => $validated['ip_address'],
             'is_active' => $validated['is_active'] ?? false,
         ];
 

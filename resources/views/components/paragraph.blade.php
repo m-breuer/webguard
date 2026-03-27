@@ -5,8 +5,7 @@
 ])
 
 @php
-    $classes = $class;
-    $classes .= ' text-base dark:text-gray-200';
+    $classes = 'text-base dark:text-gray-200';
 
     if ($bold === 'true' || $bold === true) {
         $classes .= ' font-bold';
@@ -17,6 +16,8 @@
     if ($space === 'true' || $space === true) {
         $classes .= ' mb-2';
     }
+
+    $classes .= ' ' . $class;
 @endphp
 
 <p {{ $attributes->class($classes) }}>

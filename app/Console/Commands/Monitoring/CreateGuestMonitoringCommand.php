@@ -40,9 +40,16 @@ class CreateGuestMonitoringCommand extends Command
             return Command::FAILURE;
         }
 
+        $defaultInstanceCode = ServerInstance::query()->active()->orderBy('code')->value('code');
+
+        if ($defaultInstanceCode === null) {
+            $this->error('No active server instance found. Please configure one first.');
+
+            return Command::FAILURE;
+        }
+
         $name = $this->ask('Enter the name for the monitoring');
         $target = $this->ask('Enter the target for the monitoring');
-        $defaultInstanceCode = ServerInstance::query()->active()->orderBy('code')->value('code') ?? 'de-1';
 
         $monitoring = Monitoring::query()->create([
             'user_id' => $guestUser->id,
@@ -52,7 +59,7 @@ class CreateGuestMonitoringCommand extends Command
             'timeout' => 5,
             'preferred_location' => $defaultInstanceCode,
             'public_label_enabled' => true,
-            'email_notification_on_failure' => false,
+            'notification_on_failure' => false,
         ]);
 
         $this->info("Monitoring '{$monitoring->name}' created successfully for guest user.");

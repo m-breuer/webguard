@@ -14,24 +14,11 @@ use Illuminate\Queue\SerializesModels;
 
 class UnreadNotificationsReminderMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
-    public int $unreadNotificationsCount;
+    public function __construct(public int $unreadNotificationsCount, public User $user) {}
 
-    public User $user;
-
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(int $unreadNotificationsCount, User $user)
-    {
-        $this->unreadNotificationsCount = $unreadNotificationsCount;
-        $this->user = $user;
-    }
-
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -39,9 +26,6 @@ class UnreadNotificationsReminderMail extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
@@ -54,8 +38,6 @@ class UnreadNotificationsReminderMail extends Mailable
     }
 
     /**
-     * Get the attachments for the message.
-     *
      * @return array<int, Attachment>
      */
     public function attachments(): array

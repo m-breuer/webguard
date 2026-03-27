@@ -23,6 +23,43 @@ return [
         'heading' => 'Design',
         'description' => 'Wählen Sie Ihr bevorzugtes Design.',
     ],
+    'notification_settings' => [
+        'heading' => 'Benachrichtigungseinstellungen',
+        'description' => 'Konfigurieren Sie Ihre globalen Benachrichtigungskanäle. Diese Einstellungen gelten für alle Überwachungen.',
+        'enabled' => 'Aktiviert',
+        'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
+        'events' => [
+            'incident' => 'Incident',
+            'recovery' => 'Wiederherstellung',
+            'ssl_expiring' => 'SSL läuft bald ab',
+            'ssl_expired' => 'SSL abgelaufen',
+        ],
+        'fields' => [
+            'telegram_bot_token' => 'Telegram Bot Token',
+            'telegram_chat_id' => 'Telegram Chat ID',
+            'slack_webhook_url' => 'Slack Webhook URL',
+            'discord_webhook_url' => 'Discord Webhook URL',
+            'webhook_url' => 'Webhook URL',
+        ],
+        'channels' => [
+            'slack' => [
+                'title' => 'Slack',
+                'help' => 'Verwenden Sie eine Slack Incoming Webhook URL.',
+            ],
+            'telegram' => [
+                'title' => 'Telegram',
+                'help' => 'Geben Sie den Bot Token und die Ziel-Chat-ID an.',
+            ],
+            'discord' => [
+                'title' => 'Discord',
+                'help' => 'Verwenden Sie eine Discord Webhook URL.',
+            ],
+            'webhook' => [
+                'title' => 'Webhook',
+                'help' => 'Sendet die Payload an einen eigenen HTTP-Endpunkt.',
+            ],
+        ],
+    ],
     'update_password' => [
         'heading' => 'Passwort aktualisieren',
         'description' => 'Stellen Sie sicher, dass Ihr Konto ein langes, zufälliges Passwort verwendet, um sicher zu bleiben.',

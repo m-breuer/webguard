@@ -23,6 +23,43 @@ return [
         'heading' => 'Theme',
         'description' => 'Select your preferred theme.',
     ],
+    'notification_settings' => [
+        'heading' => 'Notification Settings',
+        'description' => 'Configure your global notification channels. These settings apply to all monitorings.',
+        'enabled' => 'Enabled',
+        'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
+        'events' => [
+            'incident' => 'Incident',
+            'recovery' => 'Recovery',
+            'ssl_expiring' => 'SSL expiring',
+            'ssl_expired' => 'SSL expired',
+        ],
+        'fields' => [
+            'telegram_bot_token' => 'Telegram Bot Token',
+            'telegram_chat_id' => 'Telegram Chat ID',
+            'slack_webhook_url' => 'Slack Webhook URL',
+            'discord_webhook_url' => 'Discord Webhook URL',
+            'webhook_url' => 'Webhook URL',
+        ],
+        'channels' => [
+            'slack' => [
+                'title' => 'Slack',
+                'help' => 'Use a Slack Incoming Webhook URL.',
+            ],
+            'telegram' => [
+                'title' => 'Telegram',
+                'help' => 'Provide your bot token and target chat ID.',
+            ],
+            'discord' => [
+                'title' => 'Discord',
+                'help' => 'Use a Discord webhook URL.',
+            ],
+            'webhook' => [
+                'title' => 'Webhook',
+                'help' => 'Send the notification payload to a custom HTTP endpoint.',
+            ],
+        ],
+    ],
     'update_password' => [
         'heading' => 'Update Password',
         'description' => 'Ensure your account is using a long, random password to stay secure.',

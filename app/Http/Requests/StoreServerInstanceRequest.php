@@ -22,6 +22,7 @@ class StoreServerInstanceRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'max:32', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:server_instances,code'],
+            'ip_address' => ['required', 'ipv4'],
             'api_key' => ['required', 'string', 'min:16', 'max:255'],
             'is_active' => ['boolean'],
         ];

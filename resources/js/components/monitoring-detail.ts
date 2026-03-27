@@ -33,13 +33,16 @@ interface MonitoringDetailComponent {
     customRangeFrom: string;
     customRangeUntil: string;
     customRangeStats: {
-        uptimePercentage: number;
+        uptimePercentage: number | null;
+        hasData: boolean;
         incidentsCount: number;
     } | null;
     customRangeStatsLoading: boolean;
     customRangeStatsError: string | null;
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
+    deferredDataInitialized: boolean;
+    uptimeCalendarLoaded: boolean;
     chartLabels: Record<string, string>;
     currentLocale: string;
     loadStatus(this: MonitoringDetailComponent): Promise<void>;
@@ -50,6 +53,7 @@ interface MonitoringDetailComponent {
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
+    initializeDeferredLoads(this: MonitoringDetailComponent): void;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -86,13 +90,16 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     customRangeFrom: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
     customRangeUntil: dayjs().format('YYYY-MM-DD'),
     customRangeStats: null as {
-        uptimePercentage: number;
+        uptimePercentage: number | null;
+        hasData: boolean;
         incidentsCount: number;
     } | null,
     customRangeStatsLoading: false,
     customRangeStatsError: null as string | null,
     uptimeCalendarData: [] as any[],
     uptimeCalendarLoading: false,
+    deferredDataInitialized: false,
+    uptimeCalendarLoaded: false,
 
     sinceDate: null as Date | null,
 
@@ -202,14 +209,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         };
 
         const promises = Object.entries(intervals).map(async ([label, days]) => {
-            const uptimePromise = fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
-            const incidentsPromise = fetch(`/api/monitorings/${monitoringId}/incidents?days=${days}`).then(res => res.ok ? res.json() : null);
-
-            const [uptimeData, incidentsData] = await Promise.all([uptimePromise, incidentsPromise]);
+            const uptimeData = await fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
 
             if (uptimeData && uptimeData.downtime) {
                 uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
-                uptimeData.downtime.incidents_count = incidentsData ? incidentsData.length : 0;
+                uptimeData.downtime.incidents_count = Number(uptimeData.downtime.incidents_count ?? 0);
             }
 
             return { [label]: uptimeData };
@@ -247,7 +251,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const responseData = await response.json();
 
             this.customRangeStats = {
-                uptimePercentage: responseData.uptime_percentage ?? 0,
+                uptimePercentage: responseData.uptime_percentage ?? null,
+                hasData: Boolean(responseData.has_data),
                 incidentsCount: responseData.incidents_count ?? 0,
             };
         } catch (_) {
@@ -430,6 +435,51 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         } finally {
             this.uptimeCalendarLoading = false;
         }
+    },
+
+    initializeDeferredLoads(this: MonitoringDetailComponent): void {
+        if (this.deferredDataInitialized) {
+            return;
+        }
+        this.deferredDataInitialized = true;
+
+        const loadSsl = (): void => {
+            void this.loadSslStatus();
+        };
+
+        if ('requestIdleCallback' in window) {
+            (window as any).requestIdleCallback(loadSsl, { timeout: 1500 });
+        } else {
+            window.setTimeout(loadSsl, 250);
+        }
+
+        const loadCalendar = (): void => {
+            if (this.uptimeCalendarLoaded) {
+                return;
+            }
+            this.uptimeCalendarLoaded = true;
+            void this.loadUptimeCalendar();
+        };
+
+        const calendarContainer = document.getElementById(`uptime-calendar-${monitoringId}`);
+        if (!calendarContainer) {
+            window.setTimeout(loadCalendar, 600);
+            return;
+        }
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    observer.disconnect();
+                    loadCalendar();
+                }
+            }, { rootMargin: '200px 0px' });
+
+            observer.observe(calendarContainer);
+            return;
+        }
+
+        window.setTimeout(loadCalendar, 600);
     },
 
     chartLabels: chartLabels

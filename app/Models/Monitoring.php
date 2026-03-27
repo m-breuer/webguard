@@ -81,7 +81,7 @@ class Monitoring extends Model
         'auth_password',
         'public_label_enabled',
         'preferred_location',
-        'email_notification_on_failure',
+        'notification_on_failure',
         'deleted_at',
         'maintenance_from',
         'maintenance_until',
@@ -143,6 +143,32 @@ class Monitoring extends Model
     public function latestIncident(): HasOne
     {
         return $this->hasOne(Incident::class, 'monitoring_id')->latestOfMany();
+    }
+
+    /**
+     * @return HasOne<MonitoringNotification, $this>
+     */
+    public function latestStatusChangeNotification(): HasOne
+    {
+        return $this->hasOne(MonitoringNotification::class, 'monitoring_id')->ofMany(
+            ['created_at' => 'max', 'id' => 'max'],
+            function (Builder $builder): void {
+                $builder->statusChange();
+            }
+        );
+    }
+
+    /**
+     * @return HasOne<MonitoringNotification, $this>
+     */
+    public function latestUnreadStatusChangeNotification(): HasOne
+    {
+        return $this->hasOne(MonitoringNotification::class, 'monitoring_id')->ofMany(
+            ['created_at' => 'max', 'id' => 'max'],
+            function (Builder $builder): void {
+                $builder->statusChange()->unread();
+            }
+        );
     }
 
     /**
@@ -246,7 +272,7 @@ class Monitoring extends Model
             'http_method' => HttpMethod::class,
             'http_headers' => 'array',
             'public_label_enabled' => 'boolean',
-            'email_notification_on_failure' => 'boolean',
+            'notification_on_failure' => 'boolean',
             'preferred_location' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

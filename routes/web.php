@@ -7,8 +7,10 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
@@ -20,22 +22,21 @@ Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProv
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
 Route::get('/', fn () => view('welcome'))->name('welcome');
+Route::get('/monitoring-locations', MonitoringLocationsController::class)->name('monitoring-locations');
+Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
+Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])->name('terms-of-use');
+Route::get('/gdpr', [LegalController::class, 'gdpr'])->name('gdpr');
 
-Route::get('demo', fn () => view('demo'))->name('demo');
-
-Route::post('/locale', [LocaleController::class, 'update'])->name('locale.switch');
-
-// TODO: Add content to these pages
-// Route::get('/terms-of-use', fn() => view('terms-of-use'))->name('terms.show');
-// Route::get('/privacy-policy', fn() => view('privacy-policy'))->name('policy.show');
+Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 
 // Public sitemap.xml
 Route::get('/sitemap.xml', function () {
     return Sitemap::create()
         ->add(Url::create(route('welcome')))
-        ->add(Url::create(route('demo')))
-        // ->add(Url::create(route('terms.show')))
-        // ->add(Url::create(route('policy.show')))
+        ->add(Url::create(route('monitoring-locations')))
+        ->add(Url::create(route('imprint')))
+        ->add(Url::create(route('terms-of-use')))
+        ->add(Url::create(route('gdpr')))
         ->toResponse(request());
 })->name('sitemap');
 
@@ -47,7 +48,7 @@ Route::get('/widget.js', function () {
     return response(file_get_contents(public_path('js/widget.js')))->header('Content-Type', 'application/javascript');
 })->name('widget.js');
 
-Route::middleware(['auth'])->group(function (): void {
+Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
 
@@ -89,4 +90,5 @@ Route::group(
     }
 );
 
+require __DIR__ . '/redirects.php';
 require __DIR__ . '/auth.php';

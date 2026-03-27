@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\SupportedLanguage;
+use App\Enums\NotificationChannel;
+use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
@@ -28,12 +30,21 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $filteredLanguages = SupportedLanguage::toArray();
+        $user = $request->user();
+        $showNotificationChannelsHint = false;
+
+        if ($user && ! $user->hasEnabledNotificationChannels() && $user->notification_channels_hint_seen_at === null) {
+            $user->forceFill([
+                'notification_channels_hint_seen_at' => now(),
+            ])->save();
+
+            $showNotificationChannelsHint = true;
+        }
 
         return view('profile.edit', [
-            'user' => $request->user(),
-            'token' => $request->user()->currentAccessToken(),
-            'languages' => $filteredLanguages,
+            'user' => $user,
+            'token' => $user?->currentAccessToken(),
+            'showNotificationChannelsHint' => $showNotificationChannelsHint,
         ]);
     }
 
@@ -45,26 +56,19 @@ class ProfileController extends Controller
      */
     public function update(ProfileRequest $profileRequest): RedirectResponse
     {
-        $profileRequest->user()->fill($profileRequest->validated());
+        $validated = $profileRequest->validated();
+        $user = $profileRequest->user();
+        $user->fill(Arr::only($validated, ['name', 'email', 'theme']));
 
-        if ($profileRequest->user()->isDirty('email')) {
-            $profileRequest->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $profileRequest->user()->save();
-
-        // Update the theme in the session immediately after saving
-        session(['theme' => $profileRequest->user()->theme]);
+        $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
+        $user->save();
 
         return to_route('profile.edit')
-            ->with('success', __('profile.messages.profile_updated'))
-            ->withCookie(
-                cookie(
-                    SupportedLanguage::cookieName(),
-                    $profileRequest->user()->locale,
-                    SupportedLanguage::cookieDurationMinutes()
-                )
-            );
+            ->with('success', __('profile.messages.profile_updated'));
     }
 
     /**
@@ -118,5 +122,44 @@ class ProfileController extends Controller
         $request->user()->tokens()->delete();
 
         return back()->with('success', __('api.configuration.messages.tokens_deleted'));
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function normalizeNotificationChannels(ProfileRequest $profileRequest): array
+    {
+        $eventTypes = NotificationEventType::values();
+        $normalized = [];
+
+        foreach (NotificationChannel::values() as $channel) {
+            $events = [];
+
+            foreach ($eventTypes as $eventType) {
+                $events[$eventType] = $profileRequest->boolean(sprintf('notification_channels.%s.events.%s', $channel, $eventType));
+            }
+
+            $channelConfig = [
+                'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
+                'events' => $events,
+            ];
+
+            if ($channel === NotificationChannel::SLACK->value || $channel === NotificationChannel::DISCORD->value) {
+                $channelConfig['webhook_url'] = mb_trim((string) $profileRequest->input(sprintf('notification_channels.%s.webhook_url', $channel)));
+            }
+
+            if ($channel === NotificationChannel::WEBHOOK->value) {
+                $channelConfig['url'] = mb_trim((string) $profileRequest->input('notification_channels.webhook.url'));
+            }
+
+            if ($channel === NotificationChannel::TELEGRAM->value) {
+                $channelConfig['bot_token'] = mb_trim((string) $profileRequest->input('notification_channels.telegram.bot_token'));
+                $channelConfig['chat_id'] = mb_trim((string) $profileRequest->input('notification_channels.telegram.chat_id'));
+            }
+
+            $normalized[$channel] = $channelConfig;
+        }
+
+        return $normalized;
     }
 }

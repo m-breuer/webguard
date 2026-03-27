@@ -28,6 +28,19 @@ class LocalePreferenceTest extends TestCase
         $localizedPage->assertSeeHtml('lang="de"');
     }
 
+    public function test_anonymous_user_can_switch_locale_via_get_link(): void
+    {
+        $testResponse = $this->withHeader('referer', url('/'))
+            ->get(route('locale.switch', ['locale' => SupportedLanguage::DE->value]));
+
+        $testResponse->assertRedirect(url('/'));
+        $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value);
+
+        $localizedPage = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value)->get('/');
+        $localizedPage->assertOk();
+        $localizedPage->assertSeeHtml('lang="de"');
+    }
+
     public function test_language_switch_is_visible_for_guests_in_top_navigation(): void
     {
         $testResponse = $this->get('/');
@@ -36,7 +49,7 @@ class LocalePreferenceTest extends TestCase
         $testResponse->assertSeeHtml('id="language-switch-guest"');
     }
 
-    public function test_language_switch_is_hidden_for_authenticated_users_in_top_navigation(): void
+    public function test_language_switch_is_visible_for_authenticated_users_in_top_navigation(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -44,8 +57,8 @@ class LocalePreferenceTest extends TestCase
         $testResponse = $this->actingAs($user)->get('/monitorings');
 
         $testResponse->assertOk();
-        $testResponse->assertDontSeeHtml('id="language-switch-desktop"');
-        $testResponse->assertDontSeeHtml('id="language-switch-mobile"');
+        $testResponse->assertSeeHtml('id="language-switch-desktop"');
+        $testResponse->assertSeeHtml('id="language-switch-mobile"');
     }
 
     public function test_authenticated_user_locale_in_database_overrides_cookie_value(): void
@@ -114,5 +127,16 @@ class LocalePreferenceTest extends TestCase
 
         $testResponse->assertRedirect('/dashboard');
         $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::EN->value);
+    }
+
+    public function test_profile_page_does_not_show_language_selection_anymore(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+
+        $testResponse = $this->actingAs($user)->get(route('profile.edit'));
+
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeHtml('id="locale"');
     }
 }

@@ -32,7 +32,10 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $remember_token
  * @property UserRole $role
  * @property Carbon|null $terms_accepted_at
+ * @property Carbon|null $privacy_accepted_at
  * @property string|null $package_id
+ * @property array<string, mixed>|null $notification_channels
+ * @property Carbon|null $notification_channels_hint_seen_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -65,6 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'terms_accepted_at',
+        'privacy_accepted_at',
         'package_id',
         'locale',
         'theme',
@@ -72,6 +76,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'github_token',
         'github_refresh_token',
         'avatar',
+        'notification_channels',
+        'notification_channels_hint_seen_at',
     ];
 
     /**
@@ -155,7 +161,24 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function unreadNotifications(): HasManyThrough
     {
-        return $this->hasManyThrough(MonitoringNotification::class, Monitoring::class)->where('read', false);
+        return $this->hasManyThrough(MonitoringNotification::class, Monitoring::class)->unread();
+    }
+
+    public function hasEnabledNotificationChannels(): bool
+    {
+        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+
+        foreach ($channels as $channel) {
+            if (! is_array($channel)) {
+                continue;
+            }
+
+            if ((bool) ($channel['enabled'] ?? false) === true) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -167,9 +190,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
             'theme' => 'string',
+            'notification_channels' => 'array',
+            'notification_channels_hint_seen_at' => 'datetime',
         ];
     }
 }

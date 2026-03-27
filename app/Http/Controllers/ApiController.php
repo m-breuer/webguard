@@ -6,12 +6,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Monitoring;
 use App\Services\MonitoringResultService;
+use App\Support\MonitoringStatusMeta;
 use DateTimeInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @group Public API
@@ -114,18 +116,21 @@ class ApiController extends Controller
         $days = (int) ($validated['days'] ?? 30);
         $startDate = now()->subDays($days)->startOfDay();
         $endDate = now()->endOfDay();
+        $isIntradayRange = $days <= 1;
 
-        $loadAggregatedData = ($days > 1);
+        $loadAggregatedData = ! $isIntradayRange;
 
         if ($monitoring->created_at->diffInDays(now()) < 1) {
             $loadAggregatedData = false;
         }
 
+        $includeIntradayRawData = $isIntradayRange;
+
         $cacheKey = sprintf('monitoring:%s:uptime:%s:%s:%s', $monitoring->id, $days, $startDate->format('Ymd'), $endDate->format('Ymd'));
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData),
+            fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData, $includeIntradayRawData),
             (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
@@ -170,6 +175,103 @@ class ApiController extends Controller
     }
 
     /**
+     * Retrieves historical monitoring checks including status code details.
+     *
+     * @queryParam days integer Optional number of past days to include. If omitted, all available history is considered.
+     * @queryParam limit integer Optional maximum number of entries returned. Defaults to 100.
+     *
+     * @response {
+     *   "data": [
+     *     {
+     *       "id": "01H...",
+     *       "checked_at": "2026-03-24T12:00:00Z",
+     *       "status": "down",
+     *       "http_status_code": 503,
+     *       "response_time": 210.5,
+     *       "status_identifier": "status.server_error",
+     *       "status_key": "notifications.status.server_error",
+     *       "source": "live"
+     *     }
+     *   ],
+     *   "meta": {
+     *     "count": 1,
+     *     "limit": 100,
+     *     "days": 7
+     *   }
+     * }
+     */
+    public function checks(Monitoring $monitoring, Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'days' => ['nullable', 'integer', 'min:1', 'max:3650'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $days = isset($validated['days']) ? (int) $validated['days'] : null;
+        $limit = (int) ($validated['limit'] ?? 100);
+        $startDate = $days !== null ? now()->subDays($days)->startOfDay() : null;
+        $endDate = now()->endOfDay();
+
+        $cacheKey = sprintf(
+            'monitoring:%s:checks:%s:%s',
+            $monitoring->id,
+            $days ?? 'all',
+            $limit
+        );
+
+        $data = $this->cacheAndReturn(
+            $cacheKey,
+            function () use ($monitoring, $startDate, $endDate, $limit): array {
+                $builder = DB::table('monitoring_response_results')
+                    ->selectRaw("'live' as source, id, status, http_status_code, response_time, created_at")
+                    ->where('monitoring_id', $monitoring->id);
+
+                $archivedQuery = DB::table('monitoring_response_archived')
+                    ->selectRaw("'archived' as source, id, status, http_status_code, response_time, created_at")
+                    ->where('monitoring_id', $monitoring->id);
+
+                if ($startDate !== null) {
+                    $builder->whereBetween('created_at', [$startDate, $endDate]);
+                    $archivedQuery->whereBetween('created_at', [$startDate, $endDate]);
+                }
+
+                $rows = DB::query()
+                    ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')->latest()
+                    ->orderByDesc('id')
+                    ->limit($limit)
+                    ->get();
+
+                return $rows->map(function (object $row): array {
+                    $httpStatusCode = $row->http_status_code !== null ? (int) $row->http_status_code : null;
+                    $statusIdentifier = MonitoringStatusMeta::identifier($httpStatusCode);
+
+                    return [
+                        'id' => (string) $row->id,
+                        'checked_at' => Date::parse((string) $row->created_at)->toIso8601String(),
+                        'status' => (string) $row->status,
+                        'http_status_code' => $httpStatusCode,
+                        'response_time' => $row->response_time !== null ? (float) $row->response_time : null,
+                        'status_identifier' => MonitoringStatusMeta::statusIdentifier($httpStatusCode),
+                        'status_key' => MonitoringStatusMeta::statusKey($httpStatusCode),
+                        'source' => (string) $row->source,
+                    ];
+                })->all();
+            },
+            (int) config('monitoring.interval', 5) * 60,
+            'monitoring:' . $monitoring->id
+        );
+
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'count' => count($data),
+                'limit' => $limit,
+                'days' => $days,
+            ],
+        ]);
+    }
+
+    /**
      * Retrieves the uptime heatmap data for a given monitoring instance.
      *
      * @response [
@@ -211,8 +313,19 @@ class ApiController extends Controller
     {
         $statusSince = MonitoringResultService::getStatusSince($monitoring);
         $statusNow = MonitoringResultService::getStatusNow($monitoring);
+        $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
 
-        $data = array_merge($statusSince, $statusNow);
+        $data = array_merge($statusSince, $statusNow, [
+            'status_code' => $latestStatusCode,
+            'status_changed_at' => $statusSince['since'] ?? null,
+            'status_identifier' => MonitoringStatusMeta::statusIdentifier($latestStatusCode, $monitoring->isUnderMaintenance()),
+            'status_key' => MonitoringStatusMeta::statusKey($latestStatusCode, $monitoring->isUnderMaintenance()),
+            'monitoring' => [
+                'name' => $monitoring->name,
+                'target' => $monitoring->target,
+                'type' => $monitoring->type->value,
+            ],
+        ]);
 
         return response()->json($data);
     }
@@ -263,6 +376,8 @@ class ApiController extends Controller
      *   "from": "2026-01-01",
      *   "until": "2026-01-31",
      *   "uptime_percentage": 99.85,
+     *   "has_data": true,
+     *   "tracking_started_at": "2026-01-15T12:00:00Z",
      *   "incidents_count": 2
      * }
      */
@@ -275,12 +390,15 @@ class ApiController extends Controller
 
         $startDate = Date::parse($validated['from'])->startOfDay();
         $endDate = Date::parse($validated['until'])->endOfDay();
+        $isIntradayRange = $startDate->isSameDay($endDate);
 
-        $loadAggregatedData = $startDate->diffInDays($endDate) > 1;
+        $loadAggregatedData = ! $isIntradayRange;
 
         if ($monitoring->created_at->diffInDays(now()) < 1) {
             $loadAggregatedData = false;
         }
+
+        $includeIntradayRawData = $isIntradayRange;
 
         $cacheKey = sprintf(
             'monitoring:%s:custom-range-stats:%s:%s',
@@ -291,14 +409,24 @@ class ApiController extends Controller
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            function () use ($monitoring, $startDate, $endDate, $loadAggregatedData): array {
-                $uptimeDowntime = MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData);
-                $incidentsCount = MonitoringResultService::getIncidents($monitoring, $startDate, $endDate)->count();
+            function () use ($monitoring, $startDate, $endDate, $loadAggregatedData, $includeIntradayRawData): array {
+                $uptimeDowntime = MonitoringResultService::getUptimeDowntime(
+                    $monitoring,
+                    $startDate,
+                    $endDate,
+                    $loadAggregatedData,
+                    $includeIntradayRawData
+                );
+                $incidentsCount = $loadAggregatedData
+                    ? MonitoringResultService::getAggregatedIncidentsCount($monitoring, $startDate, $endDate, $includeIntradayRawData)
+                    : MonitoringResultService::countIncidents($monitoring, $startDate, $endDate);
 
                 return [
                     'from' => $startDate->toDateString(),
                     'until' => $endDate->toDateString(),
-                    'uptime_percentage' => (float) ($uptimeDowntime['uptime']['percentage'] ?? 0.0),
+                    'uptime_percentage' => $uptimeDowntime['uptime']['percentage'],
+                    'has_data' => (bool) ($uptimeDowntime['has_data'] ?? false),
+                    'tracking_started_at' => $uptimeDowntime['tracking_started_at'],
                     'incidents_count' => $incidentsCount,
                 ];
             },

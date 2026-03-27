@@ -30,7 +30,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        return view('auth.login', [
+            'authMode' => 'register',
+        ]);
     }
 
     /**
@@ -47,6 +49,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'terms' => ['accepted'],
         ]);
 
         $model = User::query()->create([
@@ -55,6 +58,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'role' => UserRole::REGULAR,
             'terms_accepted_at' => now(),
+            'privacy_accepted_at' => now(),
         ]);
 
         event(new Registered($model));

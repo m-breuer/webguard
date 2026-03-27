@@ -1,5 +1,15 @@
+@props([
+    'cardWidth' => 'sm:max-w-7xl',
+])
+
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ session('theme', 'system') === 'dark' ? 'dark' : '' }}" data-theme="{{ session('theme', 'system') }}">
+@php
+    $theme = auth()->check() ? auth()->user()->theme : 'system';
+    if (! in_array($theme, ['light', 'dark', 'system'], true)) {
+        $theme = 'system';
+    }
+@endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
 
 <head>
     <meta charset="utf-8">
@@ -37,15 +47,13 @@
                             {{ __('app.name') }}
                         </x-span>
                     </a>
-                    @guest
-                        <x-language-switch id="language-switch-guest" />
-                    @endguest
+                    <x-language-switch id="language-switch-guest" />
                 </div>
             </div>
         </nav>
 
         <div class="flex flex-1 items-center justify-center p-3">
-            <main class="w-full overflow-hidden bg-white p-6 shadow-md dark:bg-gray-800 sm:max-w-xl sm:rounded-lg">
+            <main class="w-full overflow-hidden bg-white p-6 shadow-md dark:bg-gray-800 {{ $cardWidth }} sm:rounded-lg">
                 {{ $slot }}
             </main>
         </div>
