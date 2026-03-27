@@ -115,6 +115,7 @@ The local override adds everything that should only exist during development:
 
    ```text
    127.0.0.1 webguard.test
+   127.0.0.1 mailpit.webguard.test
    ```
 
 4. Start the local stack:
@@ -137,7 +138,7 @@ The local override adds everything that should only exist during development:
 * App: [http://webguard.test](http://webguard.test)
 * HTTPS app: [https://webguard.test](https://webguard.test)
 * Vite: [http://webguard.test:5173](http://webguard.test:5173)
-* Mailpit UI: [http://localhost:8025](http://localhost:8025)
+* Mailpit UI: [http://mailpit.webguard.test](http://mailpit.webguard.test)
 
 ### Local environment values
 
@@ -152,7 +153,7 @@ The local override adds everything that should only exist during development:
 * `MAIL_HOST=mailpit`
 * `MAIL_PORT=1025`
 * `DOCKER_APP_HOST=webguard.test`
-* `DOCKER_MAILPIT_UI_PORT=8025`
+* `DOCKER_MAILPIT_HOST=mailpit.webguard.test`
 
 If you already have an older `.env`, update at least the `APP_URL`, `DB_*`, `REDIS_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, and `VITE_*` values before using Docker.
 

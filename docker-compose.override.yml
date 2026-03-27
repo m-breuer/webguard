@@ -24,6 +24,14 @@ services:
       - "${DOCKER_MAILPIT_UI_PORT:-8025}:8025"
     networks:
       - webguard-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mailpit.rule=Host(`${DOCKER_MAILPIT_HOST:-mailpit.webguard.test}`)
+      - traefik.http.routers.mailpit.entrypoints=web
+      - traefik.http.services.mailpit.loadbalancer.server.port=8025
+      - traefik.http.routers.mailpit-secure.rule=Host(`${DOCKER_MAILPIT_HOST:-mailpit.webguard.test}`)
+      - traefik.http.routers.mailpit-secure.entrypoints=websecure
+      - traefik.http.routers.mailpit-secure.tls=true
 
   php:
     build:
