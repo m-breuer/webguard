@@ -1,5 +1,6 @@
 services:
   traefik:
+    container_name: webguard-traefik
     image: traefik:latest
     command:
       - --providers.docker=true
@@ -17,6 +18,7 @@ services:
           - "${DOCKER_APP_HOST:-webguard.test}"
 
   mailpit:
+    container_name: webguard-mailpit
     image: axllent/mailpit:latest
     restart: unless-stopped
     ports:
@@ -132,6 +134,7 @@ services:
       MAIL_ENCRYPTION: "null"
 
   node:
+    container_name: webguard-node
     build:
       context: .
       dockerfile: docker/node/Dockerfile
