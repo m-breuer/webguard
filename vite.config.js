@@ -7,6 +7,15 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
+        watch: {
+            ignored: [
+                '**/storage/framework/views/**',
+                '**/storage/logs/**',
+                '**/bootstrap/cache/**',
+            ],
+            usePolling: (process.env.VITE_USE_POLLING ?? 'true') === 'true',
+            interval: Number(process.env.VITE_POLLING_INTERVAL ?? 300),
+        },
         origin: process.env.VITE_DEV_SERVER_URL ?? 'http://webguard.test:5173',
         cors: {
             origin: process.env.APP_URL ?? 'http://webguard.test',
