@@ -14,8 +14,8 @@
         "@tailwindcss/postcss": "^4.2.2",
         "@types/alpinejs": "^3.13.11",
         "@types/node": "^24.12.0",
-        "alpinejs": "^3.15.8",
-        "axios": "^1.13.6",
+        "alpinejs": "^3.15.9",
+        "axios": "^1.14.0",
         "concurrently": "^9.2.1",
         "laravel-vite-plugin": "^2.1.0",
         "postcss": "^8.5.8",
@@ -186,7 +186,7 @@
 
     "@vue/shared": ["@vue/shared@3.1.5", "", {}, "sha512-oJ4F3TnvpXaQwZJNF3ZK+kLPHKarDmJjJ6jyzVNDKH9md1dptjC7lWR//jrGuLdek/U6iltWxqAnYOu8gCiOvA=="],
 
-    "alpinejs": ["alpinejs@3.15.9", "", { "dependencies": { "@vue/reactivity": "~3.1.1" } }, "sha512-O30m8Tw/aARbLXmeTnISAFgrNm0K71PT7bZy/1NgRqFD36QGb34VJ4a6WBL1iIO/bofN+LkIkKLikUTkfPL2wQ=="],
+    "alpinejs": ["alpinejs@3.15.11", "", { "dependencies": { "@vue/reactivity": "~3.1.1" } }, "sha512-m26gkTg/MId8O+F4jHKK3vB3SjbFxxk/JHP+qzmw1H6aQrZuPAg4CUoAefnASzzp/eNroBjrRQe7950bNeaBJw=="],
 
     "ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
 
@@ -310,9 +310,9 @@
 
     "picomatch": ["picomatch@4.0.3", "", {}, "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="],
 
-    "playwright": ["playwright@1.58.2", "", { "dependencies": { "playwright-core": "1.58.2" }, "optionalDependencies": { "fsevents": "2.3.2" }, "bin": { "playwright": "cli.js" } }, "sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A=="],
+    "playwright": ["playwright@1.59.1", "", { "dependencies": { "playwright-core": "1.59.1" }, "optionalDependencies": { "fsevents": "2.3.2" }, "bin": { "playwright": "cli.js" } }, "sha512-C8oWjPR3F81yljW9o5OxcWzfh6avkVwDD2VYdwIGqTkl+OGFISgypqzfu7dOe4QNLL2aqcWBmI3PMtLIK233lw=="],
 
-    "playwright-core": ["playwright-core@1.58.2", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg=="],
+    "playwright-core": ["playwright-core@1.59.1", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-HBV/RJg81z5BiiZ9yPzIiClYV/QMsDCKUyogwH9p3MCP6IYjUFu/MActgYAvK0oWyV9NlwM3GLBjADyWgydVyg=="],
 
     "postcss": ["postcss@8.5.8", "", { "dependencies": { "nanoid": "^3.3.11", "picocolors": "^1.1.1", "source-map-js": "^1.2.1" } }, "sha512-OW/rX8O/jXnm82Ey1k44pObPtdblfiuWnrd8X7GJ7emImCOstunGbXUpp7HdBrFQX6rJzn3sPT397Wp5aCwCHg=="],
 
