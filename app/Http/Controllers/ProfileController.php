@@ -86,8 +86,7 @@ class ProfileController extends Controller
     public function destroy(
         DeleteUserRequest $deleteUserRequest,
         UserDeletionPreparationService $userDeletionPreparationService
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $user = $deleteUserRequest->user();
 
         if (! $user instanceof User) {
