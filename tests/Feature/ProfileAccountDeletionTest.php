@@ -51,8 +51,8 @@ class ProfileAccountDeletionTest extends TestCase
         $testResponse->assertRedirect('/');
         $this->assertGuest();
 
-        Queue::assertPushed(DeleteUser::class, function (DeleteUser $job) use ($user): bool {
-            return $job->user->is($user);
+        Queue::assertPushed(DeleteUser::class, function (DeleteUser $deleteUser) use ($user): bool {
+            return $deleteUser->user->is($user);
         });
 
         $this->assertDatabaseMissing('sessions', ['user_id' => $user->id]);
