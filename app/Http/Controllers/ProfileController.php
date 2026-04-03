@@ -8,11 +8,15 @@ use App\Enums\NotificationChannel;
 use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
+use App\Jobs\DeleteUser;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -74,19 +78,25 @@ class ProfileController extends Controller
     /**
      * Delete the authenticated user's account after verifying their password.
      *
-     * This method validates the user's current password using a named error bag ("userDeletion"),
-     * logs the user out, deletes the account, and invalidates the session.
+     * This method logs the user out first, immediately invalidates all login paths,
+     * then dispatches the same queued deletion flow used by the admin panel.
      *
-     * @param  Request  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
+     * @param  DeleteUserRequest  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
      * @return RedirectResponse Redirects to the home page after account deletion.
      */
     public function destroy(DeleteUserRequest $deleteUserRequest): RedirectResponse
     {
         $user = $deleteUserRequest->user();
 
+        if (! $user instanceof User) {
+            return Redirect::to('/');
+        }
+
         Auth::logout();
 
-        $user->delete();
+        $this->disableUserLoginUntilDeletion($user);
+
+        dispatch(new DeleteUser($user));
 
         $deleteUserRequest->session()->invalidate();
         $deleteUserRequest->session()->regenerateToken();
@@ -161,5 +171,24 @@ class ProfileController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function disableUserLoginUntilDeletion(User $user): void
+    {
+        $emailBeforeDeletion = $user->email;
+
+        $user->forceFill([
+            'email' => sprintf('deleted+%s@webguard.invalid', Str::lower($user->id)),
+            'password' => Str::random(64),
+            'remember_token' => null,
+            'github_id' => null,
+            'github_token' => null,
+            'github_refresh_token' => null,
+        ])->save();
+
+        $user->tokens()->delete();
+
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+        DB::table('password_reset_tokens')->where('email', $emailBeforeDeletion)->delete();
     }
 }
