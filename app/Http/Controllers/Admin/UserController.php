@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Jobs\DeleteUser;
 use App\Models\Package;
 use App\Models\User;
+use App\Services\UserDeletionPreparationService;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -136,13 +137,15 @@ class UserController extends Controller
      * @param  string  $id  The ID of the user to delete.
      * @return RedirectResponse A redirect response after deleting the user.
      */
-    public function destroy(string $id): RedirectResponse
+    public function destroy(string $id, UserDeletionPreparationService $userDeletionPreparationService): RedirectResponse
     {
         $model = User::query()->findOrFail($id);
 
         if ($model->id === Auth::user()->id) {
             return to_route('admin.users.index')->with('error', __('user.messages.cannot_delete_self'));
         }
+
+        $userDeletionPreparationService->disableLoginUntilDeletion($model);
 
         dispatch(new DeleteUser($model));
 

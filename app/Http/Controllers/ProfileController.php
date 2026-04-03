@@ -8,6 +8,9 @@ use App\Enums\NotificationChannel;
 use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
+use App\Jobs\DeleteUser;
+use App\Models\User;
+use App\Services\UserDeletionPreparationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -74,19 +77,27 @@ class ProfileController extends Controller
     /**
      * Delete the authenticated user's account after verifying their password.
      *
-     * This method validates the user's current password using a named error bag ("userDeletion"),
-     * logs the user out, deletes the account, and invalidates the session.
+     * This method logs the user out first, immediately invalidates all login paths,
+     * then dispatches the same queued deletion flow used by the admin panel.
      *
-     * @param  Request  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
+     * @param  DeleteUserRequest  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
      * @return RedirectResponse Redirects to the home page after account deletion.
      */
-    public function destroy(DeleteUserRequest $deleteUserRequest): RedirectResponse
-    {
+    public function destroy(
+        DeleteUserRequest $deleteUserRequest,
+        UserDeletionPreparationService $userDeletionPreparationService
+    ): RedirectResponse {
         $user = $deleteUserRequest->user();
+
+        if (! $user instanceof User) {
+            return Redirect::to('/');
+        }
 
         Auth::logout();
 
-        $user->delete();
+        $userDeletionPreparationService->disableLoginUntilDeletion($user);
+
+        dispatch(new DeleteUser($user));
 
         $deleteUserRequest->session()->invalidate();
         $deleteUserRequest->session()->regenerateToken();
