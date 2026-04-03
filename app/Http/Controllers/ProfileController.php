@@ -10,13 +10,12 @@ use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Jobs\DeleteUser;
 use App\Models\User;
+use App\Services\UserDeletionPreparationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -84,7 +83,10 @@ class ProfileController extends Controller
      * @param  DeleteUserRequest  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
      * @return RedirectResponse Redirects to the home page after account deletion.
      */
-    public function destroy(DeleteUserRequest $deleteUserRequest): RedirectResponse
+    public function destroy(
+        DeleteUserRequest $deleteUserRequest,
+        UserDeletionPreparationService $userDeletionPreparationService
+    ): RedirectResponse
     {
         $user = $deleteUserRequest->user();
 
@@ -94,7 +96,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $this->disableUserLoginUntilDeletion($user);
+        $userDeletionPreparationService->disableLoginUntilDeletion($user);
 
         dispatch(new DeleteUser($user));
 
@@ -171,24 +173,5 @@ class ProfileController extends Controller
         }
 
         return $normalized;
-    }
-
-    private function disableUserLoginUntilDeletion(User $user): void
-    {
-        $emailBeforeDeletion = $user->email;
-
-        $user->forceFill([
-            'email' => sprintf('deleted+%s@webguard.invalid', Str::lower($user->id)),
-            'password' => Str::random(64),
-            'remember_token' => null,
-            'github_id' => null,
-            'github_token' => null,
-            'github_refresh_token' => null,
-        ])->save();
-
-        $user->tokens()->delete();
-
-        DB::table('sessions')->where('user_id', $user->id)->delete();
-        DB::table('password_reset_tokens')->where('email', $emailBeforeDeletion)->delete();
     }
 }
