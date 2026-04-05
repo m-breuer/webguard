@@ -7,14 +7,14 @@
         "@tailwindcss/vite": "^4.2.2",
         "chart.js": "^4.5.1",
         "dayjs": "^1.11.20",
-        "playwright": "^1.58.2",
+        "playwright": "^1.59.1",
       },
       "devDependencies": {
         "@tailwindcss/forms": "^0.5.11",
         "@tailwindcss/postcss": "^4.2.2",
         "@types/alpinejs": "^3.13.11",
         "@types/node": "^24.12.0",
-        "alpinejs": "^3.15.9",
+        "alpinejs": "^3.15.11",
         "axios": "^1.14.0",
         "concurrently": "^9.2.1",
         "laravel-vite-plugin": "^2.1.0",
@@ -180,7 +180,7 @@
 
     "@types/estree": ["@types/estree@1.0.8", "", {}, "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="],
 
-    "@types/node": ["@types/node@24.12.0", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ=="],
+    "@types/node": ["@types/node@24.12.2", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-A1sre26ke7HDIuY/M23nd9gfB+nrmhtYyMINbjI1zHJxYteKR6qSMX56FsmjMcDb3SMcjJg5BiRRgOCC/yBD0g=="],
 
     "@vue/reactivity": ["@vue/reactivity@3.1.5", "", { "dependencies": { "@vue/shared": "3.1.5" } }, "sha512-1tdfLmNjWG6t/CsPldh+foumYFo3cpyCHgBYQ34ylaMsJ+SNHQ1kApMIa8jN+i593zQuaw3AdWH0nJTARzCFhg=="],
 
