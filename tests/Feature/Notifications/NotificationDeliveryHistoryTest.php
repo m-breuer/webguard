@@ -147,4 +147,32 @@ class NotificationDeliveryHistoryTest extends TestCase
         $testResponse->assertJsonPath('hasMore', false);
         $this->assertStringContainsString('Delivery 6', (string) $testResponse->json('html'));
     }
+
+    public function test_notifications_index_uses_delivery_history_offset_for_delivery_history_load_more_requests(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+
+        NotificationChannelDelivery::query()->forceCreate([
+            'user_id' => $user->id,
+            'monitoring_notification_id' => null,
+            'channel' => 'webhook',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+            'payload' => [
+                'monitoring' => [
+                    'name' => 'Delivery offset check',
+                    'target' => 'https://delivery-offset.example.test',
+                ],
+            ],
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSee('getOffsetForType(type)', false);
+        $testResponse->assertSee("if (type === 'delivery_history') {", false);
+        $testResponse->assertSee('return this.deliveryHistoryOffset;', false);
+        $testResponse->assertSee('const offset = this.getOffsetForType(type);', false);
+    }
 }

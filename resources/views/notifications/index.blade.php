@@ -34,6 +34,17 @@
         deliveryHistoryOffset: {{ $deliveryHistory->count() }},
         currentLimit: {{ $limit }},
         isEmpty: {{ $sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() && $deliveryHistory->isEmpty() ? 'true' : 'false' }},
+        getOffsetForType(type) {
+            if (type === 'status_change') {
+                return this.statusChangeOffset;
+            }
+
+            if (type === 'delivery_history') {
+                return this.deliveryHistoryOffset;
+            }
+
+            return this.sslExpiryOffset;
+        },
         syncLimitWithUrl(limit) {
             const parsedLimit = Number.parseInt(limit, 10);
             const nextLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
@@ -46,7 +57,7 @@
             this.isEmpty = this.$root.querySelectorAll('.notification-entry').length === 0;
         },
         loadMoreNotifications(type) {
-            let offset = type === 'status_change' ? this.statusChangeOffset : this.sslExpiryOffset;
+            const offset = this.getOffsetForType(type);
             axios.post('{{ route('notifications.loadMore') }}', {
                     type: type,
                     offset: offset,
@@ -64,9 +75,7 @@
                         this.sslExpiryOffset += response.data.count;
                         if (!response.data.hasMore) document.getElementById('ssl-expiry-load-more-container').style.display = 'none';
                     }
-                    const updatedOffset = type === 'status_change'
-                        ? this.statusChangeOffset
-                        : (type === 'delivery_history' ? this.deliveryHistoryOffset : this.sslExpiryOffset);
+                    const updatedOffset = this.getOffsetForType(type);
                     this.currentLimit = Math.max(this.currentLimit, updatedOffset);
                     this.syncLimitWithUrl(this.currentLimit);
                     this.updateEmptyState();
