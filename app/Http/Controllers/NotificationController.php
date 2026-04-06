@@ -6,12 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
-use App\Models\Scopes\UserScope;
 use App\Services\NotificationBoardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
@@ -46,7 +46,7 @@ class NotificationController extends Controller
 
     public function markAsRead(string $notificationId): RedirectResponse
     {
-        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
+        $monitoringNotification = MonitoringNotification::query()->findOrFail($notificationId);
 
         $monitoringNotification->read = true;
         $monitoringNotification->save();
@@ -63,10 +63,16 @@ class NotificationController extends Controller
 
     public function loadMore(Request $request, NotificationBoardService $notificationBoardService): JsonResponse
     {
-        $type = $request->input('type');
-        $offset = max(0, (int) $request->input('offset', 0));
+        $validated = $request->validate([
+            'type' => ['required', 'string', Rule::in(NotificationType::values())],
+            'offset' => ['nullable', 'integer', 'min:0'],
+            'show_read' => ['nullable', 'boolean'],
+        ]);
+
+        $type = (string) $validated['type'];
+        $offset = (int) ($validated['offset'] ?? 0);
         $limit = self::DEFAULT_NOTIFICATION_LIMIT;
-        $showRead = $request->boolean('show_read', false);
+        $showRead = (bool) ($validated['show_read'] ?? false);
 
         if ($type === NotificationType::STATUS_CHANGE->value) {
             [$statusBoardEntries, $hasMore] = $this->loadStatusBoardEntries(
