@@ -31,8 +31,9 @@
     <x-main x-data="{
         statusChangeOffset: {{ $statusBoardEntries->count() }},
         sslExpiryOffset: {{ $sslExpiryNotifications->count() }},
+        deliveryHistoryOffset: {{ $deliveryHistory->count() }},
         currentLimit: {{ $limit }},
-        isEmpty: {{ $sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() ? 'true' : 'false' }},
+        isEmpty: {{ $sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() && $deliveryHistory->isEmpty() ? 'true' : 'false' }},
         syncLimitWithUrl(limit) {
             const parsedLimit = Number.parseInt(limit, 10);
             const nextLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
@@ -56,11 +57,16 @@
                     if (type === 'status_change') {
                         this.statusChangeOffset += response.data.count;
                         if (!response.data.hasMore) document.getElementById('status-change-load-more-container').style.display = 'none';
+                    } else if (type === 'delivery_history') {
+                        this.deliveryHistoryOffset += response.data.count;
+                        if (!response.data.hasMore) document.getElementById('delivery-history-load-more-container').style.display = 'none';
                     } else {
                         this.sslExpiryOffset += response.data.count;
                         if (!response.data.hasMore) document.getElementById('ssl-expiry-load-more-container').style.display = 'none';
                     }
-                    const updatedOffset = type === 'status_change' ? this.statusChangeOffset : this.sslExpiryOffset;
+                    const updatedOffset = type === 'status_change'
+                        ? this.statusChangeOffset
+                        : (type === 'delivery_history' ? this.deliveryHistoryOffset : this.sslExpiryOffset);
                     this.currentLimit = Math.max(this.currentLimit, updatedOffset);
                     this.syncLimitWithUrl(this.currentLimit);
                     this.updateEmptyState();
@@ -119,6 +125,23 @@
                         <div class="mt-4 text-center" id="status-change-load-more-container">
                             <x-primary-button
                                 @click="loadMoreNotifications('status_change')">{{ __('notifications.load_more') }}</x-primary-button>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if ($deliveryHistory->isNotEmpty())
+                <div class="mb-8">
+                    <x-heading type="h2" space=true>{{ __('notifications.delivery_history.heading') }}</x-heading>
+                    <div id="delivery-history-notifications">
+                        @include('notifications.partials.delivery_history_list', [
+                            'deliveries' => $deliveryHistory,
+                        ])
+                    </div>
+                    @if ($deliveryHistoryHasMore)
+                        <div class="mt-4 text-center" id="delivery-history-load-more-container">
+                            <x-primary-button
+                                @click="loadMoreNotifications('delivery_history')">{{ __('notifications.load_more') }}</x-primary-button>
                         </div>
                     @endif
                 </div>
