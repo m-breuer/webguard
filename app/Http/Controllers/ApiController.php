@@ -545,15 +545,14 @@ class ApiController extends Controller
         ?Carbon $endDate,
         int $limit
     ): QueryBuilder {
-        return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)
-            ->orderByDesc('created_at')
+        return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)->latest()
             ->orderByDesc('id')
             ->limit($limit);
     }
 
     private function buildChecksUnionQuery(string $monitoringId, ?Carbon $startDate, ?Carbon $endDate): QueryBuilder
     {
-        $liveQuery = $this->buildChecksSourceSubquery(
+        $builder = $this->buildChecksSourceSubquery(
             'monitoring_response_results',
             'live',
             $monitoringId,
@@ -569,8 +568,7 @@ class ApiController extends Controller
         );
 
         return DB::query()
-            ->fromSub($liveQuery->unionAll($archivedQuery), 'monitoring_results')
-            ->orderByDesc('created_at')
+            ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')->latest()
             ->orderByDesc('id');
     }
 
@@ -581,15 +579,15 @@ class ApiController extends Controller
         ?Carbon $startDate,
         ?Carbon $endDate
     ): QueryBuilder {
-        $query = DB::table($table)
+        $builder = DB::table($table)
             ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, created_at")
             ->where('monitoring_id', $monitoringId);
 
         if ($startDate !== null && $endDate !== null) {
-            $query->whereBetween('created_at', [$startDate, $endDate]);
+            $builder->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        return $query;
+        return $builder;
     }
 
     /**

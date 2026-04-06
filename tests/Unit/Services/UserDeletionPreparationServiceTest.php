@@ -44,7 +44,7 @@ class UserDeletionPreparationServiceTest extends TestCase
 
         $user->refresh();
 
-        $this->assertSame(sprintf('deleted+%s@webguard.invalid', strtolower($user->id)), $user->email);
+        $this->assertSame(sprintf('deleted+%s@webguard.invalid', mb_strtolower($user->id)), $user->email);
         $this->assertFalse(Hash::check('password', (string) $user->password));
         $this->assertNull($user->remember_token);
         $this->assertNull($user->github_id);
