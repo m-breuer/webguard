@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Models\Package;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MonitoringIndexEmptyStateTest extends TestCase
@@ -38,6 +39,28 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse->assertSee(__('monitoring.no_monitoring.title'));
         $testResponse->assertSee(__('monitoring.no_monitoring.text'));
         $testResponse->assertSeeHtml('href="' . route('monitorings.create') . '"');
+    }
+
+    public function test_default_monitoring_index_reuses_paginator_total_without_extra_monitoring_count_query(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertOk();
+
+        $queries = collect(DB::getQueryLog())
+            ->pluck('query');
+
+        $monitoringCountQueries = $queries
+            ->filter(static fn (string $query): bool => str_starts_with($query, 'select count(*) as aggregate from "monitorings"'))
+            ->count();
+
+        $this->assertSame(1, $monitoringCountQueries, $queries->implode(PHP_EOL));
     }
 
     public function test_guest_user_cannot_access_monitoring_create_route(): void
