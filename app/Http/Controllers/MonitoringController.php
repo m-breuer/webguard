@@ -78,6 +78,12 @@ class MonitoringController extends Controller
         };
 
         $lengthAwarePaginator = $query->paginate(5);
+        $hasActiveFilters = $request->filled('search')
+            || $request->filled('types')
+            || $request->filled('lifecycle');
+        $monitoringsTotal = $hasActiveFilters
+            ? Auth::user()->monitorings()->count()
+            : $lengthAwarePaginator->total();
 
         $maintenanceStatusMap = $lengthAwarePaginator->getCollection()->mapWithKeys(function ($monitoring) {
             return [$monitoring->id => $monitoring->isUnderMaintenance()];
@@ -85,7 +91,7 @@ class MonitoringController extends Controller
 
         return view('monitorings.index', [
             'monitorings' => $lengthAwarePaginator,
-            'monitoringsTotal' => Auth::user()->monitorings()->count(),
+            'monitoringsTotal' => $monitoringsTotal,
             'maintenanceStatusMap' => $maintenanceStatusMap,
         ]);
     }
