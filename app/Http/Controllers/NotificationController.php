@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
 use App\Models\NotificationChannelDelivery;
-use App\Models\Scopes\UserScope;
 use App\Services\NotificationBoardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -69,7 +68,7 @@ class NotificationController extends Controller
     public function loadMore(Request $request, NotificationBoardService $notificationBoardService): JsonResponse
     {
         $validated = $request->validate([
-            'type' => ['required', 'string', Rule::in(NotificationType::values())],
+            'type' => ['required', 'string', Rule::in($this->loadMoreTypes())],
             'offset' => ['nullable', 'integer', 'min:0'],
             'show_read' => ['nullable', 'boolean'],
         ]);
@@ -217,5 +216,16 @@ class NotificationController extends Controller
         }
 
         return min($parsedLimit, self::MAX_NOTIFICATION_LIMIT);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function loadMoreTypes(): array
+    {
+        return [
+            ...NotificationType::values(),
+            'delivery_history',
+        ];
     }
 }
