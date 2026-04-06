@@ -7,7 +7,9 @@ namespace App\Http\Controllers;
 use App\Models\Monitoring;
 use App\Services\MonitoringResultService;
 use App\Support\MonitoringStatusMeta;
+use Carbon\Carbon;
 use DateTimeInterface;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -222,40 +224,51 @@ class ApiController extends Controller
         $data = $this->cacheAndReturn(
             $cacheKey,
             function () use ($monitoring, $startDate, $endDate, $limit): array {
-                $builder = DB::table('monitoring_response_results')
-                    ->selectRaw("'live' as source, id, status, http_status_code, response_time, created_at")
-                    ->where('monitoring_id', $monitoring->id);
+                $archiveCutoffDate = Date::now()->subWeek()->startOfDay();
 
-                $archivedQuery = DB::table('monitoring_response_archived')
-                    ->selectRaw("'archived' as source, id, status, http_status_code, response_time, created_at")
-                    ->where('monitoring_id', $monitoring->id);
+                if ($startDate !== null && $startDate->gte($archiveCutoffDate)) {
+                    $rows = $this->buildChecksSourceQuery(
+                        'monitoring_response_results',
+                        'live',
+                        $monitoring->id,
+                        $startDate,
+                        $endDate,
+                        $limit
+                    )->get();
 
-                if ($startDate !== null) {
-                    $builder->whereBetween('created_at', [$startDate, $endDate]);
-                    $archivedQuery->whereBetween('created_at', [$startDate, $endDate]);
+                    return $this->formatCheckRows($rows);
                 }
 
-                $rows = DB::query()
-                    ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')->latest()
-                    ->orderByDesc('id')
+                if ($startDate === null) {
+                    $liveRows = $this->buildChecksSourceQuery(
+                        'monitoring_response_results',
+                        'live',
+                        $monitoring->id,
+                        null,
+                        null,
+                        $limit
+                    )->get();
+
+                    $oldestLiveCheckedAt = $liveRows->last()?->created_at;
+
+                    if (
+                        $liveRows->count() === $limit
+                        && $oldestLiveCheckedAt !== null
+                        && Date::parse((string) $oldestLiveCheckedAt)->gte($archiveCutoffDate)
+                    ) {
+                        return $this->formatCheckRows($liveRows);
+                    }
+                }
+
+                $rows = $this->buildChecksUnionQuery(
+                    $monitoring->id,
+                    $startDate,
+                    $startDate !== null ? $endDate : null
+                )
                     ->limit($limit)
                     ->get();
 
-                return $rows->map(function (object $row): array {
-                    $httpStatusCode = $row->http_status_code !== null ? (int) $row->http_status_code : null;
-                    $statusIdentifier = MonitoringStatusMeta::identifier($httpStatusCode);
-
-                    return [
-                        'id' => (string) $row->id,
-                        'checked_at' => Date::parse((string) $row->created_at)->toIso8601String(),
-                        'status' => (string) $row->status,
-                        'http_status_code' => $httpStatusCode,
-                        'response_time' => $row->response_time !== null ? (float) $row->response_time : null,
-                        'status_identifier' => MonitoringStatusMeta::statusIdentifier($httpStatusCode),
-                        'status_key' => MonitoringStatusMeta::statusKey($httpStatusCode),
-                        'source' => (string) $row->source,
-                    ];
-                })->all();
+                return $this->formatCheckRows($rows);
             },
             (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
@@ -522,5 +535,82 @@ class ApiController extends Controller
         }
 
         return $callback();
+    }
+
+    private function buildChecksSourceQuery(
+        string $table,
+        string $source,
+        string $monitoringId,
+        ?Carbon $startDate,
+        ?Carbon $endDate,
+        int $limit
+    ): QueryBuilder {
+        return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit($limit);
+    }
+
+    private function buildChecksUnionQuery(string $monitoringId, ?Carbon $startDate, ?Carbon $endDate): QueryBuilder
+    {
+        $liveQuery = $this->buildChecksSourceSubquery(
+            'monitoring_response_results',
+            'live',
+            $monitoringId,
+            $startDate,
+            $endDate
+        );
+        $archivedQuery = $this->buildChecksSourceSubquery(
+            'monitoring_response_archived',
+            'archived',
+            $monitoringId,
+            $startDate,
+            $endDate
+        );
+
+        return DB::query()
+            ->fromSub($liveQuery->unionAll($archivedQuery), 'monitoring_results')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
+    }
+
+    private function buildChecksSourceSubquery(
+        string $table,
+        string $source,
+        string $monitoringId,
+        ?Carbon $startDate,
+        ?Carbon $endDate
+    ): QueryBuilder {
+        $query = DB::table($table)
+            ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, created_at")
+            ->where('monitoring_id', $monitoringId);
+
+        if ($startDate !== null && $endDate !== null) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  Collection<int, object>  $rows
+     * @return array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, status_identifier: string, status_key: string, source: string}>
+     */
+    private function formatCheckRows(Collection $rows): array
+    {
+        return $rows->map(function (object $row): array {
+            $httpStatusCode = $row->http_status_code !== null ? (int) $row->http_status_code : null;
+
+            return [
+                'id' => (string) $row->id,
+                'checked_at' => Date::parse((string) $row->created_at)->toIso8601String(),
+                'status' => (string) $row->status,
+                'http_status_code' => $httpStatusCode,
+                'response_time' => $row->response_time !== null ? (float) $row->response_time : null,
+                'status_identifier' => MonitoringStatusMeta::statusIdentifier($httpStatusCode),
+                'status_key' => MonitoringStatusMeta::statusKey($httpStatusCode),
+                'source' => (string) $row->source,
+            ];
+        })->all();
     }
 }
