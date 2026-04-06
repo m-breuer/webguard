@@ -11,6 +11,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use JsonException;
 
 /**
  * Class MonitoringRequest
@@ -20,6 +21,8 @@ use Illuminate\Validation\Rule;
  */
 class MonitoringRequest extends FormRequest
 {
+    private bool $invalidHttpHeadersJson = false;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -94,8 +97,14 @@ class MonitoringRequest extends FormRequest
                         return;
                     }
 
+                    if ($this->invalidHttpHeadersJson) {
+                        $fail(__('monitoring.validation.headers_invalid_json'));
+
+                        return;
+                    }
+
                     if (! is_array($value)) {
-                        $fail('Headers must be provided as an array.');
+                        $fail(__('monitoring.validation.headers_invalid_format'));
                     }
                 },
             ],
@@ -152,8 +161,11 @@ class MonitoringRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $httpHeaders = $this->normalizeHttpHeaders();
+
         $this->merge([
             'type' => mb_strtolower((string) $this->input('type')),
+            'http_headers' => $httpHeaders,
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
         ]);
@@ -186,5 +198,43 @@ class MonitoringRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    /**
+     * @return array<string, mixed>|null|string
+     */
+    private function normalizeHttpHeaders(): array|null|string
+    {
+        $httpHeaders = $this->input('http_headers', $this->input('http_header'));
+
+        if (is_array($httpHeaders) || $httpHeaders === null) {
+            return $httpHeaders;
+        }
+
+        if (! is_string($httpHeaders)) {
+            return $httpHeaders;
+        }
+
+        $trimmedHeaders = mb_trim($httpHeaders);
+
+        if ($trimmedHeaders === '') {
+            return null;
+        }
+
+        try {
+            $decodedHeaders = json_decode($trimmedHeaders, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            $this->invalidHttpHeadersJson = true;
+
+            return $httpHeaders;
+        }
+
+        if (! is_array($decodedHeaders)) {
+            $this->invalidHttpHeadersJson = true;
+
+            return $httpHeaders;
+        }
+
+        return $decodedHeaders;
     }
 }

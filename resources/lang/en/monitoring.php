@@ -201,6 +201,7 @@ return [
         'http_method_invalid_value' => 'The HTTP method must be a valid HTTP method.',
         'headers_invalid_config' => 'Headers are only valid for HTTP or Keyword monitoring.',
         'headers_invalid_format' => 'Headers must be provided as an array.',
+        'headers_invalid_json' => 'Headers must be valid JSON.',
         'body_invalid_config' => 'Body content is only valid for HTTP or Keyword monitoring.',
         'auth_username_invalid_config' => 'Username for basic auth is only valid for HTTP or Keyword monitoring.',
         'auth_password_invalid_config' => 'Password for basic auth is only valid for HTTP or Keyword monitoring.',
