@@ -201,6 +201,7 @@ return [
         'http_method_invalid_value' => 'Die HTTP-Methode muss eine gültige HTTP-Methode sein.',
         'headers_invalid_config' => 'Header sind nur für HTTP- oder Keyword-Überwachung gültig.',
         'headers_invalid_format' => 'Header müssen als Array bereitgestellt werden.',
+        'headers_invalid_json' => 'Header müssen gültiges JSON sein.',
         'body_invalid_config' => 'Body-Inhalt ist nur für HTTP- oder Keyword-Überwachung gültig.',
         'auth_username_invalid_config' => 'Benutzername für die Basisauthentifizierung ist nur für HTTP- oder Keyword-Überwachung gültig.',
         'auth_password_invalid_config' => 'Passwort für die Basisauthentifizierung ist nur für HTTP- oder Keyword-Überwachung gültig.',

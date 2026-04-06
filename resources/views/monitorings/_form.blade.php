@@ -2,6 +2,12 @@
     use App\Enums\MonitoringType;
     use App\Enums\MonitoringLifecycleStatus;
     use App\Enums\HttpMethod;
+
+    $httpHeadersValue = old('http_headers', isset($monitoring) ? $monitoring->http_headers : null);
+
+    if (is_array($httpHeadersValue)) {
+        $httpHeadersValue = json_encode($httpHeadersValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
 @endphp
 
 @csrf
@@ -134,10 +140,10 @@
 
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
-            <x-input-label for="http_header" :value="__('monitoring.form.http_headers')" />
-            <x-textarea id="http_header" type="text" name="http_header" rows="4"
-                placeholder="{{ __('monitoring.form.placeholders.http_headers') }}">{{ old('http_header', $monitoring->http_header ?? '') }}</x-textarea>
-            <x-input-error :messages="$errors->get('http_header')" />
+            <x-input-label for="http_headers" :value="__('monitoring.form.http_headers')" />
+            <x-textarea id="http_headers" type="text" name="http_headers" rows="4"
+                placeholder="{{ __('monitoring.form.placeholders.http_headers') }}">{{ $httpHeadersValue ?? '' }}</x-textarea>
+            <x-input-error :messages="$errors->get('http_headers')" />
         </div>
     </template>
 
