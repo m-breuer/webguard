@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
+use App\Models\NotificationChannelDelivery;
 use App\Models\Scopes\UserScope;
 use App\Services\NotificationBoardService;
 use Illuminate\Http\JsonResponse;
@@ -33,12 +34,15 @@ class NotificationController extends Controller
         );
 
         [$sslExpiryNotifications, $sslExpiryHasMore] = $this->loadSslExpiryNotifications($showRead, 0, $limit);
+        [$deliveryHistory, $deliveryHistoryHasMore] = $this->loadDeliveryHistory(0, $limit);
 
         return view('notifications.index', compact(
             'statusBoardEntries',
             'statusChangeHasMore',
             'sslExpiryNotifications',
             'sslExpiryHasMore',
+            'deliveryHistory',
+            'deliveryHistoryHasMore',
             'showRead',
             'limit'
         ));
@@ -82,6 +86,18 @@ class NotificationController extends Controller
                 'html' => $renderedHtml,
                 'hasMore' => $hasMore,
                 'count' => $statusBoardEntries->count(),
+            ]);
+        }
+
+        if ($type === 'delivery_history') {
+            [$deliveryHistory, $hasMore] = $this->loadDeliveryHistory($offset, $limit);
+
+            $renderedHtml = view('notifications.partials.delivery_history_list', ['deliveries' => $deliveryHistory])->render();
+
+            return response()->json([
+                'html' => $renderedHtml,
+                'hasMore' => $hasMore,
+                'count' => $deliveryHistory->count(),
             ]);
         }
 
@@ -129,6 +145,27 @@ class NotificationController extends Controller
         int $limit = self::DEFAULT_NOTIFICATION_LIMIT
     ): array {
         return $this->loadNotificationsByType(NotificationType::SSL_EXPIRY, $showRead, $offset, $limit);
+    }
+
+    /**
+     * @return array{0: Collection<int, NotificationChannelDelivery>, 1: bool}
+     */
+    private function loadDeliveryHistory(int $offset = 0, int $limit = self::DEFAULT_NOTIFICATION_LIMIT): array
+    {
+        $deliveries = NotificationChannelDelivery::query()
+            ->where('user_id', auth()->id())
+            ->with(['monitoringNotification.monitoring:id,name,target'])
+            ->latest()
+            ->offset($offset)
+            ->limit($limit + 1)
+            ->get();
+
+        $hasMore = $deliveries->count() > $limit;
+        if ($hasMore) {
+            $deliveries->pop();
+        }
+
+        return [$deliveries, $hasMore];
     }
 
     /**

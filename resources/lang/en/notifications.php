@@ -9,6 +9,9 @@ return [
         'heading' => 'Notification Board',
     ],
     'ssl_expiry_notifications' => 'SSL Expiry',
+    'delivery_history' => [
+        'heading' => 'Delivery History',
+    ],
     'load_more' => 'Load More',
     'mark_as_read' => 'Mark as Read',
     'mark_all_as_read' => 'Mark all as read',
@@ -21,6 +24,11 @@ return [
         'host' => 'Host',
         'timestamp' => 'Latest check',
         'latest_status_change' => 'Latest status change',
+        'channel' => 'Channel',
+        'event' => 'Event',
+        'attempted_at' => 'Attempted at',
+        'sent_at' => 'Sent at',
+        'error' => 'Error',
         'no_status_code' => 'No status code',
         'not_available' => 'Not available',
     ],
@@ -48,6 +56,23 @@ return [
     'ssl_messages' => [
         'expiring' => 'SSL certificate for :name is expiring soon.',
         'expired' => 'SSL certificate for :name has expired.',
+    ],
+    'channels' => [
+        'slack' => 'Slack',
+        'telegram' => 'Telegram',
+        'discord' => 'Discord',
+        'webhook' => 'Webhook',
+    ],
+    'events' => [
+        'incident' => 'Incident',
+        'recovery' => 'Recovery',
+        'ssl_expiring' => 'SSL expiring',
+        'ssl_expired' => 'SSL expired',
+    ],
+    'delivery_status' => [
+        'sent' => 'Sent',
+        'failed' => 'Failed',
+        'skipped' => 'Skipped',
     ],
     'messages' => [
         'notification_marked_as_read' => 'Notification marked as read.',

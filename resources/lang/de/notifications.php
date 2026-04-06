@@ -9,6 +9,9 @@ return [
         'heading' => 'Status-Board',
     ],
     'ssl_expiry_notifications' => 'SSL-Ablauf',
+    'delivery_history' => [
+        'heading' => 'Zustellverlauf',
+    ],
     'load_more' => 'Mehr laden',
     'mark_as_read' => 'Als gelesen markieren',
     'mark_all_as_read' => 'Alle als gelesen markieren',
@@ -21,6 +24,11 @@ return [
         'host' => 'Host',
         'timestamp' => 'Letzte Prüfung',
         'latest_status_change' => 'Letzte Statusänderung',
+        'channel' => 'Kanal',
+        'event' => 'Ereignis',
+        'attempted_at' => 'Versucht am',
+        'sent_at' => 'Gesendet am',
+        'error' => 'Fehler',
         'no_status_code' => 'Kein Statuscode',
         'not_available' => 'Nicht verfügbar',
     ],
@@ -48,6 +56,23 @@ return [
     'ssl_messages' => [
         'expiring' => 'Das SSL-Zertifikat für :name läuft bald ab.',
         'expired' => 'Das SSL-Zertifikat für :name ist abgelaufen.',
+    ],
+    'channels' => [
+        'slack' => 'Slack',
+        'telegram' => 'Telegram',
+        'discord' => 'Discord',
+        'webhook' => 'Webhook',
+    ],
+    'events' => [
+        'incident' => 'Vorfall',
+        'recovery' => 'Wiederherstellung',
+        'ssl_expiring' => 'SSL läuft bald ab',
+        'ssl_expired' => 'SSL abgelaufen',
+    ],
+    'delivery_status' => [
+        'sent' => 'Gesendet',
+        'failed' => 'Fehlgeschlagen',
+        'skipped' => 'Übersprungen',
     ],
     'messages' => [
         'notification_marked_as_read' => 'Benachrichtigung als gelesen markiert.',
