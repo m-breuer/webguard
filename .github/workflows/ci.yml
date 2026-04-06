@@ -14,20 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6.0.2
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
 
     - name: Setup PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@2.37.0
       with:
         php-version: '8.4'
         extensions: redis, sockets, zip
         tools: composer
 
     - name: Cache Composer dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5.0.4
       id: composer-cache
       with:
         path: vendor
@@ -48,7 +48,7 @@ jobs:
       run: git checkout -B "${{ github.head_ref }}"
 
     - name: Commit changes
-      uses: stefanzweifel/git-auto-commit-action@v5
+      uses: stefanzweifel/git-auto-commit-action@v7.1.0
       with:
         commit_message: 'ci: auto-fixes from pint and rector'
         commit_options: '--no-verify'
@@ -58,17 +58,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6.0.2
 
     - name: Setup PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@2.37.0
       with:
         php-version: '8.4'
         extensions: redis, mbstring, pdo_mysql, curl, intl, gd, zip, bz2, opcache, xdebug, gmp, ldap, pdo_sqlite, sqlite3, pspell, snmp, tidy
         coverage: xdebug
 
     - name: Cache Composer dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5.0.4
       with:
         path: vendor
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -79,12 +79,12 @@ jobs:
       run: composer install --no-progress --prefer-dist --optimize-autoloader
 
     - name: Setup Bun
-      uses: oven-sh/setup-bun@v2
+      uses: oven-sh/setup-bun@v2.2.0
       with:
-        bun-version: '1.3.10'
+        bun-version: '1.3.11'
 
     - name: Cache Bun dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5.0.4
       with:
         path: |
           ~/.bun/install/cache
