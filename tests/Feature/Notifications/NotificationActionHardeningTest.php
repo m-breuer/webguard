@@ -22,7 +22,7 @@ class NotificationActionHardeningTest extends TestCase
         $actingUser = User::factory()->create();
         $otherUser = User::factory()->create();
         $otherMonitoring = Monitoring::factory()->for($otherUser)->create();
-        $foreignNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $otherMonitoring->id,
             'type' => NotificationType::SSL_EXPIRY,
             'message' => 'SSL certificate expires soon.',
@@ -30,11 +30,11 @@ class NotificationActionHardeningTest extends TestCase
             'sent' => false,
         ]);
 
-        $testResponse = $this->actingAs($actingUser)->post(route('notifications.markAsRead', $foreignNotification->id));
+        $testResponse = $this->actingAs($actingUser)->post(route('notifications.markAsRead', $monitoringNotification->id));
 
         $testResponse->assertNotFound();
         $this->assertDatabaseHas('monitoring_notifications', [
-            'id' => $foreignNotification->id,
+            'id' => $monitoringNotification->id,
             'read' => false,
         ]);
     }
