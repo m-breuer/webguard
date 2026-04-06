@@ -39,7 +39,7 @@ jobs:
       run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
     - name: Run Rector
-      run: ./vendor/bin/rector process --ansi
+      run: ./vendor/bin/rector process --ansi --debug
 
     - name: Run Pint
       run: ./vendor/bin/pint

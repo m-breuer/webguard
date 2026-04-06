@@ -15,7 +15,7 @@ class UserDeletionPreparationServiceTest extends TestCase
 {
     public function test_disable_login_until_deletion_revokes_all_immediate_login_paths(): void
     {
-        $service = app(UserDeletionPreparationService::class);
+        $userDeletionPreparationService = resolve(UserDeletionPreparationService::class);
         Package::factory()->create();
         $user = User::factory()->create([
             'github_id' => '12345',
@@ -40,7 +40,7 @@ class UserDeletionPreparationServiceTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $service->disableLoginUntilDeletion($user);
+        $userDeletionPreparationService->disableLoginUntilDeletion($user);
 
         $user->refresh();
 
