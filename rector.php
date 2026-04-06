@@ -10,6 +10,7 @@ use RectorLaravel\Set\LaravelSetProvider;
 
 return RectorConfig::configure()
     ->withoutParallel()
+    ->withCache(__DIR__ . '/storage/framework/cache/rector')
     ->withSetProviders(LaravelSetProvider::class)
     ->withComposerBased(laravel: true)
     ->withPaths([
@@ -45,4 +46,6 @@ return RectorConfig::configure()
     ->withSkip([
         StringToClassConstantRector::class,
         __DIR__ . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
+        // This service is large enough that Rector currently stalls while processing it.
+        __DIR__ . '/app/Services/MonitoringResultService.php',
     ]);

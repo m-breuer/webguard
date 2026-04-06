@@ -43,7 +43,7 @@ class NotificationDeliveryHistoryTest extends TestCase
             'updated_at' => Date::now()->subMinute(),
         ]);
 
-        $visibleDelivery = NotificationChannelDelivery::query()->forceCreate([
+        $notificationChannelDelivery = NotificationChannelDelivery::query()->forceCreate([
             'user_id' => $user->id,
             'monitoring_notification_id' => $monitoringNotification->id,
             'channel' => 'slack',
@@ -98,7 +98,7 @@ class NotificationDeliveryHistoryTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('notifications.delivery_history.heading'));
-        $testResponse->assertSeeHtml('id="' . $visibleDelivery->id . '"');
+        $testResponse->assertSeeHtml('id="' . $notificationChannelDelivery->id . '"');
         $testResponse->assertSeeHtml('id="' . $payloadOnlyDelivery->id . '"');
         $testResponse->assertDontSeeHtml('id="' . $hiddenDelivery->id . '"');
         $testResponse->assertSeeText('Primary API');
@@ -170,9 +170,9 @@ class NotificationDeliveryHistoryTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('notifications.index'));
 
         $testResponse->assertOk();
-        $testResponse->assertSee('getOffsetForType(type)', false);
-        $testResponse->assertSee("if (type === 'delivery_history') {", false);
-        $testResponse->assertSee('return this.deliveryHistoryOffset;', false);
-        $testResponse->assertSee('const offset = this.getOffsetForType(type);', false);
+        $testResponse->assertSeeHtml('getOffsetForType(type)');
+        $testResponse->assertSeeHtml("if (type === 'delivery_history') {");
+        $testResponse->assertSeeHtml('return this.deliveryHistoryOffset;');
+        $testResponse->assertSeeHtml('const offset = this.getOffsetForType(type);');
     }
 }
