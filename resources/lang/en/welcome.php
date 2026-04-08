@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-$monitoringInterval = (int) config('monitoring.interval', 5);
-
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, and Ports',
@@ -157,7 +155,7 @@ return [
             ],
             '2' => [
                 'label' => 'Default interval',
-                'value' => $monitoringInterval === 1 ? '1 minute' : "{$monitoringInterval} minutes",
+                'value' => '1 minute|:count minutes',
             ],
             '3' => [
                 'label' => 'Recommended monitor types',

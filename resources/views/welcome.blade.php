@@ -207,7 +207,13 @@
                             @foreach ([1, 2, 3] as $metric)
                                 <div class="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/80">
                                     <dt><x-span class="text-slate-600 dark:text-slate-300">{{ __('welcome.case_study.metrics.' . $metric . '.label') }}</x-span></dt>
-                                    <dd><x-span class="font-semibold text-emerald-700 dark:text-emerald-300">{{ __('welcome.case_study.metrics.' . $metric . '.value') }}</x-span></dd>
+                                    <dd>
+                                        <x-span class="font-semibold text-emerald-700 dark:text-emerald-300">
+                                            {{ $metric === 2
+                                                ? trans_choice('welcome.case_study.metrics.2.value', config('monitoring.interval', 5), ['count' => config('monitoring.interval', 5)])
+                                                : __('welcome.case_study.metrics.' . $metric . '.value') }}
+                                        </x-span>
+                                    </dd>
                                 </div>
                             @endforeach
                         </dl>
