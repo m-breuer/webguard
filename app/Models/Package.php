@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read Collection<int, User> $users
  */
+#[Fillable([
+    'monitoring_limit',
+    'price',
+    'is_selectable',
+])]
 class Package extends Model
 {
     use HasFactory, HasUlids;
@@ -31,17 +37,6 @@ class Package extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'monitoring_limit',
-        'price',
-        'is_selectable',
-    ];
 
     /**
      * Get the cheapest selectable package available.

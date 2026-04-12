@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +26,11 @@ use Override;
  * @property Carbon $updated_at
  * @property-read User $user
  */
+#[Fillable([
+    'user_id',
+    'route',
+])]
+#[Table(name: 'api_logs', key: 'id', keyType: 'string')]
 class ApiLog extends Model
 {
     use HasFactory;
@@ -35,37 +42,6 @@ class ApiLog extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'api_logs';
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The "type" of the primary key ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'user_id',
-        'route',
-    ];
 
     /**
      * Get the user that owns the API log.
