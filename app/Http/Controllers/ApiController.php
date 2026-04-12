@@ -394,6 +394,65 @@ class ApiController extends Controller
     }
 
     /**
+     * Retrieves the public embeddable widget payload for a monitoring instance.
+     *
+     * @response {
+     *   "name": "Primary API",
+     *   "status": "up",
+     *   "status_label": "UP",
+     *   "status_code": 200,
+     *   "status_identifier": "status.success",
+     *   "status_key": "notifications.status.success",
+     *   "checked_at": "2026-04-12T10:00:00Z",
+     *   "checked_at_human": "5 minutes ago",
+     *   "uptime": {
+     *     "7_days": 100,
+     *     "30_days": 99.9,
+     *     "365_days": 99.1
+     *   },
+     *   "public_url": "https://example.com/label/01H..."
+     * }
+     */
+    public function widget(Monitoring $monitoring): JsonResponse
+    {
+        abort_unless($monitoring->public_label_enabled, 404);
+
+        $cacheKey = sprintf('monitoring:%s:widget', $monitoring->id);
+
+        $data = $this->cacheAndReturn(
+            $cacheKey,
+            function () use ($monitoring): array {
+                $statusSince = MonitoringResultService::getStatusSince($monitoring);
+                $statusNow = MonitoringResultService::getStatusNow($monitoring);
+                $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
+                $status = (string) ($statusSince['status'] ?? 'unknown');
+                $checkedAt = $statusNow['checked_at'] ?? null;
+
+                return [
+                    'name' => $monitoring->name,
+                    'status' => $status,
+                    'status_label' => mb_strtoupper($status),
+                    'status_code' => $latestStatusCode,
+                    'status_identifier' => MonitoringStatusMeta::statusIdentifier($latestStatusCode, $monitoring->isUnderMaintenance()),
+                    'status_key' => MonitoringStatusMeta::statusKey($latestStatusCode, $monitoring->isUnderMaintenance()),
+                    'checked_at' => $checkedAt,
+                    'checked_at_human' => $checkedAt ? Date::parse((string) $checkedAt)->diffForHumans() : null,
+                    'uptime' => [
+                        '7_days' => $this->resolveWidgetUptimePercentage($monitoring, 7),
+                        '30_days' => $this->resolveWidgetUptimePercentage($monitoring, 30),
+                        '365_days' => $this->resolveWidgetUptimePercentage($monitoring, 365),
+                    ],
+                    'public_url' => route('public-label', $monitoring),
+                ];
+            },
+            (int) config('monitoring.interval', 5) * 60,
+            'monitoring:' . $monitoring->id
+        );
+
+        return response()->json($data);
+    }
+
+    /**
      * Retrieves the incidents for a given monitoring instance.
      *
      * @queryParam days integer The number of days to retrieve data for. Defaults to 30. Example: 30
@@ -585,6 +644,23 @@ class ApiController extends Controller
         }
 
         return $callback();
+    }
+
+    private function resolveWidgetUptimePercentage(Monitoring $monitoring, int $days): ?float
+    {
+        $startDate = Date::now()->subDays($days)->startOfDay();
+        $endDate = Date::now()->endOfDay();
+        $loadAggregatedData = $days > 1 && $monitoring->created_at->diffInDays(Date::now()) >= 1;
+
+        $stats = MonitoringResultService::getUptimeDowntime(
+            $monitoring,
+            $startDate,
+            $endDate,
+            $loadAggregatedData,
+            false
+        );
+
+        return data_get($stats, 'uptime.percentage');
     }
 
     private function buildChecksSourceQuery(
