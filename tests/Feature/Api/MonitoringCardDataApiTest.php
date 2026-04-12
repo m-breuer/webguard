@@ -99,6 +99,24 @@ class MonitoringCardDataApiTest extends TestCase
         $testResponse->assertJsonMissingPath('data.' . $foreignMonitoring->id);
     }
 
+    public function test_card_data_endpoint_accepts_more_than_twenty_five_requested_monitorings(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 50]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+
+        $monitorings = Monitoring::factory()->count(26)->for($user)->create();
+
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/card-data?' . http_build_query([
+            'ids' => $monitorings->pluck('id')->all(),
+        ]));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonCount(26, 'data');
+        $testResponse->assertJsonPath('data.' . $monitorings->first()->id . '.heatmap.0.uptime', 0);
+    }
+
     private function selectQueryCount(): int
     {
         return collect(DB::getQueryLog())
