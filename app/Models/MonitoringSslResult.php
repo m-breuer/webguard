@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +29,14 @@ use Illuminate\Support\Carbon;
  * @property-read Monitoring $monitoring
  * @property-read User $user
  */
+#[Fillable([
+    'monitoring_id',
+    'expires_at',
+    'is_valid',
+    'issuer',
+    'issued_at',
+])]
+#[Table(name: 'monitoring_ssl_results', key: 'id', keyType: 'string')]
 class MonitoringSslResult extends Model
 {
     use HasFactory;
@@ -38,40 +48,6 @@ class MonitoringSslResult extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The data type of the primary key.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'monitoring_ssl_results';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'monitoring_id',
-        'expires_at',
-        'is_valid',
-        'issuer',
-        'issued_at',
-    ];
 
     /**
      * Get the monitoring instance that this result belongs to.

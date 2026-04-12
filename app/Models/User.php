@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -50,45 +52,33 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder|static newQuery()
  * @method static Builder|static query()
  */
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'role',
+    'terms_accepted_at',
+    'privacy_accepted_at',
+    'package_id',
+    'locale',
+    'theme',
+    'github_id',
+    'github_token',
+    'github_refresh_token',
+    'avatar',
+    'notification_channels',
+    'notification_channels_hint_seen_at',
+])]
+#[Hidden([
+    'password',
+    'remember_token',
+])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
     use HasUlids;
     use Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'terms_accepted_at',
-        'privacy_accepted_at',
-        'package_id',
-        'locale',
-        'theme',
-        'github_id',
-        'github_token',
-        'github_refresh_token',
-        'avatar',
-        'notification_channels',
-        'notification_channels_hint_seen_at',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
 
     /**
      * Get all monitorings that belong to the user.

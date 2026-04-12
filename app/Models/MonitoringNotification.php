@@ -6,7 +6,10 @@ namespace App\Models;
 
 use App\Enums\NotificationType;
 use App\Models\Scopes\UserScope;
+use Illuminate\Database\Eloquent\Attributes\Appends;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -14,6 +17,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[Appends(['created_at_for_humans', 'translated_message'])]
+#[Fillable([
+    'monitoring_id',
+    'type',
+    'message',
+    'read',
+    'sent',
+])]
+#[Table(name: 'monitoring_notifications', key: 'id', keyType: 'string')]
 class MonitoringNotification extends Model
 {
     use HasFactory;
@@ -25,42 +37,6 @@ class MonitoringNotification extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    protected $table = 'monitoring_notifications';
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The "type" of the auto-incrementing ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'monitoring_id',
-        'type',
-        'message',
-        'read',
-        'sent',
-    ];
-
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = ['created_at_for_humans', 'translated_message'];
 
     public static function extractStatusChangeIdentifierFromMessage(string $message): string
     {

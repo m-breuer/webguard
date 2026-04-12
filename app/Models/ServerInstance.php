@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,6 +15,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Hash;
 
+#[Fillable([
+    'code',
+    'ip_address',
+    'api_key_hash',
+    'is_active',
+])]
+#[Hidden([
+    'api_key_hash',
+])]
 class ServerInstance extends Model
 {
     use HasFactory;
@@ -21,23 +32,6 @@ class ServerInstance extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'code',
-        'ip_address',
-        'api_key_hash',
-        'is_active',
-    ];
-
-    /**
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'api_key_hash',
-    ];
 
     /**
      * @return HasMany<Monitoring, $this>

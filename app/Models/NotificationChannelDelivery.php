@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\NotificationDeliveryStatus;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,16 @@ use Illuminate\Support\Carbon;
  * @property string|null $error_message
  * @property Carbon|null $sent_at
  */
+#[Fillable([
+    'user_id',
+    'monitoring_notification_id',
+    'channel',
+    'event_type',
+    'status',
+    'payload',
+    'error_message',
+    'sent_at',
+])]
 class NotificationChannelDelivery extends Model
 {
     use HasFactory;
@@ -47,20 +58,6 @@ class NotificationChannelDelivery extends Model
      * @var string
      */
     protected $keyType = 'string';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'user_id',
-        'monitoring_notification_id',
-        'channel',
-        'event_type',
-        'status',
-        'payload',
-        'error_message',
-        'sent_at',
-    ];
 
     /**
      * @return BelongsTo<User, $this>

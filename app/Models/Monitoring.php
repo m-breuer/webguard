@@ -7,7 +7,9 @@ namespace App\Models;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +28,28 @@ use Override;
  * associated with a user and having many results.
  *
  **/
+#[Fillable([
+    'user_id',
+    'name',
+    'type',
+    'target',
+    'port',
+    'keyword',
+    'status',
+    'timeout',
+    'http_method',
+    'http_headers',
+    'http_body',
+    'auth_username',
+    'auth_password',
+    'public_label_enabled',
+    'preferred_location',
+    'notification_on_failure',
+    'deleted_at',
+    'maintenance_from',
+    'maintenance_until',
+])]
+#[Table(name: 'monitorings', key: 'id', keyType: 'string')]
 class Monitoring extends Model
 {
     use HasFactory;
@@ -38,54 +62,6 @@ class Monitoring extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'monitorings';
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The "type" of the auto-incrementing ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'user_id',
-        'name',
-        'type',
-        'target',
-        'port',
-        'keyword',
-        'status',
-        'timeout',
-        'http_method',
-        'http_headers',
-        'http_body',
-        'auth_username',
-        'auth_password',
-        'public_label_enabled',
-        'preferred_location',
-        'notification_on_failure',
-        'deleted_at',
-        'maintenance_from',
-        'maintenance_until',
-    ];
 
     /**
      * Get the user that owns the monitoring.
