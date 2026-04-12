@@ -202,26 +202,30 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
     // Loads uptime data for predefined intervals and supplements it with downtime duration
     async loadUptime(this: MonitoringDetailComponent): Promise<void> {
-        const intervals = {
-            '7': 7,
-            '30': 30,
-            '90': 90,
-        };
+        const query = new URLSearchParams();
+        ['7', '30', '90'].forEach((days) => query.append('days[]', days));
 
-        const promises = Object.entries(intervals).map(async ([label, days]) => {
-            const uptimeData = await fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
+        const response = await fetch(`/api/monitorings/${monitoringId}/uptime-downtime-summary?${query.toString()}`).catch(() => null);
 
-            if (uptimeData && uptimeData.downtime) {
-                uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
-                uptimeData.downtime.incidents_count = Number(uptimeData.downtime.incidents_count ?? 0);
-            }
+        if (!response?.ok) {
+            this.uptimeStats = {};
 
-            return { [label]: uptimeData };
-        });
+            return;
+        }
 
-        const results = await Promise.all(promises);
+        const payload = await response.json() as { data?: Record<string, any> };
+        const summary = payload.data ?? {};
 
-        this.uptimeStats = Object.assign({}, ...results);
+        this.uptimeStats = Object.fromEntries(
+            Object.entries(summary).map(([label, uptimeData]) => {
+                if (uptimeData && uptimeData.downtime) {
+                    uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
+                    uptimeData.downtime.incidents_count = Number(uptimeData.downtime.incidents_count ?? 0);
+                }
+
+                return [label, uptimeData];
+            })
+        );
     },
 
     // Loads uptime percentage and incident count for a custom date range.
