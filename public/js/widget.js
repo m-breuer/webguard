@@ -3,17 +3,27 @@ if (!window.webguardWidgetInitialized) {
 
     (() => {
         const widgetContainer = document.getElementById('webguard-widget');
-        const monitoringId = widgetContainer.dataset.monitoring;
-
-        if (!monitoringId) {
-            console.error("WebGuard Widget: 'data-monitoring' attribute is missing on the script tag.");
-            return;
-        }
 
         if (!widgetContainer) {
             console.error("WebGuard Widget: Element with ID 'webguard-widget' not found.");
             return;
         }
+
+        const monitoringId = widgetContainer.dataset.monitoring;
+        const scriptSource = document.currentScript?.src;
+
+        if (!monitoringId) {
+            console.error("WebGuard Widget: 'data-monitoring' attribute is missing on the widget container.");
+            return;
+        }
+
+        if (!scriptSource) {
+            console.error('WebGuard Widget: Unable to determine the widget script source.');
+            return;
+        }
+
+        const appBaseUrl = new URL(scriptSource);
+        const apiUrl = new URL(`/api/public/monitorings/${encodeURIComponent(monitoringId)}/widget`, appBaseUrl).toString();
 
         // Inject CSS
         const style = document.createElement('style');
@@ -69,6 +79,10 @@ if (!window.webguardWidgetInitialized) {
                 color: #a71d2a;
                 background-color: #ffe6e6;
             }
+            .wg-status-unknown {
+                color: #7c5e10;
+                background-color: #fff3cd;
+            }
             .wg-info-line {
                 font-size: 0.95rem;
                 color: #555555;
@@ -115,8 +129,6 @@ if (!window.webguardWidgetInitialized) {
         `;
         document.head.appendChild(style);
 
-        const apiUrl = `https://webguard.m-breuer.dev/api/v1/monitorings/${monitoringId}/widget/`;
-
         const fetchAndRenderWidget = () => {
             widgetContainer.innerHTML = '<p class="wg-info-line">Loading WebGuard Widget...</p>';
 
@@ -128,18 +140,23 @@ if (!window.webguardWidgetInitialized) {
                     return response.json();
                 })
                 .then(data => {
+                    const status = typeof data.status === 'string' ? data.status : 'unknown';
+                    const statusLabel = typeof data.status_label === 'string' ? data.status_label : status.toUpperCase();
+                    const lastChecked = data.checked_at_human ?? 'No checks yet';
+                    const formatUptime = (value) => typeof value === 'number' ? `${value.toFixed(2)}%` : 'N/A';
+
                     widgetContainer.innerHTML = `
                         <div class="wg-widget-container">
                             <h3 class="wg-heading">${data.name}</h3>
-                            <p class="wg-status-line"><span class="wg-label">Status:</span> <span class="wg-status-text wg-status-${data.status === 'UP' ? 'up' : 'down'}">${data.status}</span></p>
-                            <p class="wg-info-line"><span class="wg-label">Last Checked:</span> ${data.last_checked_at}</p>
+                            <p class="wg-status-line"><span class="wg-label">Status:</span> <span class="wg-status-text wg-status-${status}">${statusLabel}</span></p>
+                            <p class="wg-info-line"><span class="wg-label">Last Checked:</span> ${lastChecked}</p>
                             <div class="wg-uptime-grid">
-                                <p class="wg-uptime-item"><span class="wg-label">Uptime (7 Days):</span> ${data.uptime['7_days']}%</p>
-                                <p class="wg-uptime-item"><span class="wg-label">Uptime (30 Days):</span> ${data.uptime['30_days']}%</p>
-                                <p class="wg-uptime-item"><span class="wg-label">Uptime (365 Days):</span> ${data.uptime['365_days']}%</p>
+                                <p class="wg-uptime-item"><span class="wg-label">Uptime (7 Days):</span> ${formatUptime(data.uptime?.['7_days'])}</p>
+                                <p class="wg-uptime-item"><span class="wg-label">Uptime (30 Days):</span> ${formatUptime(data.uptime?.['30_days'])}</p>
+                                <p class="wg-uptime-item"><span class="wg-label">Uptime (365 Days):</span> ${formatUptime(data.uptime?.['365_days'])}</p>
                             </div>
                             <div class="wg-footer">
-                                <a href="https://webguard.m-breuer.dev" target="_blank" class="wg-footer-link">Powered by WebGuard</a>
+                                <a href="${appBaseUrl.origin}" target="_blank" class="wg-footer-link">Powered by WebGuard</a>
                             </div>
                         </div>
                     `;
