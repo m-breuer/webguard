@@ -50,39 +50,69 @@ class MonitoringResultService
      */
     public static function getHeatmap(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
     {
-        // Enforce 24-hour window for heatmap
+        $heatmaps = self::getHeatmapsForMonitorings(collect([$monitoring]), $startDate, $endDate);
+
+        return collect($heatmaps[$monitoring->id] ?? []);
+    }
+
+    /**
+     * @param  Collection<int, Monitoring>  $monitorings
+     * @return array<string, list<array{date: Carbon, uptime: int, downtime: int, unknown: int}>>
+     */
+    public static function getHeatmapsForMonitorings(Collection $monitorings, Carbon $startDate, Carbon $endDate): array
+    {
+        if ($monitorings->isEmpty()) {
+            return [];
+        }
+
+        // Enforce 24-hour window for heatmap payloads.
         $startDate = Date::now()->subHours(23)->startOfHour();
         $endDate = Date::now()->endOfHour();
+
+        $monitoringIds = $monitorings
+            ->pluck('id')
+            ->filter(static fn (mixed $id): bool => is_string($id) && $id !== '')
+            ->values();
 
         $interval = (int) config('monitoring.interval', 5);
         $periodExpression = self::getPeriodExpression('created_at', '%Y-%m-%d %H');
 
-        $raw = self::getMonitoringResponseQuery($endDate)
-            ->where('monitoring_id', $monitoring->id)
-            ->selectRaw("{$periodExpression} as period,
+        $rawByMonitoring = self::getMonitoringResponseQuery($endDate)
+            ->whereIn('monitoring_id', $monitoringIds)
+            ->selectRaw("monitoring_id, {$periodExpression} as period,
                 SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) * {$interval} as uptime,
                 SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) * {$interval} as downtime,
                 SUM(CASE WHEN status NOT IN ('up', 'down') THEN 1 ELSE 0 END) * {$interval} as unknown
             ")
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('period')
+            ->groupBy('monitoring_id', 'period')
             ->orderBy('period')
             ->get()
-            ->keyBy('period');
+            ->groupBy('monitoring_id')
+            ->map(static fn (Collection $rows): Collection => $rows->keyBy('period'));
 
-        return collect(
-            CarbonPeriod::create($startDate, '1 hour', $endDate)
-                ->map(function (Carbon $hour) use ($raw) {
-                    $record = $raw->get($hour->format('Y-m-d H'));
+        return $monitoringIds
+            ->mapWithKeys(function (string $monitoringId) use ($rawByMonitoring, $startDate, $endDate): array {
+                /** @var Collection<int, object> $raw */
+                $raw = $rawByMonitoring->get($monitoringId, collect());
 
-                    return [
-                        'date' => $hour,
-                        'uptime' => (int) ($record->uptime ?? 0),
-                        'downtime' => (int) ($record->downtime ?? 0),
-                        'unknown' => (int) ($record->unknown ?? 0),
-                    ];
-                })
-        );
+                $heatmap = collect(CarbonPeriod::create($startDate, '1 hour', $endDate))
+                    ->map(function (Carbon $hour) use ($raw): array {
+                        $record = $raw->get($hour->format('Y-m-d H'));
+
+                        return [
+                            'date' => $hour,
+                            'uptime' => (int) ($record->uptime ?? 0),
+                            'downtime' => (int) ($record->downtime ?? 0),
+                            'unknown' => (int) ($record->unknown ?? 0),
+                        ];
+                    })
+                    ->values()
+                    ->all();
+
+                return [$monitoringId => $heatmap];
+            })
+            ->all();
     }
 
     /**

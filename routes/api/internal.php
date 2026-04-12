@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\MonitoringCardDataController;
 use App\Http\Controllers\Api\NotificationBoardController;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/notifications/status-board', NotificationBoardController::class)->name('notifications.status-board');
 
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {
+    Route::get('/card-data', MonitoringCardDataController::class)->name('card-data');
     Route::get('/{monitoring}', [ApiController::class, 'all']);
 
     Route::get('/{monitoring}/status', [ApiController::class, 'status']);
