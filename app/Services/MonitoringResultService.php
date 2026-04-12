@@ -174,6 +174,129 @@ class MonitoringResultService
     }
 
     /**
+     * @param  array<int, int>  $days
+     * @return array<string, Collection{
+     *     data: array{from: Carbon, to: Carbon},
+     *     has_data: bool,
+     *     tracking_started_at: string|null,
+     *     uptime: array{minutes: int, percentage: float|null, total: int},
+     *     downtime: array{minutes: int, percentage: float|null, total: int, incidents_count: int},
+     *     unknown: array{minutes: int, percentage: float|null, total: int}
+     * }>
+     */
+    public static function getUptimeDowntimesForRanges(Monitoring $monitoring, array $days): array
+    {
+        $normalizedDays = collect($days)
+            ->map(static fn (mixed $day): ?int => is_numeric($day) ? (int) $day : null)
+            ->filter(static fn (?int $day): bool => $day !== null && $day > 0)
+            ->unique()
+            ->sort()
+            ->values();
+
+        if ($normalizedDays->isEmpty()) {
+            return [];
+        }
+
+        $now = Date::now();
+        $endDate = $now->copy()->endOfDay();
+        $requiresRawFallback = $normalizedDays->contains(static fn (int $day): bool => $day <= 1)
+            || $monitoring->created_at->diffInDays($now) < 1;
+
+        if ($requiresRawFallback) {
+            return $normalizedDays
+                ->mapWithKeys(function (int $day) use ($monitoring, $now, $endDate): array {
+                    $startDate = $now->copy()->subDays($day)->startOfDay();
+                    $loadAggregatedData = $day > 1;
+                    $includeIntradayRawData = $day <= 1;
+
+                    if ($monitoring->created_at->diffInDays($now) < 1) {
+                        $loadAggregatedData = false;
+                    }
+
+                    return [
+                        (string) $day => self::getUptimeDowntime(
+                            $monitoring,
+                            $startDate,
+                            $endDate,
+                            $loadAggregatedData,
+                            $includeIntradayRawData
+                        ),
+                    ];
+                })
+                ->all();
+        }
+
+        $trackingStartedAt = self::getTrackingStartedAtFromDailyResults($monitoring);
+
+        if (! $trackingStartedAt || $trackingStartedAt->gt($endDate)) {
+            return $normalizedDays
+                ->mapWithKeys(function (int $day) use ($now, $endDate, $trackingStartedAt): array {
+                    $startDate = $now->copy()->subDays($day)->startOfDay();
+
+                    return [
+                        (string) $day => self::buildUptimeDowntimeStats(
+                            $startDate,
+                            $endDate,
+                            $trackingStartedAt,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0
+                        ),
+                    ];
+                })
+                ->all();
+        }
+
+        $maxRangeDays = (int) $normalizedDays->last();
+        $globalStartDate = $now->copy()->subDays($maxRangeDays)->startOfDay();
+
+        $dailyResults = $monitoring->dailyResults()
+            ->whereBetween('date', [$globalStartDate->toDateString(), $endDate->toDateString()])
+            ->get([
+                'date',
+                'uptime_minutes',
+                'downtime_minutes',
+                'unknown_minutes',
+                'uptime_total',
+                'downtime_total',
+                'unknown_total',
+                'incidents_count',
+            ]);
+
+        return $normalizedDays
+            ->mapWithKeys(function (int $day) use ($dailyResults, $endDate, $now, $trackingStartedAt): array {
+                $startDate = $now->copy()->subDays($day)->startOfDay();
+                $startDateString = $startDate->toDateString();
+                $endDateString = $endDate->toDateString();
+
+                $rangeRows = $dailyResults->filter(
+                    static fn (MonitoringDailyResult $dailyResult): bool => $dailyResult->date >= $startDateString
+                        && $dailyResult->date <= $endDateString
+                );
+
+                return [
+                    (string) $day => self::buildUptimeDowntimeStats(
+                        $startDate,
+                        $endDate,
+                        $trackingStartedAt,
+                        (int) $rangeRows->sum('uptime_minutes'),
+                        (int) $rangeRows->sum('downtime_minutes'),
+                        (int) $rangeRows->sum('unknown_minutes'),
+                        (int) $rangeRows->sum('uptime_total'),
+                        (int) $rangeRows->sum('downtime_total'),
+                        (int) $rangeRows->sum('unknown_total'),
+                        (int) $rangeRows->sum('incidents_count')
+                    ),
+                ];
+            })
+            ->all();
+    }
+
+    /**
      * Determine the time since the current monitoring status (up/down) began.
      *
      * @param  Monitoring  $monitoring  The monitoring instance to check the status for.

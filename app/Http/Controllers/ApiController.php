@@ -141,6 +141,56 @@ class ApiController extends Controller
     }
 
     /**
+     * Retrieves uptime and downtime data for multiple day ranges in one request.
+     *
+     * @queryParam days[] integer[] The day ranges to retrieve. Example: [7, 30, 90]
+     *
+     * @response {
+     *   "data": {
+     *     "7": {
+     *       "has_data": true
+     *     },
+     *     "30": {
+     *       "has_data": true
+     *     }
+     *   }
+     * }
+     */
+    public function uptimeDowntimeSummary(Monitoring $monitoring, Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'days' => ['required', 'array', 'min:1', 'max:10'],
+            'days.*' => ['required', 'integer', 'min:1', 'max:3650'],
+        ]);
+
+        /** @var Collection<int, int> $days */
+        $days = collect($validated['days'])
+            ->map(static fn (mixed $day): int => (int) $day)
+            ->unique()
+            ->sort()
+            ->values();
+
+        $endDate = now()->endOfDay();
+        $cacheKey = sprintf(
+            'monitoring:%s:uptime-summary:%s:%s',
+            $monitoring->id,
+            $days->implode('-'),
+            $endDate->format('Ymd')
+        );
+
+        $data = $this->cacheAndReturn(
+            $cacheKey,
+            fn (): array => MonitoringResultService::getUptimeDowntimesForRanges($monitoring, $days->all()),
+            (int) config('monitoring.interval', 5) * 60,
+            'monitoring:' . $monitoring->id
+        );
+
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
+
+    /**
      * Retrieves the response times for a given monitoring instance.
      *
      * @queryParam days integer The number of days to retrieve data for. Defaults to 30. Example: 30
