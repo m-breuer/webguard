@@ -122,7 +122,8 @@ class MonitoringCardDataApiTest extends TestCase
         Date::setTestNow('2026-04-12 12:00:00');
 
         Package::factory()->create();
-        $monitoring = Monitoring::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
 
         $testResponse = $this->getJson('/api/monitorings/card-data?' . http_build_query([
             'ids' => [$monitoring->id],
