@@ -88,4 +88,34 @@ class PublicMonitoringWidgetApiTest extends TestCase
 
         $testResponse->assertNotFound();
     }
+
+    public function test_public_widget_endpoint_returns_unknown_state_when_monitoring_has_no_results_yet(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Fresh API',
+            'type' => MonitoringType::HTTP,
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'public_label_enabled' => true,
+            'created_at' => Date::now()->subMinutes(30),
+        ]);
+
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('name', 'Fresh API');
+        $testResponse->assertJsonPath('status', MonitoringStatus::UNKNOWN->value);
+        $testResponse->assertJsonPath('status_label', 'UNKNOWN');
+        $testResponse->assertJsonPath('status_code', null);
+        $testResponse->assertJsonPath('status_identifier', 'status.unknown');
+        $testResponse->assertJsonPath('status_key', 'notifications.status.unknown');
+        $testResponse->assertJsonPath('checked_at', null);
+        $testResponse->assertJsonPath('checked_at_human', null);
+        $testResponse->assertJsonPath('uptime.7_days', null);
+        $testResponse->assertJsonPath('uptime.30_days', null);
+        $testResponse->assertJsonPath('uptime.365_days', null);
+    }
 }
