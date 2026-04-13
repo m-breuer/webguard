@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/notifications/status-board', NotificationBoardController::class)->name('notifications.status-board');
 
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {
-    Route::get('/card-data', MonitoringCardDataController::class)->name('card-data');
+    Route::get('/card-data', MonitoringCardDataController::class)->middleware('auth')->name('card-data');
     Route::get('/{monitoring}', [ApiController::class, 'all']);
 
     Route::get('/{monitoring}/status', [ApiController::class, 'status']);
