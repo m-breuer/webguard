@@ -128,7 +128,7 @@ class MonitoringCardDataApiTest extends TestCase
             'ids' => [$monitoring->id],
         ]));
 
-        $testResponse->assertStatus(401);
+        $testResponse->assertUnauthorized();
     }
 
     private function selectQueryCount(): int
