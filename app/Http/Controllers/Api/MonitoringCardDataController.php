@@ -17,6 +17,12 @@ class MonitoringCardDataController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
+        if (! $request->user()) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
         $validated = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'string'],
