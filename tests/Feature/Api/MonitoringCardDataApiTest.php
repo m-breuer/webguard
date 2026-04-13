@@ -117,6 +117,20 @@ class MonitoringCardDataApiTest extends TestCase
         $testResponse->assertJsonPath('data.' . $monitorings->first()->id . '.heatmap.0.uptime', 0);
     }
 
+    public function test_card_data_endpoint_requires_authentication(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $monitoring = Monitoring::factory()->create();
+
+        $testResponse = $this->getJson('/api/monitorings/card-data?' . http_build_query([
+            'ids' => [$monitoring->id],
+        ]));
+
+        $testResponse->assertStatus(401);
+    }
+
     private function selectQueryCount(): int
     {
         return collect(DB::getQueryLog())
