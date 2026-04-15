@@ -153,7 +153,6 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('status_identifier', 'status.maintenance');
         $testResponse->assertJsonPath('status_key', 'notifications.status.maintenance');
     }
-
     public function test_public_widget_endpoint_returns_maintenance_meta_when_monitoring_has_no_results_yet(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
