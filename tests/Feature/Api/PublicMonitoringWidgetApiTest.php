@@ -119,6 +119,41 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('uptime.365_days', null);
     }
 
+    public function test_public_widget_endpoint_returns_maintenance_status_metadata_during_an_active_maintenance_window(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Scheduled Maintenance API',
+            'type' => MonitoringType::HTTP,
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'public_label_enabled' => true,
+            'maintenance_from' => Date::now()->subHour(),
+            'maintenance_until' => Date::now()->addHour(),
+            'created_at' => Date::now()->subDays(10),
+        ]);
+
+        $checkedAt = Date::now()->subMinutes(5);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 123.4,
+            'created_at' => $checkedAt,
+            'updated_at' => $checkedAt,
+        ]);
+
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('status', MonitoringStatus::UP->value);
+        $testResponse->assertJsonPath('status_label', 'UP');
+        $testResponse->assertJsonPath('status_identifier', 'status.maintenance');
+        $testResponse->assertJsonPath('status_key', 'notifications.status.maintenance');
+    }
+
     public function test_public_widget_endpoint_returns_maintenance_meta_when_monitoring_has_no_results_yet(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
