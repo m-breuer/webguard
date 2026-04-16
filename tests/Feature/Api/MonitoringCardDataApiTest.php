@@ -90,6 +90,16 @@ class MonitoringCardDataApiTest extends TestCase
         $ownedMonitoring = Monitoring::factory()->for($user)->create();
         $foreignMonitoring = Monitoring::factory()->for($otherUser)->create();
 
+        $foreignCheckedAt = Date::now()->subMinutes(5);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $foreignMonitoring->id,
+            'status' => MonitoringStatus::DOWN,
+            'http_status_code' => 500,
+            'response_time' => 321.0,
+            'created_at' => $foreignCheckedAt,
+            'updated_at' => $foreignCheckedAt,
+        ]);
+
         $testResponse = $this->actingAs($user)->getJson('/api/monitorings/card-data?' . http_build_query([
             'ids' => [$ownedMonitoring->id, $foreignMonitoring->id],
         ]));
