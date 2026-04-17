@@ -3,8 +3,6 @@
     use App\Enums\MonitoringLifecycleStatus;
     use App\Enums\MonitoringStatus;
 
-    $currentUser = Auth::user();
-    $canCreateMonitoring = ! $currentUser->isGuest() && $monitoringsTotal < $currentUser->package->monitoring_limit;
     $monitoringIds = json_encode(collect($monitorings->items())->pluck('id'));
     $monitoringNames = json_encode($monitorings->pluck('name', 'id'));
     $monitoringTargets = json_encode($monitorings->pluck('target', 'id'));
@@ -31,9 +29,9 @@
         <x-container class="sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4" space="true">
             <x-paragraph>
                 <b>{{ __('monitoring.index.total.current') }}</b>: {{ $monitoringsTotal }}
-                @if (Auth::user()->isMember())
+                @if ($currentUser->isMember())
                     {{ __('monitoring.index.total.of') }}
-                    {{ Auth::user()->package->monitoring_limit }}
+                    {{ $monitoringLimit }}
                 @endif
             </x-paragraph>
         </x-container>
