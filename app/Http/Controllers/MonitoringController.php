@@ -10,6 +10,7 @@ use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
+use App\Models\User;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,9 @@ class MonitoringController extends Controller
      */
     public function index(Request $request): View
     {
+        /** @var User $currentUser */
+        $currentUser = $request->user()->loadMissing('package');
+
         $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'types' => ['nullable', 'string', function ($attribute, $value, $fail) {
@@ -82,16 +86,25 @@ class MonitoringController extends Controller
             || $request->filled('types')
             || $request->filled('lifecycle');
         $monitoringsTotal = $hasActiveFilters
-            ? Auth::user()->monitorings()->count()
+            ? $currentUser->monitorings()->count()
             : $lengthAwarePaginator->total();
+        $monitoringLimit = (int) $currentUser->package->monitoring_limit;
+        $canCreateMonitoring = ! $currentUser->isGuest() && $monitoringsTotal < $monitoringLimit;
+
+        if (! $hasActiveFilters && $monitoringsTotal === 0) {
+            $request->attributes->set('unread_notifications_count', 0);
+        }
 
         $maintenanceStatusMap = $lengthAwarePaginator->getCollection()->mapWithKeys(function ($monitoring) {
             return [$monitoring->id => $monitoring->isUnderMaintenance()];
         });
 
         return view('monitorings.index', [
+            'currentUser' => $currentUser,
             'monitorings' => $lengthAwarePaginator,
             'monitoringsTotal' => $monitoringsTotal,
+            'monitoringLimit' => $monitoringLimit,
+            'canCreateMonitoring' => $canCreateMonitoring,
             'maintenanceStatusMap' => $maintenanceStatusMap,
         ]);
     }
