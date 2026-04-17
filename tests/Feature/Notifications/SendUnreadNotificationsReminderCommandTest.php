@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Notifications;
 
 use App\Enums\NotificationType;
+use App\Enums\UserRole;
 use App\Mail\UnreadNotificationsReminderMail;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
@@ -19,7 +20,7 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sends_weekly_reminder_to_users_with_unread_notifications(): void
+    public function test_sends_daily_reminder_to_non_guest_users_with_unread_notifications(): void
     {
         Package::factory()->create();
 
@@ -33,6 +34,14 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
             'monitoring_id' => $monitoringWithUnread->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
+            'read' => false,
+            'sent' => true,
+        ]);
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoringWithUnread->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
             'read' => false,
             'sent' => true,
         ]);
@@ -63,6 +72,33 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
         });
         Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($userWithoutUnread): bool {
             return $unreadNotificationsReminderMail->hasTo($userWithoutUnread->email);
+        });
+    }
+
+    public function test_does_not_send_reminder_to_guest_users(): void
+    {
+        Package::factory()->create();
+
+        $guestUser = User::factory()->create([
+            'role' => UserRole::GUEST,
+        ]);
+
+        $monitoring = Monitoring::factory()->for($guestUser)->create();
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => true,
+        ]);
+
+        Mail::fake();
+
+        Artisan::call('notifications:remind-unread-weekly');
+
+        Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($guestUser): bool {
+            return $unreadNotificationsReminderMail->hasTo($guestUser->email);
         });
     }
 
