@@ -63,7 +63,7 @@ class NotificationActionHardeningTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $olderNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -87,7 +87,7 @@ class NotificationActionHardeningTest extends TestCase
 
         $testResponse->assertRedirect();
         $this->assertDatabaseHas('monitoring_notifications', [
-            'id' => $olderNotification->id,
+            'id' => $monitoringNotification->id,
             'read' => true,
         ]);
         $this->assertDatabaseHas('monitoring_notifications', [

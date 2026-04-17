@@ -32,19 +32,19 @@ class SendUnreadNotificationsReminderCommand extends Command
 
     public function handle(): int
     {
-        $unreadCounts = $this->notificationBoardService->getUnreadNotificationCountsByUser();
+        $unreadNotificationCountsByUser = $this->notificationBoardService->getUnreadNotificationCountsByUser();
 
-        if ($unreadCounts->isEmpty()) {
+        if ($unreadNotificationCountsByUser->isEmpty()) {
             return Command::SUCCESS;
         }
 
         $users = User::query()
-            ->whereIn('id', $unreadCounts->keys())
+            ->whereIn('id', $unreadNotificationCountsByUser->keys())
             ->where('role', '!=', UserRole::GUEST->value)
             ->get();
 
         foreach ($users as $user) {
-            $unreadNotificationsCount = (int) ($unreadCounts->get($user->id) ?? 0);
+            $unreadNotificationsCount = (int) ($unreadNotificationCountsByUser->get($user->id) ?? 0);
             if ($unreadNotificationsCount < 1) {
                 continue;
             }

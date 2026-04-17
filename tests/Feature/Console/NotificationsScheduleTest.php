@@ -13,7 +13,7 @@ class NotificationsScheduleTest extends TestCase
     public function test_unread_notifications_reminder_is_scheduled_daily_at_eight_am(): void
     {
         /** @var Event|null $event */
-        $event = collect(app(Schedule::class)->events())
+        $event = collect(resolve(Schedule::class)->events())
             ->first(fn (Event $event): bool => str_contains((string) $event->command, 'notifications:remind-unread-weekly'));
 
         $this->assertNotNull($event);
