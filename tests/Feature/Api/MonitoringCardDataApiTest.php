@@ -109,6 +109,36 @@ class MonitoringCardDataApiTest extends TestCase
         $testResponse->assertJsonMissingPath('data.' . $foreignMonitoring->id);
     }
 
+    public function test_card_data_endpoint_returns_an_empty_payload_when_all_requested_monitorings_belong_to_another_user(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $foreignMonitoring = Monitoring::factory()->for($otherUser)->create();
+
+        $foreignCheckedAt = Date::now()->subMinutes(5);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $foreignMonitoring->id,
+            'status' => MonitoringStatus::DOWN,
+            'http_status_code' => 500,
+            'response_time' => 321.0,
+            'created_at' => $foreignCheckedAt,
+            'updated_at' => $foreignCheckedAt,
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/card-data?' . http_build_query([
+            'ids' => [$foreignMonitoring->id],
+        ]));
+
+        $testResponse->assertOk();
+        $testResponse->assertExactJson([
+            'data' => [],
+        ]);
+    }
+
     public function test_card_data_endpoint_accepts_more_than_twenty_five_requested_monitorings(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
