@@ -10,41 +10,6 @@ use Tests\TestCase;
 
 class WelcomeMonitoringIntervalCopyTest extends TestCase
 {
-    #[DataProvider('configuredIntervalCopyProvider')]
-    public function test_it_renders_the_configured_monitoring_interval_copy_on_the_welcome_page(
-        string $locale,
-        int $interval,
-        string $expectedCopy
-    ): void {
-        config(['monitoring.interval' => $interval]);
-
-        $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
-
-        $testResponse->assertOk();
-        $testResponse->assertSeeText($expectedCopy);
-    }
-
-    #[DataProvider('perRequestIntervalCopyProvider')]
-    public function test_it_updates_the_monitoring_interval_copy_for_each_request(
-        string $locale,
-        string $firstExpectedCopy,
-        string $secondExpectedCopy
-    ): void {
-        config(['monitoring.interval' => 5]);
-
-        $firstResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
-
-        $firstResponse->assertOk();
-        $firstResponse->assertSeeText($firstExpectedCopy);
-
-        config(['monitoring.interval' => 1]);
-
-        $secondResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
-
-        $secondResponse->assertOk();
-        $secondResponse->assertSeeText($secondExpectedCopy);
-    }
-
     /**
      * @return array<string, array{0: string, 1: int, 2: string}>
      */
@@ -67,5 +32,40 @@ class WelcomeMonitoringIntervalCopyTest extends TestCase
             'english request update' => ['en', '5 minutes', '1 minute'],
             'german request update' => ['de', '5 Minuten', '1 Minute'],
         ];
+    }
+
+    #[DataProvider('configuredIntervalCopyProvider')]
+    public function test_it_renders_the_configured_monitoring_interval_copy_on_the_welcome_page(
+        string $locale,
+        int $interval,
+        string $expectedCopy
+    ): void {
+        config(['monitoring.interval' => $interval]);
+
+        $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText($expectedCopy);
+    }
+
+    #[DataProvider('perRequestIntervalCopyProvider')]
+    public function test_it_updates_the_monitoring_interval_copy_for_each_request(
+        string $locale,
+        string $firstExpectedCopy,
+        string $secondExpectedCopy
+    ): void {
+        config(['monitoring.interval' => 5]);
+
+        $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText($firstExpectedCopy);
+
+        config(['monitoring.interval' => 1]);
+
+        $secondResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
+
+        $secondResponse->assertOk();
+        $secondResponse->assertSeeText($secondExpectedCopy);
     }
 }

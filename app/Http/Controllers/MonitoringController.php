@@ -10,6 +10,7 @@ use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
+use App\Models\User;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,7 @@ class MonitoringController extends Controller
      */
     public function index(Request $request): View
     {
-        /** @var \App\Models\User $currentUser */
+        /** @var User $currentUser */
         $currentUser = $request->user()->loadMissing('package');
 
         $request->validate([

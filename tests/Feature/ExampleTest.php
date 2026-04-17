@@ -10,8 +10,8 @@ class ExampleTest extends TestCase
 {
     public function test_it_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
+        $testResponse = $this->get('/');
 
-        $response->assertOk();
+        $testResponse->assertOk();
     }
 }
