@@ -8,6 +8,7 @@ use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
 use App\Models\NotificationChannelDelivery;
 use App\Services\NotificationBoardService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,8 +53,23 @@ class NotificationController extends Controller
     {
         $monitoringNotification = MonitoringNotification::query()->findOrFail($notificationId);
 
-        $monitoringNotification->read = true;
-        $monitoringNotification->save();
+        if ($monitoringNotification->type === NotificationType::STATUS_CHANGE) {
+            MonitoringNotification::query()
+                ->where('monitoring_id', $monitoringNotification->monitoring_id)
+                ->statusChange()
+                ->unread()
+                ->where(function (Builder $builder) use ($monitoringNotification): void {
+                    $builder->where('created_at', '<', $monitoringNotification->created_at)
+                        ->orWhere(function (Builder $builder) use ($monitoringNotification): void {
+                            $builder->where('created_at', $monitoringNotification->created_at)
+                                ->where('id', '<=', $monitoringNotification->id);
+                        });
+                })
+                ->update(['read' => true]);
+        } else {
+            $monitoringNotification->read = true;
+            $monitoringNotification->save();
+        }
 
         return back()->with('success', __('notifications.messages.notification_marked_as_read'));
     }

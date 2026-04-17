@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\View\Composers;
 
-use App\Models\MonitoringNotification;
+use App\Services\NotificationBoardService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class NotificationComposer
 {
+    public function __construct(private readonly NotificationBoardService $notificationBoardService) {}
+
     /**
      * Bind data to the view.
      *
@@ -23,7 +25,7 @@ class NotificationComposer
             if (request()->attributes->has('unread_notifications_count')) {
                 $unreadNotificationsCount = (int) request()->attributes->get('unread_notifications_count');
             } else {
-                $unreadNotificationsCount = MonitoringNotification::query()->unread()->count();
+                $unreadNotificationsCount = $this->notificationBoardService->getUnreadNotificationCount();
                 request()->attributes->set('unread_notifications_count', $unreadNotificationsCount);
             }
         }

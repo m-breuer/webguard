@@ -20,8 +20,8 @@ Schedule::command('sitemap:generate')->dailyAt('02:00');
 // Dispatch status change notifications immediately.
 Schedule::command('notifications:dispatch-status-changes')->everyMinute()->withoutOverlapping();
 
-// Remind users weekly about unread notifications in their board.
-Schedule::command('notifications:remind-unread-weekly')->weeklyOn(1, '08:00')->withoutOverlapping();
+// Remind users daily about unread notifications in their board.
+Schedule::command('notifications:remind-unread-weekly')->dailyAt('08:00')->withoutOverlapping();
 
 // Prune old read notifications daily.
 Schedule::command('notifications:prune-read')->dailyAt('01:00');
