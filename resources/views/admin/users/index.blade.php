@@ -43,7 +43,7 @@
                         <x-table.cell>
                             {{ ucfirst($user->role->value) }}
                         </x-table.cell>
-                        <x-table.cell>{{ $user->package->monitoring_limit }}</x-table.cell>
+                        <x-table.cell>{{ $user->package?->monitoring_limit ?? '-' }}</x-table.cell>
                         <x-table.cell>{{ $user->created_at->format('d.m.Y') }}</x-table.cell>
                         <x-table.cell>{{ $user->updated_at->format('d.m.Y') }}</x-table.cell>
                         <x-table.cell>

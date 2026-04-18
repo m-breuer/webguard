@@ -33,6 +33,7 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $lengthAwarePaginator = User::query()
+            ->with('package')
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $query->where(function (Builder $builder) use ($request): void {
                     $builder->where('name', 'like', '%' . $request->search . '%')
