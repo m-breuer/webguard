@@ -40,4 +40,23 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertDontSeeHtml('id="uptime-card-custom-range"');
         $testResponse->assertSeeHtml('id="recent-checks"');
     }
+
+    public function test_heartbeat_monitoring_detail_page_keeps_recent_checks_without_response_time_chart(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()
+            ->heartbeat()
+            ->for($user)
+            ->create();
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.detail.heartbeat.heading'));
+        $testResponse->assertSeeText(__('monitoring.detail.checks.heading'));
+        $testResponse->assertSeeHtml('id="recent-checks"');
+        $testResponse->assertDontSeeText(__('monitoring.detail.response_time.heading'));
+        $testResponse->assertDontSeeHtml('id="performance-chart"');
+    }
 }
