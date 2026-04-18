@@ -12,6 +12,7 @@ use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\NotificationBoardService;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -64,7 +65,7 @@ class NotificationStatusBoardPerformanceTest extends TestCase
             'updated_at' => Date::now()->subMinutes(6),
         ]);
 
-        $latestUnread = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -88,12 +89,12 @@ class NotificationStatusBoardPerformanceTest extends TestCase
 
         $entry = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: false)->sole();
 
-        $this->assertSame($latestUnread->id, $entry['notification_id']);
+        $this->assertSame($monitoringNotification->id, $entry['notification_id']);
         $this->assertSame('notifications.status_change.down', $entry['status_change_key']);
         $this->assertFalse($entry['read']);
     }
 
-    private function createStatusBoardMonitoring(User $user, int $statusCode, \Carbon\CarbonInterface $notificationTime): Monitoring
+    private function createStatusBoardMonitoring(User $user, int $statusCode, CarbonInterface $notificationTime): Monitoring
     {
         $monitoring = Monitoring::factory()->for($user)->create();
 

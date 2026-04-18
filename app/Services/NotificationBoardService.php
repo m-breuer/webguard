@@ -11,8 +11,8 @@ use App\Models\MonitoringResponse;
 use App\Support\MonitoringStatusMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\JoinClause;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Date;
 
 class NotificationBoardService
 {
@@ -62,8 +62,8 @@ class NotificationBoardService
                         'status_notifications.read',
                         'status_notifications.created_at',
                     ])
-                    ->joinSub($latestStatusChangeTimestamps, 'latest_status_change_timestamps', function (JoinClause $join): void {
-                        $join->on(
+                    ->joinSub($latestStatusChangeTimestamps, 'latest_status_change_timestamps', function (JoinClause $joinClause): void {
+                        $joinClause->on(
                             'latest_status_change_timestamps.monitoring_id',
                             '=',
                             'status_notifications.monitoring_id'
@@ -74,9 +74,9 @@ class NotificationBoardService
                         );
                     })
                     ->where('status_notifications.type', NotificationType::STATUS_CHANGE->value)
-                    ->when(! $showRead, fn (Builder $builder): Builder => $builder->where('status_notifications.read', false))
-                    ->leftJoin('monitoring_notifications as newer_status_notifications', function (JoinClause $join) use ($showRead): void {
-                        $join->on(
+                    ->unless($showRead, fn (Builder $builder): Builder => $builder->where('status_notifications.read', false))
+                    ->leftJoin('monitoring_notifications as newer_status_notifications', function (JoinClause $joinClause) use ($showRead): void {
+                        $joinClause->on(
                             'newer_status_notifications.monitoring_id',
                             '=',
                             'status_notifications.monitoring_id'
@@ -94,12 +94,12 @@ class NotificationBoardService
                         );
 
                         if (! $showRead) {
-                            $join->where('newer_status_notifications.read', false);
+                            $joinClause->where('newer_status_notifications.read', false);
                         }
                     })
                     ->whereNull('newer_status_notifications.id'),
                 'latest_status_notifications',
-                fn (JoinClause $join): JoinClause => $join->on(
+                fn (JoinClause $joinClause): JoinClause => $joinClause->on(
                     'latest_status_notifications.monitoring_id',
                     '=',
                     'monitorings.id'
@@ -127,7 +127,7 @@ class NotificationBoardService
             ->selectRaw('latest_status_notifications.message as status_change_message')
             ->selectRaw('latest_status_notifications.read as notification_read')
             ->selectRaw('latest_status_notifications.created_at as latest_status_change_at')
-            ->orderByDesc('latest_status_change_at')
+            ->latest('latest_status_change_at')
             ->orderByDesc('notification_id')
             ->offset($offset)
             ->limit($limit + 1)
@@ -152,8 +152,8 @@ class NotificationBoardService
                 'target' => $monitoring->target,
                 'type' => $monitoring->type->value,
                 'latest_status_code' => $latestStatusCode !== null ? (int) $latestStatusCode : null,
-                'latest_checked_at' => $latestCheckedAt ? Carbon::parse((string) $latestCheckedAt)->toIso8601String() : null,
-                'latest_status_change_at' => $latestStatusChangeAt ? Carbon::parse((string) $latestStatusChangeAt)->toIso8601String() : null,
+                'latest_checked_at' => $latestCheckedAt ? Date::parse((string) $latestCheckedAt)->toIso8601String() : null,
+                'latest_status_change_at' => $latestStatusChangeAt ? Date::parse((string) $latestStatusChangeAt)->toIso8601String() : null,
                 'status_identifier' => MonitoringStatusMeta::statusIdentifier(
                     $latestStatusCode !== null ? (int) $latestStatusCode : null,
                     $maintenanceActive
