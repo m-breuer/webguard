@@ -39,14 +39,14 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
             'target' => route('monitorings.heartbeat.ping', ['token' => 'heartbeat-token']),
         ]);
 
-        $defaultResponse = $this->withHeaders([
+        $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])->getJson(route('v1.internal.monitorings.list', ['location' => $serverInstance->code]));
 
-        $defaultResponse->assertOk();
-        $defaultResponse->assertJsonFragment(['id' => $httpMonitoring->id]);
-        $defaultResponse->assertJsonMissing(['id' => $heartbeatMonitoring->id]);
+        $testResponse->assertOk();
+        $testResponse->assertJsonFragment(['id' => $httpMonitoring->id]);
+        $testResponse->assertJsonMissing(['id' => $heartbeatMonitoring->id]);
 
         $heartbeatResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
