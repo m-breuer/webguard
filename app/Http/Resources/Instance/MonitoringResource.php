@@ -36,6 +36,9 @@ class MonitoringResource extends JsonResource
             'maintenance_active' => $this->isUnderMaintenance(),
             'maintenance_from' => $this->maintenance_from,
             'maintenance_until' => $this->maintenance_until,
+            'heartbeat_interval_minutes' => $this->heartbeat_interval_minutes,
+            'heartbeat_grace_minutes' => $this->heartbeat_grace_minutes,
+            'heartbeat_last_ping_at' => $this->heartbeat_last_ping_at,
             'latest_http_status_code' => $this->whenLoaded('latestResponseResult', fn () => $this->latestResponseResult?->http_status_code),
         ];
     }

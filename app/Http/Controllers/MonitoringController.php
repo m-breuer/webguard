@@ -16,6 +16,7 @@ use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -150,6 +151,7 @@ class MonitoringController extends Controller
         }
 
         $validated = $monitoringRequest->validated();
+        $validated = $this->prepareStorePayload($validated);
 
         Auth::user()->monitorings()->create($validated);
 
@@ -202,6 +204,7 @@ class MonitoringController extends Controller
 
         $validated = $monitoringRequest->validated();
         unset($validated['target']);
+        $validated = $this->prepareUpdatePayload($validated, $monitoring);
 
         if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {
             $validated['public_label_enabled'] = false;
@@ -244,5 +247,56 @@ class MonitoringController extends Controller
         dispatch(new DeleteMonitoringResults($monitoring));
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.results_deleted'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function prepareStorePayload(array $validated): array
+    {
+        $type = MonitoringType::tryFrom((string) ($validated['type'] ?? ''));
+
+        if ($type !== MonitoringType::HEARTBEAT) {
+            return $validated;
+        }
+
+        $heartbeatToken = (string) Str::ulid();
+
+        $validated['heartbeat_token'] = $heartbeatToken;
+        $validated['target'] = route('monitorings.heartbeat.ping', ['token' => $heartbeatToken]);
+        $validated['timeout'] = 5;
+        $validated['http_method'] = null;
+        $validated['http_headers'] = null;
+        $validated['http_body'] = null;
+        $validated['auth_username'] = null;
+        $validated['auth_password'] = null;
+        $validated['port'] = null;
+        $validated['keyword'] = null;
+
+        return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function prepareUpdatePayload(array $validated, Monitoring $monitoring): array
+    {
+        if (! $monitoring->isHeartbeat()) {
+            return $validated;
+        }
+
+        $validated['target'] = $monitoring->target;
+        $validated['timeout'] = 5;
+        $validated['http_method'] = null;
+        $validated['http_headers'] = null;
+        $validated['http_body'] = null;
+        $validated['auth_username'] = null;
+        $validated['auth_password'] = null;
+        $validated['port'] = null;
+        $validated['keyword'] = null;
+
+        return $validated;
     }
 }

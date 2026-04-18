@@ -36,6 +36,8 @@ class MonitoringListController extends Controller
 
         if ($type) {
             $builder->where('type', $type);
+        } else {
+            $builder->where('type', '!=', MonitoringType::HEARTBEAT->value);
         }
 
         $monitorings = $builder->get();

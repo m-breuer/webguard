@@ -21,7 +21,12 @@ class MonitoringFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(MonitoringType::cases());
+        $type = fake()->randomElement([
+            MonitoringType::HTTP,
+            MonitoringType::PING,
+            MonitoringType::KEYWORD,
+            MonitoringType::PORT,
+        ]);
 
         $data = [
             'name' => fake()->name(),
@@ -44,5 +49,19 @@ class MonitoringFactory extends Factory
         }
 
         return $data;
+    }
+
+    public function heartbeat(): static
+    {
+        return $this->state(function (): array {
+            return [
+                'type' => MonitoringType::HEARTBEAT,
+                'target' => 'https://webguard.test/heartbeat/example-token',
+                'heartbeat_token' => 'example-token',
+                'heartbeat_interval_minutes' => 60,
+                'heartbeat_grace_minutes' => 10,
+                'heartbeat_last_ping_at' => null,
+            ];
+        });
     }
 }

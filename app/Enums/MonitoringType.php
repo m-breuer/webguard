@@ -19,6 +19,7 @@ enum MonitoringType: string
     case PING = 'ping';
     case KEYWORD = 'keyword';
     case PORT = 'port';
+    case HEARTBEAT = 'heartbeat';
 
     /**
      * Get all enum values as a simple array of strings.

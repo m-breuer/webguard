@@ -11,6 +11,7 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 ## Key Features
 
 * **Uptime Monitoring:** Keep a close eye on your website's availability with asynchronous uptime checks.
+* **Heartbeat & Cron Monitoring:** Detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
 * **Response Time Tracking:** Monitor your website's performance by tracking response times.
 * **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
 * **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.

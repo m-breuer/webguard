@@ -39,6 +39,9 @@ Schedule::command('notifications:prune-guest')
 // Aggregate raw monitoring data into daily summaries.
 Schedule::command('monitoring:aggregate-daily')->dailyAt('00:30');
 
+// Evaluate passive heartbeat monitorings for missed pings.
+Schedule::command('monitoring:evaluate-heartbeats')->everyMinute()->withoutOverlapping();
+
 // Archive old monitoring responses weekly.
 Schedule::command('monitoring:archive-responses')->weekly();
 

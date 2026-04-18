@@ -8,6 +8,8 @@
     if (is_array($httpHeadersValue)) {
         $httpHeadersValue = json_encode($httpHeadersValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
+
+    $heartbeatTypeValue = MonitoringType::HEARTBEAT->value;
 @endphp
 
 @csrf
@@ -27,13 +29,15 @@
                 this.target = 'https://';
             } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}') {
                 this.target = '';
+            } else if (this.type === '{{ MonitoringType::HEARTBEAT->value }}') {
+                this.target = '';
             }
         }
     }
 }" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
         target = 'https://';
-    } else if (value === '{{ MonitoringType::PING->value }}') {
+    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}') {
         target = '';
     }
 })">
@@ -68,17 +72,24 @@
             <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
                 class="cursor-not-allowed" />
             <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('monitoring.form.target_immutable_help') }}
+                {{ $monitoring->type === MonitoringType::HEARTBEAT ? __('monitoring.form.heartbeat_ping_url_help') : __('monitoring.form.target_immutable_help') }}
             </x-paragraph>
         @else
-            <x-text-input id="target" type="text" name="target" x-model="target" required
-                x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
+            <div x-show="type !== '{{ $heartbeatTypeValue }}'">
+                <x-text-input id="target" type="text" name="target" x-model="target"
+                    x-bind:required="type !== '{{ $heartbeatTypeValue }}'"
+                    x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
                     type === '{{ MonitoringType::PING->value }}' ?
                     '{{ __('monitoring.form.placeholders.ping_target') }}' :
                     type === '{{ MonitoringType::KEYWORD->value }}' ?
                     '{{ __('monitoring.form.placeholders.http_target') }}' :
                     type === '{{ MonitoringType::PORT->value }}' ?
                     '{{ __('monitoring.form.placeholders.port_target') }}' : ''" />
+            </div>
+            <div x-show="type === '{{ $heartbeatTypeValue }}'"
+                class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
+                {{ __('monitoring.form.heartbeat_target_generated') }}
+            </div>
             <x-input-error :messages="$errors->get('target')" />
         @endif
     </div>
@@ -96,6 +107,26 @@
             <x-input-label for="keyword" :value="__('monitoring.form.keyword')" />
             <x-text-input id="keyword" type="text" name="keyword" :value="old('keyword', $monitoring->keyword ?? '')" />
             <x-input-error :messages="$errors->get('keyword')" />
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::HEARTBEAT->value }}'">
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+                <x-input-label for="heartbeat_interval_minutes" :value="__('monitoring.form.heartbeat_interval_minutes')" />
+                <x-text-input id="heartbeat_interval_minutes" type="number" min="1" max="10080"
+                    name="heartbeat_interval_minutes" :value="old('heartbeat_interval_minutes', $monitoring->heartbeat_interval_minutes ?? 60)" />
+                <x-input-error :messages="$errors->get('heartbeat_interval_minutes')" />
+            </div>
+            <div>
+                <x-input-label for="heartbeat_grace_minutes" :value="__('monitoring.form.heartbeat_grace_minutes')" />
+                <x-text-input id="heartbeat_grace_minutes" type="number" min="0" max="1440"
+                    name="heartbeat_grace_minutes" :value="old('heartbeat_grace_minutes', $monitoring->heartbeat_grace_minutes ?? 5)" />
+                <x-input-error :messages="$errors->get('heartbeat_grace_minutes')" />
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 md:col-span-2">
+                {{ __('monitoring.form.heartbeat_help') }}
+            </p>
         </div>
     </template>
 

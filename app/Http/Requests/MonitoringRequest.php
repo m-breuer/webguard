@@ -48,6 +48,8 @@ class MonitoringRequest extends FormRequest
             'port' => ['nullable', 'required_if:type,port', 'integer', 'min:1', 'max:65535'],
             'keyword' => ['nullable', 'required_if:type,keyword', 'string', 'max:255'],
             'status' => ['required', Rule::enum(MonitoringLifecycleStatus::class)],
+            'heartbeat_interval_minutes' => ['nullable', 'required_if:type,heartbeat', 'integer', 'min:1', 'max:10080'],
+            'heartbeat_grace_minutes' => ['nullable', 'required_if:type,heartbeat', 'integer', 'min:0', 'max:1440'],
             'timeout' => [
                 function ($attribute, $value, $fail): void {
                     $user = $this->user();
@@ -168,6 +170,7 @@ class MonitoringRequest extends FormRequest
             'http_headers' => $httpHeaders,
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
+            'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
         ]);
     }
 
@@ -179,11 +182,16 @@ class MonitoringRequest extends FormRequest
     private function targetRules(): array
     {
         return [
-            'required',
+            Rule::requiredIf(fn (): bool => MonitoringType::tryFrom((string) $this->input('type')) !== MonitoringType::HEARTBEAT),
+            'nullable',
             'string',
             'max:255',
             function ($attribute, $value, $fail): void {
                 $type = $this->input('type');
+
+                if ($type === MonitoringType::HEARTBEAT->value) {
+                    return;
+                }
 
                 if (($type === MonitoringType::HTTP->value || $type === MonitoringType::KEYWORD->value) && ! filter_var($value, FILTER_VALIDATE_URL)) {
                     $fail(sprintf('The %s must be a valid URL for type %s.', $attribute, $type));
