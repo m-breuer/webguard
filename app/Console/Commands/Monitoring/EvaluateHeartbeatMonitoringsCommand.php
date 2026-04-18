@@ -21,7 +21,7 @@ class EvaluateHeartbeatMonitoringsCommand extends Command
 
     public function handle(): int
     {
-        EvaluateHeartbeatMonitoringsJob::dispatch();
+        dispatch(new EvaluateHeartbeatMonitoringsJob());
 
         $this->components->info('Heartbeat evaluation dispatched to the heartbeat queue.');
 

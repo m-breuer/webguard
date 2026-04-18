@@ -19,9 +19,9 @@ class EvaluateHeartbeatMonitoringsCommandTest extends TestCase
         $this->assertSame('redis', config('queue.connections.redis.driver'));
         $this->assertSame('heartbeat', config('monitoring.heartbeat_queue'));
 
-        Queue::assertPushed(EvaluateHeartbeatMonitoringsJob::class, function (EvaluateHeartbeatMonitoringsJob $job): bool {
-            return $job->connection === 'redis'
-                && $job->queue === 'heartbeat';
+        Queue::assertPushed(EvaluateHeartbeatMonitoringsJob::class, function (EvaluateHeartbeatMonitoringsJob $evaluateHeartbeatMonitoringsJob): bool {
+            return $evaluateHeartbeatMonitoringsJob->connection === 'redis'
+                && $evaluateHeartbeatMonitoringsJob->queue === 'heartbeat';
         });
     }
 }
