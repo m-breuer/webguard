@@ -7,7 +7,7 @@
     <x-slot name="header">
         <x-heading type="h1" class="flex flex-wrap items-baseline">
             {{ $monitoring->name }}:
-            <x-span class="ml-2">{{ $monitoring->target }}</x-span>
+            <x-span class="ml-2 {{ $monitoring->isHeartbeat() ? 'break-all text-sm sm:text-base' : '' }}">{{ $monitoring->target }}</x-span>
             <x-span class="ml-2 text-gray-500">({{ strtoupper($monitoring->type->value) }})</x-span>
             @if ($monitoring->public_label_enabled)
                 <a href="{{ route('public-label', $monitoring) }}" target="_blank"
@@ -164,6 +164,25 @@
                 </x-container>
             @endif
 
+            @if ($monitoring->isHeartbeat())
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.heartbeat.heading') }}</x-heading>
+                    <x-paragraph class="mt-2 text-sm text-gray-500">{{ __('monitoring.detail.heartbeat.ping_url') }}</x-paragraph>
+                    <x-paragraph class="break-all font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->target }}</x-paragraph>
+                    <x-paragraph class="mt-3 text-sm text-gray-500">
+                        {{ trans_choice('monitoring.detail.heartbeat.cadence', $monitoring->heartbeat_interval_minutes ?? 0, ['minutes' => $monitoring->heartbeat_interval_minutes]) }}
+                    </x-paragraph>
+                    <x-paragraph class="text-sm text-gray-500">
+                        {{ trans_choice('monitoring.detail.heartbeat.grace', $monitoring->heartbeat_grace_minutes ?? 0, ['minutes' => $monitoring->heartbeat_grace_minutes]) }}
+                    </x-paragraph>
+                    @if ($monitoring->heartbeat_last_ping_at)
+                        <x-paragraph class="text-sm text-gray-500">
+                            {{ __('monitoring.detail.heartbeat.last_ping') }} {{ $monitoring->heartbeat_last_ping_at->diffForHumans() }}
+                        </x-paragraph>
+                    @endif
+                </x-container>
+            @endif
+
             <x-container>
                 <x-heading type="h2">{{ __('monitoring.detail.last_24_hours') }}</x-heading>
                 <div id="heatmap">
@@ -285,7 +304,7 @@
             </template>
         </div>
 
-        @if ($monitoring->type !== MonitoringType::PING)
+        @if (! in_array($monitoring->type, [MonitoringType::PING, MonitoringType::HEARTBEAT], true))
             <div class="mb-2 flex items-center justify-between">
                 <x-heading type="h2">{{ __('monitoring.detail.response_time.heading') }}</x-heading>
 

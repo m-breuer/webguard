@@ -88,6 +88,21 @@ stdout_logfile=/var/log/worker-laravel.log
 stderr_logfile=/var/log/worker-laravel.log
 '''
 
+"worker-laravel-heartbeat.conf" = '''
+[program:worker-laravel-heartbeat]
+process_name=%(program_name)s_%(process_num)02d
+command=bash -c 'exec php /app/artisan queue:work redis --queue=heartbeat --sleep=3 --tries=3 --max-time=3600'
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+numprocs=1
+startsecs=0
+stopwaitsecs=3600
+stdout_logfile=/var/log/worker-laravel-heartbeat.log
+stderr_logfile=/var/log/worker-laravel-heartbeat.log
+'''
+
 "php-fpm.conf" = '''
 [www]
 listen = 127.0.0.1:9000

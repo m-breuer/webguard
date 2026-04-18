@@ -349,6 +349,19 @@ class MonitoringResultService
      */
     public static function getStatusNow(Monitoring $monitoring, ?int $cronjobInterval = null): array
     {
+        if ($monitoring->isHeartbeat()) {
+            $heartbeatInterval = ((int) ($monitoring->heartbeat_interval_minutes ?? 0)) * 60;
+            $referenceTimestamp = $monitoring->heartbeat_last_ping_at ?? $monitoring->created_at;
+            $latest = $monitoring->latestResponseResult;
+
+            return [
+                'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
+                'checked_at' => $monitoring->heartbeat_last_ping_at?->toIso8601String(),
+                'next' => $referenceTimestamp->copy()->addSeconds($heartbeatInterval)->toIso8601String(),
+                'interval' => $heartbeatInterval,
+            ];
+        }
+
         $cronjobInterval ??= (int) config('monitoring.interval', 5) * 60;
         $latest = $monitoring->latestResponseResult;
 

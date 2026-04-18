@@ -11,6 +11,7 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 ## Key Features
 
 * **Uptime Monitoring:** Keep a close eye on your website's availability with asynchronous uptime checks.
+* **Heartbeat & Cron Monitoring:** Detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
 * **Response Time Tracking:** Monitor your website's performance by tracking response times.
 * **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
 * **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.
@@ -109,7 +110,13 @@ To get started with WebGuard, you'll need to have the following prerequisites in
     bun run dev
     ```
 
-    This will start the Laravel development server, the queue worker, the Pail log viewer, and the Vite development server.
+    This will start the Laravel development server, the default queue worker, the dedicated Redis-backed `heartbeat` queue worker, the Pail log viewer, and the Vite development server.
+
+    In production, run a dedicated worker for the `heartbeat` queue on the standard Redis connection as well, for example:
+
+    ```bash
+    php artisan queue:work redis --queue=heartbeat --sleep=3 --tries=3 --max-time=3600
+    ```
 
 8.  **Run the test suite:**
 

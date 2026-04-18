@@ -48,6 +48,10 @@ use Override;
     'deleted_at',
     'maintenance_from',
     'maintenance_until',
+    'heartbeat_token',
+    'heartbeat_interval_minutes',
+    'heartbeat_grace_minutes',
+    'heartbeat_last_ping_at',
 ])]
 #[Table(name: 'monitorings', key: 'id', keyType: 'string')]
 class Monitoring extends Model
@@ -179,6 +183,11 @@ class Monitoring extends Model
         return $this->status === MonitoringLifecycleStatus::PAUSED;
     }
 
+    public function isHeartbeat(): bool
+    {
+        return $this->type === MonitoringType::HEARTBEAT;
+    }
+
     /**
      * Determine if the monitoring is currently under maintenance.
      */
@@ -250,11 +259,14 @@ class Monitoring extends Model
             'public_label_enabled' => 'boolean',
             'notification_on_failure' => 'boolean',
             'preferred_location' => 'string',
+            'heartbeat_interval_minutes' => 'integer',
+            'heartbeat_grace_minutes' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
             'maintenance_from' => 'datetime',
             'maintenance_until' => 'datetime',
+            'heartbeat_last_ping_at' => 'datetime',
         ];
     }
 }
