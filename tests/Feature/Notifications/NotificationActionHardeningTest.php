@@ -95,4 +95,66 @@ class NotificationActionHardeningTest extends TestCase
             'read' => true,
         ]);
     }
+
+    public function test_marking_a_status_change_as_read_uses_the_id_tie_breaker_for_same_timestamp_threads(): void
+    {
+        Date::setTestNow('2026-03-24 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $createdAt = Date::now()->subMinute();
+
+        $firstNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => false,
+        ]);
+        $firstNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+        $firstNotification->created_at = $createdAt;
+        $firstNotification->updated_at = $createdAt;
+        $firstNotification->save();
+
+        $selectedNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => false,
+        ]);
+        $selectedNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+        $selectedNotification->created_at = $createdAt;
+        $selectedNotification->updated_at = $createdAt;
+        $selectedNotification->save();
+
+        $laterNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => false,
+            'sent' => false,
+        ]);
+        $laterNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAX';
+        $laterNotification->created_at = $createdAt;
+        $laterNotification->updated_at = $createdAt;
+        $laterNotification->save();
+
+        $testResponse = $this->actingAs($user)->post(route('notifications.markAsRead', $selectedNotification->id));
+
+        $testResponse->assertRedirect();
+        $this->assertDatabaseHas('monitoring_notifications', [
+            'id' => $firstNotification->id,
+            'read' => true,
+        ]);
+        $this->assertDatabaseHas('monitoring_notifications', [
+            'id' => $selectedNotification->id,
+            'read' => true,
+        ]);
+        $this->assertDatabaseHas('monitoring_notifications', [
+            'id' => $laterNotification->id,
+            'read' => false,
+        ]);
+    }
 }
