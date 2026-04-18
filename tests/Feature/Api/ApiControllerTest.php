@@ -61,7 +61,7 @@ class ApiControllerTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
 
         $liveCheckedAt = now()->subMinutes(3);
-        MonitoringResponse::query()->create([
+        MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => 204,
@@ -102,7 +102,7 @@ class ApiControllerTest extends TestCase
         foreach (range(1, 12) as $minuteOffset) {
             $checkedAt = Date::now()->subMinutes($minuteOffset);
 
-            MonitoringResponse::query()->create([
+            MonitoringResponse::query()->forceCreate([
                 'monitoring_id' => $monitoring->id,
                 'status' => MonitoringStatus::UP,
                 'http_status_code' => 200,
@@ -149,7 +149,7 @@ class ApiControllerTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
 
         $recentCheck = Date::now()->subDay();
-        MonitoringResponse::query()->create([
+        MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => 204,
@@ -195,7 +195,7 @@ class ApiControllerTest extends TestCase
         foreach (range(1, 8) as $minuteOffset) {
             $checkedAt = Date::now()->subMinutes($minuteOffset);
 
-            MonitoringResponse::query()->create([
+            MonitoringResponse::query()->forceCreate([
                 'monitoring_id' => $monitoring->id,
                 'status' => MonitoringStatus::UP,
                 'http_status_code' => 200,
@@ -213,7 +213,7 @@ class ApiControllerTest extends TestCase
         $testResponse->assertJsonPath('meta.offset', 0);
         $testResponse->assertJsonPath('meta.has_more', true);
         $testResponse->assertJsonPath('meta.next_offset', 5);
-        $testResponse->assertJsonPath('data.0.response_time', 101.0);
+        $this->assertSame(101.0, (float) $testResponse->json('data.0.response_time'));
 
         $secondPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5&offset=5');
 
@@ -223,7 +223,7 @@ class ApiControllerTest extends TestCase
         $secondPageResponse->assertJsonPath('meta.offset', 5);
         $secondPageResponse->assertJsonPath('meta.has_more', false);
         $secondPageResponse->assertJsonPath('meta.next_offset', null);
-        $secondPageResponse->assertJsonPath('data.0.response_time', 106.0);
+        $this->assertSame(106.0, (float) $secondPageResponse->json('data.0.response_time'));
     }
 
     /**
