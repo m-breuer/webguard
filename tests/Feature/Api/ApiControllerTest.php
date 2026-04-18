@@ -61,7 +61,7 @@ class ApiControllerTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
 
         $liveCheckedAt = now()->subMinutes(3);
-        MonitoringResponse::query()->create([
+        MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => 204,
@@ -102,7 +102,7 @@ class ApiControllerTest extends TestCase
         foreach (range(1, 12) as $minuteOffset) {
             $checkedAt = Date::now()->subMinutes($minuteOffset);
 
-            MonitoringResponse::query()->create([
+            MonitoringResponse::query()->forceCreate([
                 'monitoring_id' => $monitoring->id,
                 'status' => MonitoringStatus::UP,
                 'http_status_code' => 200,
@@ -149,7 +149,7 @@ class ApiControllerTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
 
         $recentCheck = Date::now()->subDay();
-        MonitoringResponse::query()->create([
+        MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => 204,
@@ -182,6 +182,48 @@ class ApiControllerTest extends TestCase
         $this->assertCount(1, $historyQueries);
         $this->assertStringContainsString('monitoring_response_results', $historyQueries[0]);
         $this->assertStringNotContainsString('monitoring_response_archived', $historyQueries[0]);
+    }
+
+    public function test_results_endpoint_supports_offset_pagination_for_recent_checks(): void
+    {
+        Date::setTestNow('2026-04-06 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(1, 8) as $minuteOffset) {
+            $checkedAt = Date::now()->subMinutes($minuteOffset);
+
+            MonitoringResponse::query()->forceCreate([
+                'monitoring_id' => $monitoring->id,
+                'status' => MonitoringStatus::UP,
+                'http_status_code' => 200,
+                'response_time' => 100 + $minuteOffset,
+                'created_at' => $checkedAt,
+                'updated_at' => $checkedAt,
+            ]);
+        }
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonCount(5, 'data');
+        $testResponse->assertJsonPath('meta.count', 5);
+        $testResponse->assertJsonPath('meta.offset', 0);
+        $testResponse->assertJsonPath('meta.has_more', true);
+        $testResponse->assertJsonPath('meta.next_offset', 5);
+        $this->assertSame(101.0, (float) $testResponse->json('data.0.response_time'));
+
+        $secondPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5&offset=5');
+
+        $secondPageResponse->assertOk();
+        $secondPageResponse->assertJsonCount(3, 'data');
+        $secondPageResponse->assertJsonPath('meta.count', 3);
+        $secondPageResponse->assertJsonPath('meta.offset', 5);
+        $secondPageResponse->assertJsonPath('meta.has_more', false);
+        $secondPageResponse->assertJsonPath('meta.next_offset', null);
+        $this->assertSame(106.0, (float) $secondPageResponse->json('data.0.response_time'));
     }
 
     /**

@@ -114,9 +114,11 @@ return [
         ],
         'checks' => [
             'heading' => 'Recent Checks',
-            'help' => 'Shows the latest individual checks for the selected range.',
+            'help' => 'Shows the latest individual checks and loads more entries on demand.',
             'loading' => 'Loading recent checks...',
-            'no_checks' => 'No individual checks were recorded in this period.',
+            'loading_more' => 'Loading more checks...',
+            'load_more' => 'Load more',
+            'no_checks' => 'No individual checks have been recorded yet.',
             'status_code_unavailable' => 'No status code',
             'response_time_unavailable' => 'Not available',
             'labels' => [

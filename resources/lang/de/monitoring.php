@@ -114,9 +114,11 @@ return [
         ],
         'checks' => [
             'heading' => 'Letzte Prüfungen',
-            'help' => 'Zeigt die neuesten Einzelprüfungen für den ausgewählten Zeitraum.',
+            'help' => 'Zeigt die neuesten Einzelprüfungen und lädt bei Bedarf weitere Einträge nach.',
             'loading' => 'Letzte Prüfungen werden geladen...',
-            'no_checks' => 'In diesem Zeitraum wurden keine Einzelprüfungen erfasst.',
+            'loading_more' => 'Weitere Prüfungen werden geladen...',
+            'load_more' => 'Mehr laden',
+            'no_checks' => 'Es wurden noch keine Einzelprüfungen erfasst.',
             'status_code_unavailable' => 'Kein Statuscode',
             'response_time_unavailable' => 'Nicht verfügbar',
             'labels' => [
