@@ -83,6 +83,7 @@
     loadCustomRangeStats();
     loadPerformanceChart(selectedRange);
     loadIncidents(selectedRange);
+    loadChecks(selectedRange);
     initializeDeferredLoads();" x-data="Object.assign({
         selectedRange: 1
     }, monitoringDetail('{{ $monitoring->id }}', {
@@ -93,6 +94,15 @@
         xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
         customRangeInvalidDate: '{{ __('monitoring.detail.custom_range.errors.invalid_date_range') }}',
         customRangeLoadError: '{{ __('monitoring.detail.custom_range.errors.load_failed') }}',
+        checkStatusSuccess: '{{ __('monitoring.detail.checks.statuses.success') }}',
+        checkStatusRedirect: '{{ __('monitoring.detail.checks.statuses.redirect') }}',
+        checkStatusClientError: '{{ __('monitoring.detail.checks.statuses.client_error') }}',
+        checkStatusServerError: '{{ __('monitoring.detail.checks.statuses.server_error') }}',
+        checkStatusUnknown: '{{ __('monitoring.detail.checks.statuses.unknown') }}',
+        checkStatusMaintenance: '{{ __('monitoring.detail.checks.statuses.maintenance') }}',
+        checkSourceLive: '{{ __('monitoring.detail.checks.sources.live') }}',
+        checkSourceArchived: '{{ __('monitoring.detail.checks.sources.archived') }}',
+        checkResponseTimeUnavailable: '{{ __('monitoring.detail.checks.response_time_unavailable') }}',
     }))">
 
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -293,7 +303,7 @@
                     <label for="range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
 
                     <select x-model="selectedRange"
-                        @change="loadPerformanceChart(selectedRange); loadIncidents(selectedRange);"
+                        @change="loadPerformanceChart(selectedRange); loadIncidents(selectedRange); loadChecks(selectedRange);"
                         class="rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         <option value="1">{{ __('monitoring.filter.options.today') }}</option>
                         <option value="7">{{ __('monitoring.filter.options.last_week') }}</option>
@@ -383,6 +393,78 @@
                         </div>
                     </x-container>
                 </template>
+            </template>
+        </div>
+
+        <div id="recent-checks" class="mt-8">
+            <div class="mb-2 flex items-center justify-between gap-4">
+                <x-heading type="h2" class="text-lg font-semibold text-gray-800">
+                    {{ __('monitoring.detail.checks.heading') }}
+                </x-heading>
+                <x-paragraph class="text-sm text-gray-500">
+                    {{ __('monitoring.detail.checks.help') }}
+                </x-paragraph>
+            </div>
+
+            <template x-if="recentChecksLoading">
+                <div x-transition.opacity>
+                    <x-loading-indicator>{{ __('monitoring.detail.checks.loading') }}</x-loading-indicator>
+                </div>
+            </template>
+
+            <template x-if="!recentChecksLoading && recentChecks.length === 0">
+                <x-paragraph class="text-gray-500">{{ __('monitoring.detail.checks.no_checks') }}</x-paragraph>
+            </template>
+
+            <template x-if="!recentChecksLoading && recentChecks.length > 0">
+                <div class="space-y-3">
+                    <template x-for="check in recentChecks" :key="check.id">
+                        <x-container space="true">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <x-paragraph class="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                                        x-text="check.checkedAt"></x-paragraph>
+                                    <x-paragraph class="text-sm text-gray-500"
+                                        x-text="check.checkedAtHuman"></x-paragraph>
+                                </div>
+                                <x-span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                                    x-bind:class="resolveCheckStatusClass(check.statusIdentifier)"
+                                    x-text="resolveCheckStatusLabel(check.statusIdentifier)"></x-span>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.status_code') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="check.httpStatusCode ?? '{{ __('monitoring.detail.checks.status_code_unavailable') }}'"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.response_time') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="formatResponseTime(check.responseTime)"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.source') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="resolveCheckSourceLabel(check.source)"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.raw_status') }}
+                                    </x-span>
+                                    <x-span class="text-sm uppercase text-gray-800 dark:text-gray-200"
+                                        x-text="check.status"></x-span>
+                                </div>
+                            </div>
+                        </x-container>
+                    </template>
+                </div>
             </template>
         </div>
     </x-main>
