@@ -615,8 +615,7 @@ class ApiController extends Controller
         int $offset,
         int $limit
     ): QueryBuilder {
-        return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)
-            ->orderByDesc('created_at')
+        return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)->latest()
             ->orderByDesc('id')
             ->offset($offset)
             ->limit($limit);
@@ -640,8 +639,7 @@ class ApiController extends Controller
         );
 
         return DB::query()
-            ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')
-            ->orderByDesc('created_at')
+            ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')->latest()
             ->orderByDesc('id');
     }
 
