@@ -184,6 +184,48 @@ class ApiControllerTest extends TestCase
         $this->assertStringNotContainsString('monitoring_response_archived', $historyQueries[0]);
     }
 
+    public function test_results_endpoint_supports_offset_pagination_for_recent_checks(): void
+    {
+        Date::setTestNow('2026-04-06 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(1, 8) as $minuteOffset) {
+            $checkedAt = Date::now()->subMinutes($minuteOffset);
+
+            MonitoringResponse::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'status' => MonitoringStatus::UP,
+                'http_status_code' => 200,
+                'response_time' => 100 + $minuteOffset,
+                'created_at' => $checkedAt,
+                'updated_at' => $checkedAt,
+            ]);
+        }
+
+        $firstPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5');
+
+        $firstPageResponse->assertOk();
+        $firstPageResponse->assertJsonCount(5, 'data');
+        $firstPageResponse->assertJsonPath('meta.count', 5);
+        $firstPageResponse->assertJsonPath('meta.offset', 0);
+        $firstPageResponse->assertJsonPath('meta.has_more', true);
+        $firstPageResponse->assertJsonPath('meta.next_offset', 5);
+        $firstPageResponse->assertJsonPath('data.0.response_time', 101.0);
+
+        $secondPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5&offset=5');
+
+        $secondPageResponse->assertOk();
+        $secondPageResponse->assertJsonCount(3, 'data');
+        $secondPageResponse->assertJsonPath('meta.count', 3);
+        $secondPageResponse->assertJsonPath('meta.offset', 5);
+        $secondPageResponse->assertJsonPath('meta.has_more', false);
+        $secondPageResponse->assertJsonPath('meta.next_offset', null);
+        $secondPageResponse->assertJsonPath('data.0.response_time', 106.0);
+    }
+
     /**
      * @return list<string>
      */

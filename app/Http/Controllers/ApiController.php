@@ -231,6 +231,7 @@ class ApiController extends Controller
      *
      * @queryParam days integer Optional number of past days to include. If omitted, all available history is considered.
      * @queryParam limit integer Optional maximum number of entries returned. Defaults to 100.
+     * @queryParam offset integer Optional number of entries to skip for pagination. Defaults to 0.
      *
      * @response {
      *   "data": [
@@ -248,7 +249,10 @@ class ApiController extends Controller
      *   "meta": {
      *     "count": 1,
      *     "limit": 100,
-     *     "days": 7
+     *     "offset": 0,
+     *     "days": 7,
+     *     "has_more": false,
+     *     "next_offset": null
      *   }
      * }
      */
@@ -257,23 +261,27 @@ class ApiController extends Controller
         $validated = $request->validate([
             'days' => ['nullable', 'integer', 'min:1', 'max:3650'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'offset' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ]);
 
         $days = isset($validated['days']) ? (int) $validated['days'] : null;
         $limit = (int) ($validated['limit'] ?? 100);
+        $offset = (int) ($validated['offset'] ?? 0);
+        $pageSize = $limit + 1;
         $startDate = $days !== null ? now()->subDays($days)->startOfDay() : null;
         $endDate = now()->endOfDay();
 
         $cacheKey = sprintf(
-            'monitoring:%s:checks:%s:%s',
+            'monitoring:%s:checks:%s:%s:%s',
             $monitoring->id,
             $days ?? 'all',
-            $limit
+            $limit,
+            $offset
         );
 
         $data = $this->cacheAndReturn(
             $cacheKey,
-            function () use ($monitoring, $startDate, $endDate, $limit): array {
+            function () use ($monitoring, $startDate, $endDate, $offset, $pageSize, $limit): array {
                 $archiveCutoffDate = Date::now()->subWeek()->startOfDay();
 
                 if ($startDate !== null && $startDate->gte($archiveCutoffDate)) {
@@ -283,10 +291,11 @@ class ApiController extends Controller
                         $monitoring->id,
                         $startDate,
                         $endDate,
-                        $limit
+                        $offset,
+                        $pageSize
                     )->get();
 
-                    return $this->formatCheckRows($rows);
+                    return $this->paginateCheckRows($rows, $limit, $offset);
                 }
 
                 if ($startDate === null) {
@@ -296,17 +305,18 @@ class ApiController extends Controller
                         $monitoring->id,
                         null,
                         null,
-                        $limit
+                        $offset,
+                        $pageSize
                     )->get();
 
                     $oldestLiveCheckedAt = $liveRows->last()?->created_at;
 
                     if (
-                        $liveRows->count() === $limit
+                        $liveRows->count() === $pageSize
                         && $oldestLiveCheckedAt !== null
                         && Date::parse((string) $oldestLiveCheckedAt)->gte($archiveCutoffDate)
                     ) {
-                        return $this->formatCheckRows($liveRows);
+                        return $this->paginateCheckRows($liveRows, $limit, $offset);
                     }
                 }
 
@@ -315,21 +325,25 @@ class ApiController extends Controller
                     $startDate,
                     $startDate !== null ? $endDate : null
                 )
-                    ->limit($limit)
+                    ->offset($offset)
+                    ->limit($pageSize)
                     ->get();
 
-                return $this->formatCheckRows($rows);
+                return $this->paginateCheckRows($rows, $limit, $offset);
             },
             (int) config('monitoring.interval', 5) * 60,
             'monitoring:' . $monitoring->id
         );
 
         return response()->json([
-            'data' => $data,
+            'data' => $data['data'],
             'meta' => [
-                'count' => count($data),
+                'count' => count($data['data']),
                 'limit' => $limit,
+                'offset' => $offset,
                 'days' => $days,
+                'has_more' => $data['has_more'],
+                'next_offset' => $data['next_offset'],
             ],
         ]);
     }
@@ -489,77 +503,6 @@ class ApiController extends Controller
     }
 
     /**
-     * Retrieves uptime percentage and incident count for a custom date range.
-     *
-     * @queryParam from date required Range start date. Example: 2026-01-01
-     * @queryParam until date required Range end date. Example: 2026-01-31
-     *
-     * @response {
-     *   "from": "2026-01-01",
-     *   "until": "2026-01-31",
-     *   "uptime_percentage": 99.85,
-     *   "has_data": true,
-     *   "tracking_started_at": "2026-01-15T12:00:00Z",
-     *   "incidents_count": 2
-     * }
-     */
-    public function customRangeStats(Monitoring $monitoring, Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'from' => ['required', 'date'],
-            'until' => ['required', 'date', 'after_or_equal:from'],
-        ]);
-
-        $startDate = Date::parse($validated['from'])->startOfDay();
-        $endDate = Date::parse($validated['until'])->endOfDay();
-        $isIntradayRange = $startDate->isSameDay($endDate);
-
-        $loadAggregatedData = ! $isIntradayRange;
-
-        if ($monitoring->created_at->diffInDays(now()) < 1) {
-            $loadAggregatedData = false;
-        }
-
-        $includeIntradayRawData = $isIntradayRange;
-
-        $cacheKey = sprintf(
-            'monitoring:%s:custom-range-stats:%s:%s',
-            $monitoring->id,
-            $startDate->format('Ymd'),
-            $endDate->format('Ymd')
-        );
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            function () use ($monitoring, $startDate, $endDate, $loadAggregatedData, $includeIntradayRawData): array {
-                $uptimeDowntime = MonitoringResultService::getUptimeDowntime(
-                    $monitoring,
-                    $startDate,
-                    $endDate,
-                    $loadAggregatedData,
-                    $includeIntradayRawData
-                );
-                $incidentsCount = $loadAggregatedData
-                    ? MonitoringResultService::getAggregatedIncidentsCount($monitoring, $startDate, $endDate, $includeIntradayRawData)
-                    : MonitoringResultService::countIncidents($monitoring, $startDate, $endDate);
-
-                return [
-                    'from' => $startDate->toDateString(),
-                    'until' => $endDate->toDateString(),
-                    'uptime_percentage' => $uptimeDowntime['uptime']['percentage'],
-                    'has_data' => (bool) ($uptimeDowntime['has_data'] ?? false),
-                    'tracking_started_at' => $uptimeDowntime['tracking_started_at'],
-                    'incidents_count' => $incidentsCount,
-                ];
-            },
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
-        );
-
-        return response()->json($data);
-    }
-
-    /**
      * Retrieves the SSL status for a given monitoring instance.
      *
      * @response {
@@ -669,10 +612,12 @@ class ApiController extends Controller
         string $monitoringId,
         ?Carbon $startDate,
         ?Carbon $endDate,
+        int $offset,
         int $limit
     ): QueryBuilder {
         return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)->latest()
             ->orderByDesc('id')
+            ->offset($offset)
             ->limit($limit);
     }
 
@@ -736,5 +681,21 @@ class ApiController extends Controller
                 'source' => (string) $row->source,
             ];
         })->all();
+    }
+
+    /**
+     * @param  Collection<int, object>  $rows
+     * @return array{data: array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, status_identifier: string, status_key: string, source: string}>, has_more: bool, next_offset: int|null}
+     */
+    private function paginateCheckRows(Collection $rows, int $limit, int $offset): array
+    {
+        $hasMore = $rows->count() > $limit;
+        $pageRows = $rows->take($limit);
+
+        return [
+            'data' => $this->formatCheckRows($pageRows),
+            'has_more' => $hasMore,
+            'next_offset' => $hasMore ? $offset + $pageRows->count() : null,
+        ];
     }
 }

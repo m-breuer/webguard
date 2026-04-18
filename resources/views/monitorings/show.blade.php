@@ -80,20 +80,15 @@
     <x-main x-init="loadStatus();
     loadHeatmap();
     loadUptime();
-    loadCustomRangeStats();
-    loadPerformanceChart(selectedRange);
-    loadIncidents(selectedRange);
-    loadChecks(selectedRange);
-    initializeDeferredLoads();" x-data="Object.assign({
-        selectedRange: 1
-    }, monitoringDetail('{{ $monitoring->id }}', {
+    loadPerformanceChart(responseTimeRange);
+    loadIncidents(incidentsRange);
+    loadChecks();
+    initializeDeferredLoads();" x-data="monitoringDetail('{{ $monitoring->id }}', {
         min: '{{ __('monitoring.detail.response_time.min_label') }}',
         avg: '{{ __('monitoring.detail.response_time.avg_label') }}',
         max: '{{ __('monitoring.detail.response_time.max_label') }}',
         yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
         xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
-        customRangeInvalidDate: '{{ __('monitoring.detail.custom_range.errors.invalid_date_range') }}',
-        customRangeLoadError: '{{ __('monitoring.detail.custom_range.errors.load_failed') }}',
         checkStatusSuccess: '{{ __('monitoring.detail.checks.statuses.success') }}',
         checkStatusRedirect: '{{ __('monitoring.detail.checks.statuses.redirect') }}',
         checkStatusClientError: '{{ __('monitoring.detail.checks.statuses.client_error') }}',
@@ -103,7 +98,7 @@
         checkSourceLive: '{{ __('monitoring.detail.checks.sources.live') }}',
         checkSourceArchived: '{{ __('monitoring.detail.checks.sources.archived') }}',
         checkResponseTimeUnavailable: '{{ __('monitoring.detail.checks.response_time_unavailable') }}',
-    }))">
+    })">
 
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <x-container>
@@ -251,54 +246,6 @@
                 </x-container>
             @endforeach
 
-            <x-container id="uptime-card-custom-range">
-                <x-heading type="h2">{{ __('monitoring.detail.custom_range.heading') }}</x-heading>
-                <x-paragraph class="mt-2 text-sm text-gray-500">
-                    {{ __('monitoring.detail.custom_range.help') }}
-                </x-paragraph>
-
-                <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div>
-                        <x-input-label for="custom-range-from" :value="__('monitoring.detail.custom_range.from')" />
-                        <input id="custom-range-from" type="date" x-model="customRangeFrom" :max="customRangeUntil"
-                            max="{{ now()->toDateString() }}" @change="loadCustomRangeStats()"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    </div>
-                    <div>
-                        <x-input-label for="custom-range-until" :value="__('monitoring.detail.custom_range.until')" />
-                        <input id="custom-range-until" type="date" x-model="customRangeUntil" :min="customRangeFrom"
-                            max="{{ now()->toDateString() }}" @change="loadCustomRangeStats()"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    </div>
-                </div>
-
-                <template x-if="customRangeStatsLoading">
-                    <div class="mt-4" x-transition.opacity>
-                        <x-loading-indicator>{{ __('monitoring.detail.custom_range.loading') }}</x-loading-indicator>
-                    </div>
-                </template>
-
-                <template x-if="!customRangeStatsLoading && customRangeStatsError">
-                    <x-paragraph class="mt-4 text-sm font-medium text-red-600" x-text="customRangeStatsError"></x-paragraph>
-                </template>
-
-                <template x-if="!customRangeStatsLoading && !customRangeStatsError">
-                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.uptime') }}</x-paragraph>
-                            <x-paragraph class="text-2xl font-bold text-purple-600"
-                                x-text="customRangeStats?.hasData && customRangeStats.uptimePercentage !== null
-                                    ? customRangeStats.uptimePercentage.toFixed(2) + '%'
-                                    : '—'">—</x-paragraph>
-                        </div>
-                        <div>
-                            <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.incidents') }}</x-paragraph>
-                            <x-paragraph class="text-2xl font-semibold"
-                                x-text="customRangeStats ? customRangeStats.incidentsCount : '—'">—</x-paragraph>
-                        </div>
-                    </div>
-                </template>
-            </x-container>
         </div>
 
         <div class="my-4" id="uptime-calendar-{{ $monitoring->id }}">
@@ -319,10 +266,10 @@
                 <x-heading type="h2">{{ __('monitoring.detail.response_time.heading') }}</x-heading>
 
                 <div>
-                    <label for="range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
+                    <label for="response-time-range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
 
-                    <select x-model="selectedRange"
-                        @change="loadPerformanceChart(selectedRange); loadIncidents(selectedRange); loadChecks(selectedRange);"
+                    <select id="response-time-range" x-model="responseTimeRange"
+                        @change="loadPerformanceChart(responseTimeRange)"
                         class="rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         <option value="1">{{ __('monitoring.filter.options.today') }}</option>
                         <option value="7">{{ __('monitoring.filter.options.last_week') }}</option>
@@ -342,13 +289,13 @@
                 </div>
             </x-container>
 
-            <template x-if="responseStats[selectedRange + 'd']">
+            <template x-if="responseStats[responseTimeRange + 'd']">
                 <div class="mb-4 grid grid-cols-1 gap-4 text-center md:grid-cols-3">
                     <x-container>
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.min') }}</x-paragraph>
                         <x-paragraph class="text-xl font-semibold text-gray-800"
-                            x-text="responseStats[selectedRange + 'd']?.avg !== undefined ? Math.round(responseStats[selectedRange + 'd'].avg) + ' ms' : '—'">
+                            x-text="responseStats[responseTimeRange + 'd']?.avg !== undefined ? Math.round(responseStats[responseTimeRange + 'd'].avg) + ' ms' : '—'">
                             —
                         </x-paragraph>
                     </x-container>
@@ -356,7 +303,7 @@
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.avg') }}</x-paragraph>
                         <x-paragraph class="text-xl font-semibold text-gray-800"
-                            x-text="responseStats[selectedRange + 'd']?.avg !== undefined ? Math.round(responseStats[selectedRange + 'd'].avg) + ' ms' : '—'">
+                            x-text="responseStats[responseTimeRange + 'd']?.avg !== undefined ? Math.round(responseStats[responseTimeRange + 'd'].avg) + ' ms' : '—'">
                             —
                         </x-paragraph>
                     </x-container>
@@ -364,7 +311,7 @@
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.max') }}</x-paragraph>
                         <x-paragraph class="text-xl font-semibold text-gray-800"
-                            x-text="responseStats[selectedRange + 'd']?.max !== undefined ? Math.round(responseStats[selectedRange + 'd'].max) + ' ms' : '—'">
+                            x-text="responseStats[responseTimeRange + 'd']?.max !== undefined ? Math.round(responseStats[responseTimeRange + 'd'].max) + ' ms' : '—'">
                             —
                         </x-paragraph>
                     </x-container>
@@ -373,9 +320,25 @@
         @endif
 
         <div id="incidents" class="mt-4">
-            <x-heading type="h2"
-                class="mb-2 text-lg font-semibold text-gray-800">{{ __('monitoring.detail.incidents.heading') }}
-            </x-heading>
+            <div class="mb-2 flex items-center justify-between gap-4">
+                <x-heading type="h2"
+                    class="text-lg font-semibold text-gray-800">{{ __('monitoring.detail.incidents.heading') }}
+                </x-heading>
+
+                <div>
+                    <label for="incidents-range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
+
+                    <select id="incidents-range" x-model="incidentsRange"
+                        @change="loadIncidents(incidentsRange)"
+                        class="rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                        <option value="1">{{ __('monitoring.filter.options.today') }}</option>
+                        <option value="7">{{ __('monitoring.filter.options.last_week') }}</option>
+                        <option value="30">{{ __('monitoring.filter.options.last_month') }}</option>
+                        <option value="90">{{ __('monitoring.filter.options.last_quarter') }}</option>
+                        <option value="365">{{ __('monitoring.filter.options.last_year') }}</option>
+                    </select>
+                </div>
+            </div>
 
             <template x-if="incidentsLoading">
                 <div x-transition.opacity>
@@ -483,6 +446,15 @@
                             </div>
                         </x-container>
                     </template>
+
+                    <div class="pt-1 text-center" x-show="recentChecksHasMore">
+                        <x-primary-button type="button" @click="loadMoreChecks()"
+                            x-bind:disabled="recentChecksLoadingMore"
+                            x-bind:class="{ 'opacity-60 cursor-not-allowed': recentChecksLoadingMore }">
+                            <span
+                                x-text="recentChecksLoadingMore ? '{{ __('monitoring.detail.checks.loading_more') }}' : '{{ __('monitoring.detail.checks.load_more') }}'"></span>
+                        </x-primary-button>
+                    </div>
                 </div>
             </template>
         </div>
