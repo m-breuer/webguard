@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\User;
@@ -18,7 +19,10 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
     {
         Package::factory()->create();
         $user = User::factory()->create();
-        $monitoring = Monitoring::factory()->for($user)->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+        ]);
 
         $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
 
@@ -26,12 +30,12 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeText(__('monitoring.detail.checks.heading'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.help'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.no_checks'));
-        $testResponse->assertSeeText(__('monitoring.detail.checks.load_more'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.labels.status_code'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.labels.response_time'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.labels.source'));
         $testResponse->assertSeeHtml('id="response-time-range"');
         $testResponse->assertSeeHtml('id="incidents-range"');
+        $testResponse->assertSeeHtml('@click="loadMoreChecks()"');
         $testResponse->assertDontSeeText(__('monitoring.detail.custom_range.heading'));
         $testResponse->assertDontSeeHtml('id="uptime-card-custom-range"');
         $testResponse->assertSeeHtml('id="recent-checks"');
