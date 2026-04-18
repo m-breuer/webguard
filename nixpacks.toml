@@ -91,7 +91,7 @@ stderr_logfile=/var/log/worker-laravel.log
 "worker-laravel-heartbeat.conf" = '''
 [program:worker-laravel-heartbeat]
 process_name=%(program_name)s_%(process_num)02d
-command=bash -c 'exec php /app/artisan queue:work redis --queue=heartbeat --sleep=3 --tries=3 --max-time=3600'
+command=bash -lc "exec php /app/artisan queue:work redis --queue=${HEARTBEAT_QUEUE:-heartbeat} --sleep=3 --tries=3 --max-time=3600"
 autostart=true
 autorestart=true
 stopasgroup=true
