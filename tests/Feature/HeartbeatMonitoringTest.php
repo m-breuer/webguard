@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
+use App\Jobs\EvaluateHeartbeatMonitoringsJob;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\Package;
@@ -103,7 +104,7 @@ class HeartbeatMonitoringTest extends TestCase
             'updated_at' => Date::now()->subHours(2),
         ]);
 
-        $this->artisan('monitoring:evaluate-heartbeats')->assertSuccessful();
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
 
         $incident = Incident::query()->where('monitoring_id', $monitoring->id)->firstOrFail();
         $this->assertNull($incident->up_at);

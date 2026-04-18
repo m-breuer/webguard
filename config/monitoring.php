@@ -14,4 +14,16 @@ return [
     |
     */
     'interval' => 5,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Heartbeat Queue Name
+    |--------------------------------------------------------------------------
+    |
+    | Missed heartbeat evaluation is dispatched onto a dedicated queue so it
+    | can be processed separately from the default application workload while
+    | still using the standard Redis queue connection.
+    |
+    */
+    'heartbeat_queue' => env('HEARTBEAT_QUEUE', 'heartbeat'),
 ];

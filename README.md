@@ -110,7 +110,13 @@ To get started with WebGuard, you'll need to have the following prerequisites in
     bun run dev
     ```
 
-    This will start the Laravel development server, the queue worker, the Pail log viewer, and the Vite development server.
+    This will start the Laravel development server, the default queue worker, the dedicated Redis-backed `heartbeat` queue worker, the Pail log viewer, and the Vite development server.
+
+    In production, run a dedicated worker for the `heartbeat` queue on the standard Redis connection as well, for example:
+
+    ```bash
+    php artisan queue:work redis --queue=heartbeat --sleep=3 --tries=3 --max-time=3600
+    ```
 
 8.  **Run the test suite:**
 
