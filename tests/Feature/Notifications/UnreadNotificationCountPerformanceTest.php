@@ -29,7 +29,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
         $deletedMonitoring = Monitoring::factory()->for($user)->create();
         $otherUserMonitoring = Monitoring::factory()->for($otherUser)->create();
 
-        MonitoringNotification::withoutGlobalScopes()->create([
+        MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $firstMonitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -37,7 +37,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
             'sent' => true,
         ]);
 
-        MonitoringNotification::withoutGlobalScopes()->create([
+        MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $firstMonitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'UP',
@@ -45,7 +45,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
             'sent' => true,
         ]);
 
-        MonitoringNotification::withoutGlobalScopes()->create([
+        MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $secondMonitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -53,7 +53,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
             'sent' => true,
         ]);
 
-        MonitoringNotification::withoutGlobalScopes()->create([
+        MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $secondMonitoring->id,
             'type' => NotificationType::SSL_EXPIRY,
             'message' => 'SSL_EXPIRING',
@@ -61,7 +61,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
             'sent' => true,
         ]);
 
-        MonitoringNotification::withoutGlobalScopes()->create([
+        MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $deletedMonitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -69,7 +69,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
             'sent' => true,
         ]);
 
-        MonitoringNotification::withoutGlobalScopes()->create([
+        MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $otherUserMonitoring->id,
             'type' => NotificationType::SSL_EXPIRY,
             'message' => 'SSL_EXPIRING',
@@ -84,7 +84,7 @@ class UnreadNotificationCountPerformanceTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $count = app(NotificationBoardService::class)->getUnreadNotificationCount();
+        $count = resolve(NotificationBoardService::class)->getUnreadNotificationCount();
 
         $selectQueries = collect(DB::getQueryLog())
             ->pluck('query')
