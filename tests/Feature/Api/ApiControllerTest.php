@@ -205,15 +205,15 @@ class ApiControllerTest extends TestCase
             ]);
         }
 
-        $firstPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5');
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5');
 
-        $firstPageResponse->assertOk();
-        $firstPageResponse->assertJsonCount(5, 'data');
-        $firstPageResponse->assertJsonPath('meta.count', 5);
-        $firstPageResponse->assertJsonPath('meta.offset', 0);
-        $firstPageResponse->assertJsonPath('meta.has_more', true);
-        $firstPageResponse->assertJsonPath('meta.next_offset', 5);
-        $firstPageResponse->assertJsonPath('data.0.response_time', 101.0);
+        $testResponse->assertOk();
+        $testResponse->assertJsonCount(5, 'data');
+        $testResponse->assertJsonPath('meta.count', 5);
+        $testResponse->assertJsonPath('meta.offset', 0);
+        $testResponse->assertJsonPath('meta.has_more', true);
+        $testResponse->assertJsonPath('meta.next_offset', 5);
+        $testResponse->assertJsonPath('data.0.response_time', 101.0);
 
         $secondPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5&offset=5');
 
