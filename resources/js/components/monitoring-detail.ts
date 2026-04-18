@@ -5,11 +5,22 @@ import dayjs from 'dayjs';
 interface MonitoringDetailComponent {
     sinceDate: any;
     incidents: any[];
+    recentChecks: Array<{
+        id: string;
+        checkedAt: string;
+        checkedAtHuman: string | null;
+        status: string;
+        httpStatusCode: number | null;
+        responseTime: number | null;
+        statusIdentifier: string;
+        source: string;
+    }>;
     status: string | null;
     since: string | null;
     heatmap: any[];
     loading: boolean;
     incidentsLoading: boolean;
+    recentChecksLoading: boolean;
     lastCheckedAt: string | null;
     nextCheckIn: string | null;
     lastCheckedAtDate: Date | null;
@@ -47,6 +58,7 @@ interface MonitoringDetailComponent {
     currentLocale: string;
     loadStatus(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
+    loadChecks(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
     loadUptime(this: MonitoringDetailComponent): Promise<void>;
     loadCustomRangeStats(this: MonitoringDetailComponent): Promise<void>;
@@ -54,6 +66,10 @@ interface MonitoringDetailComponent {
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
     initializeDeferredLoads(this: MonitoringDetailComponent): void;
+    resolveCheckStatusLabel(this: MonitoringDetailComponent, statusIdentifier: string): string;
+    resolveCheckStatusClass(this: MonitoringDetailComponent, statusIdentifier: string): string;
+    resolveCheckSourceLabel(this: MonitoringDetailComponent, source: string): string;
+    formatResponseTime(this: MonitoringDetailComponent, responseTime: number | null): string;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -62,11 +78,22 @@ interface AlpineThisContext extends MonitoringDetailComponent {
 
 export default (monitoringId: string, chartLabels: Record<string, string>): MonitoringDetailComponent => ({
     incidents: [] as any[],
+    recentChecks: [] as Array<{
+        id: string;
+        checkedAt: string;
+        checkedAtHuman: string | null;
+        status: string;
+        httpStatusCode: number | null;
+        responseTime: number | null;
+        statusIdentifier: string;
+        source: string;
+    }>,
     status: null as string | null,
     since: null as string | null,
     heatmap: [] as any[],
     loading: false,
     incidentsLoading: false,
+    recentChecksLoading: false,
     lastCheckedAt: null as string | null,
     nextCheckIn: null as string | null,
     lastCheckedAtDate: null,
@@ -172,6 +199,64 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.incidents = [];
         } finally {
             this.incidentsLoading = false;
+        }
+    },
+
+    async loadChecks(this: MonitoringDetailComponent, days: string | number | null = null): Promise<void> {
+        this.recentChecksLoading = true;
+
+        let finalDays: number;
+
+        if (days === null) {
+            finalDays = parseInt(this.selectedRange, 10);
+        } else if (typeof days === 'string') {
+            finalDays = parseInt(days, 10);
+        } else {
+            finalDays = days;
+        }
+
+        if (isNaN(finalDays) || finalDays < 1) {
+            finalDays = 1;
+        }
+
+        try {
+            const query = new URLSearchParams({
+                days: String(finalDays),
+                limit: '10',
+            });
+
+            const response = await fetch(`/api/monitorings/${monitoringId}/checks?${query.toString()}`);
+
+            if (!response.ok) {
+                throw new Error(`Checks request failed: ${response.status}`);
+            }
+
+            const responseData = await response.json() as {
+                data?: Array<{
+                    id: string;
+                    checked_at: string;
+                    status: string;
+                    http_status_code: number | null;
+                    response_time: number | null;
+                    status_identifier: string;
+                    source: string;
+                }>;
+            };
+
+            this.recentChecks = (responseData.data ?? []).map((check) => ({
+                id: check.id,
+                checkedAt: formatDate(check.checked_at, 'L LTS') ?? check.checked_at,
+                checkedAtHuman: humanizeDistance(check.checked_at),
+                status: check.status,
+                httpStatusCode: check.http_status_code,
+                responseTime: check.response_time,
+                statusIdentifier: check.status_identifier,
+                source: check.source,
+            }));
+        } catch (_) {
+            this.recentChecks = [];
+        } finally {
+            this.recentChecksLoading = false;
         }
     },
 
@@ -484,6 +569,46 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }
 
         window.setTimeout(loadCalendar, 600);
+    },
+
+    resolveCheckStatusLabel(this: MonitoringDetailComponent, statusIdentifier: string): string {
+        const labels: Record<string, string> = {
+            'status.success': this.chartLabels.checkStatusSuccess,
+            'status.redirect': this.chartLabels.checkStatusRedirect,
+            'status.client_error': this.chartLabels.checkStatusClientError,
+            'status.server_error': this.chartLabels.checkStatusServerError,
+            'status.maintenance': this.chartLabels.checkStatusMaintenance,
+            'status.unknown': this.chartLabels.checkStatusUnknown,
+        };
+
+        return labels[statusIdentifier] ?? this.chartLabels.checkStatusUnknown;
+    },
+
+    resolveCheckStatusClass(this: MonitoringDetailComponent, statusIdentifier: string): string {
+        const classes: Record<string, string> = {
+            'status.success': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
+            'status.redirect': 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200',
+            'status.client_error': 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+            'status.server_error': 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200',
+            'status.maintenance': 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100',
+            'status.unknown': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+        };
+
+        return classes[statusIdentifier] ?? classes['status.unknown'];
+    },
+
+    resolveCheckSourceLabel(this: MonitoringDetailComponent, source: string): string {
+        return source === 'archived'
+            ? this.chartLabels.checkSourceArchived
+            : this.chartLabels.checkSourceLive;
+    },
+
+    formatResponseTime(this: MonitoringDetailComponent, responseTime: number | null): string {
+        if (responseTime === null) {
+            return this.chartLabels.checkResponseTimeUnavailable;
+        }
+
+        return `${Math.round(responseTime)} ms`;
     },
 
     chartLabels: chartLabels

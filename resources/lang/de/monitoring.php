@@ -112,6 +112,32 @@ return [
                 'load_failed' => 'Benutzerdefinierte Statistiken konnten nicht geladen werden.',
             ],
         ],
+        'checks' => [
+            'heading' => 'Letzte Prüfungen',
+            'help' => 'Zeigt die neuesten Einzelprüfungen für den ausgewählten Zeitraum.',
+            'loading' => 'Letzte Prüfungen werden geladen...',
+            'no_checks' => 'In diesem Zeitraum wurden keine Einzelprüfungen erfasst.',
+            'status_code_unavailable' => 'Kein Statuscode',
+            'response_time_unavailable' => 'Nicht verfügbar',
+            'labels' => [
+                'status_code' => 'Statuscode',
+                'response_time' => 'Antwortzeit',
+                'source' => 'Quelle',
+                'raw_status' => 'Rohstatus',
+            ],
+            'sources' => [
+                'live' => 'Live',
+                'archived' => 'Archiviert',
+            ],
+            'statuses' => [
+                'success' => 'Erfolgreich',
+                'redirect' => 'Weiterleitung',
+                'client_error' => 'Client-Fehler',
+                'server_error' => 'Server-Fehler',
+                'unknown' => 'Unbekannt',
+                'maintenance' => 'Wartung',
+            ],
+        ],
         'widget' => [
             'heading' => 'Widget einbetten',
             'description' => 'Betten Sie ein Live-Überwachungs-Widget auf Ihrer Website oder Ihrem Dashboard ein.',

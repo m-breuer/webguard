@@ -112,6 +112,32 @@ return [
                 'load_failed' => 'Failed to load custom range statistics.',
             ],
         ],
+        'checks' => [
+            'heading' => 'Recent Checks',
+            'help' => 'Shows the latest individual checks for the selected range.',
+            'loading' => 'Loading recent checks...',
+            'no_checks' => 'No individual checks were recorded in this period.',
+            'status_code_unavailable' => 'No status code',
+            'response_time_unavailable' => 'Not available',
+            'labels' => [
+                'status_code' => 'Status code',
+                'response_time' => 'Response time',
+                'source' => 'Source',
+                'raw_status' => 'Raw status',
+            ],
+            'sources' => [
+                'live' => 'Live',
+                'archived' => 'Archived',
+            ],
+            'statuses' => [
+                'success' => 'Successful',
+                'redirect' => 'Redirect',
+                'client_error' => 'Client Error',
+                'server_error' => 'Server Error',
+                'unknown' => 'Unknown',
+                'maintenance' => 'Maintenance',
+            ],
+        ],
         'widget' => [
             'heading' => 'Embed Widget',
             'description' => 'Embed a live monitoring widget on your website or dashboard.',
