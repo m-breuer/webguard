@@ -1,12 +1,12 @@
 <footer class="border-t border-slate-200/80 bg-white/80 dark:border-slate-800/70 dark:bg-slate-950/80">
     <x-main class="w-full py-5">
-        <div class="flex flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
-            <x-paragraph class="text-sm text-gray-500">
+        <div class="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <x-paragraph class="max-w-2xl text-sm leading-6 text-gray-500">
                 &copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('legal.footer.content') }}
             </x-paragraph>
 
-            <nav aria-label="{{ __('imprint.footer_nav_aria') }}">
-                <ul class="flex items-center gap-4">
+            <nav class="w-full sm:w-auto" aria-label="{{ __('imprint.footer_nav_aria') }}">
+                <ul class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
                     <li>
                         <a href="{{ route('monitoring-locations') }}"
                             class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
