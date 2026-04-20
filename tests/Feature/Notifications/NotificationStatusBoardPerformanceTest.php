@@ -94,6 +94,52 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $this->assertFalse($entry['read']);
     }
 
+    public function test_status_board_prefers_newest_notification_id_when_status_changes_share_a_timestamp(): void
+    {
+        Date::setTestNow('2026-04-19 10:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $sharedTimestamp = Date::now()->subMinute();
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 204,
+            'response_time' => 95.0,
+            'created_at' => Date::now()->subMinutes(2),
+            'updated_at' => Date::now()->subMinutes(2),
+        ]);
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => true,
+            'created_at' => $sharedTimestamp,
+            'updated_at' => $sharedTimestamp,
+        ]);
+
+        $latestNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => false,
+            'sent' => true,
+            'created_at' => $sharedTimestamp,
+            'updated_at' => $sharedTimestamp,
+        ]);
+
+        $this->actingAs($user);
+
+        $entry = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true)->sole();
+
+        $this->assertSame($latestNotification->id, $entry['notification_id']);
+        $this->assertSame('notifications.status_change.up', $entry['status_change_key']);
+    }
+
     private function createStatusBoardMonitoring(User $user, int $statusCode, CarbonInterface $notificationTime): Monitoring
     {
         $monitoring = Monitoring::factory()->for($user)->create();
