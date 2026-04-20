@@ -94,6 +94,56 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $this->assertFalse($entry['read']);
     }
 
+    public function test_status_board_uses_the_id_tie_breaker_when_status_change_timestamps_match(): void
+    {
+        Date::setTestNow('2026-04-19 10:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $createdAt = Date::now()->subMinute();
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 204,
+            'response_time' => 125.0,
+            'created_at' => $createdAt->copy()->subMinute(),
+            'updated_at' => $createdAt->copy()->subMinute(),
+        ]);
+
+        $firstNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => true,
+        ]);
+        $firstNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+        $firstNotification->created_at = $createdAt;
+        $firstNotification->updated_at = $createdAt;
+        $firstNotification->save();
+
+        $selectedNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => false,
+            'sent' => true,
+        ]);
+        $selectedNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+        $selectedNotification->created_at = $createdAt;
+        $selectedNotification->updated_at = $createdAt;
+        $selectedNotification->save();
+
+        $this->actingAs($user);
+
+        $entry = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true)->sole();
+
+        $this->assertSame($selectedNotification->id, $entry['notification_id']);
+        $this->assertSame('notifications.status_change.up', $entry['status_change_key']);
+    }
+
     private function createStatusBoardMonitoring(User $user, int $statusCode, CarbonInterface $notificationTime): Monitoring
     {
         $monitoring = Monitoring::factory()->for($user)->create();
