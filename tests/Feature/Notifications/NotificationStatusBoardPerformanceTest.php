@@ -94,49 +94,53 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $this->assertFalse($entry['read']);
     }
 
-    public function test_status_board_prefers_newest_notification_id_when_status_changes_share_a_timestamp(): void
+    public function test_status_board_uses_the_id_tie_breaker_when_status_change_timestamps_match(): void
     {
         Date::setTestNow('2026-04-19 10:00:00');
 
         $package = Package::factory()->create();
         $user = User::factory()->for($package)->create();
         $monitoring = Monitoring::factory()->for($user)->create();
-        $sharedTimestamp = Date::now()->subMinute();
+        $createdAt = Date::now()->subMinute();
 
         MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => 204,
-            'response_time' => 95.0,
-            'created_at' => Date::now()->subMinutes(2),
-            'updated_at' => Date::now()->subMinutes(2),
+            'response_time' => 125.0,
+            'created_at' => $createdAt->copy()->subMinute(),
+            'updated_at' => $createdAt->copy()->subMinute(),
         ]);
 
-        MonitoringNotification::query()->create([
+        $firstNotification = new MonitoringNotification([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
             'read' => false,
             'sent' => true,
-            'created_at' => $sharedTimestamp,
-            'updated_at' => $sharedTimestamp,
         ]);
+        $firstNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+        $firstNotification->created_at = $createdAt;
+        $firstNotification->updated_at = $createdAt;
+        $firstNotification->save();
 
-        $latestNotification = MonitoringNotification::query()->create([
+        $selectedNotification = new MonitoringNotification([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'UP',
             'read' => false,
             'sent' => true,
-            'created_at' => $sharedTimestamp,
-            'updated_at' => $sharedTimestamp,
         ]);
+        $selectedNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+        $selectedNotification->created_at = $createdAt;
+        $selectedNotification->updated_at = $createdAt;
+        $selectedNotification->save();
 
         $this->actingAs($user);
 
         $entry = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true)->sole();
 
-        $this->assertSame($latestNotification->id, $entry['notification_id']);
+        $this->assertSame($selectedNotification->id, $entry['notification_id']);
         $this->assertSame('notifications.status_change.up', $entry['status_change_key']);
     }
 
