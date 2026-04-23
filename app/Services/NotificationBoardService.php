@@ -127,8 +127,8 @@ class NotificationBoardService
             ->selectRaw('latest_status_notifications.message as status_change_message')
             ->selectRaw('latest_status_notifications.read as notification_read')
             ->selectRaw('latest_status_notifications.created_at as latest_status_change_at')
-            ->latest('latest_status_change_at')
-            ->orderByDesc('notification_id')
+            ->latest('latest_status_notifications.created_at')
+            ->orderByDesc('latest_status_notifications.id')
             ->offset($offset)
             ->limit($limit + 1)
             ->get();

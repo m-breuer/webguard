@@ -29,8 +29,8 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $package = Package::factory()->create();
         $user = User::factory()->for($package)->create();
 
-        $firstMonitoring = $this->createStatusBoardMonitoring($user, 503, Date::now()->subMinutes(4));
-        $secondMonitoring = $this->createStatusBoardMonitoring($user, 204, Date::now()->subMinutes(2));
+        $firstMonitoring = $this->createStatusBoardMonitoring($user, 503, Date::now()->copy()->subMinutes(4));
+        $secondMonitoring = $this->createStatusBoardMonitoring($user, 204, Date::now()->copy()->subMinutes(2));
 
         $this->actingAs($user);
 
@@ -46,6 +46,38 @@ class NotificationStatusBoardPerformanceTest extends TestCase
 
         $this->assertCount(1, $selectQueries);
         $this->assertSame([$secondMonitoring->id, $firstMonitoring->id], $entries->pluck('monitoring_id')->all());
+    }
+
+    public function test_status_board_orders_entries_by_notification_id_when_status_change_timestamps_match(): void
+    {
+        Date::setTestNow('2026-04-19 10:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+        $createdAt = Date::now()->copy()->subMinute();
+
+        $firstMonitoring = $this->createStatusBoardMonitoring(
+            $user,
+            503,
+            $createdAt,
+            '01ARZ3NDEKTSV4RRFFQ69G5FAV'
+        );
+        $selectedMonitoring = $this->createStatusBoardMonitoring(
+            $user,
+            204,
+            $createdAt,
+            '01ARZ3NDEKTSV4RRFFQ69G5FAW'
+        );
+
+        $this->actingAs($user);
+
+        $entries = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true, limit: 5);
+
+        $this->assertSame([$selectedMonitoring->id, $firstMonitoring->id], $entries->pluck('monitoring_id')->all());
+        $this->assertSame([
+            '01ARZ3NDEKTSV4RRFFQ69G5FAW',
+            '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        ], $entries->pluck('notification_id')->all());
     }
 
     public function test_unread_status_board_keeps_latest_unread_status_change_when_newer_read_entry_exists(): void
@@ -193,20 +225,24 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $this->assertSame($checkedAt->toIso8601String(), $entry['latest_checked_at']);
     }
 
-    private function createStatusBoardMonitoring(User $user, int $statusCode, CarbonInterface $notificationTime): Monitoring
-    {
+    private function createStatusBoardMonitoring(
+        User $user,
+        int $statusCode,
+        CarbonInterface $notificationTime,
+        ?string $notificationId = null
+    ): Monitoring {
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        MonitoringResponse::query()->create([
+        MonitoringResponse::withoutEvents(fn (): MonitoringResponse => MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
             'status' => $statusCode >= 500 ? MonitoringStatus::DOWN : MonitoringStatus::UP,
             'http_status_code' => $statusCode,
             'response_time' => 140.0,
             'created_at' => $notificationTime->copy()->subMinute(),
             'updated_at' => $notificationTime->copy()->subMinute(),
-        ]);
+        ]));
 
-        MonitoringNotification::query()->create([
+        $notificationAttributes = [
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => $statusCode >= 500 ? 'DOWN' : 'UP',
@@ -214,7 +250,13 @@ class NotificationStatusBoardPerformanceTest extends TestCase
             'sent' => true,
             'created_at' => $notificationTime,
             'updated_at' => $notificationTime,
-        ]);
+        ];
+
+        if ($notificationId !== null) {
+            $notificationAttributes['id'] = $notificationId;
+        }
+
+        MonitoringNotification::query()->forceCreate($notificationAttributes);
 
         return $monitoring;
     }
