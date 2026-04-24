@@ -138,7 +138,7 @@ class DomainExpirationMonitoringTest extends TestCase
                 'preferred_location' => $this->serverInstance->code,
             ]);
 
-        $domainResponse = $this->withHeaders($this->instanceHeaders())
+        $testResponse = $this->withHeaders($this->instanceHeaders())
             ->postJson(route('v1.internal.domain-results.store'), [
                 'monitoring_id' => $monitoring->id,
                 'is_valid' => true,
@@ -147,7 +147,7 @@ class DomainExpirationMonitoringTest extends TestCase
                 'checked_at' => Date::now()->toIso8601String(),
             ]);
 
-        $domainResponse->assertOk();
+        $testResponse->assertOk();
         $this->assertDatabaseHas('monitoring_domain_results', [
             'monitoring_id' => $monitoring->id,
             'is_valid' => true,
