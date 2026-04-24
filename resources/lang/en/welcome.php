@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 return [
     'seo' => [
-        'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, and Ports',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, and Port checks with notifications, SSL expiry tracking, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, ping monitoring, keyword monitoring, port monitoring, SSL expiry monitoring, status page, incident alerts',
+        'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, and Heartbeat checks with notifications, SSL expiry tracking, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, SSL expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
-        'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, and Port monitoring, clear notifications, and easy-to-read uptime reporting.',
+        'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, and Heartbeat monitoring, clear notifications, and easy-to-read uptime reporting.',
     ],
 
     'nav' => [
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Coverage',
-                'value' => 'HTTP, Ping, Keyword, and Port',
+                'value' => 'HTTP, Ping, Keyword, Port, and Heartbeat',
             ],
             '3' => [
                 'label' => 'Operation',
@@ -69,6 +69,11 @@ return [
             'badge' => 'Core',
             'title' => 'Port Monitoring',
             'text' => 'Verify key service ports stay open and reachable for your infrastructure.',
+        ],
+        'heartbeat' => [
+            'badge' => 'Cronjobs',
+            'title' => 'Heartbeat Monitoring',
+            'text' => 'Monitor cronjobs, workers, and background processes through private ping URLs and expected intervals.',
         ],
         'notifications' => [
             'badge' => 'Alerts',
@@ -122,7 +127,7 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Create monitors',
-                'text' => 'Add HTTP, Ping, Keyword, or Port checks and set your target interval.',
+                'text' => 'Add HTTP, Ping, Keyword, Port, or Heartbeat checks and set your target interval.',
             ],
             '2' => [
                 'title' => 'Define alerts',
@@ -159,7 +164,7 @@ return [
             ],
             '3' => [
                 'label' => 'Recommended monitor types',
-                'value' => 'HTTP, Ping, Keyword, Port',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat',
             ],
         ],
     ],
