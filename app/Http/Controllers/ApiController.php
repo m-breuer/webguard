@@ -442,6 +442,8 @@ class ApiController extends Controller
                 $status = (string) ($statusSince['status'] ?? 'unknown');
                 $checkedAt = $statusNow['checked_at'] ?? null;
 
+                $uptimePercentages = $this->resolveWidgetUptimePercentages($monitoring, [7, 30, 365]);
+
                 return [
                     'name' => $monitoring->name,
                     'status' => $status,
@@ -452,9 +454,9 @@ class ApiController extends Controller
                     'checked_at' => $checkedAt,
                     'checked_at_human' => $checkedAt ? Date::parse((string) $checkedAt)->diffForHumans() : null,
                     'uptime' => [
-                        '7_days' => $this->resolveWidgetUptimePercentage($monitoring, 7),
-                        '30_days' => $this->resolveWidgetUptimePercentage($monitoring, 30),
-                        '365_days' => $this->resolveWidgetUptimePercentage($monitoring, 365),
+                        '7_days' => $uptimePercentages[7] ?? null,
+                        '30_days' => $uptimePercentages[30] ?? null,
+                        '365_days' => $uptimePercentages[365] ?? null,
                     ],
                     'public_url' => route('public-label', $monitoring),
                 ];
@@ -589,21 +591,33 @@ class ApiController extends Controller
         return $callback();
     }
 
-    private function resolveWidgetUptimePercentage(Monitoring $monitoring, int $days): ?float
+    /**
+     * @param  array<int, int>  $days
+     * @return array<int, float|null>
+     */
+    private function resolveWidgetUptimePercentages(Monitoring $monitoring, array $days): array
     {
-        $startDate = Date::now()->subDays($days)->startOfDay();
-        $endDate = Date::now()->endOfDay();
-        $loadAggregatedData = $days > 1 && $monitoring->created_at->diffInDays(Date::now()) >= 1;
+        if ($monitoring->created_at->diffInDays(Date::now()) < 1) {
+            return collect($days)
+                ->mapWithKeys(fn (int $day): array => [
+                    $day => data_get(MonitoringResultService::getUptimeDowntime(
+                        $monitoring,
+                        Date::now()->subDays($day)->startOfDay(),
+                        Date::now()->endOfDay(),
+                        false,
+                        false
+                    ), 'uptime.percentage'),
+                ])
+                ->all();
+        }
 
-        $stats = MonitoringResultService::getUptimeDowntime(
-            $monitoring,
-            $startDate,
-            $endDate,
-            $loadAggregatedData,
-            false
-        );
+        $statsByRange = MonitoringResultService::getUptimeDowntimesForRanges($monitoring, $days);
 
-        return data_get($stats, 'uptime.percentage');
+        return collect($days)
+            ->mapWithKeys(fn (int $day): array => [
+                $day => data_get($statsByRange, $day . '.uptime.percentage'),
+            ])
+            ->all();
     }
 
     private function buildChecksSourceQuery(
