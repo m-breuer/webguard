@@ -35,6 +35,7 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
             'user_id' => $user->id,
             'type' => MonitoringType::HTTP,
             'preferred_location' => $serverInstance->code,
+            'public_label_enabled' => true,
         ]);
 
         Artisan::call('down');

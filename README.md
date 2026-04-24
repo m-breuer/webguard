@@ -14,6 +14,7 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 * **Heartbeat & Cron Monitoring:** Detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
 * **Response Time Tracking:** Monitor your website's performance by tracking response times.
 * **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
+* **Domain Expiration Monitoring:** Track domain registration expiry before critical domains lapse.
 * **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.
 * **Real-Time Dashboard:** Visualize your monitoring data with real-time statistics and charts.
 * **Admin Panel:** Manage users, subscription packages, and review API usage logs.

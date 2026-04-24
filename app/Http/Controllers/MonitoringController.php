@@ -166,6 +166,8 @@ class MonitoringController extends Controller
      */
     public function show(Monitoring $monitoring): View
     {
+        $monitoring->loadMissing('domainResult');
+
         return view('monitorings.show', [
             'monitoring' => $monitoring,
         ]);
@@ -257,6 +259,18 @@ class MonitoringController extends Controller
     {
         $type = MonitoringType::tryFrom((string) ($validated['type'] ?? ''));
 
+        if ($type === MonitoringType::DOMAIN_EXPIRATION) {
+            $validated['target'] = mb_strtolower(mb_trim((string) $validated['target']));
+            $validated['timeout'] = 5;
+            $validated['http_method'] = null;
+            $validated['http_headers'] = null;
+            $validated['http_body'] = null;
+            $validated['auth_username'] = null;
+            $validated['auth_password'] = null;
+            $validated['port'] = null;
+            $validated['keyword'] = null;
+        }
+
         if ($type !== MonitoringType::HEARTBEAT) {
             return $validated;
         }
@@ -283,6 +297,20 @@ class MonitoringController extends Controller
      */
     private function prepareUpdatePayload(array $validated, Monitoring $monitoring): array
     {
+        if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION) {
+            $validated['target'] = $monitoring->target;
+            $validated['timeout'] = 5;
+            $validated['http_method'] = null;
+            $validated['http_headers'] = null;
+            $validated['http_body'] = null;
+            $validated['auth_username'] = null;
+            $validated['auth_password'] = null;
+            $validated['port'] = null;
+            $validated['keyword'] = null;
+
+            return $validated;
+        }
+
         if (! $monitoring->isHeartbeat()) {
             return $validated;
         }

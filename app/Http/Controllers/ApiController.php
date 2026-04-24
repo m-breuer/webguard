@@ -82,6 +82,8 @@ class ApiController extends Controller
      */
     public function all(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $data = [
             'status_since' => $this->statusSince($monitoring)->getData(),
             'status_now' => $this->statusNow($monitoring)->getData(),
@@ -111,6 +113,8 @@ class ApiController extends Controller
      */
     public function uptimeDowntime(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $validated = $request->validate([
             'days' => ['nullable', 'integer'],
         ]);
@@ -158,6 +162,8 @@ class ApiController extends Controller
      */
     public function uptimeDowntimeSummary(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $validated = $request->validate([
             'days' => ['required', 'array', 'min:1', 'max:10'],
             'days.*' => ['required', 'integer', 'min:1', 'max:3650'],
@@ -204,6 +210,8 @@ class ApiController extends Controller
      */
     public function responseTimes(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $validated = $request->validate([
             'days' => ['nullable', 'integer'],
         ]);
@@ -258,6 +266,8 @@ class ApiController extends Controller
      */
     public function checks(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $validated = $request->validate([
             'days' => ['nullable', 'integer', 'min:1', 'max:3650'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
@@ -360,6 +370,8 @@ class ApiController extends Controller
      */
     public function uptimeHeatmap(Monitoring $monitoring): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $start_date = now()->subHours(23);
         $end_date = now();
 
@@ -388,6 +400,8 @@ class ApiController extends Controller
      */
     public function status(Monitoring $monitoring): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $statusSince = MonitoringResultService::getStatusSince($monitoring);
         $statusNow = MonitoringResultService::getStatusNow($monitoring);
         $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
@@ -484,6 +498,8 @@ class ApiController extends Controller
      */
     public function incidents(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $validated = $request->validate([
             'days' => ['nullable', 'integer'],
         ]);
@@ -516,6 +532,8 @@ class ApiController extends Controller
      */
     public function sslStatus(Monitoring $monitoring): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $cacheKey = sprintf('monitoring:%s:ssl-status', $monitoring->id);
 
         $data = $this->cacheAndReturn(
@@ -550,6 +568,8 @@ class ApiController extends Controller
      */
     public function uptimeCalendar(Monitoring $monitoring, Request $request): JsonResponse
     {
+        $this->authorizeMonitoringDataAccess($monitoring);
+
         $validated = $request->validate([
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
@@ -589,6 +609,17 @@ class ApiController extends Controller
         }
 
         return $callback();
+    }
+
+    private function authorizeMonitoringDataAccess(Monitoring $monitoring): void
+    {
+        $user = request()->user();
+
+        if ($user && $monitoring->user_id === $user->id) {
+            return;
+        }
+
+        abort_unless($monitoring->public_label_enabled, 404);
     }
 
     /**
