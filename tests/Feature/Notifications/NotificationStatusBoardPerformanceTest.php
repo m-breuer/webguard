@@ -225,6 +225,69 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $this->assertSame($checkedAt->toIso8601String(), $entry['latest_checked_at']);
     }
 
+    public function test_unread_status_board_uses_the_highest_unread_id_when_same_timestamp_also_has_newer_read_entries(): void
+    {
+        Date::setTestNow('2026-04-19 10:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $createdAt = Date::now()->subMinute();
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 204,
+            'response_time' => 125.0,
+            'created_at' => $createdAt->copy()->subMinute(),
+            'updated_at' => $createdAt->copy()->subMinute(),
+        ]);
+
+        $firstUnreadNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => true,
+        ]);
+        $firstUnreadNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+        $firstUnreadNotification->created_at = $createdAt;
+        $firstUnreadNotification->updated_at = $createdAt;
+        $firstUnreadNotification->save();
+
+        $selectedUnreadNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => false,
+            'sent' => true,
+        ]);
+        $selectedUnreadNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
+        $selectedUnreadNotification->created_at = $createdAt;
+        $selectedUnreadNotification->updated_at = $createdAt;
+        $selectedUnreadNotification->save();
+
+        $readNotification = new MonitoringNotification([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => true,
+            'sent' => true,
+        ]);
+        $readNotification->id = '01ARZ3NDEKTSV4RRFFQ69G5FAX';
+        $readNotification->created_at = $createdAt;
+        $readNotification->updated_at = $createdAt;
+        $readNotification->save();
+
+        $this->actingAs($user);
+
+        $entry = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: false)->sole();
+
+        $this->assertSame($selectedUnreadNotification->id, $entry['notification_id']);
+        $this->assertSame('notifications.status_change.up', $entry['status_change_key']);
+        $this->assertFalse($entry['read']);
+    }
+
     private function createStatusBoardMonitoring(
         User $user,
         int $statusCode,
