@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 return [
     'seo' => [
-        'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server und Ports',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword- und Port-Checks mit Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Ping Monitoring, Keyword Monitoring, Port Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
+        'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks mit Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
-        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword- und Port-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
+        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
     ],
 
     'nav' => [
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Abdeckung',
-                'value' => 'HTTP, Ping, Keyword und Port',
+                'value' => 'HTTP, Ping, Keyword, Port und Heartbeat',
             ],
             '3' => [
                 'label' => 'Betrieb',
@@ -69,6 +69,11 @@ return [
             'badge' => 'Kernfunktion',
             'title' => 'Port Monitoring',
             'text' => 'Stellen Sie sicher, dass wichtige Service-Ports offen und erreichbar bleiben.',
+        ],
+        'heartbeat' => [
+            'badge' => 'Cronjobs',
+            'title' => 'Heartbeat Monitoring',
+            'text' => 'Überwachen Sie Cronjobs, Worker und Hintergrundprozesse über private Ping-URLs und erwartete Intervalle.',
         ],
         'notifications' => [
             'badge' => 'Alerts',
@@ -127,7 +132,7 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Monitore erstellen',
-                'text' => 'Legen Sie HTTP-, Ping-, Keyword- oder Port-Checks an und definieren Sie das Intervall.',
+                'text' => 'Legen Sie HTTP-, Ping-, Keyword-, Port- oder Heartbeat-Checks an und definieren Sie das Intervall.',
             ],
             '2' => [
                 'title' => 'Alerts festlegen',
@@ -164,7 +169,7 @@ return [
             ],
             '3' => [
                 'label' => 'Empfohlene Monitor-Typen',
-                'value' => 'HTTP, Ping, Keyword, Port',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat',
             ],
         ],
     ],
