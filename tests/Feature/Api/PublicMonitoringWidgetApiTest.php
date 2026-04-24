@@ -14,6 +14,7 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PublicMonitoringWidgetApiTest extends TestCase
@@ -74,6 +75,67 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $this->assertIsNumeric($testResponse->json('uptime.7_days'));
         $this->assertIsNumeric($testResponse->json('uptime.30_days'));
         $this->assertIsNumeric($testResponse->json('uptime.365_days'));
+    }
+
+    public function test_public_widget_endpoint_batches_uptime_range_queries(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Primary API',
+            'type' => MonitoringType::HTTP,
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'public_label_enabled' => true,
+            'created_at' => Date::now()->subDays(400),
+        ]);
+
+        foreach ([7, 30, 365] as $days) {
+            MonitoringDailyResult::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'date' => Date::now()->subDays($days)->toDateString(),
+                'uptime_total' => 1,
+                'downtime_total' => 0,
+                'unknown_total' => 0,
+                'uptime_percentage' => 100,
+                'downtime_percentage' => 0,
+                'unknown_percentage' => 0,
+                'uptime_minutes' => 24 * 60,
+                'downtime_minutes' => 0,
+                'unknown_minutes' => 0,
+                'avg_response_time' => 123.4,
+                'min_response_time' => 123.4,
+                'max_response_time' => 123.4,
+                'incidents_count' => 0,
+            ]);
+        }
+
+        $checkedAt = Date::now()->subMinutes(5);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 123.4,
+            'created_at' => $checkedAt,
+            'updated_at' => $checkedAt,
+        ]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('uptime.7_days', 100);
+        $testResponse->assertJsonPath('uptime.30_days', 100);
+        $testResponse->assertJsonPath('uptime.365_days', 100);
+
+        $selectCount = collect(DB::getQueryLog())
+            ->filter(static fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
+            ->count();
+
+        $this->assertLessThanOrEqual(5, $selectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
     }
 
     public function test_public_widget_endpoint_returns_not_found_when_public_label_is_disabled(): void
