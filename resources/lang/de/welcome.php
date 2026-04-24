@@ -80,6 +80,11 @@ return [
             'title' => 'SSL-Zertifikat Ablaufprüfung',
             'text' => 'Vermeiden Sie Zertifikatsprobleme mit klarer Ablaufkontrolle und frühzeitigen Warnungen.',
         ],
+        'domain_expiration' => [
+            'badge' => 'Eigentum',
+            'title' => 'Domain-Ablaufprüfungen',
+            'text' => 'Überwachen Sie den Ablauf wichtiger Domains, bevor fehlende Verlängerungen zu Ausfällen werden.',
+        ],
         'stats' => [
             'badge' => 'Insights',
             'title' => 'Antwortzeit- und Uptime-Statistiken',

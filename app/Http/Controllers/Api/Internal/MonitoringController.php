@@ -8,6 +8,7 @@ use App\Enums\MonitoringStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringSslResult;
 use Illuminate\Http\Request;
@@ -89,6 +90,25 @@ class MonitoringController extends Controller
         MonitoringSslResult::query()->updateOrCreate(['monitoring_id' => $validated['monitoring_id']], $validated);
 
         return response()->json(['message' => 'SSL result stored successfully.']);
+    }
+
+    public function storeDomain(Request $request)
+    {
+        $validated = $request->validate([
+            'monitoring_id' => ['required', 'exists:monitorings,id'],
+            'is_valid' => ['required', 'boolean'],
+            'expires_at' => ['nullable', 'date'],
+            'registrar' => ['nullable', 'string', 'max:255'],
+            'checked_at' => ['nullable', 'date'],
+        ]);
+
+        if (! $this->isMonitoringAllowedForInstance($request, $validated['monitoring_id'])) {
+            return response()->json(['message' => 'Unauthorized monitoring'], 403);
+        }
+
+        MonitoringDomainResult::query()->updateOrCreate(['monitoring_id' => $validated['monitoring_id']], $validated);
+
+        return response()->json(['message' => 'Domain expiration result stored successfully.']);
     }
 
     private function isMonitoringAllowedForInstance(Request $request, string $monitoringId): bool

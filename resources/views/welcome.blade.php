@@ -89,7 +89,7 @@
                 <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.feature_section.subtitle') }}</x-paragraph>
 
                 <div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    @foreach (['http', 'ping', 'keyword', 'port', 'notifications', 'ssl', 'stats', 'multi_location'] as $feature)
+                    @foreach (['http', 'ping', 'keyword', 'port', 'notifications', 'ssl', 'domain_expiration', 'stats', 'multi_location'] as $feature)
                         <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-950/20">
                             <div class="flex items-center justify-between gap-4">
                                 <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">
@@ -116,6 +116,10 @@
 
                                         @case('ssl')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 118 0v3m-9 0h10v9H7z" /></svg>
+                                        @break
+
+                                        @case('domain_expiration')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18z" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M8 4.5c2.2 4.8 2.2 10.2 0 15M16 4.5c-2.2 4.8-2.2 10.2 0 15" /></svg>
                                         @break
 
                                         @case('stats')

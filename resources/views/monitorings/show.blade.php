@@ -188,6 +188,32 @@
                 </x-container>
             @endif
 
+            @if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION)
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.domain.heading') }}</x-heading>
+                    @if ($monitoring->domainResult)
+                        <x-paragraph
+                            class="font-bold {{ $monitoring->domainResult->is_valid ? 'text-green-600 dark:text-green-600' : 'text-red-600 dark:text-red-600' }}">
+                            {{ $monitoring->domainResult->is_valid ? __('monitoring.detail.domain.valid') : __('monitoring.detail.domain.invalid') }}
+                        </x-paragraph>
+                        @if ($monitoring->domainResult->expires_at)
+                            <x-paragraph>
+                                {{ __('monitoring.detail.domain.expires_at') }}:
+                                {{ $monitoring->domainResult->expires_at->toFormattedDateString() }}
+                            </x-paragraph>
+                        @endif
+                        @if ($monitoring->domainResult->registrar)
+                            <x-paragraph>
+                                {{ __('monitoring.detail.domain.registrar') }}:
+                                {{ $monitoring->domainResult->registrar }}
+                            </x-paragraph>
+                        @endif
+                    @else
+                        <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
+                    @endif
+                </x-container>
+            @endif
+
             <x-container>
                 <x-heading type="h2">{{ __('monitoring.detail.last_24_hours') }}</x-heading>
                 <div id="heatmap">
@@ -261,7 +287,7 @@
             </template>
         </div>
 
-        @if (! in_array($monitoring->type, [MonitoringType::PING, MonitoringType::HEARTBEAT], true))
+        @if (! in_array($monitoring->type, [MonitoringType::PING, MonitoringType::HEARTBEAT, MonitoringType::DOMAIN_EXPIRATION], true))
             <div class="mb-2 flex items-center justify-between">
                 <x-heading type="h2">{{ __('monitoring.detail.response_time.heading') }}</x-heading>
 

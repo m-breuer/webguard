@@ -26,6 +26,7 @@ class MonitoringFactory extends Factory
             MonitoringType::PING,
             MonitoringType::KEYWORD,
             MonitoringType::PORT,
+            MonitoringType::DOMAIN_EXPIRATION,
         ]);
 
         $data = [
@@ -35,6 +36,7 @@ class MonitoringFactory extends Factory
                 MonitoringType::HTTP, MonitoringType::KEYWORD => fake()->url(),
                 MonitoringType::PING => fake()->ipv4(),
                 MonitoringType::PORT => fake()->ipv4(), // Or fake()->domainName() if ports can be checked on domain names
+                MonitoringType::DOMAIN_EXPIRATION => fake()->domainName(),
             },
             'preferred_location' => 'de-1',
             'status' => MonitoringLifecycleStatus::ACTIVE,
@@ -63,5 +65,21 @@ class MonitoringFactory extends Factory
                 'heartbeat_last_ping_at' => null,
             ];
         });
+    }
+
+    public function domainExpiration(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => MonitoringType::DOMAIN_EXPIRATION,
+            'target' => 'example.com',
+            'timeout' => 5,
+            'http_method' => null,
+            'http_headers' => null,
+            'http_body' => null,
+            'auth_username' => null,
+            'auth_password' => null,
+            'port' => null,
+            'keyword' => null,
+        ]);
     }
 }

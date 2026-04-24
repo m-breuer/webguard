@@ -5,6 +5,14 @@ declare(strict_types=1);
 return [
     'title' => 'Monitoring',
     'text' => 'Monitorings allow you to track the status of your services and receive notifications when issues arise.',
+    'types' => [
+        'http' => 'HTTP',
+        'ping' => 'Ping',
+        'keyword' => 'Keyword',
+        'port' => 'Port',
+        'heartbeat' => 'Heartbeat',
+        'domain_expiration' => 'Domain Expiration',
+    ],
     'no_monitoring' => [
         'title' => 'No monitorings yet',
         'text' => 'You haven’t created any monitorings yet. Start by adding your first one.',
@@ -152,6 +160,13 @@ return [
             'grace' => 'Grace period: :minutes minute|Grace period: :minutes minutes',
             'last_ping' => 'Last ping received',
         ],
+        'domain' => [
+            'heading' => 'Domain Expiration',
+            'valid' => 'Valid',
+            'invalid' => 'Expired or unavailable',
+            'expires_at' => 'Expires at',
+            'registrar' => 'Registrar',
+        ],
     ],
     'filter' => [
         'heading' => 'Select Range',
@@ -198,6 +213,7 @@ return [
             'http_target' => 'e.g. https://example.com',
             'ping_target' => 'e.g. 8.8.8.8',
             'port_target' => 'e.g. 192.168.1.1 or example.com',
+            'domain_target' => 'e.g. example.com',
             'http_headers' => '{"Authorization": "Bearer token"}',
             'http_body' => '{"key": "value"}',
         ],
@@ -234,6 +250,7 @@ return [
         'target_invalid_url' => 'The :attribute must be a valid URL for type :type.',
         'target_invalid_ip' => 'The :attribute must be a valid IP address for type :type.',
         'target_invalid_ip_or_url' => 'The :attribute must be a valid IP address or URL for type :type.',
+        'target_invalid_domain' => 'The :attribute must be a valid domain name for type :type.',
         'timeout_invalid_config' => 'Timeout configuration is only valid for HTTP or Keyword monitoring.',
         'timeout_required' => 'The timeout field is required for HTTP or Keyword monitoring.',
         'timeout_invalid_range' => 'The timeout must be a number between 1 and 60 seconds.',

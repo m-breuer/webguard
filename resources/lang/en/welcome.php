@@ -80,6 +80,11 @@ return [
             'title' => 'SSL Certificate Expiry Checks',
             'text' => 'Avoid certificate surprises with clear expiry tracking and proactive warning windows.',
         ],
+        'domain_expiration' => [
+            'badge' => 'Ownership',
+            'title' => 'Domain Expiration Checks',
+            'text' => 'Track registration expiry for important domains before renewals become outages.',
+        ],
         'stats' => [
             'badge' => 'Insights',
             'title' => 'Response Time and Uptime Analytics',
