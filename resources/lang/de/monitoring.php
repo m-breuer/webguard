@@ -5,6 +5,14 @@ declare(strict_types=1);
 return [
     'title' => 'Überwachung',
     'text' => 'Überwachungen ermöglichen es Ihnen, den Status Ihrer Dienste zu verfolgen und Benachrichtigungen bei Problemen zu erhalten.',
+    'types' => [
+        'http' => 'HTTP',
+        'ping' => 'Ping',
+        'keyword' => 'Schlüsselwort',
+        'port' => 'Port',
+        'heartbeat' => 'Heartbeat',
+        'domain_expiration' => 'Domain-Ablauf',
+    ],
     'no_monitoring' => [
         'title' => 'Noch keine Überwachungen',
         'text' => 'Sie haben noch keine Überwachungen erstellt. Beginnen Sie mit dem Hinzufügen Ihrer ersten.',
@@ -152,6 +160,13 @@ return [
             'grace' => 'Kulanzzeit: :minutes Minute|Kulanzzeit: :minutes Minuten',
             'last_ping' => 'Letzter empfangener Ping',
         ],
+        'domain' => [
+            'heading' => 'Domain-Ablauf',
+            'valid' => 'Gültig',
+            'invalid' => 'Abgelaufen oder nicht verfügbar',
+            'expires_at' => 'Läuft ab am',
+            'registrar' => 'Registrar',
+        ],
     ],
     'filter' => [
         'heading' => 'Bereich auswählen',
@@ -198,6 +213,7 @@ return [
             'http_target' => 'z.B. https://example.com',
             'ping_target' => 'z.B. 8.8.8.8',
             'port_target' => 'z.B. 192.168.1.1 oder example.com',
+            'domain_target' => 'z.B. example.com',
             'http_headers' => '{"Authorization": "Bearer token"}',
             'http_body' => '{"key": "value"}',
         ],
@@ -234,6 +250,7 @@ return [
         'target_invalid_url' => 'Das :attribute muss eine gültige URL für den Typ :type sein.',
         'target_invalid_ip' => 'Das :attribute muss eine gültige IP-Adresse für den Typ :type sein.',
         'target_invalid_ip_or_url' => 'Das :attribute muss eine gültige IP-Adresse oder URL für den Typ :type sein.',
+        'target_invalid_domain' => 'Das :attribute muss ein gültiger Domainname für den Typ :type sein.',
         'timeout_invalid_config' => 'Die Timeout-Konfiguration ist nur für HTTP- oder Keyword-Überwachung gültig.',
         'timeout_required' => 'Das Timeout-Feld ist für HTTP- oder Keyword-Überwachung erforderlich.',
         'timeout_invalid_range' => 'Das Timeout muss eine Zahl zwischen 1 und 60 Sekunden sein.',

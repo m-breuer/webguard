@@ -27,7 +27,7 @@
         if (!@js(isset($monitoring))) {
             if ((this.type === '{{ MonitoringType::HTTP->value }}' || this.type === '{{ MonitoringType::KEYWORD->value }}') && (!this.target || !this.target.startsWith('http'))) {
                 this.target = 'https://';
-            } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}') {
+            } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}' || this.type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}') {
                 this.target = '';
             } else if (this.type === '{{ MonitoringType::HEARTBEAT->value }}') {
                 this.target = '';
@@ -37,7 +37,7 @@
 }" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
         target = 'https://';
-    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}') {
+    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}') {
         target = '';
     }
 })">
@@ -45,14 +45,14 @@
     <div>
         <x-input-label for="type" :value="__('monitoring.form.type')" />
         @if (isset($monitoring))
-            <x-text-input id="type" class="cursor-not-allowed" name="type" :value="$monitoring->type->name" readonly />
+            <x-text-input id="type" class="cursor-not-allowed" name="type" :value="__('monitoring.types.' . $monitoring->type->value)" readonly />
             <input type="hidden" name="type" :value="type">
         @else
             <x-select-input id="type" class="mt-1 block w-full" name="type" x-model="type" required autofocus>
                 <option value="" disabled hidden>{{ __('monitoring.form.select_type') }}</option>
                 @foreach ($types as $enumType)
                     <option value="{{ $enumType->value }}" @selected(old('type') === $enumType->value)>
-                        {{ $enumType->name }}
+                        {{ __('monitoring.types.' . $enumType->value) }}
                     </option>
                 @endforeach
             </x-select-input>
@@ -84,7 +84,9 @@
                     type === '{{ MonitoringType::KEYWORD->value }}' ?
                     '{{ __('monitoring.form.placeholders.http_target') }}' :
                     type === '{{ MonitoringType::PORT->value }}' ?
-                    '{{ __('monitoring.form.placeholders.port_target') }}' : ''" />
+                    '{{ __('monitoring.form.placeholders.port_target') }}' :
+                    type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' ?
+                    '{{ __('monitoring.form.placeholders.domain_target') }}' : ''" />
             </div>
             <div x-show="type === '{{ $heartbeatTypeValue }}'"
                 class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">

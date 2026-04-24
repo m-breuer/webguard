@@ -204,8 +204,28 @@ class MonitoringRequest extends FormRequest
                 if ($type === MonitoringType::PORT->value && (! filter_var($value, FILTER_VALIDATE_IP) && ! filter_var($value, FILTER_VALIDATE_URL))) {
                     $fail(sprintf('The %s must be a valid IP address or URL for type %s.', $attribute, $type));
                 }
+
+                if ($type === MonitoringType::DOMAIN_EXPIRATION->value && ! $this->isValidDomainTarget((string) $value)) {
+                    $fail(__('monitoring.validation.target_invalid_domain', ['attribute' => $attribute, 'type' => $type]));
+                }
             },
         ];
+    }
+
+    private function isValidDomainTarget(string $value): bool
+    {
+        $domain = mb_strtolower(mb_trim($value));
+
+        if ($domain === '' || str_contains($domain, '://') || str_contains($domain, '/')) {
+            return false;
+        }
+
+        if (filter_var($domain, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        return filter_var($domain, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false
+            && str_contains($domain, '.');
     }
 
     /**

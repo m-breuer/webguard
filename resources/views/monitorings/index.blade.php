@@ -6,7 +6,9 @@
     $monitoringIds = json_encode(collect($monitorings->items())->pluck('id'));
     $monitoringNames = json_encode($monitorings->pluck('name', 'id'));
     $monitoringTargets = json_encode($monitorings->pluck('target', 'id'));
-    $monitoringTypes = json_encode($monitorings->pluck('type', 'id'));
+    $monitoringTypes = json_encode($monitorings->getCollection()->mapWithKeys(fn ($monitoring) => [
+        $monitoring->id => __('monitoring.types.' . $monitoring->type->value),
+    ]));
     $monitoringStatusMap = json_encode($monitorings->pluck('status', 'id'));
     $monitoringPublicLabelMap = json_encode($monitorings->pluck('public_label_enabled', 'id'));
     $maintenanceStatusMap = json_encode($maintenanceStatusMap);
@@ -95,7 +97,7 @@
                             :class="(selectedTypes.includes('{{ $type->value }}') ? 'bg-purple-500 text-white' :
                                 'bg-gray-100 text-gray-700') +
                             ' rounded px-2 py-1  font-medium hover:bg-purple-100'">
-                            {{ ucfirst($type->value) }}
+                            {{ __('monitoring.types.' . $type->value) }}
                         </button>
                     @endforeach
                 </div>

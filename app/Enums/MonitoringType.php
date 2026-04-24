@@ -12,6 +12,7 @@ namespace App\Enums;
  * - PING: Verifies if a host is reachable via ICMP (ping).
  * - KEYWORD: Looks for a specific keyword in the response of a web request.
  * - PORT: Checks if a specific port on a host is open and accepting connections.
+ * - DOMAIN_EXPIRATION: Checks if a domain registration is still valid and not close to expiry.
  */
 enum MonitoringType: string
 {
@@ -20,6 +21,7 @@ enum MonitoringType: string
     case KEYWORD = 'keyword';
     case PORT = 'port';
     case HEARTBEAT = 'heartbeat';
+    case DOMAIN_EXPIRATION = 'domain_expiration';
 
     /**
      * Get all enum values as a simple array of strings.

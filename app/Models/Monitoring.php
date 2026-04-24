@@ -110,6 +110,14 @@ class Monitoring extends Model
     }
 
     /**
+     * @return HasOne<MonitoringDomainResult, $this>
+     */
+    public function domainResult(): HasOne
+    {
+        return $this->hasOne(MonitoringDomainResult::class, 'monitoring_id');
+    }
+
+    /**
      * @return HasMany<Incident, $this>
      */
     public function incidents(): HasMany
