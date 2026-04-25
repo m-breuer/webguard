@@ -26,4 +26,18 @@ return [
     |
     */
     'heartbeat_queue' => env('HEARTBEAT_QUEUE', 'heartbeat'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Server Instance Health
+    |--------------------------------------------------------------------------
+    |
+    | Internal scanner instances update their last-seen timestamp after a
+    | successful API authentication. Writes are throttled to avoid updating on
+    | every polling request, while stale_after_minutes controls the admin health
+    | indicator for active instances.
+    |
+    */
+    'instance_seen_write_throttle_seconds' => (int) env('MONITORING_INSTANCE_SEEN_WRITE_THROTTLE_SECONDS', 60),
+    'instance_stale_after_minutes' => (int) env('MONITORING_INSTANCE_STALE_AFTER_MINUTES', 10),
 ];
