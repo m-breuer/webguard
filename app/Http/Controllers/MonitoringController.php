@@ -11,6 +11,7 @@ use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
 use App\Models\User;
+use App\Support\HttpStatusCodeRanges;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -263,6 +264,7 @@ class MonitoringController extends Controller
             $validated['target'] = mb_strtolower(mb_trim((string) $validated['target']));
             $validated['timeout'] = 5;
             $validated['http_method'] = null;
+            $validated['expected_http_statuses'] = null;
             $validated['http_headers'] = null;
             $validated['http_body'] = null;
             $validated['auth_username'] = null;
@@ -271,7 +273,15 @@ class MonitoringController extends Controller
             $validated['keyword'] = null;
         }
 
+        if (in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
+            $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
+
+            return $validated;
+        }
+
         if ($type !== MonitoringType::HEARTBEAT) {
+            $validated['expected_http_statuses'] = null;
+
             return $validated;
         }
 
@@ -281,6 +291,7 @@ class MonitoringController extends Controller
         $validated['target'] = route('monitorings.heartbeat.ping', ['token' => $heartbeatToken]);
         $validated['timeout'] = 5;
         $validated['http_method'] = null;
+        $validated['expected_http_statuses'] = null;
         $validated['http_headers'] = null;
         $validated['http_body'] = null;
         $validated['auth_username'] = null;
@@ -301,6 +312,7 @@ class MonitoringController extends Controller
             $validated['target'] = $monitoring->target;
             $validated['timeout'] = 5;
             $validated['http_method'] = null;
+            $validated['expected_http_statuses'] = null;
             $validated['http_headers'] = null;
             $validated['http_body'] = null;
             $validated['auth_username'] = null;
@@ -311,13 +323,22 @@ class MonitoringController extends Controller
             return $validated;
         }
 
+        if (in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
+            $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
+
+            return $validated;
+        }
+
         if (! $monitoring->isHeartbeat()) {
+            $validated['expected_http_statuses'] = null;
+
             return $validated;
         }
 
         $validated['target'] = $monitoring->target;
         $validated['timeout'] = 5;
         $validated['http_method'] = null;
+        $validated['expected_http_statuses'] = null;
         $validated['http_headers'] = null;
         $validated['http_body'] = null;
         $validated['auth_username'] = null;

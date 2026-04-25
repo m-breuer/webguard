@@ -7,10 +7,12 @@ namespace App\Http\Requests;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Support\HttpStatusCodeRanges;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 use JsonException;
 
 /**
@@ -84,6 +86,28 @@ class MonitoringRequest extends FormRequest
 
                     if ($value && HttpMethod::tryFrom($value) === null) {
                         $fail('The HTTP method must be a valid HTTP method.');
+                    }
+                },
+            ],
+            'expected_http_statuses' => [
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail): void {
+                    $type = MonitoringType::tryFrom($this->input('type'));
+
+                    if (! in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
+                        if ($this->filled('expected_http_statuses')) {
+                            $fail(__('monitoring.validation.expected_http_statuses_invalid_config'));
+                        }
+
+                        return;
+                    }
+
+                    try {
+                        HttpStatusCodeRanges::normalize(is_string($value) ? $value : null);
+                    } catch (InvalidArgumentException) {
+                        $fail(__('monitoring.validation.expected_http_statuses_invalid_format'));
                     }
                 },
             ],

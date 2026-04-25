@@ -40,6 +40,7 @@ class MonitoringFactory extends Factory
             },
             'preferred_location' => 'de-1',
             'status' => MonitoringLifecycleStatus::ACTIVE,
+            'expected_http_statuses' => in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true) ? '200-299' : null,
         ];
 
         if ($type === MonitoringType::PORT) {
@@ -73,6 +74,7 @@ class MonitoringFactory extends Factory
             'type' => MonitoringType::DOMAIN_EXPIRATION,
             'target' => 'example.com',
             'timeout' => 5,
+            'expected_http_statuses' => null,
             'http_method' => null,
             'http_headers' => null,
             'http_body' => null,
