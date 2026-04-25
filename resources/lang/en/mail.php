@@ -24,6 +24,7 @@ return [
         'subject' => 'Action required on the platform',
         'greeting' => 'Hello :userName,',
         'intro' => 'You have :count unread notifications on the WebGuard platform.',
+        'count_label' => 'Unread notifications',
         'action_text' => 'Please visit your notifications page to review them.',
         'button_text' => 'View Notifications',
         'salutation' => 'Thank you,',
@@ -31,5 +32,7 @@ return [
     'general' => [
         'team_name' => 'The WebGuard Team',
         'legal' => 'Legal',
+        'brand_subtitle' => 'Website, server & port monitoring',
+        'notification_eyebrow' => 'Monitoring update',
     ],
 ];

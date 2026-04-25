@@ -24,6 +24,7 @@ return [
         'subject' => 'Aktion auf der Plattform erforderlich',
         'greeting' => 'Hallo :userName,',
         'intro' => 'Sie haben :count ungelesene Benachrichtigungen auf der WebGuard-Plattform.',
+        'count_label' => 'Ungelesene Benachrichtigungen',
         'action_text' => 'Bitte besuchen Sie Ihre Benachrichtigungsseite, um diese zu überprüfen.',
         'button_text' => 'Benachrichtigungen anzeigen',
         'salutation' => 'Vielen Dank,',
@@ -31,5 +32,7 @@ return [
     'general' => [
         'team_name' => 'Das WebGuard-Team',
         'legal' => 'Rechtliches',
+        'brand_subtitle' => 'Website-, Server- & Port-Monitoring',
+        'notification_eyebrow' => 'Monitoring Update',
     ],
 ];
