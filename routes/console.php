@@ -48,7 +48,7 @@ Schedule::command('monitoring:evaluate-heartbeats')->everyMinute()->withoutOverl
 // Archive old monitoring responses weekly.
 Schedule::command('monitoring:archive-responses')->weekly();
 
-// Check for expiring SSL certificates daily.
+// Check for expiring SSL certificates and domains daily.
 Schedule::command('notifications:send-ssl-expiry-warnings')->dailyAt('06:00')->withoutOverlapping();
 
 // Permanently delete soft-deleted monitorings and their data monthly.

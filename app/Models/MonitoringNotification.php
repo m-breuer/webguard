@@ -110,6 +110,15 @@ class MonitoringNotification extends Model
     }
 
     /**
+     * Scope notifications to domain expiry entries.
+     */
+    #[Scope]
+    protected function domainExpiry(Builder $builder): Builder
+    {
+        return $builder->ofType(NotificationType::DOMAIN_EXPIRY);
+    }
+
+    /**
      * Scope notifications to read entries.
      */
     #[Scope]
@@ -157,6 +166,14 @@ class MonitoringNotification extends Model
                 return match ($this->message) {
                     'SSL_EXPIRED' => __('notifications.ssl_messages.expired', ['name' => $this->monitoring->name]),
                     'SSL_EXPIRING' => __('notifications.ssl_messages.expiring', ['name' => $this->monitoring->name]),
+                    default => $this->message,
+                };
+            }
+
+            if ($this->type === NotificationType::DOMAIN_EXPIRY) {
+                return match ($this->message) {
+                    'DOMAIN_EXPIRED' => __('notifications.domain_messages.expired', ['name' => $this->monitoring->name]),
+                    'DOMAIN_EXPIRING' => __('notifications.domain_messages.expiring', ['name' => $this->monitoring->name]),
                     default => $this->message,
                 };
             }

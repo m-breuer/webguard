@@ -51,4 +51,18 @@ return [
     |
     */
     'digest_expiry_warning_days' => (int) env('MONITORING_DIGEST_EXPIRY_WARNING_DAYS', 30),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expiry Warning Windows
+    |--------------------------------------------------------------------------
+    |
+    | Users can choose which day offsets should trigger SSL and domain expiry
+    | warnings. The default keeps a seven-day warning enabled for existing users.
+    |
+    */
+    'expiry_warning_days' => [
+        'allowed' => [30, 14, 7, 3, 1],
+        'default' => [7],
+    ],
 ];

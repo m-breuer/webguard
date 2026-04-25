@@ -35,6 +35,7 @@ class NotificationController extends Controller
         );
 
         [$sslExpiryNotifications, $sslExpiryHasMore] = $this->loadSslExpiryNotifications($showRead, 0, $limit);
+        [$domainExpiryNotifications, $domainExpiryHasMore] = $this->loadDomainExpiryNotifications($showRead, 0, $limit);
         [$deliveryHistory, $deliveryHistoryHasMore] = $this->loadDeliveryHistory(0, $limit);
 
         return view('notifications.index', compact(
@@ -42,6 +43,8 @@ class NotificationController extends Controller
             'statusChangeHasMore',
             'sslExpiryNotifications',
             'sslExpiryHasMore',
+            'domainExpiryNotifications',
+            'domainExpiryHasMore',
             'deliveryHistory',
             'deliveryHistoryHasMore',
             'showRead',
@@ -167,6 +170,17 @@ class NotificationController extends Controller
         int $limit = self::DEFAULT_NOTIFICATION_LIMIT
     ): array {
         return $this->loadNotificationsByType(NotificationType::SSL_EXPIRY, $showRead, $offset, $limit);
+    }
+
+    /**
+     * @return array{0: Collection<int, MonitoringNotification>, 1: bool}
+     */
+    private function loadDomainExpiryNotifications(
+        bool $showRead,
+        int $offset = 0,
+        int $limit = self::DEFAULT_NOTIFICATION_LIMIT
+    ): array {
+        return $this->loadNotificationsByType(NotificationType::DOMAIN_EXPIRY, $showRead, $offset, $limit);
     }
 
     /**
