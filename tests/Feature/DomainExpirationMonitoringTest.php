@@ -179,7 +179,7 @@ class DomainExpirationMonitoringTest extends TestCase
                 'preferred_location' => $this->serverInstance->code,
             ]);
 
-        $response = $this->withHeaders($this->instanceHeaders())
+        $testResponse = $this->withHeaders($this->instanceHeaders())
             ->postJson(route('v1.internal.domain-results.store'), [
                 'monitoring_id' => $monitoring->id,
                 'is_valid' => true,
@@ -188,8 +188,8 @@ class DomainExpirationMonitoringTest extends TestCase
                 'checked_at' => Date::now()->toIso8601String(),
             ]);
 
-        $response->assertUnprocessable();
-        $response->assertJsonValidationErrors(['monitoring_id']);
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['monitoring_id']);
         $this->assertDatabaseMissing('monitoring_domain_results', [
             'monitoring_id' => $monitoring->id,
         ]);

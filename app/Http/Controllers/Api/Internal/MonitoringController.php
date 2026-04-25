@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Internal;
 
-use App\Enums\MonitoringType;
 use App\Enums\MonitoringStatus;
+use App\Enums\MonitoringType;
 use App\Http\Controllers\Controller;
 use App\Models\Incident;
 use App\Models\Monitoring;
