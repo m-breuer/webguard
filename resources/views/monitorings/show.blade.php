@@ -134,6 +134,14 @@
 
             @if ($monitoring->type === MonitoringType::HTTP || $monitoring->type === MonitoringType::KEYWORD)
                 <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.http.heading') }}</x-heading>
+                    <x-paragraph>
+                        {{ __('monitoring.detail.http.expected_statuses') }}:
+                        <x-span class="font-medium">{{ $monitoring->expected_http_statuses ?? '200-299' }}</x-span>
+                    </x-paragraph>
+                </x-container>
+
+                <x-container>
                     <x-heading type="h2">{{ __('monitoring.detail.ssl.heading') }}</x-heading>
 
                     <template x-if="sslValid===true">

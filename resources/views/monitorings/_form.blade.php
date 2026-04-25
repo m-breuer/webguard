@@ -161,6 +161,18 @@
 
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
+            <x-input-label for="expected_http_statuses" :value="__('monitoring.form.expected_http_statuses')" />
+            <x-text-input id="expected_http_statuses" type="text" name="expected_http_statuses" :value="old('expected_http_statuses', $monitoring->expected_http_statuses ?? '200-299')"
+                placeholder="{{ __('monitoring.form.placeholders.expected_http_statuses') }}" />
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('monitoring.form.expected_http_statuses_help') }}
+            </p>
+            <x-input-error :messages="$errors->get('expected_http_statuses')" />
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
+        <div class="mt-4">
             <x-input-label for="auth_username" :value="__('monitoring.form.auth_username')" />
             <x-text-input id="auth_username" type="text" name="auth_username" :value="old('auth_username', $monitoring->auth_username ?? '')" />
             <x-input-error :messages="$errors->get('auth_username')" />

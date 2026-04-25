@@ -26,6 +26,7 @@ class MonitoringResource extends JsonResource
             'status' => $this->status,
             'timeout' => $this->timeout,
             'http_method' => $this->http_method,
+            'expected_http_statuses' => $this->expected_http_statuses,
             'http_headers' => $this->http_headers,
             'http_body' => $this->http_body,
             'auth_username' => $this->auth_username,
