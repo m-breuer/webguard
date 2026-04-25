@@ -10,13 +10,16 @@ use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Jobs\DeleteUser;
 use App\Models\User;
+use App\Services\Notifications\NotificationChannelTestService;
 use App\Services\UserDeletionPreparationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Throwable;
 
 /**
  * Class ProfileController
@@ -133,6 +136,39 @@ class ProfileController extends Controller
         $request->user()->tokens()->delete();
 
         return back()->with('success', __('api.configuration.messages.tokens_deleted'));
+    }
+
+    public function sendNotificationChannelTest(
+        Request $request,
+        string $channel,
+        NotificationChannelTestService $notificationChannelTestService
+    ): RedirectResponse {
+        $notificationChannel = NotificationChannel::tryFrom($channel);
+
+        abort_unless($notificationChannel instanceof NotificationChannel, 404);
+
+        /** @var User $user */
+        $user = $request->user();
+        $config = data_get($user->notification_channels, $notificationChannel->value, []);
+        $config = is_array($config) ? $config : [];
+        $channelName = __('profile.notification_settings.channels.' . $notificationChannel->value . '.title');
+        $errorKey = 'notification_channels.' . $notificationChannel->value;
+
+        try {
+            $notificationChannelTestService->send($user, $notificationChannel, $config);
+        } catch (Throwable $throwable) {
+            Log::warning('Notification channel test failed.', [
+                'channel' => $notificationChannel->value,
+                'user_id' => $user->id,
+                'exception' => $throwable->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                $errorKey => __('profile.notification_settings.test.messages.failed', ['channel' => $channelName]),
+            ]);
+        }
+
+        return back()->with('success', __('profile.notification_settings.test.messages.sent', ['channel' => $channelName]));
     }
 
     /**

@@ -2,6 +2,7 @@
     @php
         $notificationChannels = old('notification_channels', $user->notification_channels ?? []);
         $eventTypes = ['incident', 'recovery', 'ssl_expiring', 'ssl_expired'];
+        $notificationChannelKeys = ['slack', 'telegram', 'discord', 'webhook'];
     @endphp
 
     <x-heading type="h2">{{ __('profile.information.heading') }}</x-heading>
@@ -83,7 +84,11 @@
                         <x-text-checkbox id="notification_channels_slack_enabled" name="notification_channels[slack][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'slack.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
+                        <x-secondary-button form="test-slack-notification-channel" class="text-xs">
+                            {{ __('profile.notification_settings.test.action') }}
+                        </x-secondary-button>
                     </div>
+                    <x-input-error :messages="$errors->get('notification_channels.slack')" />
 
                     <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.slack.help') }}</x-paragraph>
 
@@ -111,7 +116,11 @@
                         <x-text-checkbox id="notification_channels_telegram_enabled" name="notification_channels[telegram][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'telegram.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
+                        <x-secondary-button form="test-telegram-notification-channel" class="text-xs">
+                            {{ __('profile.notification_settings.test.action') }}
+                        </x-secondary-button>
                     </div>
+                    <x-input-error :messages="$errors->get('notification_channels.telegram')" />
 
                     <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.telegram.help') }}</x-paragraph>
 
@@ -147,7 +156,11 @@
                         <x-text-checkbox id="notification_channels_discord_enabled" name="notification_channels[discord][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'discord.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
+                        <x-secondary-button form="test-discord-notification-channel" class="text-xs">
+                            {{ __('profile.notification_settings.test.action') }}
+                        </x-secondary-button>
                     </div>
+                    <x-input-error :messages="$errors->get('notification_channels.discord')" />
 
                     <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.discord.help') }}</x-paragraph>
 
@@ -175,7 +188,11 @@
                         <x-text-checkbox id="notification_channels_webhook_enabled" name="notification_channels[webhook][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'webhook.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
+                        <x-secondary-button form="test-webhook-notification-channel" class="text-xs">
+                            {{ __('profile.notification_settings.test.action') }}
+                        </x-secondary-button>
                     </div>
+                    <x-input-error :messages="$errors->get('notification_channels.webhook')" />
 
                     <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.webhook.help') }}</x-paragraph>
 
@@ -201,4 +218,11 @@
 
         <x-primary-button>{{ __('button.update') }}</x-primary-button>
     </form>
+
+    @foreach ($notificationChannelKeys as $notificationChannelKey)
+        <form id="test-{{ $notificationChannelKey }}-notification-channel" method="POST"
+            action="{{ route('profile.notification-channels.test', ['channel' => $notificationChannelKey]) }}">
+            @csrf
+        </form>
+    @endforeach
 </x-container>
