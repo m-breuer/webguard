@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Internal;
 
 use App\Enums\MonitoringStatus;
+use App\Enums\MonitoringType;
 use App\Http\Controllers\Controller;
 use App\Models\Incident;
 use App\Models\Monitoring;
@@ -95,7 +96,7 @@ class MonitoringController extends Controller
     public function storeDomain(Request $request)
     {
         $validated = $request->validate([
-            'monitoring_id' => ['required', 'exists:monitorings,id'],
+            'monitoring_id' => ['required', Rule::exists('monitorings', 'id')->where('type', MonitoringType::DOMAIN_EXPIRATION->value)],
             'is_valid' => ['required', 'boolean'],
             'expires_at' => ['nullable', 'date'],
             'registrar' => ['nullable', 'string', 'max:255'],

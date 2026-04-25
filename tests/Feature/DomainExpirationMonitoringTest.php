@@ -170,6 +170,31 @@ class DomainExpirationMonitoringTest extends TestCase
         ]);
     }
 
+    public function test_internal_instance_cannot_store_domain_result_for_non_domain_monitoring(): void
+    {
+        $monitoring = Monitoring::factory()
+            ->for($this->user)
+            ->create([
+                'type' => MonitoringType::HTTP,
+                'preferred_location' => $this->serverInstance->code,
+            ]);
+
+        $testResponse = $this->withHeaders($this->instanceHeaders())
+            ->postJson(route('v1.internal.domain-results.store'), [
+                'monitoring_id' => $monitoring->id,
+                'is_valid' => true,
+                'expires_at' => Date::now()->addDays(90)->toIso8601String(),
+                'registrar' => 'Example Registrar',
+                'checked_at' => Date::now()->toIso8601String(),
+            ]);
+
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['monitoring_id']);
+        $this->assertDatabaseMissing('monitoring_domain_results', [
+            'monitoring_id' => $monitoring->id,
+        ]);
+    }
+
     /**
      * @return array<string, string>
      */
