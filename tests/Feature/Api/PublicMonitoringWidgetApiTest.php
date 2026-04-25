@@ -153,14 +153,14 @@ class PublicMonitoringWidgetApiTest extends TestCase
         ]);
 
         $checkedAt = Date::parse('2026-04-12 11:00:00');
-        $response = MonitoringResponse::query()->create([
+        $monitoringResponse = MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => 200,
             'response_time' => 123.4,
         ]);
 
-        DB::table('monitoring_response_results')->where('id', $response->id)->update([
+        DB::table('monitoring_response_results')->where('id', $monitoringResponse->id)->update([
             'created_at' => $checkedAt,
             'updated_at' => $checkedAt,
         ]);
