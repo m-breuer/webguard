@@ -28,6 +28,17 @@ return [
         'description' => 'Configure your global notification channels. These settings apply to all monitorings.',
         'enabled' => 'Enabled',
         'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
+        'test' => [
+            'action' => 'Send test',
+            'messages' => [
+                'sent' => ':channel test notification sent successfully.',
+                'failed' => ':channel test notification could not be sent. Check the saved channel configuration and try again.',
+            ],
+            'payload' => [
+                'title' => 'WebGuard test notification',
+                'message' => 'Your :channel notification channel is configured correctly.',
+            ],
+        ],
         'events' => [
             'incident' => 'Incident',
             'recovery' => 'Recovery',
@@ -83,7 +94,8 @@ return [
         'current_password' => 'Current Password',
         'new_password' => 'New Password',
         'confirm_new_password' => 'Confirm New Password',
-    ],    'actions' => [
+    ],
+    'actions' => [
         'update_password' => 'Update Password',
         'update_profile' => 'Update Profile',
         'delete_account' => 'Delete Account',

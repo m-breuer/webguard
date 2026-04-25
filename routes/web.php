@@ -61,6 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
         Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');
         Route::delete('/api-revoke-token', [ProfileController::class, 'apiRevokeToken'])->name('api-revoke-token');
+        Route::post('/notification-channels/{channel}/test', [ProfileController::class, 'sendNotificationChannelTest'])
+            ->name('notification-channels.test');
     });
 
     Route::resource('monitorings', MonitoringController::class)->names('monitorings');

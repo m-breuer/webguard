@@ -28,6 +28,17 @@ return [
         'description' => 'Konfigurieren Sie Ihre globalen Benachrichtigungskanäle. Diese Einstellungen gelten für alle Überwachungen.',
         'enabled' => 'Aktiviert',
         'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
+        'test' => [
+            'action' => 'Test senden',
+            'messages' => [
+                'sent' => ':channel-Testbenachrichtigung erfolgreich gesendet.',
+                'failed' => ':channel-Testbenachrichtigung konnte nicht gesendet werden. Prüfen Sie die gespeicherte Kanalkonfiguration und versuchen Sie es erneut.',
+            ],
+            'payload' => [
+                'title' => 'WebGuard-Testbenachrichtigung',
+                'message' => 'Ihr :channel-Benachrichtigungskanal ist korrekt konfiguriert.',
+            ],
+        ],
         'events' => [
             'incident' => 'Incident',
             'recovery' => 'Wiederherstellung',
