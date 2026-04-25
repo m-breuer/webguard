@@ -40,4 +40,15 @@ return [
     */
     'instance_seen_write_throttle_seconds' => (int) env('MONITORING_INSTANCE_SEEN_WRITE_THROTTLE_SECONDS', 60),
     'instance_stale_after_minutes' => (int) env('MONITORING_INSTANCE_STALE_AFTER_MINUTES', 10),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Weekly Digest
+    |--------------------------------------------------------------------------
+    |
+    | SSL certificates and domains expiring within this window are included in
+    | the weekly monitoring digest so customers can act before critical expiry.
+    |
+    */
+    'digest_expiry_warning_days' => (int) env('MONITORING_DIGEST_EXPIRY_WARNING_DAYS', 30),
 ];
