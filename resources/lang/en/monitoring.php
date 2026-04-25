@@ -160,10 +160,6 @@ return [
             'grace' => 'Grace period: :minutes minute|Grace period: :minutes minutes',
             'last_ping' => 'Last ping received',
         ],
-        'http' => [
-            'heading' => 'HTTP Expectations',
-            'expected_statuses' => 'Acceptable status codes',
-        ],
         'domain' => [
             'heading' => 'Domain Expiration',
             'valid' => 'Valid',
