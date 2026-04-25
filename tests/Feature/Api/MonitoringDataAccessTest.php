@@ -67,4 +67,17 @@ class MonitoringDataAccessTest extends TestCase
 
         $testResponse->assertNotFound();
     }
+
+    public function test_validation_errors_do_not_leak_private_monitoring_existence(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => false,
+        ]);
+
+        $testResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/uptime-calendar');
+
+        $testResponse->assertNotFound();
+    }
 }
