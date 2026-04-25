@@ -92,12 +92,36 @@ class UnreadNotificationCountPerformanceTest extends TestCase
             ->values();
 
         $this->assertSame(3, $count);
-        $this->assertCount(2, $selectQueries);
+        $this->assertCount(1, $selectQueries);
         $this->assertTrue($selectQueries->contains(
             fn (string $query): bool => str_contains(mb_strtolower($query), 'count(distinct')
+        ));
+        $this->assertTrue($selectQueries->contains(
+            fn (string $query): bool => str_contains(mb_strtolower($query), 'sum(case')
         ));
         $this->assertFalse($selectQueries->contains(
             fn (string $query): bool => str_contains($query, 'latestUnreadStatusChangeNotification')
         ));
+    }
+
+    public function test_unread_notification_count_returns_zero_without_notifications(): void
+    {
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+
+        $this->actingAs($user);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $count = resolve(NotificationBoardService::class)->getUnreadNotificationCount();
+
+        $selectQueries = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->filter(fn (string $query): bool => str_starts_with(mb_strtolower($query), 'select'))
+            ->values();
+
+        $this->assertSame(0, $count);
+        $this->assertCount(1, $selectQueries);
     }
 }

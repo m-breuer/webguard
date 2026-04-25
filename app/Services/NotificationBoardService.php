@@ -171,23 +171,31 @@ class NotificationBoardService
 
     public function getUnreadNotificationCount(): int
     {
-        $builder = MonitoringNotification::query()
+        $total = MonitoringNotification::query()
             ->withoutGlobalScopes()
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
             ->where('monitorings.user_id', auth()->id())
             ->whereNull('monitorings.deleted_at')
-            ->where('monitoring_notifications.read', false);
+            ->where('monitoring_notifications.read', false)
+            ->selectRaw(
+                <<<'SQL'
+                count(distinct case
+                    when monitoring_notifications.type = ?
+                    then monitoring_notifications.monitoring_id
+                end) + coalesce(sum(case
+                    when monitoring_notifications.type != ?
+                    then 1
+                    else 0
+                end), 0) as total
+                SQL,
+                [
+                    NotificationType::STATUS_CHANGE->value,
+                    NotificationType::STATUS_CHANGE->value,
+                ]
+            )
+            ->value('total');
 
-        $unreadStatusChangeCount = (clone $builder)
-            ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
-            ->distinct('monitoring_notifications.monitoring_id')
-            ->count('monitoring_notifications.monitoring_id');
-
-        $unreadNonStatusChangeCount = (clone $builder)
-            ->where('monitoring_notifications.type', '!=', NotificationType::STATUS_CHANGE->value)
-            ->count();
-
-        return $unreadStatusChangeCount + $unreadNonStatusChangeCount;
+        return (int) $total;
     }
 
     /**
