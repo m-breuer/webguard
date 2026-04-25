@@ -43,7 +43,10 @@ class WeeklyMonitoringDigestService
         $longestDowntimeMinutes = 0;
         $sslWarnings = [];
         $domainWarnings = [];
-        $warningThreshold = Date::now()->addDays((int) config('monitoring.digest_expiry_warning_days', 30))->endOfDay();
+        $warningThreshold = $periodEnd
+            ->copy()
+            ->addDays((int) config('monitoring.digest_expiry_warning_days', 30))
+            ->endOfDay();
 
         foreach ($monitorings as $monitoring) {
             $uptimeDowntime = MonitoringResultService::getUptimeDowntime(
