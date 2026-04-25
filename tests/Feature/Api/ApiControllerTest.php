@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -226,6 +227,19 @@ class ApiControllerTest extends TestCase
         $this->assertSame(106.0, (float) $secondPageResponse->json('data.0.response_time'));
     }
 
+    public function test_history_response_tables_have_indexes_for_timeline_pagination(): void
+    {
+        $this->assertTableHasIndexColumns(
+            'monitoring_response_results',
+            ['monitoring_id', 'created_at', 'id']
+        );
+
+        $this->assertTableHasIndexColumns(
+            'monitoring_response_archived',
+            ['monitoring_id', 'created_at', 'id']
+        );
+    }
+
     /**
      * @return list<string>
      */
@@ -238,5 +252,25 @@ class ApiControllerTest extends TestCase
                 || str_contains($query, 'monitoring_response_archived'))
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
+    private function assertTableHasIndexColumns(string $table, array $columns): void
+    {
+        $indexColumns = collect(Schema::getIndexes($table))
+            ->map(static fn (array $index): array => $index['columns'])
+            ->values();
+
+        $this->assertTrue(
+            $indexColumns->contains($columns),
+            sprintf(
+                'Expected %s to have an index on (%s). Existing index columns: %s',
+                $table,
+                implode(', ', $columns),
+                $indexColumns->map(static fn (array $indexedColumns): string => '(' . implode(', ', $indexedColumns) . ')')->implode(', ')
+            )
+        );
     }
 }
