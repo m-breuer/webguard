@@ -100,17 +100,17 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             '--period-end' => '2026-04-19',
         ]);
 
-        Mail::assertSent(WeeklyMonitoringDigestMail::class, function (WeeklyMonitoringDigestMail $mail) use ($user): bool {
-            $rendered = $mail->render();
+        Mail::assertSent(WeeklyMonitoringDigestMail::class, function (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail) use ($user): bool {
+            $rendered = $weeklyMonitoringDigestMail->render();
 
-            return $mail->hasTo($user->email)
-                && $mail->digest['period_start']->toDateString() === '2026-04-13'
-                && $mail->digest['period_end']->toDateString() === '2026-04-19'
-                && round($mail->digest['overview']['uptime_percentage'], 2) === 99.31
-                && $mail->digest['overview']['incidents_count'] === 2
-                && $mail->digest['overview']['longest_downtime_minutes'] === 75
-                && count($mail->digest['ssl_warnings']) === 1
-                && count($mail->digest['domain_warnings']) === 1
+            return $weeklyMonitoringDigestMail->hasTo($user->email)
+                && $weeklyMonitoringDigestMail->digest['period_start']->toDateString() === '2026-04-13'
+                && $weeklyMonitoringDigestMail->digest['period_end']->toDateString() === '2026-04-19'
+                && round($weeklyMonitoringDigestMail->digest['overview']['uptime_percentage'], 2) === 99.31
+                && $weeklyMonitoringDigestMail->digest['overview']['incidents_count'] === 2
+                && $weeklyMonitoringDigestMail->digest['overview']['longest_downtime_minutes'] === 75
+                && count($weeklyMonitoringDigestMail->digest['ssl_warnings']) === 1
+                && count($weeklyMonitoringDigestMail->digest['domain_warnings']) === 1
                 && str_contains($rendered, 'Storefront')
                 && str_contains($rendered, '99.31%')
                 && str_contains($rendered, 'SSL certificates')
