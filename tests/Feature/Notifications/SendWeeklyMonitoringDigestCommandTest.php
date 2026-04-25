@@ -181,7 +181,7 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             'up_at' => null,
         ]);
 
-        $digest = app(WeeklyMonitoringDigestService::class)->buildForUser($user, Date::parse('2026-04-19'));
+        $digest = resolve(WeeklyMonitoringDigestService::class)->buildForUser($user, Date::parse('2026-04-19'));
 
         $this->assertSame(3, $digest['overview']['incidents_count']);
         $this->assertSame(119, $digest['overview']['longest_downtime_minutes']);
