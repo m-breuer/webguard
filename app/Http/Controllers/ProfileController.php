@@ -71,6 +71,7 @@ class ProfileController extends Controller
         }
 
         $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
+        $user->expiry_warning_days = $this->normalizeExpiryWarningDays($profileRequest);
         $user->save();
 
         return to_route('profile.edit')
@@ -208,5 +209,24 @@ class ProfileController extends Controller
         }
 
         return $normalized;
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function normalizeExpiryWarningDays(ProfileRequest $profileRequest): array
+    {
+        $allowedDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
+        $submittedDays = $profileRequest->input('expiry_warning_days', []);
+
+        if (! is_array($submittedDays)) {
+            return [];
+        }
+
+        $days = array_values(array_unique(array_map('intval', $submittedDays)));
+        $days = array_values(array_intersect($days, $allowedDays));
+        rsort($days);
+
+        return $days;
     }
 }

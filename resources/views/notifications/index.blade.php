@@ -31,12 +31,17 @@
     <x-main x-data="{
         statusChangeOffset: {{ $statusBoardEntries->count() }},
         sslExpiryOffset: {{ $sslExpiryNotifications->count() }},
+        domainExpiryOffset: {{ $domainExpiryNotifications->count() }},
         deliveryHistoryOffset: {{ $deliveryHistory->count() }},
         currentLimit: {{ $limit }},
-        isEmpty: {{ $sslExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() && $deliveryHistory->isEmpty() ? 'true' : 'false' }},
+        isEmpty: {{ $sslExpiryNotifications->isEmpty() && $domainExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() && $deliveryHistory->isEmpty() ? 'true' : 'false' }},
         getOffsetForType(type) {
             if (type === 'status_change') {
                 return this.statusChangeOffset;
+            }
+
+            if (type === 'domain_expiry') {
+                return this.domainExpiryOffset;
             }
 
             if (type === 'delivery_history') {
@@ -68,6 +73,9 @@
                     if (type === 'status_change') {
                         this.statusChangeOffset += response.data.count;
                         if (!response.data.hasMore) document.getElementById('status-change-load-more-container').style.display = 'none';
+                    } else if (type === 'domain_expiry') {
+                        this.domainExpiryOffset += response.data.count;
+                        if (!response.data.hasMore) document.getElementById('domain-expiry-load-more-container').style.display = 'none';
                     } else if (type === 'delivery_history') {
                         this.deliveryHistoryOffset += response.data.count;
                         if (!response.data.hasMore) document.getElementById('delivery-history-load-more-container').style.display = 'none';
@@ -93,6 +101,8 @@
                     entry.remove();
                     if (type === 'status_change') {
                         this.statusChangeOffset = Math.max(0, this.statusChangeOffset - 1);
+                    } else if (type === 'domain_expiry') {
+                        this.domainExpiryOffset = Math.max(0, this.domainExpiryOffset - 1);
                     } else {
                         this.sslExpiryOffset = Math.max(0, this.sslExpiryOffset - 1);
                     }
@@ -118,6 +128,24 @@
                         <div class="mt-4 text-center" id="ssl-expiry-load-more-container">
                             <x-primary-button
                                 @click="loadMoreNotifications('ssl_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if ($domainExpiryNotifications->isNotEmpty())
+                <div class="mb-8">
+                    <x-heading type="h2" space=true>{{ __('notifications.domain_expiry_notifications') }}</x-heading>
+                    <div id="domain-expiry-notifications">
+                        @include('notifications.partials.notification_list', [
+                            'notifications' => $domainExpiryNotifications,
+                            'type' => 'domain_expiry',
+                        ])
+                    </div>
+                    @if ($domainExpiryHasMore)
+                        <div class="mt-4 text-center" id="domain-expiry-load-more-container">
+                            <x-primary-button
+                                @click="loadMoreNotifications('domain_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
                         </div>
                     @endif
                 </div>

@@ -9,6 +9,7 @@ return [
         'heading' => 'Notification Board',
     ],
     'ssl_expiry_notifications' => 'SSL Expiry',
+    'domain_expiry_notifications' => 'Domain Expiry',
     'delivery_history' => [
         'heading' => 'Delivery History',
     ],
@@ -57,6 +58,10 @@ return [
         'expiring' => 'SSL certificate for :name is expiring soon.',
         'expired' => 'SSL certificate for :name has expired.',
     ],
+    'domain_messages' => [
+        'expiring' => 'Domain :name is expiring soon.',
+        'expired' => 'Domain :name has expired.',
+    ],
     'channels' => [
         'slack' => 'Slack',
         'telegram' => 'Telegram',
@@ -68,6 +73,8 @@ return [
         'recovery' => 'Recovery',
         'ssl_expiring' => 'SSL expiring',
         'ssl_expired' => 'SSL expired',
+        'domain_expiring' => 'Domain expiring',
+        'domain_expired' => 'Domain expired',
     ],
     'delivery_status' => [
         'sent' => 'Sent',

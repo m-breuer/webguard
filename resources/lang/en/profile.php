@@ -44,6 +44,13 @@ return [
             'recovery' => 'Recovery',
             'ssl_expiring' => 'SSL expiring',
             'ssl_expired' => 'SSL expired',
+            'domain_expiring' => 'Domain expiring',
+            'domain_expired' => 'Domain expired',
+        ],
+        'expiry_warning_days' => [
+            'heading' => 'Expiry warning windows',
+            'help' => 'Choose when SSL certificates and domains should trigger expiry warnings.',
+            'option' => '{1} :days day before expiry|[2,*] :days days before expiry',
         ],
         'fields' => [
             'telegram_bot_token' => 'Telegram Bot Token',
