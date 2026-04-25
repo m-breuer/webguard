@@ -13,6 +13,7 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 * **Uptime Monitoring:** Keep a close eye on your website's availability with asynchronous uptime checks.
 * **Heartbeat & Cron Monitoring:** Detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
 * **Response Time Tracking:** Monitor your website's performance by tracking response times.
+* **Expected HTTP Status Ranges:** Define accepted HTTP status codes or ranges, such as `200-299, 301, 302`, per HTTP or keyword monitoring.
 * **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
 * **Domain Expiration Monitoring:** Track domain registration expiry before critical domains lapse.
 * **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.
@@ -21,6 +22,7 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 * **REST API:** Programmatically access your monitoring data and integrate WebGuard with your existing workflows.
 * **Embeddable Widget:** Display your website's monitoring status on external sites with a simple JavaScript widget.
 * **Flexible Notifications:** Receive notifications for status changes and SSL expiry via in-app notifications and email.
+* **Weekly Monitoring Digest:** Email weekly uptime, incident, downtime, SSL, and domain expiry summaries to active users.
 * **Public Status Pages:** Create public status pages for your monitorings to keep your users informed.
 * **Global Language Switch:** Switch between supported languages from both public and authenticated top navigation.
 * **Landing Navigation Anchors:** Landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
