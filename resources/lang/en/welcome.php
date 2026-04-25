@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, and Heartbeat checks with notifications, SSL expiry tracking, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, SSL expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, and Heartbeat checks with expected HTTP status ranges, weekly digests, notifications, SSL expiry tracking, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SSL expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
         'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, and Heartbeat monitoring, clear notifications, and easy-to-read uptime reporting.',
     ],
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Coverage',
-                'value' => 'HTTP, Ping, Keyword, Port, and Heartbeat',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, and digests',
             ],
             '3' => [
                 'label' => 'Operation',
@@ -54,6 +54,11 @@ return [
             'badge' => 'Core',
             'title' => 'HTTP Monitoring',
             'text' => 'Monitor API and website endpoints with latency and status-code validation.',
+        ],
+        'http_expectations' => [
+            'badge' => 'Control',
+            'title' => 'Expected HTTP Status Ranges',
+            'text' => 'Define accepted status codes or ranges such as 200-299, 301, and 302 for each HTTP or keyword monitor.',
         ],
         'ping' => [
             'badge' => 'Core',
@@ -79,6 +84,11 @@ return [
             'badge' => 'Alerts',
             'title' => 'Incident and Status Notifications',
             'text' => 'Receive incident updates through multiple channels so response stays fast and coordinated.',
+        ],
+        'weekly_digest' => [
+            'badge' => 'Reports',
+            'title' => 'Weekly Monitoring Digest',
+            'text' => 'Send weekly email summaries with uptime, incidents, longest downtime, and SSL or domain expiry warnings.',
         ],
         'ssl' => [
             'badge' => 'Security',
