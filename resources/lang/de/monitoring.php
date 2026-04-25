@@ -160,10 +160,6 @@ return [
             'grace' => 'Kulanzzeit: :minutes Minute|Kulanzzeit: :minutes Minuten',
             'last_ping' => 'Letzter empfangener Ping',
         ],
-        'http' => [
-            'heading' => 'HTTP-Erwartungen',
-            'expected_statuses' => 'Akzeptierte Statuscodes',
-        ],
         'domain' => [
             'heading' => 'Domain-Ablauf',
             'valid' => 'Gültig',

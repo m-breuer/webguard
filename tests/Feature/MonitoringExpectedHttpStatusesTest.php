@@ -159,6 +159,30 @@ class MonitoringExpectedHttpStatusesTest extends TestCase
         ]);
     }
 
+    public function test_expected_http_statuses_are_rendered_in_form_but_not_as_detail_card(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com/health',
+            'preferred_location' => $this->serverInstance->code,
+            'expected_http_statuses' => '200-399',
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.form.expected_http_statuses'));
+        $testResponse->assertSee('200-399');
+
+        $detailResponse = $this->actingAs($this->user)->get(route('monitorings.show', $monitoring));
+
+        $detailResponse->assertOk();
+        $detailResponse->assertDontSeeText('HTTP Expectations');
+        $detailResponse->assertDontSeeText('HTTP-Erwartungen');
+        $detailResponse->assertDontSeeText('Acceptable status codes');
+        $detailResponse->assertDontSeeText('Akzeptierte Statuscodes');
+    }
+
     public function test_expected_http_status_range_matching_supports_codes_and_ranges(): void
     {
         $this->assertTrue(HttpStatusCodeRanges::contains('200-299,301,302', 204));

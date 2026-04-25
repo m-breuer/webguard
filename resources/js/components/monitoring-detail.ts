@@ -16,6 +16,7 @@ interface MonitoringDetailComponent {
         source: string;
     }>;
     status: string | null;
+    statusCode: number | null;
     since: string | null;
     heatmap: any[];
     loading: boolean;
@@ -85,6 +86,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         source: string;
     }>,
     status: null as string | null,
+    statusCode: null as number | null,
     since: null as string | null,
     heatmap: [] as any[],
     loading: false,
@@ -128,6 +130,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/status`);
             const responseData = await response.json();
             this.status = responseData.status;
+            this.statusCode = responseData.status_code ?? null;
             if (responseData.since) {
                 this.sinceDate = new Date(responseData.since);
                 this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
@@ -143,6 +146,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             }
         } catch (_) {
             this.status = null;
+            this.statusCode = null;
             this.since = null;
             this.lastCheckedAt = null;
             this.lastCheckedAtHuman = null;
