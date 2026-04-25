@@ -156,7 +156,7 @@ class SendSslExpiryWarningsCommand extends Command
             return;
         }
 
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => $notificationType,
             'message' => $isExpired ? $expiredMessage : $expiringMessage,
@@ -164,7 +164,7 @@ class SendSslExpiryWarningsCommand extends Command
             'sent' => false,
         ]);
 
-        $payload = new NotificationPayload(
+        $notificationPayload = new NotificationPayload(
             eventType: $eventType,
             title: $isExpired ? $expiredTitle : $expiringTitle,
             message: $this->expiryMessage($monitoring->name, $monitoring->target, $subject, $expiresAt, $daysUntilExpiry, $isExpired),
@@ -175,20 +175,20 @@ class SendSslExpiryWarningsCommand extends Command
             occurredAt: now(),
             meta: [
                 $resultMetaKey => $result->id,
-                'notification_id' => $notification->id,
+                'notification_id' => $monitoringNotification->id,
                 'expires_at' => $expiresAt?->toIso8601String(),
                 'days_until_expiry' => $daysUntilExpiry,
             ],
         );
 
-        $this->notificationRouter->dispatch($user, $payload);
-        $notification->update(['sent' => true]);
+        $this->notificationRouter->dispatch($user, $notificationPayload);
+        $monitoringNotification->update(['sent' => true]);
         Cache::put($cacheKey, true, now()->addHours(23));
     }
 
     private function daysUntilExpiry(CarbonInterface $expiresAt): int
     {
-        return (int) now()->startOfDay()->diffInDays($expiresAt->copy()->startOfDay(), false);
+        return (int) today()->diffInDays($expiresAt->copy()->startOfDay(), false);
     }
 
     private function expiryMessage(
