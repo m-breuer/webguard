@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Notifications;
 
 use App\Enums\NotificationDeliveryStatus;
-use App\Enums\NotificationEventType;
 use App\Models\NotificationChannelDelivery;
 use App\Models\User;
 use App\Services\Notifications\Channels\DiscordChannelDriver;
@@ -38,9 +37,12 @@ class NotificationRouter
         ];
     }
 
-    public function dispatch(User $user, NotificationPayload $notificationPayload): bool
+    /**
+     * @param  list<string>|null  $selectedChannels
+     */
+    public function dispatch(User $user, NotificationPayload $notificationPayload, ?array $selectedChannels = null): bool
     {
-        $channels = $this->resolveChannelsForEvent($user, $notificationPayload->eventType);
+        $channels = $this->resolveChannels($user, $selectedChannels);
         $monitoringNotificationId = $this->resolveMonitoringNotificationId($notificationPayload);
 
         $hasSuccess = false;
@@ -103,14 +105,20 @@ class NotificationRouter
     }
 
     /**
+     * @param  list<string>|null  $selectedChannels
      * @return array<string, array<string, mixed>>
      */
-    private function resolveChannelsForEvent(User $user, NotificationEventType $notificationEventType): array
+    private function resolveChannels(User $user, ?array $selectedChannels): array
     {
         $configuredChannels = is_array($user->notification_channels) ? $user->notification_channels : [];
+        $selectedChannels = $selectedChannels === null ? null : array_flip($selectedChannels);
         $activeChannels = [];
 
         foreach ($this->drivers as $channel => $driver) {
+            if (is_array($selectedChannels) && ! array_key_exists($channel, $selectedChannels)) {
+                continue;
+            }
+
             $channelConfig = $configuredChannels[$channel] ?? null;
 
             if (! is_array($channelConfig)) {
@@ -118,9 +126,8 @@ class NotificationRouter
             }
 
             $enabled = (bool) ($channelConfig['enabled'] ?? false);
-            $eventEnabled = (bool) data_get($channelConfig, 'events.' . $notificationEventType->value, false);
 
-            if ($enabled && $eventEnabled) {
+            if ($enabled) {
                 $activeChannels[$channel] = $channelConfig;
             }
         }

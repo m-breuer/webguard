@@ -38,7 +38,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $package_id
  * @property array<string, mixed>|null $notification_channels
  * @property Carbon|null $notification_channels_hint_seen_at
- * @property list<int>|null $expiry_warning_days
+ * @property bool $monitoring_digest_enabled
+ * @property string $monitoring_digest_frequency
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -69,7 +70,8 @@ use Laravel\Sanctum\PersonalAccessToken;
     'avatar',
     'notification_channels',
     'notification_channels_hint_seen_at',
-    'expiry_warning_days',
+    'monitoring_digest_enabled',
+    'monitoring_digest_frequency',
 ])]
 #[Hidden([
     'password',
@@ -158,36 +160,28 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasEnabledNotificationChannels(): bool
     {
-        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
-
-        foreach ($channels as $channel) {
-            if (! is_array($channel)) {
-                continue;
-            }
-
-            if ((bool) ($channel['enabled'] ?? false) === true) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->enabledNotificationChannelKeys() !== [];
     }
 
     /**
-     * @return list<int>
+     * @return list<string>
      */
-    public function expiryWarningDays(): array
+    public function enabledNotificationChannelKeys(): array
     {
-        $allowedDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
-        $configuredDays = is_array($this->expiry_warning_days)
-            ? $this->expiry_warning_days
-            : config('monitoring.expiry_warning_days.default', [7]);
+        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+        $enabledChannels = [];
 
-        $days = array_values(array_unique(array_map('intval', $configuredDays)));
-        $days = array_values(array_intersect($days, $allowedDays));
-        rsort($days);
+        foreach ($channels as $channel => $config) {
+            if (! is_array($config)) {
+                continue;
+            }
 
-        return $days;
+            if ((bool) ($config['enabled'] ?? false) === true) {
+                $enabledChannels[] = (string) $channel;
+            }
+        }
+
+        return $enabledChannels;
     }
 
     /**
@@ -206,7 +200,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'theme' => 'string',
             'notification_channels' => 'array',
             'notification_channels_hint_seen_at' => 'datetime',
-            'expiry_warning_days' => 'array',
+            'monitoring_digest_enabled' => 'boolean',
+            'monitoring_digest_frequency' => 'string',
         ];
     }
 }

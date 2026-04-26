@@ -10,6 +10,12 @@
     }
 
     $heartbeatTypeValue = MonitoringType::HEARTBEAT->value;
+    $enabledNotificationChannels = $enabledNotificationChannels ?? [];
+    $selectedNotificationChannels = old(
+        'notification_channels',
+        isset($monitoring) ? ($monitoring->notification_channels ?? $enabledNotificationChannels) : $enabledNotificationChannels
+    );
+    $selectedNotificationChannels = is_array($selectedNotificationChannels) ? $selectedNotificationChannels : [];
 @endphp
 
 @csrf
@@ -244,6 +250,39 @@
             <span
                 class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('monitoring.form.notification_on_failure_enabled') }}</span>
         </label>
+    </div>
+
+    <div class="mt-4">
+        <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
+        @if (count($enabledNotificationChannels) > 0)
+            <select id="notification_channels" name="notification_channels[]" multiple size="{{ min(4, count($enabledNotificationChannels)) }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                @foreach ($enabledNotificationChannels as $channel)
+                    <option value="{{ $channel }}" @selected(in_array($channel, $selectedNotificationChannels, true))>
+                        {{ __('profile.notification_settings.channels.' . $channel . '.title') }}
+                    </option>
+                @endforeach
+            </select>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('monitoring.form.notification_channels_help') }}
+            </p>
+        @else
+            <p class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
+                {{ __('monitoring.form.notification_channels_empty') }}
+            </p>
+        @endif
+        <x-input-error :messages="$errors->get('notification_channels')" />
+        <x-input-error :messages="$errors->get('notification_channels.*')" />
+    </div>
+
+    <div class="mt-4">
+        <x-input-label for="ssl_expiry_warning_days" :value="__('monitoring.form.ssl_expiry_warning_days')" />
+        <x-text-input id="ssl_expiry_warning_days" type="number" min="1" max="365" name="ssl_expiry_warning_days"
+            :value="old('ssl_expiry_warning_days', $monitoring->ssl_expiry_warning_days ?? 7)" />
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.ssl_expiry_warning_days_help') }}
+        </p>
+        <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
     </div>
 
     <div class="mt-4">

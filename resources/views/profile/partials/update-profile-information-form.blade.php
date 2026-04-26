@@ -1,10 +1,7 @@
 <x-container space="true">
     @php
         $notificationChannels = old('notification_channels', $user->notification_channels ?? []);
-        $eventTypes = ['incident', 'recovery', 'ssl_expiring', 'ssl_expired', 'domain_expiring', 'domain_expired'];
         $notificationChannelKeys = ['slack', 'telegram', 'discord', 'webhook'];
-        $allowedExpiryWarningDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
-        $selectedExpiryWarningDays = old('expiry_warning_days', $user->expiry_warning_days ?? config('monitoring.expiry_warning_days.default', [7]));
     @endphp
 
     <x-heading type="h2">{{ __('profile.information.heading') }}</x-heading>
@@ -71,26 +68,6 @@
             <x-heading type="h2">{{ __('profile.notification_settings.heading') }}</x-heading>
             <x-paragraph>{{ __('profile.notification_settings.description') }}</x-paragraph>
 
-            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
-                <x-heading type="h3">{{ __('profile.notification_settings.expiry_warning_days.heading') }}</x-heading>
-                <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    {{ __('profile.notification_settings.expiry_warning_days.help') }}
-                </x-paragraph>
-
-                <div class="mt-4 flex flex-wrap gap-4">
-                    @foreach ($allowedExpiryWarningDays as $day)
-                        <x-text-checkbox
-                            id="expiry_warning_days_{{ $day }}"
-                            name="expiry_warning_days[]"
-                            value="{{ $day }}"
-                            :checked="in_array($day, array_map('intval', (array) $selectedExpiryWarningDays), true)"
-                            :label="trans_choice('profile.notification_settings.expiry_warning_days.option', $day, ['days' => $day])" />
-                    @endforeach
-                </div>
-                <x-input-error :messages="$errors->get('expiry_warning_days')" />
-                <x-input-error :messages="$errors->get('expiry_warning_days.*')" />
-            </div>
-
             @if (!empty($showNotificationChannelsHint))
                 <div class="rounded-xl border border-amber-300 bg-amber-50/80 p-4 dark:border-amber-700 dark:bg-amber-950/30">
                     <x-paragraph class="text-sm text-amber-900 dark:text-amber-200">
@@ -119,16 +96,6 @@
                         <x-text-input id="notification_channels_slack_webhook_url" name="notification_channels[slack][webhook_url]" type="url"
                             :value="data_get($notificationChannels, 'slack.webhook_url')" placeholder="https://hooks.slack.com/services/..." />
                         <x-input-error :messages="$errors->get('notification_channels.slack.webhook_url')" />
-                    </div>
-
-                    <div class="mt-4 grid gap-2 md:grid-cols-2">
-                        @foreach ($eventTypes as $eventType)
-                            <x-text-checkbox
-                                id="notification_channels_slack_events_{{ $eventType }}"
-                                name="notification_channels[slack][events][{{ $eventType }}]"
-                                :checked="(bool) data_get($notificationChannels, 'slack.events.' . $eventType, false)"
-                                :label="__('profile.notification_settings.events.' . $eventType)" />
-                        @endforeach
                     </div>
                 </div>
 
@@ -160,16 +127,6 @@
                             <x-input-error :messages="$errors->get('notification_channels.telegram.chat_id')" />
                         </div>
                     </div>
-
-                    <div class="mt-4 grid gap-2 md:grid-cols-2">
-                        @foreach ($eventTypes as $eventType)
-                            <x-text-checkbox
-                                id="notification_channels_telegram_events_{{ $eventType }}"
-                                name="notification_channels[telegram][events][{{ $eventType }}]"
-                                :checked="(bool) data_get($notificationChannels, 'telegram.events.' . $eventType, false)"
-                                :label="__('profile.notification_settings.events.' . $eventType)" />
-                        @endforeach
-                    </div>
                 </div>
 
                 <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
@@ -191,16 +148,6 @@
                         <x-text-input id="notification_channels_discord_webhook_url" name="notification_channels[discord][webhook_url]" type="url"
                             :value="data_get($notificationChannels, 'discord.webhook_url')" placeholder="https://discord.com/api/webhooks/..." />
                         <x-input-error :messages="$errors->get('notification_channels.discord.webhook_url')" />
-                    </div>
-
-                    <div class="mt-4 grid gap-2 md:grid-cols-2">
-                        @foreach ($eventTypes as $eventType)
-                            <x-text-checkbox
-                                id="notification_channels_discord_events_{{ $eventType }}"
-                                name="notification_channels[discord][events][{{ $eventType }}]"
-                                :checked="(bool) data_get($notificationChannels, 'discord.events.' . $eventType, false)"
-                                :label="__('profile.notification_settings.events.' . $eventType)" />
-                        @endforeach
                     </div>
                 </div>
 
@@ -224,16 +171,30 @@
                             :value="data_get($notificationChannels, 'webhook.url')" placeholder="https://example.com/webhook" />
                         <x-input-error :messages="$errors->get('notification_channels.webhook.url')" />
                     </div>
+                </div>
+            </div>
 
-                    <div class="mt-4 grid gap-2 md:grid-cols-2">
-                        @foreach ($eventTypes as $eventType)
-                            <x-text-checkbox
-                                id="notification_channels_webhook_events_{{ $eventType }}"
-                                name="notification_channels[webhook][events][{{ $eventType }}]"
-                                :checked="(bool) data_get($notificationChannels, 'webhook.events.' . $eventType, false)"
-                                :label="__('profile.notification_settings.events.' . $eventType)" />
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                <div class="mb-4">
+                    <x-heading type="h3">{{ __('profile.notification_settings.digest.heading') }}</x-heading>
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.digest.description') }}</x-paragraph>
+                </div>
+
+                <x-text-checkbox id="monitoring_digest_enabled" name="monitoring_digest_enabled"
+                    :checked="(bool) old('monitoring_digest_enabled', $user->monitoring_digest_enabled)"
+                    :label="__('profile.notification_settings.digest.enabled')" />
+                <x-input-error :messages="$errors->get('monitoring_digest_enabled')" />
+
+                <div class="mt-4 w-full md:w-1/2">
+                    <x-input-label for="monitoring_digest_frequency" :value="__('profile.notification_settings.digest.frequency')" />
+                    <x-select-input id="monitoring_digest_frequency" class="mt-1 block w-full" name="monitoring_digest_frequency">
+                        @foreach (['daily', 'weekly', 'monthly'] as $frequency)
+                            <option value="{{ $frequency }}" @selected(old('monitoring_digest_frequency', $user->monitoring_digest_frequency ?? 'weekly') === $frequency)>
+                                {{ __('profile.notification_settings.digest.frequencies.' . $frequency) }}
+                            </option>
                         @endforeach
-                    </div>
+                    </x-select-input>
+                    <x-input-error :messages="$errors->get('monitoring_digest_frequency')" />
                 </div>
             </div>
         </div>

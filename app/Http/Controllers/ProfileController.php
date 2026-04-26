@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\NotificationChannel;
-use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Jobs\DeleteUser;
@@ -71,7 +70,8 @@ class ProfileController extends Controller
         }
 
         $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
-        $user->expiry_warning_days = $this->normalizeExpiryWarningDays($profileRequest);
+        $user->monitoring_digest_enabled = $profileRequest->boolean('monitoring_digest_enabled');
+        $user->monitoring_digest_frequency = (string) $profileRequest->input('monitoring_digest_frequency', 'weekly');
         $user->save();
 
         return to_route('profile.edit')
@@ -177,19 +177,11 @@ class ProfileController extends Controller
      */
     private function normalizeNotificationChannels(ProfileRequest $profileRequest): array
     {
-        $eventTypes = NotificationEventType::values();
         $normalized = [];
 
         foreach (NotificationChannel::values() as $channel) {
-            $events = [];
-
-            foreach ($eventTypes as $eventType) {
-                $events[$eventType] = $profileRequest->boolean(sprintf('notification_channels.%s.events.%s', $channel, $eventType));
-            }
-
             $channelConfig = [
                 'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
-                'events' => $events,
             ];
 
             if ($channel === NotificationChannel::SLACK->value || $channel === NotificationChannel::DISCORD->value) {
@@ -209,24 +201,5 @@ class ProfileController extends Controller
         }
 
         return $normalized;
-    }
-
-    /**
-     * @return list<int>
-     */
-    private function normalizeExpiryWarningDays(ProfileRequest $profileRequest): array
-    {
-        $allowedDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
-        $submittedDays = $profileRequest->input('expiry_warning_days', []);
-
-        if (! is_array($submittedDays)) {
-            return [];
-        }
-
-        $days = array_values(array_unique(array_map('intval', $submittedDays)));
-        $days = array_values(array_intersect($days, $allowedDays));
-        rsort($days);
-
-        return $days;
     }
 }

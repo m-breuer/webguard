@@ -28,16 +28,13 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
                 'slack' => [
                     'enabled' => true,
                     'webhook_url' => 'https://hooks.slack.test/services/test',
-                    'events' => [
-                        'incident' => true,
-                        'recovery' => true,
-                    ],
                 ],
             ],
         ]);
 
         $monitoring = Monitoring::factory()->for($user)->create([
             'notification_on_failure' => true,
+            'notification_channels' => ['slack'],
         ]);
 
         $monitoringNotification = MonitoringNotification::query()->create([
@@ -78,16 +75,13 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
                 'slack' => [
                     'enabled' => true,
                     'webhook_url' => 'https://hooks.slack.test/services/test',
-                    'events' => [
-                        'incident' => true,
-                        'recovery' => true,
-                    ],
                 ],
             ],
         ]);
 
         $monitoring = Monitoring::factory()->for($user)->create([
             'notification_on_failure' => false,
+            'notification_channels' => ['slack'],
         ]);
 
         $monitoringNotification = MonitoringNotification::query()->create([
@@ -106,5 +100,45 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         $this->assertTrue($monitoringNotification->sent);
         Http::assertNothingSent();
         $this->assertDatabaseCount('notification_channel_deliveries', 0);
+    }
+
+    public function test_command_respects_per_monitoring_channel_selection(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'slack' => [
+                    'enabled' => true,
+                    'webhook_url' => 'https://hooks.slack.test/services/test',
+                ],
+                'webhook' => [
+                    'enabled' => true,
+                    'url' => 'https://example.test/webhook',
+                ],
+            ],
+        ]);
+
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['webhook'],
+        ]);
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => false,
+        ]);
+
+        Http::fake([
+            '*' => Http::response(['ok' => true], 200),
+        ]);
+
+        Artisan::call('notifications:dispatch-status-changes');
+
+        Http::assertSentCount(1);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://example.test/webhook');
+        Http::assertNotSent(fn ($request): bool => $request->url() === 'https://hooks.slack.test/services/test');
     }
 }

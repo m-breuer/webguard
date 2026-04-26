@@ -41,21 +41,19 @@ class SendSslExpiryWarningsCommand extends Command
      */
     public function handle(): int
     {
-        $maxWarningDays = max(config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]));
-
-        $this->sendSslExpiryWarnings($maxWarningDays);
-        $this->sendDomainExpiryWarnings($maxWarningDays);
+        $this->sendSslExpiryWarnings();
+        $this->sendDomainExpiryWarnings();
 
         return Command::SUCCESS;
     }
 
-    private function sendSslExpiryWarnings(int $maxWarningDays): void
+    private function sendSslExpiryWarnings(): void
     {
         $sslResults = MonitoringSslResult::query()
-            ->where(function ($builder) use ($maxWarningDays): void {
-                $builder->where(function ($builder) use ($maxWarningDays): void {
+            ->where(function ($builder): void {
+                $builder->where(function ($builder): void {
                     $builder->whereNotNull('expires_at')
-                        ->where('expires_at', '<=', now()->addDays($maxWarningDays));
+                        ->where('expires_at', '<=', now()->addDays(365));
                 })
                     ->orWhere('is_valid', false);
             })
@@ -73,13 +71,17 @@ class SendSslExpiryWarningsCommand extends Command
                 expiredTitle: 'SSL certificate expired',
                 expiringTitle: 'SSL certificate expiring soon',
                 subject: 'certificate',
-                resultMetaKey: 'ssl_result_id'
+                resultMetaKey: 'ssl_result_id',
+                warningWindowDays: $sslResult->monitoring?->ssl_expiry_warning_days ?? 7
             );
         }
     }
 
-    private function sendDomainExpiryWarnings(int $maxWarningDays): void
+    private function sendDomainExpiryWarnings(): void
     {
+        $domainWarningDays = $this->domainWarningDays();
+        $maxWarningDays = max($domainWarningDays);
+
         $domainResults = MonitoringDomainResult::query()
             ->where(function ($builder) use ($maxWarningDays): void {
                 $builder->where(function ($builder) use ($maxWarningDays): void {
@@ -102,11 +104,15 @@ class SendSslExpiryWarningsCommand extends Command
                 expiredTitle: 'Domain expired',
                 expiringTitle: 'Domain expiring soon',
                 subject: 'domain registration',
-                resultMetaKey: 'domain_result_id'
+                resultMetaKey: 'domain_result_id',
+                warningDays: $domainWarningDays
             );
         }
     }
 
+    /**
+     * @param  list<int>|null  $warningDays
+     */
     private function sendExpiryWarning(
         MonitoringSslResult|MonitoringDomainResult $result,
         NotificationType $notificationType,
@@ -117,7 +123,9 @@ class SendSslExpiryWarningsCommand extends Command
         string $expiredTitle,
         string $expiringTitle,
         string $subject,
-        string $resultMetaKey
+        string $resultMetaKey,
+        ?int $warningWindowDays = null,
+        ?array $warningDays = null
     ): void {
         $monitoring = $result->monitoring;
         if (! $monitoring) {
@@ -137,10 +145,8 @@ class SendSslExpiryWarningsCommand extends Command
         $isExpired = ! $result->is_valid || ($expiresAt !== null && $expiresAt->lte(now()));
         $daysUntilExpiry = $expiresAt !== null ? $this->daysUntilExpiry($expiresAt) : null;
 
-        if (! $isExpired) {
-            if ($daysUntilExpiry === null || ! in_array($daysUntilExpiry, $user->expiryWarningDays(), true)) {
-                return;
-            }
+        if (! $isExpired && ! $this->shouldWarn($daysUntilExpiry, $warningWindowDays, $warningDays)) {
+            return;
         }
 
         $eventType = $isExpired ? $expiredEventType : $expiringEventType;
@@ -181,9 +187,39 @@ class SendSslExpiryWarningsCommand extends Command
             ],
         );
 
-        $this->notificationRouter->dispatch($user, $notificationPayload);
+        $this->notificationRouter->dispatch($user, $notificationPayload, $monitoring->notification_channels);
         $monitoringNotification->update(['sent' => true]);
         Cache::put($cacheKey, true, now()->addHours(23));
+    }
+
+    /**
+     * @param  list<int>|null  $warningDays
+     */
+    private function shouldWarn(?int $daysUntilExpiry, ?int $warningWindowDays, ?array $warningDays): bool
+    {
+        if ($daysUntilExpiry === null || $daysUntilExpiry < 0) {
+            return false;
+        }
+
+        if ($warningWindowDays !== null) {
+            return $daysUntilExpiry <= $warningWindowDays;
+        }
+
+        return in_array($daysUntilExpiry, $warningDays ?? $this->domainWarningDays(), true);
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function domainWarningDays(): array
+    {
+        $allowedDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
+        $configuredDays = config('monitoring.expiry_warning_days.default', [7]);
+        $days = array_values(array_unique(array_map('intval', is_array($configuredDays) ? $configuredDays : [7])));
+        $days = array_values(array_intersect($days, $allowedDays));
+        rsort($days);
+
+        return $days === [] ? [7] : $days;
     }
 
     private function daysUntilExpiry(CarbonInterface $expiresAt): int

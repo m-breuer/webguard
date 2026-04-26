@@ -133,7 +133,11 @@ class MonitoringController extends Controller
                 ->withErrors(['preferred_location' => __('monitoring.messages.no_server_instances')]);
         }
 
-        return view('monitorings.create', ['types' => $types, 'serverInstances' => $serverInstances]);
+        return view('monitorings.create', [
+            'types' => $types,
+            'serverInstances' => $serverInstances,
+            'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+        ]);
     }
 
     /**
@@ -191,7 +195,12 @@ class MonitoringController extends Controller
             ->orderBy('code')
             ->get(['code']);
 
-        return view('monitorings.edit', ['monitoring' => $monitoring, 'types' => $types, 'serverInstances' => $serverInstances]);
+        return view('monitorings.edit', [
+            'monitoring' => $monitoring,
+            'types' => $types,
+            'serverInstances' => $serverInstances,
+            'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+        ]);
     }
 
     /**

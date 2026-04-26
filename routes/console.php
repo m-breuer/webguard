@@ -23,8 +23,8 @@ Schedule::command('notifications:dispatch-status-changes')->everyMinute()->witho
 // Remind users daily about unread notifications in their board.
 Schedule::command('notifications:remind-unread-weekly')->dailyAt('08:00')->withoutOverlapping();
 
-// Send customers a weekly monitoring performance digest.
-Schedule::command('notifications:send-weekly-monitoring-digest')->weeklyOn(1, '08:30')->withoutOverlapping();
+// Send customers their configured monitoring performance digest.
+Schedule::command('notifications:send-weekly-monitoring-digest')->dailyAt('08:30')->withoutOverlapping();
 
 // Prune old read notifications daily.
 Schedule::command('notifications:prune-read')->dailyAt('01:00');

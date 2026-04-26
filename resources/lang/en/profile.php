@@ -25,9 +25,20 @@ return [
     ],
     'notification_settings' => [
         'heading' => 'Notification Settings',
-        'description' => 'Configure your global notification channels. These settings apply to all monitorings.',
+        'description' => 'Configure your notification channels. Choose which channels a monitoring uses in that monitoring.',
         'enabled' => 'Enabled',
         'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
+        'digest' => [
+            'heading' => 'Monitoring digest',
+            'description' => 'Receive an email summary across all of your active monitorings.',
+            'enabled' => 'Enable monitoring digest by email',
+            'frequency' => 'Time window',
+            'frequencies' => [
+                'daily' => 'Daily',
+                'weekly' => 'Weekly',
+                'monthly' => 'Monthly',
+            ],
+        ],
         'test' => [
             'action' => 'Send test',
             'messages' => [

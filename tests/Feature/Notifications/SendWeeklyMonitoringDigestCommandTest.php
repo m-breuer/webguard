@@ -38,7 +38,10 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         Date::setTestNow('2026-04-20 09:00:00');
         Package::factory()->create();
 
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'weekly',
+        ]);
         $monitoring = Monitoring::factory()->for($user)->create([
             'name' => 'Storefront',
             'target' => 'https://example.com',
@@ -128,10 +131,13 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
 
         $guestUser = User::factory()->create([
             'role' => UserRole::GUEST,
+            'monitoring_digest_enabled' => true,
         ]);
         Monitoring::factory()->for($guestUser)->create();
 
-        $pausedUser = User::factory()->create();
+        $pausedUser = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+        ]);
         Monitoring::factory()->for($pausedUser)->create([
             'status' => MonitoringLifecycleStatus::PAUSED,
         ]);
@@ -145,13 +151,45 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_digest_respects_user_frequency_settings(): void
+    {
+        Date::setTestNow('2026-04-21 09:00:00');
+        Package::factory()->create();
+
+        $dailyUser = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'daily',
+        ]);
+        Monitoring::factory()->for($dailyUser)->create();
+
+        $weeklyUser = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'weekly',
+        ]);
+        Monitoring::factory()->for($weeklyUser)->create();
+
+        Mail::fake();
+
+        Artisan::call('notifications:send-weekly-monitoring-digest', [
+            '--period-end' => '2026-04-20',
+        ]);
+
+        Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($dailyUser->email)
+            && $weeklyMonitoringDigestMail->digest['frequency'] === 'daily'
+            && $weeklyMonitoringDigestMail->digest['period_start']->toDateString() === '2026-04-20'
+            && $weeklyMonitoringDigestMail->digest['period_end']->toDateString() === '2026-04-20');
+        Mail::assertNotSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($weeklyUser->email));
+    }
+
     public function test_period_end_option_scopes_expiry_warnings_to_the_digest_window(): void
     {
         Date::setTestNow('2026-05-20 09:00:00');
-
         Package::factory()->create();
 
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'daily',
+        ]);
         $monitoring = Monitoring::factory()->for($user)->create([
             'name' => 'Storefront',
             'target' => 'https://example.com',

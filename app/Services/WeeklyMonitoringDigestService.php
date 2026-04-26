@@ -18,16 +18,22 @@ class WeeklyMonitoringDigestService
      * @return array{
      *     period_start: Carbon,
      *     period_end: Carbon,
+     *     frequency: string,
      *     overview: array{uptime_percentage: float|null, incidents_count: int, longest_downtime_minutes: int, monitorings_count: int},
      *     monitorings: list<array{name: string, target: string, uptime_percentage: float|null, incidents_count: int, downtime_minutes: int, longest_downtime_minutes: int}>,
      *     ssl_warnings: list<array{name: string, target: string, expires_at: Carbon|null, is_valid: bool}>,
      *     domain_warnings: list<array{name: string, target: string, expires_at: Carbon|null, is_valid: bool}>
      * }
      */
-    public function buildForUser(User $user, ?Carbon $periodEnd = null): array
+    public function buildForUser(User $user, ?Carbon $periodEnd = null, string $frequency = 'weekly'): array
     {
         $periodEnd = ($periodEnd ?? Date::now()->subDay())->copy()->endOfDay();
-        $periodStart = $periodEnd->copy()->subDays(6)->startOfDay();
+        $periodDays = match ($frequency) {
+            'daily' => 1,
+            'monthly' => 30,
+            default => 7,
+        };
+        $periodStart = $periodEnd->copy()->subDays($periodDays - 1)->startOfDay();
 
         $monitorings = $user->monitorings()
             ->active()
@@ -94,6 +100,7 @@ class WeeklyMonitoringDigestService
         return [
             'period_start' => $periodStart,
             'period_end' => $periodEnd,
+            'frequency' => $frequency,
             'overview' => [
                 'uptime_percentage' => $totalTrackedMinutes > 0 ? ($totalUptimeMinutes / $totalTrackedMinutes) * 100 : null,
                 'incidents_count' => $totalIncidents,

@@ -26,12 +26,10 @@ class NotificationRouterTest extends TestCase
                 'slack' => [
                     'enabled' => true,
                     'webhook_url' => 'https://hooks.slack.test/services/test',
-                    'events' => ['incident' => true],
                 ],
                 'discord' => [
                     'enabled' => true,
                     'webhook_url' => 'https://discord.test/api/webhooks/test',
-                    'events' => ['incident' => true],
                 ],
             ],
         ]);
@@ -52,7 +50,7 @@ class NotificationRouterTest extends TestCase
             occurredAt: now(),
         );
 
-        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload);
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['slack', 'discord']);
 
         $this->assertTrue($wasDelivered);
         Http::assertSentCount(2);
@@ -70,7 +68,7 @@ class NotificationRouterTest extends TestCase
         ]);
     }
 
-    public function test_router_skips_channels_without_enabled_event(): void
+    public function test_router_skips_channels_not_selected_for_monitoring(): void
     {
         Package::factory()->create();
         $user = User::factory()->create([
@@ -78,7 +76,6 @@ class NotificationRouterTest extends TestCase
                 'slack' => [
                     'enabled' => true,
                     'webhook_url' => 'https://hooks.slack.test/services/test',
-                    'events' => ['incident' => false, 'recovery' => true],
                 ],
             ],
         ]);
@@ -96,7 +93,7 @@ class NotificationRouterTest extends TestCase
             occurredAt: now(),
         );
 
-        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload);
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, []);
 
         $this->assertFalse($wasDelivered);
         Http::assertNothingSent();
@@ -110,7 +107,6 @@ class NotificationRouterTest extends TestCase
             'notification_channels' => [
                 'slack' => [
                     'enabled' => true,
-                    'events' => ['incident' => true],
                 ],
             ],
         ]);
@@ -128,7 +124,7 @@ class NotificationRouterTest extends TestCase
             occurredAt: now(),
         );
 
-        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload);
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['slack']);
 
         $this->assertFalse($wasDelivered);
         Http::assertNothingSent();
