@@ -16,7 +16,7 @@ return [
         'title' => 'Datenschutzerklärung',
         'subtitle' => 'Informationen zur Verarbeitung personenbezogener Daten gemäß DSGVO.',
         'last_updated' => 'Letzte Aktualisierung: :date',
-        'last_updated_date' => '24. März 2026',
+        'last_updated_date' => '26. April 2026',
     ],
     'sections' => [
         'controller' => [
@@ -30,10 +30,12 @@ return [
                 'Konto- und Profildaten (Name, E-Mail, Passwort-Hash, Rolle, Spracheinstellung, Theme-Einstellungen, ggf. Avatar).',
                 'Authentifizierungs- und Sitzungsdaten (Login-Zeitpunkte, Session-IDs, IP-Adresse, User-Agent, technisch erforderliche Session-/CSRF-Metadaten).',
                 'Einwilligungs- und Nachweisdaten (Zeitstempel zur Zustimmung zu Nutzungsbedingungen und Datenschutzerklärung).',
-                'Monitoring-Konfigurationsdaten (Name, Monitoring-Typ, Zieladresse, Port, Keyword, HTTP-Methode, Header/Body, optionale Zugangsdaten, bevorzugter Standort, Wartungsfenster, Public-Label-Einstellung).',
-                'Monitoring-Ergebnisdaten (Status, HTTP-Statuscodes, Antwortzeiten, SSL/TLS-Zertifikatsdaten, Vorfälle, Tagesaggregate für Uptime/Downtime).',
-                'Benachrichtigungsdaten (Kanal-Konfiguration, Versandstatus, Lesezustand von Benachrichtigungen).',
-                'API-Daten (persönliche Access-Tokens, protokollierte API-Routen, Zeitstempel).',
+                'Monitoring-Konfigurationsdaten (Name, Monitoring-Typ, Zieladresse, Port, Keyword, HTTP-Methode, erwartete HTTP-Statuscodes, Header/Body, optionale Zugangsdaten, bevorzugter Standort, Wartungsfenster, Public-Label-/Widget-Einstellung, Heartbeat-Intervall, Kulanzzeit und private Heartbeat-Ping-URL bzw. Token).',
+                'Monitoring-Ergebnisdaten (Status, HTTP-Statuscodes, Antwortzeiten, SSL/TLS-Zertifikatsdaten, Domain-Ablaufdaten inkl. Registrar soweit verfügbar, Heartbeat-Ping-Zeitpunkte, Vorfälle, letzte Einzelprüfungen, archivierte Rohdaten und Tagesaggregate für Uptime/Downtime).',
+                'Öffentlich freigegebene Statusdaten, wenn Public Labels oder Public Widgets aktiviert sind (z. B. Monitoring-Name, aktueller Status, Uptime-Kennzahlen und Wartungsstatus).',
+                'Benachrichtigungsdaten (Kanal-Konfiguration inkl. Webhook-URLs, Telegram-Bot-Token/Chat-ID, Ereignispräferenzen, Versandstatus, Versandhistorie, technische Payloads/Fehlermeldungen und Lesezustand von Benachrichtigungen).',
+                'E-Mail-Kommunikationsdaten für Verifikation, Passwort-Reset, Incident-/SSL-/Domain-Ablaufwarnungen, Wochen-Digests und Erinnerungen an ungelesene Benachrichtigungen.',
+                'API- und Betriebsdaten (persönliche Access-Tokens, protokollierte API-Routen, Zeitstempel, Monitoring-Standorte, Serverinstanz-Codes, IP-Adressen und Last-Seen-Zeitpunkte, soweit administrativ erforderlich).',
                 'Optional bei GitHub-Login: GitHub-ID, OAuth-Token/Refresh-Token, Profilbild-URL und verknüpfte E-Mail-Adresse.',
             ],
         ],
@@ -43,8 +45,9 @@ return [
             'purposes_title' => 'Verarbeitungszwecke',
             'purposes' => [
                 'Bereitstellung von Registrierung, Login (inkl. optionalem GitHub-Login), Kontoverwaltung und Authentifizierung.',
-                'Durchführung von Monitoring-Prüfungen (HTTP, Ping, Keyword, Port), Incident-Erkennung sowie Berechnung von Uptime- und Performance-Auswertungen.',
-                'Versand servicebezogener Nachrichten (z. B. Verifikations-/Passwort-Reset-E-Mails sowie Incident-/SSL-Benachrichtigungen über konfigurierte Kanäle).',
+                'Durchführung von Monitoring-Prüfungen (HTTP, Ping, Keyword, Port, Heartbeat, Domain-Ablauf), Incident-Erkennung sowie Berechnung von Uptime-, Domain-, SSL- und Performance-Auswertungen.',
+                'Bereitstellung öffentlicher Status-Labels und Public Widgets, wenn Nutzer diese Funktion aktivieren.',
+                'Versand servicebezogener Nachrichten (z. B. Verifikations-/Passwort-Reset-E-Mails, Wochen-Digests, Erinnerungen an ungelesene Benachrichtigungen sowie Incident-/Recovery-/SSL-/Domain-Ablaufbenachrichtigungen über konfigurierte Kanäle).',
                 'Bereitstellung und Absicherung der API (Token-Verwaltung, Missbrauchsschutz, Nutzungsprotokollierung).',
                 'Sicherheits- und Betriebszwecke (Fehleranalyse, Störungsbehebung, Integritätsschutz).',
             ],
@@ -62,7 +65,7 @@ return [
             'items' => [
                 'Hosting- und Infrastrukturanbieter (Compute, Storage, Netzwerk, Backups).',
                 'E-Mail-Versanddienstleister für transaktionale Kontonachrichten (z. B. Verifikations- und Passwort-Reset-E-Mails).',
-                'Drittanbieter-APIs/Webhook-Endpunkte für vom Nutzer konfigurierte Benachrichtigungskanäle (z. B. Slack, Telegram, Discord, Custom Webhooks).',
+                'Drittanbieter-APIs/Webhook-Endpunkte für vom Nutzer konfigurierte Benachrichtigungskanäle (z. B. Slack, Telegram, Discord, Custom Webhooks). Dabei können Statusdaten, Monitoring-Namen und technische Fehlermeldungen an die vom Nutzer konfigurierten Empfänger übermittelt werden.',
                 'GitHub als OAuth-Anbieter, wenn Sie die Anmeldung über GitHub aktiv nutzen.',
                 'Betriebs- und Sicherheitswerkzeuge, soweit zur Fehleranalyse und Stabilität erforderlich.',
             ],
@@ -95,11 +98,11 @@ return [
         ],
         'retention' => [
             'title' => '7. Speicherdauer',
-            'lead' => 'Personenbezogene Daten werden nur so lange gespeichert, wie dies für vertragliche, gesetzliche und betriebliche Zwecke erforderlich ist. In der aktuellen App-Konfiguration werden z. B. gelesene Benachrichtigungen regelmäßig nach rund einem Monat gelöscht und Gast-Benachrichtigungen nach rund einer Woche entfernt. Ältere Roh-Monitoringdaten werden regelmäßig in eine Archivtabelle überführt. Bei Löschung von Konten oder Monitorings werden zugehörige Daten im Rahmen der technischen Löschprozesse entfernt.',
+            'lead' => 'Personenbezogene Daten werden nur so lange gespeichert, wie dies für vertragliche, gesetzliche und betriebliche Zwecke erforderlich ist. In der aktuellen App-Konfiguration werden z. B. gelesene Benachrichtigungen regelmäßig nach rund einem Monat gelöscht und Gast-Benachrichtigungen nach rund einer Woche entfernt. Ältere Roh-Monitoringdaten werden regelmäßig in eine Archivtabelle überführt. Zustellhistorien und technische Fehlerdaten werden für Nachvollziehbarkeit und Fehleranalyse vorübergehend gespeichert. Bei Löschung von Konten oder Monitorings werden zugehörige Daten im Rahmen der technischen Löschprozesse entfernt.',
         ],
         'security' => [
             'title' => '8. Sicherheitsmaßnahmen',
-            'lead' => 'WebGuard setzt angemessene technische und organisatorische Maßnahmen ein, um personenbezogene Daten vor unbefugtem Zugriff, Verlust oder Manipulation zu schützen. Dazu gehören u. a. rollenbasierte Zugriffssteuerung, tokenbasierte API-Authentifizierung sowie die gehashte Speicherung von Passwörtern und Instanz-API-Schlüsseln.',
+            'lead' => 'WebGuard setzt angemessene technische und organisatorische Maßnahmen ein, um personenbezogene Daten vor unbefugtem Zugriff, Verlust oder Manipulation zu schützen. Dazu gehören u. a. rollenbasierte Zugriffssteuerung, E-Mail-Verifikation, tokenbasierte API-Authentifizierung sowie die gehashte Speicherung von Passwörtern und Instanz-API-Schlüsseln. Nutzer sollten API-Tokens, Heartbeat-Ping-URLs, Webhook-URLs, Bot-Tokens und optionale Monitoring-Zugangsdaten vertraulich behandeln.',
         ],
         'contact' => [
             'title' => '9. Kontakt zu Datenschutzanfragen',
