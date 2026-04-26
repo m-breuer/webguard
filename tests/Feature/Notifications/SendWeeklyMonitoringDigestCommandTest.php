@@ -174,11 +174,11 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             '--period-end' => '2026-04-20',
         ]);
 
-        Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($dailyUser->email)
-            && $mail->digest['frequency'] === 'daily'
-            && $mail->digest['period_start']->toDateString() === '2026-04-20'
-            && $mail->digest['period_end']->toDateString() === '2026-04-20');
-        Mail::assertNotSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($weeklyUser->email));
+        Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($dailyUser->email)
+            && $weeklyMonitoringDigestMail->digest['frequency'] === 'daily'
+            && $weeklyMonitoringDigestMail->digest['period_start']->toDateString() === '2026-04-20'
+            && $weeklyMonitoringDigestMail->digest['period_end']->toDateString() === '2026-04-20');
+        Mail::assertNotSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($weeklyUser->email));
     }
 
     public function test_period_end_option_scopes_expiry_warnings_to_the_digest_window(): void

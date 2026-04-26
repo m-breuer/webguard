@@ -72,7 +72,7 @@ class MonitoringNotificationSettingsTest extends TestCase
         $testResponse->assertSeeText(__('profile.notification_settings.channels.slack.title'));
         $testResponse->assertSeeText(__('profile.notification_settings.channels.telegram.title'));
         $testResponse->assertDontSeeText(__('profile.notification_settings.channels.webhook.title'));
-        $testResponse->assertSee('value="14"', false);
+        $testResponse->assertSeeHtml('value="14"');
     }
 
     public function test_update_persists_per_monitoring_channels_and_ssl_warning_window(): void
