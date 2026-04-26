@@ -102,7 +102,7 @@
     @endif
 
     <p>
-        <a href="{{ route('monitorings.index') }}" class="button">{{ __('mail.weekly_monitoring_digest.button_text') }}</a>
+        <a href="{{ route('monitorings.index') }}" class="mail-button">{{ __('mail.weekly_monitoring_digest.button_text') }}</a>
     </p>
 
     <p>{{ __('mail.weekly_monitoring_digest.salutation') }}<br>

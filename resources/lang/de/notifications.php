@@ -9,6 +9,7 @@ return [
         'heading' => 'Status-Board',
     ],
     'ssl_expiry_notifications' => 'SSL-Ablauf',
+    'domain_expiry_notifications' => 'Domain-Ablauf',
     'delivery_history' => [
         'heading' => 'Zustellverlauf',
     ],
@@ -57,6 +58,10 @@ return [
         'expiring' => 'Das SSL-Zertifikat für :name läuft bald ab.',
         'expired' => 'Das SSL-Zertifikat für :name ist abgelaufen.',
     ],
+    'domain_messages' => [
+        'expiring' => 'Die Domain :name läuft bald ab.',
+        'expired' => 'Die Domain :name ist abgelaufen.',
+    ],
     'channels' => [
         'slack' => 'Slack',
         'telegram' => 'Telegram',
@@ -68,6 +73,8 @@ return [
         'recovery' => 'Wiederherstellung',
         'ssl_expiring' => 'SSL läuft bald ab',
         'ssl_expired' => 'SSL abgelaufen',
+        'domain_expiring' => 'Domain läuft bald ab',
+        'domain_expired' => 'Domain abgelaufen',
     ],
     'delivery_status' => [
         'sent' => 'Gesendet',

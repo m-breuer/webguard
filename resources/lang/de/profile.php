@@ -55,6 +55,13 @@ return [
             'recovery' => 'Wiederherstellung',
             'ssl_expiring' => 'SSL läuft bald ab',
             'ssl_expired' => 'SSL abgelaufen',
+            'domain_expiring' => 'Domain läuft bald ab',
+            'domain_expired' => 'Domain abgelaufen',
+        ],
+        'expiry_warning_days' => [
+            'heading' => 'Ablauf-Warnfenster',
+            'help' => 'Wählen Sie, wann SSL-Zertifikate und Domains Ablaufwarnungen auslösen sollen.',
+            'option' => '{1} :days Tag vor Ablauf|[2,*] :days Tage vor Ablauf',
         ],
         'fields' => [
             'telegram_bot_token' => 'Telegram Bot Token',

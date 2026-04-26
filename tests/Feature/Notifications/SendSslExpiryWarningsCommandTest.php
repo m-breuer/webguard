@@ -8,6 +8,7 @@ use App\Enums\NotificationDeliveryStatus;
 use App\Enums\NotificationEventType;
 use App\Enums\NotificationType;
 use App\Models\Monitoring;
+use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringNotification;
 use App\Models\MonitoringSslResult;
 use App\Models\Package;
@@ -162,6 +163,59 @@ class SendSslExpiryWarningsCommandTest extends TestCase
         $this->assertDatabaseMissing('monitoring_notifications', [
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::SSL_EXPIRY->value,
+        ]);
+    }
+
+    public function test_dispatches_domain_expiring_notifications_to_enabled_monitoring_channels(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'webhook' => [
+                    'enabled' => true,
+                    'url' => 'https://example.test/webhook',
+                ],
+            ],
+        ]);
+
+        $monitoring = Monitoring::factory()->for($user)->domainExpiration()->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['webhook'],
+        ]);
+
+        MonitoringDomainResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'expires_at' => now()->addDays(7),
+            'is_valid' => true,
+            'registrar' => 'Example Registrar',
+            'checked_at' => now(),
+        ]);
+
+        Http::fake([
+            'https://example.test/*' => Http::response(['ok' => true], 200),
+        ]);
+
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+
+        Http::assertSentCount(1);
+        $this->assertDatabaseHas('monitoring_notifications', [
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::DOMAIN_EXPIRY->value,
+            'message' => 'DOMAIN_EXPIRING',
+            'sent' => true,
+        ]);
+
+        $monitoringNotification = MonitoringNotification::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('type', NotificationType::DOMAIN_EXPIRY->value)
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
+            'channel' => 'webhook',
+            'event_type' => NotificationEventType::DOMAIN_EXPIRING->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
         ]);
     }
 }

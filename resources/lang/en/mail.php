@@ -52,5 +52,7 @@ return [
     'general' => [
         'team_name' => 'The WebGuard Team',
         'legal' => 'Legal',
+        'brand_subtitle' => 'Website, server & port monitoring',
+        'notification_eyebrow' => 'Monitoring update',
     ],
 ];

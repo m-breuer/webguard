@@ -77,6 +77,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.digest.heading'));
+        $testResponse->assertDontSeeText(__('profile.notification_settings.expiry_warning_days.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
 
         $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));
@@ -106,6 +107,11 @@ class ProfileNotificationSettingsTest extends TestCase
                     'enabled' => '1',
                     'bot_token' => '12345:ABCDEF',
                     'chat_id' => '-1001234567',
+                    'events' => [
+                        'incident' => '1',
+                        'ssl_expiring' => '1',
+                        'domain_expiring' => '1',
+                    ],
                 ],
                 'discord' => [
                     'enabled' => '0',
@@ -132,6 +138,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertTrue((bool) data_get($user->notification_channels, 'telegram.enabled'));
         $this->assertSame('12345:ABCDEF', data_get($user->notification_channels, 'telegram.bot_token'));
         $this->assertSame('-1001234567', data_get($user->notification_channels, 'telegram.chat_id'));
+        $this->assertNull(data_get($user->notification_channels, 'telegram.events'));
         $this->assertFalse((bool) data_get($user->notification_channels, 'discord.enabled'));
         $this->assertTrue((bool) data_get($user->notification_channels, 'webhook.enabled'));
         $this->assertSame('https://example.test/webhooks/webguard', data_get($user->notification_channels, 'webhook.url'));
