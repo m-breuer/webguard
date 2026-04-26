@@ -47,24 +47,29 @@
         target = '';
     }
 })">
+    <div class="space-y-8">
+        <section class="space-y-4">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.basic') }}</x-heading>
+            </div>
 
-    <div>
-        <x-input-label for="type" :value="__('monitoring.form.type')" />
-        @if (isset($monitoring))
-            <x-text-input id="type" class="cursor-not-allowed" name="type" :value="__('monitoring.types.' . $monitoring->type->value)" readonly />
-            <input type="hidden" name="type" :value="type">
-        @else
-            <x-select-input id="type" class="mt-1 block w-full" name="type" x-model="type" required autofocus>
-                <option value="" disabled hidden>{{ __('monitoring.form.select_type') }}</option>
-                @foreach ($types as $enumType)
-                    <option value="{{ $enumType->value }}" @selected(old('type') === $enumType->value)>
-                        {{ __('monitoring.types.' . $enumType->value) }}
-                    </option>
-                @endforeach
-            </x-select-input>
-        @endif
-        <x-input-error :messages="$errors->get('type')" />
-    </div>
+            <div>
+                <x-input-label for="type" :value="__('monitoring.form.type')" />
+                @if (isset($monitoring))
+                    <x-text-input id="type" class="cursor-not-allowed" name="type" :value="__('monitoring.types.' . $monitoring->type->value)" readonly />
+                    <input type="hidden" name="type" :value="type">
+                @else
+                    <x-select-input id="type" class="mt-1 block w-full" name="type" x-model="type" required autofocus>
+                        <option value="" disabled hidden>{{ __('monitoring.form.select_type') }}</option>
+                        @foreach ($types as $enumType)
+                            <option value="{{ $enumType->value }}" @selected(old('type') === $enumType->value)>
+                                {{ __('monitoring.types.' . $enumType->value) }}
+                            </option>
+                        @endforeach
+                    </x-select-input>
+                @endif
+                <x-input-error :messages="$errors->get('type')" />
+            </div>
 
     <div class="mt-4">
         <x-input-label for="name" :value="__('monitoring.form.name')" />
@@ -101,6 +106,13 @@
             <x-input-error :messages="$errors->get('target')" />
         @endif
     </div>
+
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.check') }}</x-heading>
+            </div>
 
     <template x-if="type === '{{ MonitoringType::PORT->value }}'">
         <div class="mt-4">
@@ -207,6 +219,13 @@
         </div>
     </template>
 
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.sharing') }}</x-heading>
+            </div>
+
     <div class="mt-4">
         <x-input-label for="public_label_enabled" :value="__('monitoring.form.public_label')" />
         <label class="relative inline-flex cursor-pointer items-center">
@@ -238,6 +257,13 @@
             </div>
         @endif
     </div>
+
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
+            </div>
 
     <div class="mt-4">
         <x-input-label for="notification_on_failure" :value="__('monitoring.form.notification_on_failure')" />
@@ -285,6 +311,13 @@
         <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
     </div>
 
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.operations') }}</x-heading>
+            </div>
+
     <div class="mt-4">
         <x-input-label for="preferred_location" :value="__('monitoring.form.preferred_location')" />
         <x-select-input id="preferred_location" class="mt-1 block w-full" name="preferred_location" required>
@@ -324,6 +357,8 @@
         <x-input-error :messages="$errors->get('maintenance_until')" />
     </div>
 
-    <x-primary-button
-        class="mt-4">{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+        </section>
+
+        <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+    </div>
 </div>

@@ -4,7 +4,7 @@
 
 > 💡 **System Architecture Note:** This repository contains the **Management Core & API**. For the distributed scanning node/worker, please visit the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
 
-WebGuard is a powerful, open-source web monitoring service built with Laravel 13. It's designed to help you track website uptime, response times, and SSL certificate statuses with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
+WebGuard is a powerful, open-source web monitoring service built with Laravel 13. It's designed to help you track website uptime, response times, SSL certificate statuses, and domain registration expiry with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
 
 The application features a user-friendly dashboard for at-a-glance statistics, a comprehensive admin panel for user and package management, and a REST API for programmatic access and integration with other systems.
 
@@ -15,13 +15,13 @@ The application features a user-friendly dashboard for at-a-glance statistics, a
 * **Response Time Tracking:** Monitor your website's performance by tracking response times.
 * **Expected HTTP Status Ranges:** Define accepted HTTP status codes or ranges, such as `200-299, 301, 302`, per HTTP or keyword monitoring.
 * **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
-* **Domain Expiration Monitoring:** Track domain registration expiry before critical domains lapse.
+* **Domain Expiration Monitoring:** Track domain registration expiry and receive proactive renewal warnings before critical domains lapse.
 * **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.
 * **Real-Time Dashboard:** Visualize your monitoring data with real-time statistics and charts.
 * **Admin Panel:** Manage users, subscription packages, and review API usage logs.
 * **REST API:** Programmatically access your monitoring data and integrate WebGuard with your existing workflows.
 * **Embeddable Widget:** Display your website's monitoring status on external sites with a simple JavaScript widget.
-* **Flexible Notifications:** Receive notifications for status changes and SSL expiry via in-app notifications and email.
+* **Flexible Notifications:** Receive notifications for status changes, SSL expiry, and domain expiry via in-app notifications and configurable channels.
 * **Weekly Monitoring Digest:** Email weekly uptime, incident, downtime, SSL, and domain expiry summaries to active users.
 * **Public Status Pages:** Create public status pages for your monitorings to keep your users informed.
 * **Global Language Switch:** Switch between supported languages from both public and authenticated top navigation.

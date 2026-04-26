@@ -75,7 +75,10 @@ class ProfileNotificationSettingsTest extends TestCase
 
         $testResponse = $this->actingAs($user)->get(route('profile.edit'));
         $testResponse->assertOk();
+        $testResponse->assertSeeText(__('profile.sections.account'));
+        $testResponse->assertSeeText(__('profile.sections.preferences'));
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
+        $testResponse->assertSeeText(__('profile.notification_settings.channels_heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.digest.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.unread_reminder.heading'));
         $testResponse->assertDontSeeText(__('profile.notification_settings.expiry_warning_days.heading'));
