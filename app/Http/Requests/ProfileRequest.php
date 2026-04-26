@@ -55,6 +55,8 @@ class ProfileRequest extends FormRequest
             'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048'],
             'monitoring_digest_enabled' => ['nullable', 'boolean'],
             'monitoring_digest_frequency' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
+            'unread_notifications_reminder_enabled' => ['nullable', 'boolean'],
+            'unread_notifications_reminder_frequency' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
         ];
 
         foreach (NotificationChannel::values() as $channel) {

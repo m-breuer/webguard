@@ -13,6 +13,7 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -100,6 +101,127 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
         Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($guestUser): bool {
             return $unreadNotificationsReminderMail->hasTo($guestUser->email);
         });
+    }
+
+    public function test_does_not_send_reminder_when_user_disabled_profile_setting(): void
+    {
+        Package::factory()->create();
+
+        $user = User::factory()->create([
+            'unread_notifications_reminder_enabled' => false,
+            'unread_notifications_reminder_frequency' => 'daily',
+        ]);
+
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => true,
+        ]);
+
+        Mail::fake();
+
+        Artisan::call('notifications:remind-unread-weekly');
+
+        Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($user): bool {
+            return $unreadNotificationsReminderMail->hasTo($user->email);
+        });
+    }
+
+    public function test_respects_unread_reminder_frequency_settings(): void
+    {
+        Date::setTestNow('2026-04-07 08:00:00');
+
+        try {
+            Package::factory()->create();
+
+            $dailyUser = User::factory()->create([
+                'unread_notifications_reminder_enabled' => true,
+                'unread_notifications_reminder_frequency' => 'daily',
+            ]);
+            $weeklyUser = User::factory()->create([
+                'unread_notifications_reminder_enabled' => true,
+                'unread_notifications_reminder_frequency' => 'weekly',
+            ]);
+            $monthlyUser = User::factory()->create([
+                'unread_notifications_reminder_enabled' => true,
+                'unread_notifications_reminder_frequency' => 'monthly',
+            ]);
+
+            foreach ([$dailyUser, $weeklyUser, $monthlyUser] as $user) {
+                $monitoring = Monitoring::factory()->for($user)->create();
+
+                MonitoringNotification::query()->create([
+                    'monitoring_id' => $monitoring->id,
+                    'type' => NotificationType::STATUS_CHANGE,
+                    'message' => 'DOWN',
+                    'read' => false,
+                    'sent' => true,
+                ]);
+            }
+
+            Mail::fake();
+
+            Artisan::call('notifications:remind-unread-weekly');
+
+            Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($dailyUser): bool {
+                return $unreadNotificationsReminderMail->hasTo($dailyUser->email);
+            });
+            Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($weeklyUser): bool {
+                return $unreadNotificationsReminderMail->hasTo($weeklyUser->email);
+            });
+            Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($monthlyUser): bool {
+                return $unreadNotificationsReminderMail->hasTo($monthlyUser->email);
+            });
+        } finally {
+            Date::setTestNow();
+        }
+    }
+
+    public function test_weekly_and_monthly_reminders_are_sent_when_due(): void
+    {
+        Date::setTestNow('2026-06-01 08:00:00');
+
+        try {
+            Package::factory()->create();
+
+            $weeklyUser = User::factory()->create([
+                'unread_notifications_reminder_enabled' => true,
+                'unread_notifications_reminder_frequency' => 'weekly',
+            ]);
+            $monthlyUser = User::factory()->create([
+                'unread_notifications_reminder_enabled' => true,
+                'unread_notifications_reminder_frequency' => 'monthly',
+            ]);
+
+            foreach ([$weeklyUser, $monthlyUser] as $user) {
+                $monitoring = Monitoring::factory()->for($user)->create();
+
+                MonitoringNotification::query()->create([
+                    'monitoring_id' => $monitoring->id,
+                    'type' => NotificationType::STATUS_CHANGE,
+                    'message' => 'DOWN',
+                    'read' => false,
+                    'sent' => true,
+                ]);
+            }
+
+            Mail::fake();
+
+            Artisan::call('notifications:remind-unread-weekly');
+
+            Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($weeklyUser): bool {
+                return $unreadNotificationsReminderMail->hasTo($weeklyUser->email);
+            });
+            Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($monthlyUser): bool {
+                return $unreadNotificationsReminderMail->hasTo($monthlyUser->email);
+            });
+        } finally {
+            Date::setTestNow();
+        }
     }
 
     public function test_does_not_send_reminder_when_no_unread_notifications_exist(): void

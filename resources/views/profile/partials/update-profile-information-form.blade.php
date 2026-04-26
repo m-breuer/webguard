@@ -197,6 +197,30 @@
                     <x-input-error :messages="$errors->get('monitoring_digest_frequency')" />
                 </div>
             </div>
+
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                <div class="mb-4">
+                    <x-heading type="h3">{{ __('profile.notification_settings.unread_reminder.heading') }}</x-heading>
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.unread_reminder.description') }}</x-paragraph>
+                </div>
+
+                <x-text-checkbox id="unread_notifications_reminder_enabled" name="unread_notifications_reminder_enabled"
+                    :checked="(bool) old('unread_notifications_reminder_enabled', $user->unread_notifications_reminder_enabled ?? true)"
+                    :label="__('profile.notification_settings.unread_reminder.enabled')" />
+                <x-input-error :messages="$errors->get('unread_notifications_reminder_enabled')" />
+
+                <div class="mt-4 w-full md:w-1/2">
+                    <x-input-label for="unread_notifications_reminder_frequency" :value="__('profile.notification_settings.unread_reminder.frequency')" />
+                    <x-select-input id="unread_notifications_reminder_frequency" class="mt-1 block w-full" name="unread_notifications_reminder_frequency">
+                        @foreach (['daily', 'weekly', 'monthly'] as $frequency)
+                            <option value="{{ $frequency }}" @selected(old('unread_notifications_reminder_frequency', $user->unread_notifications_reminder_frequency ?? 'daily') === $frequency)>
+                                {{ __('profile.notification_settings.unread_reminder.frequencies.' . $frequency) }}
+                            </option>
+                        @endforeach
+                    </x-select-input>
+                    <x-input-error :messages="$errors->get('unread_notifications_reminder_frequency')" />
+                </div>
+            </div>
         </div>
 
         <x-primary-button>{{ __('button.update') }}</x-primary-button>

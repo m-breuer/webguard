@@ -9,6 +9,7 @@ use App\Mail\UnreadNotificationsReminderMail;
 use App\Models\User;
 use App\Services\NotificationBoardService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -23,7 +24,7 @@ class SendUnreadNotificationsReminderCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Sends daily email reminders to non-guest users with unread board notifications.';
+    protected $description = 'Sends email reminders to non-guest users with unread board notifications according to their profile settings.';
 
     public function __construct(private readonly NotificationBoardService $notificationBoardService)
     {
@@ -41,9 +42,16 @@ class SendUnreadNotificationsReminderCommand extends Command
         $users = User::query()
             ->whereIn('id', $unreadNotificationCountsByUser->keys())
             ->where('role', '!=', UserRole::GUEST->value)
+            ->where('unread_notifications_reminder_enabled', true)
             ->get();
 
         foreach ($users as $user) {
+            $frequency = $user->unread_notifications_reminder_frequency ?: 'daily';
+
+            if (! $this->isDue($frequency)) {
+                continue;
+            }
+
             $unreadNotificationsCount = (int) ($unreadNotificationCountsByUser->get($user->id) ?? 0);
             if ($unreadNotificationsCount < 1) {
                 continue;
@@ -66,5 +74,14 @@ class SendUnreadNotificationsReminderCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function isDue(string $frequency): bool
+    {
+        return match ($frequency) {
+            'monthly' => Date::now()->day === 1,
+            'weekly' => Date::now()->isMonday(),
+            default => true,
+        };
     }
 }

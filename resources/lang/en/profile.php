@@ -39,6 +39,17 @@ return [
                 'monthly' => 'Monthly',
             ],
         ],
+        'unread_reminder' => [
+            'heading' => 'Unread message reminder',
+            'description' => 'Receive an email when your notification overview still contains unread messages.',
+            'enabled' => 'Enable email reminders for unread messages',
+            'frequency' => 'Interval',
+            'frequencies' => [
+                'daily' => 'Daily',
+                'weekly' => 'Every 7 days',
+                'monthly' => 'Monthly',
+            ],
+        ],
         'test' => [
             'action' => 'Send test',
             'messages' => [
