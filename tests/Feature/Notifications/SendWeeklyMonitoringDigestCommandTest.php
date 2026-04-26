@@ -143,6 +143,40 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_period_end_option_scopes_expiry_warnings_to_the_digest_window(): void
+    {
+        Date::setTestNow('2026-05-20 09:00:00');
+
+        Package::factory()->create();
+
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Storefront',
+            'target' => 'https://example.com',
+            'type' => MonitoringType::HTTP,
+        ]);
+
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'expires_at' => '2026-05-25 00:00:00',
+            'is_valid' => true,
+            'issuer' => 'Example CA',
+            'issued_at' => '2026-02-01 00:00:00',
+        ]);
+
+        Mail::fake();
+
+        Artisan::call('notifications:send-weekly-monitoring-digest', [
+            '--period-end' => '2026-04-19',
+        ]);
+
+        Mail::assertSent(WeeklyMonitoringDigestMail::class, function (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail) use ($user): bool {
+            return $weeklyMonitoringDigestMail->hasTo($user->email)
+                && $weeklyMonitoringDigestMail->digest['period_end']->toDateString() === '2026-04-19'
+                && count($weeklyMonitoringDigestMail->digest['ssl_warnings']) === 0;
+        });
+    }
+
     public function test_weekly_digest_clips_incidents_to_the_requested_period(): void
     {
         Date::setTestNow('2026-04-20 09:00:00');
@@ -154,7 +188,6 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             'target' => 'https://example.com',
             'type' => MonitoringType::HTTP,
         ]);
-
         Incident::query()->create([
             'monitoring_id' => $monitoring->id,
             'down_at' => '2026-04-01 00:00:00',
