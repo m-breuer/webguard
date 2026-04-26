@@ -76,12 +76,14 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
         });
     }
 
-    public function test_does_not_send_reminder_to_guest_users(): void
+    public function test_sends_reminder_to_guest_users_when_profile_setting_is_enabled(): void
     {
         Package::factory()->create();
 
         $guestUser = User::factory()->create([
             'role' => UserRole::GUEST,
+            'unread_notifications_reminder_enabled' => true,
+            'unread_notifications_reminder_frequency' => 'daily',
         ]);
 
         $monitoring = Monitoring::factory()->for($guestUser)->create();
@@ -98,8 +100,9 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
 
         Artisan::call('notifications:remind-unread-weekly');
 
-        Mail::assertNotSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($guestUser): bool {
-            return $unreadNotificationsReminderMail->hasTo($guestUser->email);
+        Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($guestUser): bool {
+            return $unreadNotificationsReminderMail->hasTo($guestUser->email)
+                && $unreadNotificationsReminderMail->unreadNotificationsCount === 1;
         });
     }
 

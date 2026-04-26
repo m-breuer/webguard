@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Notifications;
 
-use App\Enums\UserRole;
 use App\Mail\WeeklyMonitoringDigestMail;
 use App\Models\User;
 use App\Services\WeeklyMonitoringDigestService;
@@ -39,7 +38,6 @@ class SendWeeklyMonitoringDigestCommand extends Command
             : null;
 
         User::query()
-            ->where('role', '!=', UserRole::GUEST->value)
             ->whereNotNull('email')
             ->where('email', '!=', '')
             ->where('monitoring_digest_enabled', true)

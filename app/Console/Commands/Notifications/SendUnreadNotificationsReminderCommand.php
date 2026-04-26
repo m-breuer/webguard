@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Notifications;
 
-use App\Enums\UserRole;
 use App\Mail\UnreadNotificationsReminderMail;
 use App\Models\User;
 use App\Services\NotificationBoardService;
@@ -41,7 +40,6 @@ class SendUnreadNotificationsReminderCommand extends Command
 
         $users = User::query()
             ->whereIn('id', $unreadNotificationCountsByUser->keys())
-            ->where('role', '!=', UserRole::GUEST->value)
             ->where('unread_notifications_reminder_enabled', true)
             ->get();
 

@@ -124,7 +124,7 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         });
     }
 
-    public function test_does_not_send_weekly_digest_to_guest_users_or_users_without_active_monitorings(): void
+    public function test_sends_weekly_digest_to_guest_users_when_profile_setting_is_enabled(): void
     {
         Date::setTestNow('2026-04-20 09:00:00');
         Package::factory()->create();
@@ -134,6 +134,23 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             'monitoring_digest_enabled' => true,
         ]);
         Monitoring::factory()->for($guestUser)->create();
+
+        Mail::fake();
+
+        Artisan::call('notifications:send-weekly-monitoring-digest', [
+            '--period-end' => '2026-04-19',
+        ]);
+
+        Mail::assertSent(WeeklyMonitoringDigestMail::class, function (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail) use ($guestUser): bool {
+            return $weeklyMonitoringDigestMail->hasTo($guestUser->email)
+                && $weeklyMonitoringDigestMail->digest['overview']['monitorings_count'] === 1;
+        });
+    }
+
+    public function test_does_not_send_weekly_digest_to_users_without_active_monitorings(): void
+    {
+        Date::setTestNow('2026-04-20 09:00:00');
+        Package::factory()->create();
 
         $pausedUser = User::factory()->create([
             'monitoring_digest_enabled' => true,
