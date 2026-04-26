@@ -8,11 +8,6 @@
 
     <p>{{ __('mail.unread_notifications_reminder.intro', ['count' => $unreadNotificationsCount]) }}</p>
 
-    <div class="mail-card">
-        <p class="mail-card-label">{{ __('mail.unread_notifications_reminder.count_label') }}</p>
-        <p class="mail-card-value">{{ $unreadNotificationsCount }}</p>
-    </div>
-
     <p>{{ __('mail.unread_notifications_reminder.action_text') }}</p>
 
     <p>

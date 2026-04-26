@@ -115,7 +115,9 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
                 && str_contains($rendered, 'Storefront')
                 && str_contains($rendered, '99.31%')
                 && str_contains($rendered, 'SSL certificates')
-                && str_contains($rendered, 'Domains');
+                && str_contains($rendered, 'Domains')
+                && str_contains($rendered, 'class="mail-button"')
+                && ! str_contains($rendered, 'class="button"');
         });
     }
 
