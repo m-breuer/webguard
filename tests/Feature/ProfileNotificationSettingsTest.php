@@ -80,6 +80,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('profile.edit'));
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
+        $testResponse->assertSeeText(__('profile.notification_settings.expiry_warning_days.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
 
         $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));
@@ -98,6 +99,7 @@ class ProfileNotificationSettingsTest extends TestCase
             'name' => $user->name,
             'email' => $user->email,
             'theme' => 'dark',
+            'expiry_warning_days' => ['30', '7', '3'],
             'notification_channels' => [
                 'slack' => [
                     'enabled' => '1',
@@ -114,6 +116,7 @@ class ProfileNotificationSettingsTest extends TestCase
                     'events' => [
                         'incident' => '1',
                         'ssl_expiring' => '1',
+                        'domain_expiring' => '1',
                     ],
                 ],
                 'discord' => [
@@ -136,6 +139,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $user->refresh();
 
         $this->assertSame('dark', $user->theme);
+        $this->assertSame([30, 7, 3], $user->expiry_warning_days);
         $this->assertIsArray($user->notification_channels);
         $this->assertTrue((bool) data_get($user->notification_channels, 'slack.enabled'));
         $this->assertSame('https://hooks.slack.test/services/T000/B000/XXX', data_get($user->notification_channels, 'slack.webhook_url'));
@@ -146,6 +150,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertSame('-1001234567', data_get($user->notification_channels, 'telegram.chat_id'));
         $this->assertTrue((bool) data_get($user->notification_channels, 'telegram.events.incident'));
         $this->assertFalse((bool) data_get($user->notification_channels, 'telegram.events.recovery'));
+        $this->assertTrue((bool) data_get($user->notification_channels, 'telegram.events.domain_expiring'));
         $this->assertFalse((bool) data_get($user->notification_channels, 'discord.enabled'));
         $this->assertTrue((bool) data_get($user->notification_channels, 'webhook.enabled'));
         $this->assertSame('https://example.test/webhooks/webguard', data_get($user->notification_channels, 'webhook.url'));

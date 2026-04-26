@@ -15,6 +15,7 @@ use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\User;
+use App\Services\WeeklyMonitoringDigestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;
@@ -145,6 +146,7 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
     public function test_period_end_option_scopes_expiry_warnings_to_the_digest_window(): void
     {
         Date::setTestNow('2026-05-20 09:00:00');
+
         Package::factory()->create();
 
         $user = User::factory()->create();
@@ -173,5 +175,50 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
                 && $weeklyMonitoringDigestMail->digest['period_end']->toDateString() === '2026-04-19'
                 && count($weeklyMonitoringDigestMail->digest['ssl_warnings']) === 0;
         });
+    }
+
+    public function test_weekly_digest_clips_incidents_to_the_requested_period(): void
+    {
+        Date::setTestNow('2026-04-20 09:00:00');
+        Package::factory()->create();
+
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Boundary Monitor',
+            'target' => 'https://example.com',
+            'type' => MonitoringType::HTTP,
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-04-01 00:00:00',
+            'up_at' => '2026-04-13 00:30:00',
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-04-19 22:00:00',
+            'up_at' => '2026-04-25 00:00:00',
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-04-19 23:00:00',
+            'up_at' => null,
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-04-12 22:00:00',
+            'up_at' => '2026-04-12 23:00:00',
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-04-20 00:00:00',
+            'up_at' => null,
+        ]);
+
+        $digest = resolve(WeeklyMonitoringDigestService::class)->buildForUser($user, Date::parse('2026-04-19'));
+
+        $this->assertSame(3, $digest['overview']['incidents_count']);
+        $this->assertSame(119, $digest['overview']['longest_downtime_minutes']);
+        $this->assertSame(3, $digest['monitorings'][0]['incidents_count']);
+        $this->assertSame(119, $digest['monitorings'][0]['longest_downtime_minutes']);
     }
 }

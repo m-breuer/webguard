@@ -20,15 +20,15 @@ class WelcomeHeartbeatCopyTest extends TestCase
                 'en',
                 'Heartbeat Monitoring',
                 'Monitor cronjobs, workers, and background processes',
-                'HTTP, Ping, Keyword, Port, and Heartbeat',
-                'HTTP, Ping, Keyword, Port, and Heartbeat checks with notifications',
+                'HTTP, Ping, Keyword, Port, Heartbeat, and digests',
+                'HTTP, Ping, Keyword, Port, and Heartbeat checks with expected HTTP status ranges, weekly digests, notifications',
             ],
             'german' => [
                 'de',
                 'Heartbeat Monitoring',
                 'Überwachen Sie Cronjobs, Worker und Hintergrundprozesse',
-                'HTTP, Ping, Keyword, Port und Heartbeat',
-                'HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks mit Benachrichtigungen',
+                'HTTP, Ping, Keyword, Port, Heartbeat und Berichte',
+                'HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks mit erwarteten HTTP-Statusbereichen, Wochenberichten, Benachrichtigungen',
             ],
         ];
     }

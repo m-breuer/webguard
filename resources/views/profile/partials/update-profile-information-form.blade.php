@@ -1,8 +1,10 @@
 <x-container space="true">
     @php
         $notificationChannels = old('notification_channels', $user->notification_channels ?? []);
-        $eventTypes = ['incident', 'recovery', 'ssl_expiring', 'ssl_expired'];
+        $eventTypes = ['incident', 'recovery', 'ssl_expiring', 'ssl_expired', 'domain_expiring', 'domain_expired'];
         $notificationChannelKeys = ['slack', 'telegram', 'discord', 'webhook'];
+        $allowedExpiryWarningDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
+        $selectedExpiryWarningDays = old('expiry_warning_days', $user->expiry_warning_days ?? config('monitoring.expiry_warning_days.default', [7]));
     @endphp
 
     <x-heading type="h2">{{ __('profile.information.heading') }}</x-heading>
@@ -68,6 +70,26 @@
         <div class="space-y-6 border-t border-gray-200 pt-6 dark:border-gray-700">
             <x-heading type="h2">{{ __('profile.notification_settings.heading') }}</x-heading>
             <x-paragraph>{{ __('profile.notification_settings.description') }}</x-paragraph>
+
+            <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                <x-heading type="h3">{{ __('profile.notification_settings.expiry_warning_days.heading') }}</x-heading>
+                <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    {{ __('profile.notification_settings.expiry_warning_days.help') }}
+                </x-paragraph>
+
+                <div class="mt-4 flex flex-wrap gap-4">
+                    @foreach ($allowedExpiryWarningDays as $day)
+                        <x-text-checkbox
+                            id="expiry_warning_days_{{ $day }}"
+                            name="expiry_warning_days[]"
+                            value="{{ $day }}"
+                            :checked="in_array($day, array_map('intval', (array) $selectedExpiryWarningDays), true)"
+                            :label="trans_choice('profile.notification_settings.expiry_warning_days.option', $day, ['days' => $day])" />
+                    @endforeach
+                </div>
+                <x-input-error :messages="$errors->get('expiry_warning_days')" />
+                <x-input-error :messages="$errors->get('expiry_warning_days.*')" />
+            </div>
 
             @if (!empty($showNotificationChannelsHint))
                 <div class="rounded-xl border border-amber-300 bg-amber-50/80 p-4 dark:border-amber-700 dark:bg-amber-950/30">

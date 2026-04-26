@@ -38,6 +38,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $package_id
  * @property array<string, mixed>|null $notification_channels
  * @property Carbon|null $notification_channels_hint_seen_at
+ * @property list<int>|null $expiry_warning_days
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -68,6 +69,7 @@ use Laravel\Sanctum\PersonalAccessToken;
     'avatar',
     'notification_channels',
     'notification_channels_hint_seen_at',
+    'expiry_warning_days',
 ])]
 #[Hidden([
     'password',
@@ -172,6 +174,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * @return list<int>
+     */
+    public function expiryWarningDays(): array
+    {
+        $allowedDays = config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]);
+        $configuredDays = is_array($this->expiry_warning_days)
+            ? $this->expiry_warning_days
+            : config('monitoring.expiry_warning_days.default', [7]);
+
+        $days = array_values(array_unique(array_map('intval', $configuredDays)));
+        $days = array_values(array_intersect($days, $allowedDays));
+        rsort($days);
+
+        return $days;
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -187,6 +206,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'theme' => 'string',
             'notification_channels' => 'array',
             'notification_channels_hint_seen_at' => 'datetime',
+            'expiry_warning_days' => 'array',
         ];
     }
 }

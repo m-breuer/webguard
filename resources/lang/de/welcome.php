@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks mit Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks mit erwarteten HTTP-Statusbereichen, Wochenberichten, Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
         'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
     ],
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Abdeckung',
-                'value' => 'HTTP, Ping, Keyword, Port und Heartbeat',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat und Berichte',
             ],
             '3' => [
                 'label' => 'Betrieb',
@@ -54,6 +54,11 @@ return [
             'badge' => 'Kernfunktion',
             'title' => 'HTTP Monitoring',
             'text' => 'Überwachen Sie API- und Website-Endpunkte mit Latenz- und Statuscode-Prüfung.',
+        ],
+        'http_expectations' => [
+            'badge' => 'Kontrolle',
+            'title' => 'Erwartete HTTP-Statusbereiche',
+            'text' => 'Definieren Sie akzeptierte Statuscodes oder Bereiche wie 200-299, 301 und 302 pro HTTP- oder Keyword-Monitor.',
         ],
         'ping' => [
             'badge' => 'Kernfunktion',
@@ -79,6 +84,11 @@ return [
             'badge' => 'Alerts',
             'title' => 'Incident- und Status-Benachrichtigungen',
             'text' => 'Erhalten Sie Incident-Updates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
+        ],
+        'weekly_digest' => [
+            'badge' => 'Berichte',
+            'title' => 'Wöchentlicher Monitoring-Bericht',
+            'text' => 'Versenden Sie wöchentliche E-Mail-Zusammenfassungen mit Uptime, Incidents, längster Downtime sowie SSL- oder Domain-Ablaufwarnungen.',
         ],
         'ssl' => [
             'badge' => 'Sicherheit',

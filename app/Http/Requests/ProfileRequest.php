@@ -54,6 +54,8 @@ class ProfileRequest extends FormRequest
             'notification_channels.telegram.chat_id' => ['nullable', 'string', 'max:255'],
             'notification_channels.discord.webhook_url' => ['nullable', 'url', 'max:2048'],
             'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048'],
+            'expiry_warning_days' => ['nullable', 'array'],
+            'expiry_warning_days.*' => ['integer', Rule::in(config('monitoring.expiry_warning_days.allowed', [30, 14, 7, 3, 1]))],
         ];
 
         foreach (NotificationChannel::values() as $channel) {
