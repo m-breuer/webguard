@@ -40,6 +40,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property Carbon|null $notification_channels_hint_seen_at
  * @property bool $monitoring_digest_enabled
  * @property string $monitoring_digest_frequency
+ * @property bool $unread_notifications_reminder_enabled
+ * @property string $unread_notifications_reminder_frequency
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -72,6 +74,8 @@ use Laravel\Sanctum\PersonalAccessToken;
     'notification_channels_hint_seen_at',
     'monitoring_digest_enabled',
     'monitoring_digest_frequency',
+    'unread_notifications_reminder_enabled',
+    'unread_notifications_reminder_frequency',
 ])]
 #[Hidden([
     'password',
@@ -202,6 +206,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'notification_channels_hint_seen_at' => 'datetime',
             'monitoring_digest_enabled' => 'boolean',
             'monitoring_digest_frequency' => 'string',
+            'unread_notifications_reminder_enabled' => 'boolean',
+            'unread_notifications_reminder_frequency' => 'string',
         ];
     }
 }

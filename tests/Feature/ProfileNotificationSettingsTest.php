@@ -80,6 +80,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.channels_heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.digest.heading'));
+        $testResponse->assertSeeText(__('profile.notification_settings.unread_reminder.heading'));
         $testResponse->assertDontSeeText(__('profile.notification_settings.expiry_warning_days.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
 
@@ -101,6 +102,8 @@ class ProfileNotificationSettingsTest extends TestCase
             'theme' => 'dark',
             'monitoring_digest_enabled' => '1',
             'monitoring_digest_frequency' => 'monthly',
+            'unread_notifications_reminder_enabled' => '1',
+            'unread_notifications_reminder_frequency' => 'monthly',
             'notification_channels' => [
                 'slack' => [
                     'enabled' => '1',
@@ -135,6 +138,8 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertIsArray($user->notification_channels);
         $this->assertTrue($user->monitoring_digest_enabled);
         $this->assertSame('monthly', $user->monitoring_digest_frequency);
+        $this->assertTrue($user->unread_notifications_reminder_enabled);
+        $this->assertSame('monthly', $user->unread_notifications_reminder_frequency);
         $this->assertTrue((bool) data_get($user->notification_channels, 'slack.enabled'));
         $this->assertSame('https://hooks.slack.test/services/T000/B000/XXX', data_get($user->notification_channels, 'slack.webhook_url'));
         $this->assertNull(data_get($user->notification_channels, 'slack.events'));

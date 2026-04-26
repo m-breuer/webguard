@@ -44,6 +44,17 @@ return [
                 'monthly' => 'Jeden Monat',
             ],
         ],
+        'unread_reminder' => [
+            'heading' => 'Erinnerung bei ungelesenen Nachrichten',
+            'description' => 'Erhalten Sie eine E-Mail, wenn in Ihrer Mitteilungsübersicht noch ungelesene Nachrichten vorhanden sind.',
+            'enabled' => 'E-Mail-Erinnerung für ungelesene Nachrichten aktivieren',
+            'frequency' => 'Intervall',
+            'frequencies' => [
+                'daily' => 'Täglich',
+                'weekly' => 'Alle 7 Tage',
+                'monthly' => 'Jeden Monat',
+            ],
+        ],
         'test' => [
             'action' => 'Test senden',
             'messages' => [

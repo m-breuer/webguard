@@ -79,7 +79,7 @@ class SendWeeklyMonitoringDigestCommand extends Command
     {
         return match ($frequency) {
             'daily' => true,
-            'monthly' => Date::now()->isFirstOfMonth(),
+            'monthly' => Date::now()->day === 1,
             default => Date::now()->isMonday(),
         };
     }

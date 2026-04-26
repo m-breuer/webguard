@@ -72,6 +72,8 @@ class ProfileController extends Controller
         $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
         $user->monitoring_digest_enabled = $profileRequest->boolean('monitoring_digest_enabled');
         $user->monitoring_digest_frequency = (string) $profileRequest->input('monitoring_digest_frequency', 'weekly');
+        $user->unread_notifications_reminder_enabled = $profileRequest->boolean('unread_notifications_reminder_enabled');
+        $user->unread_notifications_reminder_frequency = (string) $profileRequest->input('unread_notifications_reminder_frequency', 'daily');
         $user->save();
 
         return to_route('profile.edit')
