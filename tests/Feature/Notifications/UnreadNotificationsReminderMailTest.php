@@ -27,7 +27,10 @@ class UnreadNotificationsReminderMailTest extends TestCase
         $this->assertStringContainsString(e(__('mail.general.brand_subtitle')), $html);
         $this->assertStringContainsString('class="mail-panel"', $html);
         $this->assertStringContainsString('class="mail-eyebrow"', $html);
-        $this->assertStringContainsString('class="mail-card-value">7</p>', $html);
+        $this->assertStringContainsString('You have 7 unread notifications on the WebGuard platform.', $html);
+        $this->assertStringNotContainsString('class="mail-card"', $html);
+        $this->assertStringNotContainsString('class="mail-card-value">7</p>', $html);
+        $this->assertStringNotContainsString('Unread notifications</p>', $html);
         $this->assertStringContainsString('class="mail-button"', $html);
         $this->assertStringContainsString(route('notifications.index'), $html);
         $this->assertStringContainsString(route('monitoring-locations'), $html);

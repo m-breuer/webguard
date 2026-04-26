@@ -138,32 +138,6 @@
             margin-bottom: 0;
         }
 
-        .mail-card {
-            margin: 22px 0;
-            padding: 18px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            background-color: #f8fafc;
-        }
-
-        .mail-card-label {
-            margin: 0 0 6px;
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            line-height: 18px;
-            text-transform: uppercase;
-        }
-
-        .mail-card-value {
-            margin: 0;
-            color: #047857;
-            font-size: 32px;
-            font-weight: 800;
-            line-height: 38px;
-        }
-
         .mail-button {
             display: inline-block;
             margin-top: 4px;
