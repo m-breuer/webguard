@@ -19,6 +19,10 @@ return [
         'send_verification_email' => 'Click here to re-send the verification email',
         'verification_email_sent' => 'A new verification email has been sent to your email address.',
     ],
+    'sections' => [
+        'account' => 'Account',
+        'preferences' => 'Appearance',
+    ],
     'theme' => [
         'heading' => 'Theme',
         'description' => 'Select your preferred theme.',
@@ -26,6 +30,7 @@ return [
     'notification_settings' => [
         'heading' => 'Notification Settings',
         'description' => 'Configure your notification channels. Choose which channels a monitoring uses in that monitoring.',
+        'channels_heading' => 'Channels',
         'enabled' => 'Enabled',
         'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
         'digest' => [

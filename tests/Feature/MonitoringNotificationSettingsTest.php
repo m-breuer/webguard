@@ -68,6 +68,11 @@ class MonitoringNotificationSettingsTest extends TestCase
         $testResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
 
         $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.form.sections.basic'));
+        $testResponse->assertSeeText(__('monitoring.form.sections.check'));
+        $testResponse->assertSeeText(__('monitoring.form.sections.sharing'));
+        $testResponse->assertSeeText(__('monitoring.form.sections.notifications'));
+        $testResponse->assertSeeText(__('monitoring.form.sections.operations'));
         $testResponse->assertSeeText(__('monitoring.form.notification_channels'));
         $testResponse->assertSeeText(__('profile.notification_settings.channels.slack.title'));
         $testResponse->assertSeeText(__('profile.notification_settings.channels.telegram.title'));

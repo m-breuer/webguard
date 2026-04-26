@@ -17,54 +17,66 @@
         @csrf
         @method('patch')
 
-        <div>
-            <x-input-label for="name" :value="__('profile.fields.name')" />
-            <x-text-input id="name" name="name" type="text" :value="old('name', $user->name)" required autofocus
-                autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" />
-        </div>
+        <section class="space-y-4">
+            <div>
+                <x-heading type="h3">{{ __('profile.sections.account') }}</x-heading>
+            </div>
 
-        <div>
-            <x-input-label for="email" :value="__('profile.fields.email')" />
-            <x-text-input id="email" name="email" type="email" :value="old('email', $user->email)" required
-                autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" />
+            <div>
+                <x-input-label for="name" :value="__('profile.fields.name')" />
+                <x-text-input id="name" name="name" type="text" :value="old('name', $user->name)" required autofocus
+                    autocomplete="name" />
+                <x-input-error :messages="$errors->get('name')" />
+            </div>
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
-                <div>
-                    <x-paragraph>
-                        {{ __('profile.information.email_unverified') }}
+            <div>
+                <x-input-label for="email" :value="__('profile.fields.email')" />
+                <x-text-input id="email" name="email" type="email" :value="old('email', $user->email)" required
+                    autocomplete="username" />
+                <x-input-error :messages="$errors->get('email')" />
 
-                        <button form="send-verification"
-                            class="focus:outline-hidden rounded-md text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
-                            {{ __('profile.information.send_verification_email') }}
-                        </button>
-                    </x-paragraph>
-                </div>
-            @else
-                <div>
-                    <x-paragraph class="text-green-600">
-                        {{ __('profile.messages.email_verified') }}
-                    </x-paragraph>
-                </div>
-            @endif
-        </div>
+                @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
+                    <div>
+                        <x-paragraph>
+                            {{ __('profile.information.email_unverified') }}
 
-        <div class="w-full md:w-1/2" x-data="{ theme: '{{ old('theme', $user->theme) }}' }">
-            <x-input-label for="theme" :value="__('profile.fields.theme')" />
-            <x-select-input id="theme" class="block w-full" name="theme"
-                @change="theme = $event.target.value">
-                <option value="light" :selected="theme === 'light'">{{ __('profile.fields.theme_light') }}
-                </option>
-                <option value="dark" :selected="theme === 'dark'">{{ __('profile.fields.theme_dark') }}
-                </option>
-                <option value="system" :selected="theme === 'system'">{{ __('profile.fields.theme_system') }}
-                </option>
-            </x-select-input>
-            <x-input-error :messages="$errors->get('theme')" />
-        </div>
+                            <button form="send-verification"
+                                class="focus:outline-hidden rounded-md text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+                                {{ __('profile.information.send_verification_email') }}
+                            </button>
+                        </x-paragraph>
+                    </div>
+                @else
+                    <div>
+                        <x-paragraph class="text-green-600">
+                            {{ __('profile.messages.email_verified') }}
+                        </x-paragraph>
+                    </div>
+                @endif
+            </div>
+        </section>
 
-        <div class="space-y-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h3">{{ __('profile.sections.preferences') }}</x-heading>
+            </div>
+
+            <div class="w-full md:w-1/2" x-data="{ theme: '{{ old('theme', $user->theme) }}' }">
+                <x-input-label for="theme" :value="__('profile.fields.theme')" />
+                <x-select-input id="theme" class="block w-full" name="theme"
+                    @change="theme = $event.target.value">
+                    <option value="light" :selected="theme === 'light'">{{ __('profile.fields.theme_light') }}
+                    </option>
+                    <option value="dark" :selected="theme === 'dark'">{{ __('profile.fields.theme_dark') }}
+                    </option>
+                    <option value="system" :selected="theme === 'system'">{{ __('profile.fields.theme_system') }}
+                    </option>
+                </x-select-input>
+                <x-input-error :messages="$errors->get('theme')" />
+            </div>
+        </section>
+
+        <section class="space-y-6 border-t border-gray-200 pt-6 dark:border-gray-700">
             <x-heading type="h2">{{ __('profile.notification_settings.heading') }}</x-heading>
             <x-paragraph>{{ __('profile.notification_settings.description') }}</x-paragraph>
 
@@ -77,6 +89,10 @@
             @endif
 
             <div class="space-y-4">
+                <div>
+                    <x-heading type="h3">{{ __('profile.notification_settings.channels_heading') }}</x-heading>
+                </div>
+
                 <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
                     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <x-heading type="h3">{{ __('profile.notification_settings.channels.slack.title') }}</x-heading>
@@ -197,7 +213,7 @@
                     <x-input-error :messages="$errors->get('monitoring_digest_frequency')" />
                 </div>
             </div>
-        </div>
+        </section>
 
         <x-primary-button>{{ __('button.update') }}</x-primary-button>
     </form>

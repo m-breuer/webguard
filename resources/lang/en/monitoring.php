@@ -179,6 +179,13 @@ return [
         ],
     ],
     'form' => [
+        'sections' => [
+            'basic' => 'Basics',
+            'check' => 'Check configuration',
+            'sharing' => 'Public display',
+            'notifications' => 'Notifications',
+            'operations' => 'Operations',
+        ],
         'type' => 'Monitoring Type',
         'select_type' => 'Select Monitoring Type',
         'name' => 'Name',
