@@ -32,7 +32,7 @@ return [
         'description' => 'Konfigurieren Sie Ihre Benachrichtigungskanäle. Welche Kanäle eine Überwachung nutzt, legen Sie in der jeweiligen Überwachung fest.',
         'channels_heading' => 'Kanäle',
         'enabled' => 'Aktiviert',
-        'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
+        'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident-, SSL- und Domain-Ablaufbenachrichtigungen zu erhalten.',
         'digest' => [
             'heading' => 'Mitteilungsübersicht',
             'description' => 'Erhalten Sie eine E-Mail-Zusammenfassung über alle Ihre aktiven Überwachungen.',

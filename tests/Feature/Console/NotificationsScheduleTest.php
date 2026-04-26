@@ -42,4 +42,15 @@ class NotificationsScheduleTest extends TestCase
         $this->assertSame('30 8 * * *', $event->expression);
         $this->assertTrue($event->withoutOverlapping);
     }
+
+    public function test_expiry_warnings_are_scheduled_daily_without_overlap(): void
+    {
+        /** @var Event|null $event */
+        $event = collect(resolve(Schedule::class)->events())
+            ->first(fn (Event $event): bool => str_contains((string) $event->command, 'notifications:send-ssl-expiry-warnings'));
+
+        $this->assertNotNull($event);
+        $this->assertSame('0 6 * * *', $event->expression);
+        $this->assertTrue($event->withoutOverlapping);
+    }
 }

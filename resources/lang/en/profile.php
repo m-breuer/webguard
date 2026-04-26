@@ -32,7 +32,7 @@ return [
         'description' => 'Configure your notification channels. Choose which channels a monitoring uses in that monitoring.',
         'channels_heading' => 'Channels',
         'enabled' => 'Enabled',
-        'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
+        'hint_banner' => 'Configure at least one channel to continue receiving incident, SSL, and domain expiry alerts.',
         'digest' => [
             'heading' => 'Monitoring digest',
             'description' => 'Receive an email summary across all of your active monitorings.',
