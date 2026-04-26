@@ -19,6 +19,10 @@ return [
         'send_verification_email' => 'Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden',
         'verification_email_sent' => 'Eine neue Bestätigungs-E-Mail wurde an Ihre E-Mail-Adresse gesendet.',
     ],
+    'sections' => [
+        'account' => 'Konto',
+        'preferences' => 'Darstellung',
+    ],
     'theme' => [
         'heading' => 'Design',
         'description' => 'Wählen Sie Ihr bevorzugtes Design.',
@@ -26,6 +30,7 @@ return [
     'notification_settings' => [
         'heading' => 'Benachrichtigungseinstellungen',
         'description' => 'Konfigurieren Sie Ihre Benachrichtigungskanäle. Welche Kanäle eine Überwachung nutzt, legen Sie in der jeweiligen Überwachung fest.',
+        'channels_heading' => 'Kanäle',
         'enabled' => 'Aktiviert',
         'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
         'digest' => [

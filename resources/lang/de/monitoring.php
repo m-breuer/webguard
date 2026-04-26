@@ -179,6 +179,13 @@ return [
         ],
     ],
     'form' => [
+        'sections' => [
+            'basic' => 'Basisdaten',
+            'check' => 'Prüfkonfiguration',
+            'sharing' => 'Öffentliche Anzeige',
+            'notifications' => 'Benachrichtigungen',
+            'operations' => 'Betrieb',
+        ],
         'type' => 'Überwachungstyp',
         'select_type' => 'Überwachungstyp auswählen',
         'name' => 'Name',
