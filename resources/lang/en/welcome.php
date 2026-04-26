@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, and Heartbeat checks with expected HTTP status ranges, weekly digests, notifications, SSL expiry tracking, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SSL expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, SSL, and domain expiry checks with configurable alerts, weekly digests, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
         'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, and Heartbeat monitoring, clear notifications, and easy-to-read uptime reporting.',
     ],
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Coverage',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, and digests',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, SSL, and domains',
             ],
             '3' => [
                 'label' => 'Operation',
@@ -83,7 +83,7 @@ return [
         'notifications' => [
             'badge' => 'Alerts',
             'title' => 'Incident and Status Notifications',
-            'text' => 'Receive incident updates through multiple channels so response stays fast and coordinated.',
+            'text' => 'Receive incident, recovery, SSL, and domain expiry updates through multiple channels so response stays fast and coordinated.',
         ],
         'weekly_digest' => [
             'badge' => 'Reports',
@@ -98,7 +98,7 @@ return [
         'domain_expiration' => [
             'badge' => 'Ownership',
             'title' => 'Domain Expiration Checks',
-            'text' => 'Track registration expiry for important domains before renewals become outages.',
+            'text' => 'Track registration expiry for important domains and send proactive renewal warnings before missing renewals become outages.',
         ],
         'stats' => [
             'badge' => 'Insights',

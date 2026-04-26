@@ -105,6 +105,22 @@ class DomainExpirationMonitoringTest extends TestCase
         $testResponse->assertDontSeeHtml('id="performance-chart"');
     }
 
+    public function test_domain_expiration_edit_form_explains_monitoring_notifications(): void
+    {
+        $monitoring = Monitoring::factory()
+            ->domainExpiration()
+            ->for($this->user)
+            ->create([
+                'preferred_location' => $this->serverInstance->code,
+            ]);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.form.notification_on_failure'));
+        $testResponse->assertSeeText(__('monitoring.form.notification_on_failure_enabled'));
+    }
+
     public function test_internal_monitoring_list_exposes_domain_expiration_monitoring(): void
     {
         $monitoring = Monitoring::factory()

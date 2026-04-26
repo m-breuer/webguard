@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks mit erwarteten HTTP-Statusbereichen, Wochenberichten, Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, SSL- und Domain-Ablaufprüfungen mit konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
         'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
     ],
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Abdeckung',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat und Berichte',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, SSL und Domains',
             ],
             '3' => [
                 'label' => 'Betrieb',
@@ -83,7 +83,7 @@ return [
         'notifications' => [
             'badge' => 'Alerts',
             'title' => 'Incident- und Status-Benachrichtigungen',
-            'text' => 'Erhalten Sie Incident-Updates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
+            'text' => 'Erhalten Sie Incident-, Recovery-, SSL- und Domain-Ablaufupdates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
         ],
         'weekly_digest' => [
             'badge' => 'Berichte',
@@ -98,7 +98,7 @@ return [
         'domain_expiration' => [
             'badge' => 'Eigentum',
             'title' => 'Domain-Ablaufprüfungen',
-            'text' => 'Überwachen Sie den Ablauf wichtiger Domains, bevor fehlende Verlängerungen zu Ausfällen werden.',
+            'text' => 'Überwachen Sie den Ablauf wichtiger Domains und versenden Sie proaktive Verlängerungswarnungen, bevor fehlende Verlängerungen zu Ausfällen werden.',
         ],
         'stats' => [
             'badge' => 'Insights',

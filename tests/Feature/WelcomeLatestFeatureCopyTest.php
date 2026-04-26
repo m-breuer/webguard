@@ -11,7 +11,7 @@ use Tests\TestCase;
 class WelcomeLatestFeatureCopyTest extends TestCase
 {
     /**
-     * @return array<string, array{0: string, 1: string, 2: string, 3: string, 4: string}>
+     * @return array<string, array{0: string, 1: string, 2: string, 3: string, 4: string, 5: string, 6: string}>
      */
     public static function latestFeatureCopyProvider(): array
     {
@@ -22,6 +22,8 @@ class WelcomeLatestFeatureCopyTest extends TestCase
                 'Define accepted status codes or ranges such as 200-299, 301, and 302',
                 'Weekly Monitoring Digest',
                 'weekly email summaries with uptime, incidents, longest downtime',
+                'Domain Expiration Checks',
+                'send proactive renewal warnings',
             ],
             'german' => [
                 'de',
@@ -29,6 +31,8 @@ class WelcomeLatestFeatureCopyTest extends TestCase
                 'Definieren Sie akzeptierte Statuscodes oder Bereiche wie 200-299, 301 und 302',
                 'Wöchentlicher Monitoring-Bericht',
                 'wöchentliche E-Mail-Zusammenfassungen mit Uptime, Incidents, längster Downtime',
+                'Domain-Ablaufprüfungen',
+                'proaktive Verlängerungswarnungen',
             ],
         ];
     }
@@ -39,7 +43,9 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         string $expectedHttpStatusTitle,
         string $expectedHttpStatusText,
         string $expectedDigestTitle,
-        string $expectedDigestText
+        string $expectedDigestText,
+        string $expectedDomainTitle,
+        string $expectedDomainText
     ): void {
         $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
 
@@ -48,6 +54,8 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $testResponse->assertSeeText($expectedHttpStatusText);
         $testResponse->assertSeeText($expectedDigestTitle);
         $testResponse->assertSeeText($expectedDigestText);
+        $testResponse->assertSeeText($expectedDomainTitle);
+        $testResponse->assertSeeText($expectedDomainText);
     }
 
     public function test_readme_documents_latest_features(): void
@@ -59,5 +67,7 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $this->assertStringContainsString('200-299, 301, 302', $readme);
         $this->assertStringContainsString('Weekly Monitoring Digest', $readme);
         $this->assertStringContainsString('weekly uptime, incident, downtime, SSL, and domain expiry summaries', $readme);
+        $this->assertStringContainsString('receive proactive renewal warnings', $readme);
+        $this->assertStringContainsString('status changes, SSL expiry, and domain expiry', $readme);
     }
 }
