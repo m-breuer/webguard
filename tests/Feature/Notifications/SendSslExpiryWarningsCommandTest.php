@@ -29,22 +29,18 @@ class SendSslExpiryWarningsCommandTest extends TestCase
                 'slack' => [
                     'enabled' => true,
                     'webhook_url' => 'https://hooks.slack.test/services/test',
-                    'events' => [
-                        'ssl_expiring' => true,
-                    ],
                 ],
                 'webhook' => [
                     'enabled' => true,
                     'url' => 'https://example.test/webhook',
-                    'events' => [
-                        'ssl_expiring' => true,
-                    ],
                 ],
             ],
         ]);
 
         $monitoring = Monitoring::factory()->for($user)->create([
             'notification_on_failure' => true,
+            'notification_channels' => ['slack', 'webhook'],
+            'ssl_expiry_warning_days' => 7,
         ]);
 
         MonitoringSslResult::query()->create([
@@ -99,16 +95,14 @@ class SendSslExpiryWarningsCommandTest extends TestCase
                 'webhook' => [
                     'enabled' => true,
                     'url' => 'https://example.test/webhook',
-                    'events' => [
-                        'ssl_expiring' => true,
-                        'ssl_expired' => true,
-                    ],
                 ],
             ],
         ]);
 
         $monitoring = Monitoring::factory()->for($user)->create([
             'notification_on_failure' => false,
+            'notification_channels' => ['webhook'],
+            'ssl_expiry_warning_days' => 7,
         ]);
 
         MonitoringSslResult::query()->create([
@@ -132,5 +126,42 @@ class SendSslExpiryWarningsCommandTest extends TestCase
                 ->count()
         );
         $this->assertDatabaseCount('notification_channel_deliveries', 0);
+    }
+
+    public function test_ssl_command_respects_per_monitoring_warning_window(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'webhook' => [
+                    'enabled' => true,
+                    'url' => 'https://example.test/webhook',
+                ],
+            ],
+        ]);
+
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['webhook'],
+            'ssl_expiry_warning_days' => 3,
+        ]);
+
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'expires_at' => now()->addDays(10),
+            'is_valid' => true,
+            'issuer' => 'LetsEncrypt',
+            'issued_at' => now()->subDays(60),
+        ]);
+
+        Http::fake();
+
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+
+        Http::assertNothingSent();
+        $this->assertDatabaseMissing('monitoring_notifications', [
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::SSL_EXPIRY->value,
+        ]);
     }
 }

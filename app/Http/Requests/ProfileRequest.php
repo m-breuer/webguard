@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\NotificationChannel;
-use App\Enums\NotificationEventType;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -54,17 +53,14 @@ class ProfileRequest extends FormRequest
             'notification_channels.telegram.chat_id' => ['nullable', 'string', 'max:255'],
             'notification_channels.discord.webhook_url' => ['nullable', 'url', 'max:2048'],
             'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048'],
+            'monitoring_digest_enabled' => ['nullable', 'boolean'],
+            'monitoring_digest_frequency' => ['required', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
         ];
 
         foreach (NotificationChannel::values() as $channel) {
             $prefix = sprintf('notification_channels.%s', $channel);
             $rules[$prefix] = ['nullable', 'array'];
             $rules[$prefix . '.enabled'] = ['nullable', 'boolean'];
-            $rules[$prefix . '.events'] = ['nullable', 'array'];
-
-            foreach (NotificationEventType::values() as $eventType) {
-                $rules[$prefix . '.events.' . $eventType] = ['nullable', 'boolean'];
-            }
         }
 
         return $rules;

@@ -38,6 +38,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $package_id
  * @property array<string, mixed>|null $notification_channels
  * @property Carbon|null $notification_channels_hint_seen_at
+ * @property bool $monitoring_digest_enabled
+ * @property string $monitoring_digest_frequency
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -68,6 +70,8 @@ use Laravel\Sanctum\PersonalAccessToken;
     'avatar',
     'notification_channels',
     'notification_channels_hint_seen_at',
+    'monitoring_digest_enabled',
+    'monitoring_digest_frequency',
 ])]
 #[Hidden([
     'password',
@@ -156,19 +160,28 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasEnabledNotificationChannels(): bool
     {
-        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+        return $this->enabledNotificationChannelKeys() !== [];
+    }
 
-        foreach ($channels as $channel) {
-            if (! is_array($channel)) {
+    /**
+     * @return list<string>
+     */
+    public function enabledNotificationChannelKeys(): array
+    {
+        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+        $enabledChannels = [];
+
+        foreach ($channels as $channel => $config) {
+            if (! is_array($config)) {
                 continue;
             }
 
-            if ((bool) ($channel['enabled'] ?? false) === true) {
-                return true;
+            if ((bool) ($config['enabled'] ?? false) === true) {
+                $enabledChannels[] = (string) $channel;
             }
         }
 
-        return false;
+        return $enabledChannels;
     }
 
     /**
@@ -187,6 +200,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'theme' => 'string',
             'notification_channels' => 'array',
             'notification_channels_hint_seen_at' => 'datetime',
+            'monitoring_digest_enabled' => 'boolean',
+            'monitoring_digest_frequency' => 'string',
         ];
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\NotificationChannel;
-use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Jobs\DeleteUser;
@@ -71,6 +70,8 @@ class ProfileController extends Controller
         }
 
         $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
+        $user->monitoring_digest_enabled = $profileRequest->boolean('monitoring_digest_enabled');
+        $user->monitoring_digest_frequency = (string) $profileRequest->input('monitoring_digest_frequency', 'weekly');
         $user->save();
 
         return to_route('profile.edit')
@@ -176,19 +177,11 @@ class ProfileController extends Controller
      */
     private function normalizeNotificationChannels(ProfileRequest $profileRequest): array
     {
-        $eventTypes = NotificationEventType::values();
         $normalized = [];
 
         foreach (NotificationChannel::values() as $channel) {
-            $events = [];
-
-            foreach ($eventTypes as $eventType) {
-                $events[$eventType] = $profileRequest->boolean(sprintf('notification_channels.%s.events.%s', $channel, $eventType));
-            }
-
             $channelConfig = [
                 'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
-                'events' => $events,
             ];
 
             if ($channel === NotificationChannel::SLACK->value || $channel === NotificationChannel::DISCORD->value) {

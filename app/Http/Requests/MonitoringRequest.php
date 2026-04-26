@@ -169,6 +169,12 @@ class MonitoringRequest extends FormRequest
             'preferred_location' => ['required', 'string', Rule::exists('server_instances', 'code')->where('is_active', true)],
             'public_label_enabled' => ['boolean'],
             'notification_on_failure' => ['boolean'],
+            'notification_channels' => ['nullable', 'array'],
+            'notification_channels.*' => [
+                'string',
+                Rule::in($this->user()?->enabledNotificationChannelKeys() ?? []),
+            ],
+            'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
             'maintenance_from' => ['nullable', 'date'],
             'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
         ];
@@ -194,8 +200,27 @@ class MonitoringRequest extends FormRequest
             'http_headers' => $httpHeaders,
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
+            'notification_channels' => $this->normalizeNotificationChannels(),
+            'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizeNotificationChannels(): array
+    {
+        $channels = $this->input('notification_channels', []);
+
+        if (! is_array($channels)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(
+            $channels,
+            static fn ($channel): bool => is_string($channel) && $channel !== ''
+        )));
     }
 
     /**

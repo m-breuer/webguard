@@ -41,7 +41,7 @@ class SendSslExpiryWarningsCommand extends Command
     {
         $sslResults = MonitoringSslResult::query()
             ->where(function ($builder): void {
-                $builder->where('expires_at', '<=', now()->addDays(7))
+                $builder->where('expires_at', '<=', now()->addDays(365))
                     ->orWhere('is_valid', false);
             })
             ->with(['monitoring.user'])
@@ -58,6 +58,12 @@ class SendSslExpiryWarningsCommand extends Command
             }
 
             if (! $monitoring->notification_on_failure) {
+                continue;
+            }
+
+            $warningThreshold = now()->addDays($monitoring->ssl_expiry_warning_days ?? 7)->endOfDay();
+
+            if ($sslResult->is_valid && $sslResult->expires_at->gt($warningThreshold)) {
                 continue;
             }
 
@@ -106,7 +112,7 @@ class SendSslExpiryWarningsCommand extends Command
                 ],
             );
 
-            $this->notificationRouter->dispatch($user, $payload);
+            $this->notificationRouter->dispatch($user, $payload, $monitoring->notification_channels);
             $notification->update(['sent' => true]);
             Cache::put($cacheKey, true, now()->addHours(23));
         }

@@ -25,9 +25,20 @@ return [
     ],
     'notification_settings' => [
         'heading' => 'Benachrichtigungseinstellungen',
-        'description' => 'Konfigurieren Sie Ihre globalen Benachrichtigungskanäle. Diese Einstellungen gelten für alle Überwachungen.',
+        'description' => 'Konfigurieren Sie Ihre Benachrichtigungskanäle. Welche Kanäle eine Überwachung nutzt, legen Sie in der jeweiligen Überwachung fest.',
         'enabled' => 'Aktiviert',
         'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
+        'digest' => [
+            'heading' => 'Mitteilungsübersicht',
+            'description' => 'Erhalten Sie eine E-Mail-Zusammenfassung über alle Ihre aktiven Überwachungen.',
+            'enabled' => 'Mitteilungsübersicht per E-Mail aktivieren',
+            'frequency' => 'Zeitraum',
+            'frequencies' => [
+                'daily' => 'Täglich',
+                'weekly' => 'Jede Woche',
+                'monthly' => 'Jeden Monat',
+            ],
+        ],
         'test' => [
             'action' => 'Test senden',
             'messages' => [

@@ -42,10 +42,17 @@ class SendWeeklyMonitoringDigestCommand extends Command
             ->where('role', '!=', UserRole::GUEST->value)
             ->whereNotNull('email')
             ->where('email', '!=', '')
+            ->where('monitoring_digest_enabled', true)
             ->whereHas('monitorings', fn ($builder) => $builder->active())
             ->chunkById(100, function ($users) use ($periodEnd): void {
                 foreach ($users as $user) {
-                    $digest = $this->weeklyMonitoringDigestService->buildForUser($user, $periodEnd);
+                    $frequency = $user->monitoring_digest_frequency ?: 'weekly';
+
+                    if (! $this->isDue($frequency)) {
+                        continue;
+                    }
+
+                    $digest = $this->weeklyMonitoringDigestService->buildForUser($user, $periodEnd, $frequency);
 
                     if (($digest['overview']['monitorings_count'] ?? 0) < 1) {
                         continue;
@@ -66,5 +73,14 @@ class SendWeeklyMonitoringDigestCommand extends Command
             });
 
         return Command::SUCCESS;
+    }
+
+    private function isDue(string $frequency): bool
+    {
+        return match ($frequency) {
+            'daily' => true,
+            'monthly' => Date::now()->isFirstOfMonth(),
+            default => Date::now()->isMonday(),
+        };
     }
 }
