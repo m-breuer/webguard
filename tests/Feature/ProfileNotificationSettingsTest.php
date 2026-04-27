@@ -153,6 +153,33 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertNull(data_get($user->notification_channels, 'webhook.events'));
     }
 
+    public function test_profile_update_defaults_optional_notification_settings_when_omitted(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'monthly',
+            'unread_notifications_reminder_enabled' => true,
+            'unread_notifications_reminder_frequency' => 'weekly',
+        ]);
+
+        $testResponse = $this->actingAs($user)->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'theme' => 'system',
+        ]);
+
+        $testResponse->assertRedirect(route('profile.edit'));
+        $testResponse->assertSessionHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertFalse($user->monitoring_digest_enabled);
+        $this->assertSame('weekly', $user->monitoring_digest_frequency);
+        $this->assertFalse($user->unread_notifications_reminder_enabled);
+        $this->assertSame('daily', $user->unread_notifications_reminder_frequency);
+    }
+
     public function test_profile_page_shows_notification_channel_test_buttons(): void
     {
         Package::factory()->create();
