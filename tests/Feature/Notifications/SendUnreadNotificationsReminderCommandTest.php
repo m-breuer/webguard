@@ -184,6 +184,41 @@ class SendUnreadNotificationsReminderCommandTest extends TestCase
         }
     }
 
+    public function test_blank_unread_reminder_frequency_defaults_to_daily(): void
+    {
+        Date::setTestNow('2026-04-07 08:00:00');
+
+        try {
+            Package::factory()->create();
+
+            $user = User::factory()->create([
+                'unread_notifications_reminder_enabled' => true,
+                'unread_notifications_reminder_frequency' => '',
+            ]);
+
+            $monitoring = Monitoring::factory()->for($user)->create();
+
+            MonitoringNotification::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'type' => NotificationType::STATUS_CHANGE,
+                'message' => 'DOWN',
+                'read' => false,
+                'sent' => true,
+            ]);
+
+            Mail::fake();
+
+            Artisan::call('notifications:remind-unread-weekly');
+
+            Mail::assertSent(UnreadNotificationsReminderMail::class, function (UnreadNotificationsReminderMail $unreadNotificationsReminderMail) use ($user): bool {
+                return $unreadNotificationsReminderMail->hasTo($user->email)
+                    && $unreadNotificationsReminderMail->unreadNotificationsCount === 1;
+            });
+        } finally {
+            Date::setTestNow();
+        }
+    }
+
     public function test_weekly_and_monthly_reminders_are_sent_when_due(): void
     {
         Date::setTestNow('2026-06-01 08:00:00');
