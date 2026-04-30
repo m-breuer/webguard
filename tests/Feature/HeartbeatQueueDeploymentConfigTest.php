@@ -74,10 +74,10 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $dockerfile = file_get_contents(base_path('Dockerfile'));
 
         $this->assertIsString($dockerfile);
-        $workerStageStart = strpos($dockerfile, 'FROM serversideup/php:8.5-cli AS worker');
+        $workerStageStart = mb_strpos($dockerfile, 'FROM serversideup/php:8.5-cli AS worker');
 
         $this->assertNotFalse($workerStageStart);
-        $workerStage = substr($dockerfile, $workerStageStart);
+        $workerStage = mb_substr($dockerfile, $workerStageStart);
         $this->assertIsString($workerStage);
         $this->assertStringContainsString('COPY --from=app_build', $workerStage);
         $this->assertStringNotContainsString('frontend_build', $workerStage);
