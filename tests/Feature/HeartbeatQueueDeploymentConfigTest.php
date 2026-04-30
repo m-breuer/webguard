@@ -62,6 +62,15 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         }
     }
 
+    public function test_production_app_url_is_derived_from_coolify_service_url(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"', $composeConfiguration);
+        $this->assertStringNotContainsString('APP_URL: "${APP_URL:-https://webguard.example.com}"', $composeConfiguration);
+    }
+
     public function test_env_example_uses_literal_values_instead_of_nested_interpolation(): void
     {
         $environmentExample = file_get_contents(base_path('.env.example'));
@@ -94,5 +103,18 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('SSL_MODE: "${DOCKER_SSL_MODE:-off}"', $composeConfiguration);
         $this->assertStringContainsString('- "8080"', $composeConfiguration);
         $this->assertStringContainsString('- "8443"', $composeConfiguration);
+    }
+
+    public function test_production_php_container_declares_coolify_traefik_labels(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('traefik.enable=true', $composeConfiguration);
+        $this->assertStringContainsString('traefik.docker.network=${WEBGUARD_NETWORK:-webguard-network}', $composeConfiguration);
+        $this->assertStringContainsString('Host(`${SERVICE_FQDN_PHP:-webguard.example.com}`)', $composeConfiguration);
+        $this->assertStringContainsString('entrypoints=https', $composeConfiguration);
+        $this->assertStringContainsString('tls.certresolver=letsencrypt', $composeConfiguration);
+        $this->assertStringContainsString('loadbalancer.server.port=8080', $composeConfiguration);
     }
 }

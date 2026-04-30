@@ -3,7 +3,7 @@ x-app-environment: &app-environment
   APP_ENV: "production"
   APP_DEBUG: "false"
   APP_KEY: "${APP_KEY:-}"
-  APP_URL: "${APP_URL:-https://webguard.example.com}"
+  APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"
   APP_TIMEZONE: "Europe/Berlin"
   APP_LOCALE: "en"
   APP_FALLBACK_LOCALE: "en"
@@ -74,6 +74,20 @@ services:
         aliases:
           - webguard-core
           - webguard-api
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${WEBGUARD_NETWORK:-webguard-network}
+      - traefik.http.middlewares.webguard-${COOLIFY_RESOURCE_UUID:-local}-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.rule=Host(`${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.entrypoints=http
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.middlewares=webguard-${COOLIFY_RESOURCE_UUID:-local}-redirect
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.service=webguard-${COOLIFY_RESOURCE_UUID:-local}
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.rule=Host(`${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.entrypoints=https
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.tls=true
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.service=webguard-${COOLIFY_RESOURCE_UUID:-local}
+      - traefik.http.services.webguard-${COOLIFY_RESOURCE_UUID:-local}.loadbalancer.server.port=8080
 
   schedule:
     container_name: webguard-schedule

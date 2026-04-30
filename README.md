@@ -70,7 +70,8 @@ Use `.env.example` as the starting point for `.env`.
 Minimum `.env` fields for production:
 
 ```env
-APP_URL=https://webguard.example.com
+SERVICE_URL_PHP=https://webguard.example.com
+SERVICE_FQDN_PHP=webguard.example.com
 APP_KEY=base64:...
 WEBGUARD_NETWORK=coolify
 DOCKER_SSL_MODE=off
@@ -95,7 +96,7 @@ MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME=WebGuard
 ```
 
-When using Coolify, set concrete values instead of referencing another variable inside the value. For example, use `APP_URL=https://webguard.example.com`, `MAIL_USERNAME=noreply@example.com`, `MAIL_FROM_NAME=WebGuard`, and `GITHUB_REDIRECT_URI=https://webguard.example.com/auth/github/callback`. Do not use values such as `APP_URL={$SERVICE_URL_PHP}` or `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
+When using Coolify, set concrete values instead of referencing another variable inside the value. For example, use `SERVICE_URL_PHP=https://webguard.example.com`, `SERVICE_FQDN_PHP=webguard.example.com`, `MAIL_USERNAME=noreply@example.com`, `MAIL_FROM_NAME=WebGuard`, and `GITHUB_REDIRECT_URI=https://webguard.example.com/auth/github/callback`. Do not use values such as `APP_URL={$SERVICE_URL_PHP}` or `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
 
 For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `MAIL_ENCRYPTION=tls`.
 
@@ -128,6 +129,8 @@ REDIS_PASSWORD=null
 The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Leave `COMPOSE_PROFILES` empty in Coolify when you connect external services. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers.
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
+
+For Coolify/Traefik routing, set `SERVICE_URL_PHP` to the public URL with protocol, for example `https://webguard-test.m-breuer.dev`, and set `SERVICE_FQDN_PHP` to the public hostname without protocol, for example `webguard-test.m-breuer.dev`. The production Compose labels route this hostname to the PHP container on internal port `8080` and request a Let's Encrypt certificate through Coolify's `letsencrypt` resolver.
 
 The application listens internally on `8080` for HTTP and `8443` for optional container-level HTTPS. For Coolify deployments, keep `DOCKER_SSL_MODE=off` and let Coolify/Traefik generate and terminate public TLS.
 
