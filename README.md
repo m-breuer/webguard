@@ -73,6 +73,7 @@ Minimum `.env` fields for production:
 APP_URL=https://webguard.example.com
 APP_KEY=base64:...
 WEBGUARD_NETWORK=coolify
+DOCKER_SSL_MODE=off
 
 DB_HOST=mysql
 DB_PORT=3306
@@ -128,9 +129,9 @@ The bundled `mysql` and `redis` services are behind the `internal-services` Comp
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
-The application listens internally on `8080` for HTTP and `8443` for HTTPS. Production enables `SSL_MODE=mixed`, so the ServerSideUp PHP image generates a self-signed certificate automatically when no custom certificate is mounted.
+The application listens internally on `8080` for HTTP and `8443` for optional container-level HTTPS. For Coolify deployments, keep `DOCKER_SSL_MODE=off` and let Coolify/Traefik generate and terminate public TLS.
 
-If you use Coolify, Traefik, or another reverse proxy in front of the deployment, you can route traffic to the `php` service on `8080` and let the proxy terminate public TLS. Use `8443` only when you explicitly want encrypted traffic between the proxy and the application container.
+If you use Coolify, Traefik, or another reverse proxy in front of the deployment, route traffic to the `php` service on `8080`. Set `DOCKER_SSL_MODE=mixed` and use `8443` only when you explicitly want encrypted traffic between the proxy and the application container.
 
 ## Docker Local Development
 
@@ -241,6 +242,7 @@ DOCKER_VITE_PORT=5173
 DOCKER_MYSQL_PORT=3306
 DOCKER_MAILPIT_SMTP_PORT=1025
 DOCKER_MAILPIT_UI_PORT=8025
+DOCKER_SSL_MODE=off
 WEBGUARD_NETWORK=webguard-network
 COMPOSE_PROFILES=internal-services
 ```

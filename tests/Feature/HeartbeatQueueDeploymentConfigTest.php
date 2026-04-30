@@ -86,12 +86,12 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringNotContainsString('bun install', $workerStage);
     }
 
-    public function test_production_php_container_enables_automatic_self_signed_ssl(): void
+    public function test_production_php_container_defaults_to_proxy_terminated_ssl(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
         $this->assertIsString($composeConfiguration);
-        $this->assertStringContainsString('SSL_MODE: "mixed"', $composeConfiguration);
+        $this->assertStringContainsString('SSL_MODE: "${DOCKER_SSL_MODE:-off}"', $composeConfiguration);
         $this->assertStringContainsString('- "8080"', $composeConfiguration);
         $this->assertStringContainsString('- "8443"', $composeConfiguration);
     }
