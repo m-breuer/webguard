@@ -5,7 +5,8 @@ SERVICE="php"
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 COMPOSE_PROFILES="${COMPOSE_PROFILES:-internal-services}"
-export USER_ID GROUP_ID COMPOSE_PROFILES
+WEBGUARD_NETWORK="${WEBGUARD_NETWORK:-webguard-network}"
+export USER_ID GROUP_ID COMPOSE_PROFILES WEBGUARD_NETWORK
 
 compose() {
   docker compose -f docker-compose.yml -f docker-compose.override.yml "$@"
@@ -13,6 +14,7 @@ compose() {
 
 echo "Starting local development environment..."
 rm -f bootstrap/cache/*.php
+docker network inspect "${WEBGUARD_NETWORK}" >/dev/null 2>&1 || docker network create "${WEBGUARD_NETWORK}" >/dev/null
 compose up -d --build
 echo "Local development environment started."
 

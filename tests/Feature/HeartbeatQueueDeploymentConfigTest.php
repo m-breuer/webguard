@@ -31,6 +31,8 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('profiles:', $composeConfiguration);
         $this->assertStringContainsString('- internal-services', $composeConfiguration);
         $this->assertStringContainsString('required: false', $composeConfiguration);
+        $this->assertStringContainsString('name: "${WEBGUARD_NETWORK:-webguard-network}"', $composeConfiguration);
+        $this->assertStringContainsString('external: true', $composeConfiguration);
         $this->assertStringNotContainsString('WEBGUARD_INSTANCE_API_KEY', $composeConfiguration);
         $this->assertStringNotContainsString('DB_ROOT_PASSWORD', $composeConfiguration);
     }

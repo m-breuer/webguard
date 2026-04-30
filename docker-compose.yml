@@ -177,4 +177,5 @@ volumes:
 
 networks:
   webguard-network:
-    name: webguard-network
+    name: "${WEBGUARD_NETWORK:-webguard-network}"
+    external: true

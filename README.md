@@ -72,6 +72,7 @@ Minimum `.env` fields for production:
 ```env
 APP_URL=https://webguard.example.com
 APP_KEY=base64:...
+WEBGUARD_NETWORK=coolify
 
 DB_HOST=mysql
 DB_PORT=3306
@@ -108,6 +109,8 @@ For production deployments such as Coolify, set `DB_HOST` and `REDIS_HOST` to th
 Example with external services in the same Docker network:
 
 ```env
+WEBGUARD_NETWORK=coolify
+
 DB_HOST=my-production-mysql
 DB_PORT=3306
 DB_DATABASE=webguard_core
@@ -118,6 +121,8 @@ REDIS_HOST=my-production-redis
 REDIS_PORT=6379
 REDIS_PASSWORD=null
 ```
+
+`WEBGUARD_NETWORK` must be the existing external Docker network shared by WebGuard, MySQL, Redis, and any webguard-instance containers. In Coolify this is usually `coolify`; use the actual shared network name from your server if it differs.
 
 The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Leave `COMPOSE_PROFILES` empty in Coolify when you connect external services. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers.
 
@@ -236,6 +241,7 @@ DOCKER_VITE_PORT=5173
 DOCKER_MYSQL_PORT=3306
 DOCKER_MAILPIT_SMTP_PORT=1025
 DOCKER_MAILPIT_UI_PORT=8025
+WEBGUARD_NETWORK=webguard-network
 COMPOSE_PROFILES=internal-services
 ```
 
