@@ -70,43 +70,24 @@ Use `.env.example` as the starting point for `.env`.
 Minimum `.env` fields for production:
 
 ```env
-APP_NAME=WebGuard
-APP_ENV=production
-APP_DEBUG=false
 APP_URL=https://webguard.example.com
 APP_KEY=base64:...
-APP_TIMEZONE=Europe/Berlin
-APP_LOCALE=en
-APP_FALLBACK_LOCALE=en
 
-LOG_CHANNEL=stack
-LOG_LEVEL=info
-
-DB_CONNECTION=mysql
 DB_HOST=mysql
 DB_PORT=3306
 DB_DATABASE=webguard_core
 DB_USERNAME=webguard
 DB_PASSWORD=super-secret-password
 
-CACHE_STORE=redis
-QUEUE_CONNECTION=redis
-REDIS_CLIENT=phpredis
 REDIS_HOST=redis
 REDIS_PORT=6379
 REDIS_PASSWORD=null
-HEARTBEAT_QUEUE=heartbeat
 
-MAIL_MAILER=smtp
 MAIL_HOST=mail.example.com
 MAIL_PORT=587
 MAIL_USERNAME=mailer-user
 MAIL_PASSWORD=mailer-password
 MAIL_FROM_ADDRESS=noreply@example.com
-MAIL_FROM_NAME=WebGuard
-
-WEBGUARD_INSTANCE_API_KEY=...
-QUEUE_WORKER_QUEUE=default,heartbeat
 ```
 
 Optional:
@@ -131,7 +112,7 @@ REDIS_PORT=6379
 REDIS_PASSWORD=null
 ```
 
-The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Leave `COMPOSE_PROFILES` empty in Coolify when you connect external services. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers. In that bundled mode, also set `DB_ROOT_PASSWORD`.
+The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Leave `COMPOSE_PROFILES` empty in Coolify when you connect external services. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers.
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
@@ -217,7 +198,6 @@ DB_PORT=3306
 DB_DATABASE=webguard_core
 DB_USERNAME=webguard
 DB_PASSWORD=webguard
-DB_ROOT_PASSWORD=root
 
 CACHE_STORE=redis
 QUEUE_CONNECTION=redis
@@ -238,8 +218,6 @@ MAIL_FROM_NAME=WebGuard
 VITE_DEV_SERVER_URL=http://webguard.test:5173
 VITE_HMR_HOST=webguard.test
 
-WEBGUARD_INSTANCE_API_KEY=your_generated_key_here
-
 DOCKER_APP_HOST=webguard.test
 DOCKER_MAILPIT_HOST=mailpit.webguard.test
 DOCKER_HTTP_PORT=80
@@ -248,12 +226,7 @@ DOCKER_VITE_PORT=5173
 DOCKER_MYSQL_PORT=3306
 DOCKER_MAILPIT_SMTP_PORT=1025
 DOCKER_MAILPIT_UI_PORT=8025
-DOCKER_NETWORK_NAME=webguard-network
 COMPOSE_PROFILES=internal-services
-QUEUE_WORKER_QUEUE=default,heartbeat
-QUEUE_WORKER_SLEEP=1
-QUEUE_WORKER_TRIES=1
-QUEUE_WORKER_MAX_TIME=3600
 ```
 
 If you already have an older `.env`, align it with `.env.example` before using Docker.
@@ -342,7 +315,7 @@ If you prefer running services directly on your host machine, use the classic La
 
    This starts the Laravel development server, the Redis-backed queue workers, the Pail log viewer, and the Vite development server.
 
-   In production, ensure the configured heartbeat queue is processed as well. The Docker worker processes `default,heartbeat` by default through `QUEUE_WORKER_QUEUE`.
+   In production, ensure the configured heartbeat queue is processed as well. The Docker worker processes `default,heartbeat` by default.
 
 8.  **Run the test suite:**
 

@@ -13,9 +13,9 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
         $this->assertIsString($composeConfiguration);
-        $this->assertStringContainsString('HEARTBEAT_QUEUE: "${HEARTBEAT_QUEUE:-heartbeat}"', $composeConfiguration);
+        $this->assertStringContainsString('HEARTBEAT_QUEUE: "heartbeat"', $composeConfiguration);
         $this->assertStringContainsString(
-            'php artisan queue:work redis --queue=${QUEUE_WORKER_QUEUE:-default,heartbeat}',
+            'php artisan queue:work redis --queue=default,heartbeat',
             $composeConfiguration
         );
     }
@@ -30,5 +30,7 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('profiles:', $composeConfiguration);
         $this->assertStringContainsString('- internal-services', $composeConfiguration);
         $this->assertStringContainsString('required: false', $composeConfiguration);
+        $this->assertStringNotContainsString('WEBGUARD_INSTANCE_API_KEY', $composeConfiguration);
+        $this->assertStringNotContainsString('DB_ROOT_PASSWORD', $composeConfiguration);
     }
 }

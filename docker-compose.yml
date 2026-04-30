@@ -1,40 +1,38 @@
 x-app-environment: &app-environment
-  APP_NAME: "${APP_NAME:-WebGuard}"
-  APP_ENV: "${APP_ENV:-production}"
-  APP_DEBUG: "${APP_DEBUG:-false}"
+  APP_NAME: "WebGuard"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
   APP_KEY: "${APP_KEY:-}"
   APP_URL: "${APP_URL:-https://webguard.example.com}"
-  APP_TIMEZONE: "${APP_TIMEZONE:-Europe/Berlin}"
-  APP_LOCALE: "${APP_LOCALE:-en}"
-  APP_FALLBACK_LOCALE: "${APP_FALLBACK_LOCALE:-en}"
-  LOG_CHANNEL: "${LOG_CHANNEL:-stack}"
-  LOG_LEVEL: "${LOG_LEVEL:-info}"
-  SESSION_DRIVER: "${SESSION_DRIVER:-database}"
-  SESSION_LIFETIME: "${SESSION_LIFETIME:-120}"
-  MAIL_MAILER: "${MAIL_MAILER:-smtp}"
-  MAIL_SCHEME: "${MAIL_SCHEME:-null}"
+  APP_TIMEZONE: "Europe/Berlin"
+  APP_LOCALE: "en"
+  APP_FALLBACK_LOCALE: "en"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "info"
+  SESSION_DRIVER: "database"
+  SESSION_LIFETIME: "120"
+  MAIL_MAILER: "smtp"
   MAIL_HOST: "${MAIL_HOST:-smtp.example.com}"
   MAIL_PORT: "${MAIL_PORT:-587}"
   MAIL_USERNAME: "${MAIL_USERNAME:-null}"
   MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
   MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-noreply@example.com}"
-  MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"
-  DB_CONNECTION: "${DB_CONNECTION:-mysql}"
+  MAIL_FROM_NAME: "WebGuard"
+  DB_CONNECTION: "mysql"
   DB_HOST: "${DB_HOST:-mysql}"
   DB_PORT: "${DB_PORT:-3306}"
   DB_DATABASE: "${DB_DATABASE:-webguard_core}"
   DB_USERNAME: "${DB_USERNAME:-webguard}"
   DB_PASSWORD: "${DB_PASSWORD:-webguard}"
-  CACHE_STORE: "${CACHE_STORE:-redis}"
-  QUEUE_CONNECTION: "${QUEUE_CONNECTION:-redis}"
-  REDIS_CLIENT: "${REDIS_CLIENT:-phpredis}"
+  CACHE_STORE: "redis"
+  QUEUE_CONNECTION: "redis"
+  REDIS_CLIENT: "phpredis"
   REDIS_HOST: "${REDIS_HOST:-redis}"
   REDIS_PASSWORD: "${REDIS_PASSWORD:-null}"
   REDIS_PORT: "${REDIS_PORT:-6379}"
-  REDIS_QUEUE_CONNECTION: "${REDIS_QUEUE_CONNECTION:-default}"
-  REDIS_QUEUE: "${REDIS_QUEUE:-default}"
-  HEARTBEAT_QUEUE: "${HEARTBEAT_QUEUE:-heartbeat}"
-  WEBGUARD_INSTANCE_API_KEY: "${WEBGUARD_INSTANCE_API_KEY:-}"
+  REDIS_QUEUE_CONNECTION: "default"
+  REDIS_QUEUE: "default"
+  HEARTBEAT_QUEUE: "heartbeat"
 
 services:
   php:
@@ -42,14 +40,14 @@ services:
     build:
       context: .
       target: production
-    image: ${DOCKER_PHP_IMAGE:-webguard-core-php:latest}
+    image: webguard-core-php:latest
     restart: unless-stopped
     environment:
       <<: *app-environment
-      SSL_MODE: "${DOCKER_SSL_MODE:-off}"
-      PHP_MEMORY_LIMIT: "${DOCKER_PHP_MEMORY_LIMIT:-512M}"
-      PHP_UPLOAD_MAX_FILE_SIZE: "${DOCKER_PHP_UPLOAD_MAX_FILE_SIZE:-100M}"
-      PHP_MAX_EXECUTION_TIME: "${DOCKER_PHP_MAX_EXECUTION_TIME:-300}"
+      SSL_MODE: "off"
+      PHP_MEMORY_LIMIT: "512M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_EXECUTION_TIME: "300"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "true"
       AUTORUN_LARAVEL_MIGRATE: "true"
@@ -57,7 +55,7 @@ services:
       AUTORUN_LARAVEL_OPTIMIZE: "true"
       AUTORUN_LARAVEL_STORAGE_LINK: "true"
     expose:
-      - "${DOCKER_PHP_INTERNAL_PORT:-8080}"
+      - "8080"
     volumes:
       - config:/config
       - data:/data
@@ -76,13 +74,13 @@ services:
 
   schedule:
     container_name: webguard-schedule
-    image: ${DOCKER_WORKER_IMAGE:-webguard-core-worker:latest}
+    image: webguard-core-worker:latest
     restart: unless-stopped
     environment:
       <<: *app-environment
-      PHP_MEMORY_LIMIT: "${DOCKER_WORKER_MEMORY_LIMIT:-2048M}"
-      PHP_UPLOAD_MAX_FILE_SIZE: "${DOCKER_WORKER_UPLOAD_MAX_FILE_SIZE:-100M}"
-      PHP_MAX_EXECUTION_TIME: "${DOCKER_WORKER_MAX_EXECUTION_TIME:-3600}"
+      PHP_MEMORY_LIMIT: "2048M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_EXECUTION_TIME: "3600"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "false"
     command: php artisan schedule:work --verbose --no-interaction
@@ -102,16 +100,16 @@ services:
     build:
       context: .
       target: worker
-    image: ${DOCKER_WORKER_IMAGE:-webguard-core-worker:latest}
+    image: webguard-core-worker:latest
     restart: unless-stopped
     environment:
       <<: *app-environment
-      PHP_MEMORY_LIMIT: "${DOCKER_WORKER_MEMORY_LIMIT:-2048M}"
-      PHP_UPLOAD_MAX_FILE_SIZE: "${DOCKER_WORKER_UPLOAD_MAX_FILE_SIZE:-100M}"
-      PHP_MAX_EXECUTION_TIME: "${DOCKER_WORKER_MAX_EXECUTION_TIME:-3600}"
+      PHP_MEMORY_LIMIT: "2048M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_EXECUTION_TIME: "3600"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "false"
-    command: php artisan queue:work redis --queue=${QUEUE_WORKER_QUEUE:-default,heartbeat} --sleep=${QUEUE_WORKER_SLEEP:-1} --tries=${QUEUE_WORKER_TRIES:-1} --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
+    command: php artisan queue:work redis --queue=default,heartbeat --sleep=1 --tries=1 --max-time=3600
     stop_signal: SIGTERM
     depends_on:
       mysql:
@@ -130,10 +128,10 @@ services:
     container_name: webguard-mysql
     profiles:
       - internal-services
-    image: mysql:${DOCKER_MYSQL_VERSION:-8.4}
+    image: mysql:8.4
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root}"
+      MYSQL_ROOT_PASSWORD: "root"
       MYSQL_DATABASE: "${DB_DATABASE:-webguard_core}"
       MYSQL_USER: "${DB_USERNAME:-webguard}"
       MYSQL_PASSWORD: "${DB_PASSWORD:-webguard}"
@@ -151,7 +149,7 @@ services:
     container_name: webguard-redis
     profiles:
       - internal-services
-    image: redis:${DOCKER_REDIS_VERSION:-8.4}-alpine
+    image: redis:8.4-alpine
     restart: unless-stopped
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     healthcheck:
@@ -176,4 +174,4 @@ volumes:
 
 networks:
   webguard-network:
-    name: ${DOCKER_NETWORK_NAME:-webguard-network}
+    name: webguard-network
