@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,22 +24,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read Monitoring $monitoring
  */
+#[Fillable([
+    'monitoring_id',
+    'down_at',
+    'up_at',
+
+])]
 class Incident extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'monitoring_id',
-        'down_at',
-        'up_at',
-
-    ];
 
     /**
      * Get the monitoring that the incident belongs to.

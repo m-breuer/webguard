@@ -26,6 +26,7 @@ class MonitoringResource extends JsonResource
             'status' => $this->status,
             'timeout' => $this->timeout,
             'http_method' => $this->http_method,
+            'expected_http_statuses' => $this->expected_http_statuses,
             'http_headers' => $this->http_headers,
             'http_body' => $this->http_body,
             'auth_username' => $this->auth_username,
@@ -36,6 +37,11 @@ class MonitoringResource extends JsonResource
             'maintenance_active' => $this->isUnderMaintenance(),
             'maintenance_from' => $this->maintenance_from,
             'maintenance_until' => $this->maintenance_until,
+            'heartbeat_interval_minutes' => $this->heartbeat_interval_minutes,
+            'heartbeat_grace_minutes' => $this->heartbeat_grace_minutes,
+            'heartbeat_last_ping_at' => $this->heartbeat_last_ping_at,
+            'domain_expires_at' => $this->whenLoaded('domainResult', fn () => $this->domainResult?->expires_at),
+            'domain_registrar' => $this->whenLoaded('domainResult', fn () => $this->domainResult?->registrar),
             'latest_http_status_code' => $this->whenLoaded('latestResponseResult', fn () => $this->latestResponseResult?->http_status_code),
         ];
     }

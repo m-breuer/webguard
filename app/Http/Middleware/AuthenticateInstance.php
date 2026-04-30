@@ -33,6 +33,7 @@ class AuthenticateInstance
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        $instance->recordSeen();
         $request->attributes->set('authenticated_instance_code', $instance->code);
 
         return $next($request);

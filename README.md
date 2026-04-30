@@ -4,21 +4,25 @@
 
 > 💡 **System Architecture Note:** This repository contains the **Management Core & API**. For the distributed scanning node/worker, please visit the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
 
-WebGuard is a powerful, open-source web monitoring service built with Laravel 13. It's designed to help you track website uptime, response times, and SSL certificate statuses with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
+WebGuard is a powerful, open-source web monitoring service built with Laravel 13. It's designed to help you track website uptime, response times, SSL certificate statuses, and domain registration expiry with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
 
 The application features a user-friendly dashboard for at-a-glance statistics, a comprehensive admin panel for user and package management, and a REST API for programmatic access and integration with other systems.
 
 ## Key Features
 
 * **Uptime Monitoring:** Keep a close eye on your website's availability with asynchronous uptime checks.
+* **Heartbeat & Cron Monitoring:** Detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
 * **Response Time Tracking:** Monitor your website's performance by tracking response times.
+* **Expected HTTP Status Ranges:** Define accepted HTTP status codes or ranges, such as `200-299, 301, 302`, per HTTP or keyword monitoring.
 * **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
+* **Domain Expiration Monitoring:** Track domain registration expiry and receive proactive renewal warnings before critical domains lapse.
 * **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.
 * **Real-Time Dashboard:** Visualize your monitoring data with real-time statistics and charts.
 * **Admin Panel:** Manage users, subscription packages, and review API usage logs.
 * **REST API:** Programmatically access your monitoring data and integrate WebGuard with your existing workflows.
 * **Embeddable Widget:** Display your website's monitoring status on external sites with a simple JavaScript widget.
-* **Flexible Notifications:** Receive notifications for status changes and SSL expiry via in-app notifications and email.
+* **Flexible Notifications:** Receive notifications for status changes, SSL expiry, and domain expiry via in-app notifications and configurable channels.
+* **Weekly Monitoring Digest:** Email weekly uptime, incident, downtime, SSL, and domain expiry summaries to active users.
 * **Public Status Pages:** Create public status pages for your monitorings to keep your users informed.
 * **Global Language Switch:** Switch between supported languages from both public and authenticated top navigation.
 * **Landing Navigation Anchors:** Landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
@@ -51,11 +55,14 @@ This repository now uses two Docker modes:
 * `docker-compose.yml`: standard deployment stack
 * `docker-compose.override.yml`: local development additions only
 
-The standard deployment stack contains:
+The standard deployment stack always contains:
 
 * `php`
 * `schedule`
 * `queue-default`
+
+The optional `internal-services` profile also adds bundled infrastructure:
+
 * `mysql`
 * `redis`
 
@@ -81,7 +88,6 @@ DB_PORT=3306
 DB_DATABASE=webguard_core
 DB_USERNAME=webguard
 DB_PASSWORD=super-secret-password
-DB_ROOT_PASSWORD=super-secret-root-password
 
 CACHE_STORE=redis
 QUEUE_CONNECTION=redis
@@ -89,6 +95,7 @@ REDIS_CLIENT=phpredis
 REDIS_HOST=redis
 REDIS_PORT=6379
 REDIS_PASSWORD=null
+HEARTBEAT_QUEUE=heartbeat
 
 MAIL_MAILER=smtp
 MAIL_HOST=mail.example.com
@@ -102,11 +109,34 @@ MAIL_FROM_NAME=WebGuard
 WEBGUARD_CORE_INTERNAL_API_URL=https://webguard.example.com/api/v1/internal
 WEBGUARD_INSTANCE_CODE=...
 WEBGUARD_INSTANCE_API_KEY=...
+QUEUE_WORKER_QUEUE=default,heartbeat
 ```
 
 Optional:
 * `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
 * `IMPRINT_*` fields for legal/imprint content
+
+### External database and Redis
+
+For production deployments such as Coolify, set `DB_HOST` and `REDIS_HOST` to the service names or hostnames of the database and Redis containers you want to use.
+
+Example with external services in the same Docker network:
+
+```env
+DB_HOST=my-production-mysql
+DB_PORT=3306
+DB_DATABASE=webguard_core
+DB_USERNAME=webguard
+DB_PASSWORD=...
+
+REDIS_HOST=my-production-redis
+REDIS_PORT=6379
+REDIS_PASSWORD=null
+```
+
+The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Leave `COMPOSE_PROFILES` empty in Coolify when you connect external services. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers. In that bundled mode, also set `DB_ROOT_PASSWORD`.
+
+Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
 The application listens internally on port `8080`.
 If you use Traefik or another reverse proxy in front of the deployment, route traffic to the `php` service on that port.
@@ -198,6 +228,7 @@ REDIS_CLIENT=phpredis
 REDIS_HOST=redis
 REDIS_PORT=6379
 REDIS_PASSWORD=null
+HEARTBEAT_QUEUE=heartbeat
 
 MAIL_MAILER=smtp
 MAIL_HOST=mailpit
@@ -224,7 +255,8 @@ DOCKER_MYSQL_PORT=3306
 DOCKER_MAILPIT_SMTP_PORT=1025
 DOCKER_MAILPIT_UI_PORT=8025
 DOCKER_NETWORK_NAME=webguard-network
-QUEUE_WORKER_QUEUE=default
+COMPOSE_PROFILES=internal-services
+QUEUE_WORKER_QUEUE=default,heartbeat
 QUEUE_WORKER_SLEEP=1
 QUEUE_WORKER_TRIES=1
 QUEUE_WORKER_MAX_TIME=3600
@@ -313,6 +345,10 @@ If you prefer running services directly on your host machine, use the classic La
    ```bash
    bun run dev
    ```
+
+   This starts the Laravel development server, the Redis-backed queue workers, the Pail log viewer, and the Vite development server.
+
+   In production, ensure the configured heartbeat queue is processed as well. The Docker worker processes `default,heartbeat` by default through `QUEUE_WORKER_QUEUE`.
 
 8.  **Run the test suite:**
 

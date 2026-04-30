@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -11,8 +14,19 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Hash;
 
+#[Fillable([
+    'code',
+    'ip_address',
+    'api_key_hash',
+    'is_active',
+    'last_seen_at',
+])]
+#[Hidden([
+    'api_key_hash',
+])]
 class ServerInstance extends Model
 {
     use HasFactory;
@@ -21,23 +35,6 @@ class ServerInstance extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    /**
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'code',
-        'ip_address',
-        'api_key_hash',
-        'is_active',
-    ];
-
-    /**
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'api_key_hash',
-    ];
 
     /**
      * @return HasMany<Monitoring, $this>
@@ -50,6 +47,38 @@ class ServerInstance extends Model
     public function verifyApiKey(string $apiKey): bool
     {
         return Hash::check($apiKey, $this->api_key_hash);
+    }
+
+    public function recordSeen(?CarbonInterface $timestamp = null): void
+    {
+        $timestamp ??= Date::now();
+        $throttleSeconds = max(0, (int) config('monitoring.instance_seen_write_throttle_seconds', 60));
+
+        if ($throttleSeconds > 0 && $this->last_seen_at?->greaterThan($timestamp->copy()->subSeconds($throttleSeconds))) {
+            return;
+        }
+
+        $this->forceFill(['last_seen_at' => $timestamp])->saveQuietly();
+    }
+
+    public function healthStatus(?CarbonInterface $timestamp = null): string
+    {
+        if (! $this->is_active) {
+            return 'inactive';
+        }
+
+        if (! $this->last_seen_at) {
+            return 'never_seen';
+        }
+
+        $timestamp ??= Date::now();
+        $staleAfterMinutes = max(1, (int) config('monitoring.instance_stale_after_minutes', 10));
+
+        if ($this->last_seen_at->lessThan($timestamp->copy()->subMinutes($staleAfterMinutes))) {
+            return 'stale';
+        }
+
+        return 'healthy';
     }
 
     /**
@@ -79,6 +108,7 @@ class ServerInstance extends Model
         return [
             'ip_address' => 'string',
             'is_active' => 'boolean',
+            'last_seen_at' => 'datetime',
         ];
     }
 }

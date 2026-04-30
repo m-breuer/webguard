@@ -10,11 +10,14 @@ use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
+use App\Models\User;
+use App\Support\HttpStatusCodeRanges;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -34,6 +37,9 @@ class MonitoringController extends Controller
      */
     public function index(Request $request): View
     {
+        /** @var User $currentUser */
+        $currentUser = $request->user()->loadMissing('package');
+
         $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'types' => ['nullable', 'string', function ($attribute, $value, $fail) {
@@ -78,14 +84,29 @@ class MonitoringController extends Controller
         };
 
         $lengthAwarePaginator = $query->paginate(5);
+        $hasActiveFilters = $request->filled('search')
+            || $request->filled('types')
+            || $request->filled('lifecycle');
+        $monitoringsTotal = $hasActiveFilters
+            ? $currentUser->monitorings()->count()
+            : $lengthAwarePaginator->total();
+        $monitoringLimit = (int) $currentUser->package->monitoring_limit;
+        $canCreateMonitoring = ! $currentUser->isGuest() && $monitoringsTotal < $monitoringLimit;
+
+        if (! $hasActiveFilters && $monitoringsTotal === 0) {
+            $request->attributes->set('unread_notifications_count', 0);
+        }
 
         $maintenanceStatusMap = $lengthAwarePaginator->getCollection()->mapWithKeys(function ($monitoring) {
             return [$monitoring->id => $monitoring->isUnderMaintenance()];
         });
 
         return view('monitorings.index', [
+            'currentUser' => $currentUser,
             'monitorings' => $lengthAwarePaginator,
-            'monitoringsTotal' => Auth::user()->monitorings()->count(),
+            'monitoringsTotal' => $monitoringsTotal,
+            'monitoringLimit' => $monitoringLimit,
+            'canCreateMonitoring' => $canCreateMonitoring,
             'maintenanceStatusMap' => $maintenanceStatusMap,
         ]);
     }
@@ -112,7 +133,11 @@ class MonitoringController extends Controller
                 ->withErrors(['preferred_location' => __('monitoring.messages.no_server_instances')]);
         }
 
-        return view('monitorings.create', ['types' => $types, 'serverInstances' => $serverInstances]);
+        return view('monitorings.create', [
+            'types' => $types,
+            'serverInstances' => $serverInstances,
+            'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+        ]);
     }
 
     /**
@@ -131,6 +156,7 @@ class MonitoringController extends Controller
         }
 
         $validated = $monitoringRequest->validated();
+        $validated = $this->prepareStorePayload($validated);
 
         Auth::user()->monitorings()->create($validated);
 
@@ -145,6 +171,8 @@ class MonitoringController extends Controller
      */
     public function show(Monitoring $monitoring): View
     {
+        $monitoring->loadMissing('domainResult');
+
         return view('monitorings.show', [
             'monitoring' => $monitoring,
         ]);
@@ -167,7 +195,12 @@ class MonitoringController extends Controller
             ->orderBy('code')
             ->get(['code']);
 
-        return view('monitorings.edit', ['monitoring' => $monitoring, 'types' => $types, 'serverInstances' => $serverInstances]);
+        return view('monitorings.edit', [
+            'monitoring' => $monitoring,
+            'types' => $types,
+            'serverInstances' => $serverInstances,
+            'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+        ]);
     }
 
     /**
@@ -183,6 +216,7 @@ class MonitoringController extends Controller
 
         $validated = $monitoringRequest->validated();
         unset($validated['target']);
+        $validated = $this->prepareUpdatePayload($validated, $monitoring);
 
         if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {
             $validated['public_label_enabled'] = false;
@@ -225,5 +259,102 @@ class MonitoringController extends Controller
         dispatch(new DeleteMonitoringResults($monitoring));
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.results_deleted'));
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function prepareStorePayload(array $validated): array
+    {
+        $type = MonitoringType::tryFrom((string) ($validated['type'] ?? ''));
+
+        if ($type === MonitoringType::DOMAIN_EXPIRATION) {
+            $validated['target'] = mb_strtolower(mb_trim((string) $validated['target']));
+            $validated['timeout'] = 5;
+            $validated['http_method'] = null;
+            $validated['expected_http_statuses'] = null;
+            $validated['http_headers'] = null;
+            $validated['http_body'] = null;
+            $validated['auth_username'] = null;
+            $validated['auth_password'] = null;
+            $validated['port'] = null;
+            $validated['keyword'] = null;
+        }
+
+        if (in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
+            $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
+
+            return $validated;
+        }
+
+        if ($type !== MonitoringType::HEARTBEAT) {
+            $validated['expected_http_statuses'] = null;
+
+            return $validated;
+        }
+
+        $heartbeatToken = (string) Str::ulid();
+
+        $validated['heartbeat_token'] = $heartbeatToken;
+        $validated['target'] = route('monitorings.heartbeat.ping', ['token' => $heartbeatToken]);
+        $validated['timeout'] = 5;
+        $validated['http_method'] = null;
+        $validated['expected_http_statuses'] = null;
+        $validated['http_headers'] = null;
+        $validated['http_body'] = null;
+        $validated['auth_username'] = null;
+        $validated['auth_password'] = null;
+        $validated['port'] = null;
+        $validated['keyword'] = null;
+
+        return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function prepareUpdatePayload(array $validated, Monitoring $monitoring): array
+    {
+        if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION) {
+            $validated['target'] = $monitoring->target;
+            $validated['timeout'] = 5;
+            $validated['http_method'] = null;
+            $validated['expected_http_statuses'] = null;
+            $validated['http_headers'] = null;
+            $validated['http_body'] = null;
+            $validated['auth_username'] = null;
+            $validated['auth_password'] = null;
+            $validated['port'] = null;
+            $validated['keyword'] = null;
+
+            return $validated;
+        }
+
+        if (in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
+            $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
+
+            return $validated;
+        }
+
+        if (! $monitoring->isHeartbeat()) {
+            $validated['expected_http_statuses'] = null;
+
+            return $validated;
+        }
+
+        $validated['target'] = $monitoring->target;
+        $validated['timeout'] = 5;
+        $validated['http_method'] = null;
+        $validated['expected_http_statuses'] = null;
+        $validated['http_headers'] = null;
+        $validated['http_body'] = null;
+        $validated['auth_username'] = null;
+        $validated['auth_password'] = null;
+        $validated['port'] = null;
+        $validated['keyword'] = null;
+
+        return $validated;
     }
 }

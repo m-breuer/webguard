@@ -4,7 +4,8 @@ set -euo pipefail
 SERVICE="php"
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
-export USER_ID GROUP_ID
+COMPOSE_PROFILES="${COMPOSE_PROFILES:-internal-services}"
+export USER_ID GROUP_ID COMPOSE_PROFILES
 
 compose() {
   docker compose -f docker-compose.yml -f docker-compose.override.yml "$@"

@@ -12,4 +12,5 @@ Route::group(['prefix' => 'v1/internal', 'as' => 'v1.internal.', 'middleware' =>
     Route::post('incidents', [MonitoringController::class, 'storeIncident'])->name('incidents.store');
     Route::put('incidents/{monitoring}', [MonitoringController::class, 'updateIncident'])->name('incidents.update');
     Route::post('ssl-results', [MonitoringController::class, 'storeSsl'])->name('ssl-results.store');
+    Route::post('domain-results', [MonitoringController::class, 'storeDomain'])->name('domain-results.store');
 });

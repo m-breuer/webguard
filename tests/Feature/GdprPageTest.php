@@ -33,6 +33,33 @@ class GdprPageTest extends TestCase
         $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
     }
 
+    public function test_gdpr_page_describes_current_feature_data_processing(): void
+    {
+        foreach (['de-DE' => 'de', 'en-US' => 'en'] as $acceptLanguage => $locale) {
+            $testResponse = $this->withHeader('Accept-Language', $acceptLanguage)
+                ->get(route('gdpr'));
+
+            $dataCategories = (array) trans('gdpr.sections.data_categories.items', [], $locale);
+            $processingPurposes = (array) trans('gdpr.sections.purposes_legal_basis.purposes', [], $locale);
+            $thirdPartyServices = (array) trans('gdpr.sections.third_party.items', [], $locale);
+
+            $testResponse->assertOk();
+            $testResponse->assertSeeText(__('gdpr.hero.last_updated_date', [], $locale));
+            $testResponse->assertSeeText($dataCategories[3]);
+            $testResponse->assertSeeText($dataCategories[4]);
+            $testResponse->assertSeeText($dataCategories[5]);
+            $testResponse->assertSeeText($dataCategories[6]);
+            $testResponse->assertSeeText($dataCategories[7]);
+            $testResponse->assertSeeText($dataCategories[8]);
+            $testResponse->assertSeeText($processingPurposes[1]);
+            $testResponse->assertSeeText($processingPurposes[2]);
+            $testResponse->assertSeeText($processingPurposes[3]);
+            $testResponse->assertSeeText($thirdPartyServices[2]);
+            $testResponse->assertSeeText(__('gdpr.sections.retention.lead', [], $locale));
+            $testResponse->assertSeeText(__('gdpr.sections.security.lead', [], $locale));
+        }
+    }
+
     public function test_datenschutz_route_redirects_to_gdpr(): void
     {
         $testResponse = $this->get('/datenschutz');

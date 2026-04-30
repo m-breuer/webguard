@@ -19,20 +19,65 @@ return [
         'send_verification_email' => 'Click here to re-send the verification email',
         'verification_email_sent' => 'A new verification email has been sent to your email address.',
     ],
+    'sections' => [
+        'account' => 'Account',
+        'preferences' => 'Appearance',
+    ],
     'theme' => [
         'heading' => 'Theme',
         'description' => 'Select your preferred theme.',
     ],
     'notification_settings' => [
         'heading' => 'Notification Settings',
-        'description' => 'Configure your global notification channels. These settings apply to all monitorings.',
+        'description' => 'Configure your notification channels. Choose which channels a monitoring uses in that monitoring.',
+        'channels_heading' => 'Channels',
         'enabled' => 'Enabled',
-        'hint_banner' => 'Configure at least one channel to continue receiving incident and SSL alerts.',
+        'hint_banner' => 'Configure at least one channel to continue receiving incident, SSL, and domain expiry alerts.',
+        'digest' => [
+            'heading' => 'Monitoring digest',
+            'description' => 'Receive an email summary across all of your active monitorings.',
+            'enabled' => 'Enable monitoring digest by email',
+            'frequency' => 'Time window',
+            'frequencies' => [
+                'daily' => 'Daily',
+                'weekly' => 'Weekly',
+                'monthly' => 'Monthly',
+            ],
+        ],
+        'unread_reminder' => [
+            'heading' => 'Unread message reminder',
+            'description' => 'Receive an email when your notification overview still contains unread messages.',
+            'enabled' => 'Enable email reminders for unread messages',
+            'frequency' => 'Interval',
+            'frequencies' => [
+                'daily' => 'Daily',
+                'weekly' => 'Every 7 days',
+                'monthly' => 'Monthly',
+            ],
+        ],
+        'test' => [
+            'action' => 'Send test',
+            'messages' => [
+                'sent' => ':channel test notification sent successfully.',
+                'failed' => ':channel test notification could not be sent. Check the saved channel configuration and try again.',
+            ],
+            'payload' => [
+                'title' => 'WebGuard test notification',
+                'message' => 'Your :channel notification channel is configured correctly.',
+            ],
+        ],
         'events' => [
             'incident' => 'Incident',
             'recovery' => 'Recovery',
             'ssl_expiring' => 'SSL expiring',
             'ssl_expired' => 'SSL expired',
+            'domain_expiring' => 'Domain expiring',
+            'domain_expired' => 'Domain expired',
+        ],
+        'expiry_warning_days' => [
+            'heading' => 'Expiry warning windows',
+            'help' => 'Choose when SSL certificates and domains should trigger expiry warnings.',
+            'option' => '{1} :days day before expiry|[2,*] :days days before expiry',
         ],
         'fields' => [
             'telegram_bot_token' => 'Telegram Bot Token',
@@ -83,7 +128,8 @@ return [
         'current_password' => 'Current Password',
         'new_password' => 'New Password',
         'confirm_new_password' => 'Confirm New Password',
-    ],    'actions' => [
+    ],
+    'actions' => [
         'update_password' => 'Update Password',
         'update_profile' => 'Update Profile',
         'delete_account' => 'Delete Account',

@@ -7,6 +7,7 @@ namespace App\Enums;
 enum NotificationType: string
 {
     case SSL_EXPIRY = 'ssl_expiry';
+    case DOMAIN_EXPIRY = 'domain_expiry';
     case STATUS_CHANGE = 'status_change';
 
     /**

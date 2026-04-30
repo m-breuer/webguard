@@ -13,6 +13,7 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class UptimeDowntimeApiTest extends TestCase
@@ -152,5 +153,80 @@ class UptimeDowntimeApiTest extends TestCase
         $this->assertEqualsWithDelta((600 / 1439) * 100, (float) $testResponse->json('uptime.percentage'), 0.0001);
         $this->assertEqualsWithDelta((600 / 1439) * 100, (float) $testResponse->json('downtime.percentage'), 0.0001);
         $this->assertEqualsWithDelta((239 / 1439) * 100, (float) $testResponse->json('unknown.percentage'), 0.0001);
+    }
+
+    public function test_uptime_summary_batches_multi_range_daily_result_queries(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::now()->subDays(120),
+        ]);
+
+        foreach (range(1, 90) as $daysAgo) {
+            $date = Date::now()->subDays($daysAgo)->startOfDay();
+
+            MonitoringDailyResult::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'date' => $date->toDateString(),
+                'uptime_total' => 10,
+                'downtime_total' => 1,
+                'unknown_total' => 0,
+                'uptime_percentage' => 99.0,
+                'downtime_percentage' => 1.0,
+                'unknown_percentage' => 0.0,
+                'uptime_minutes' => 1_400,
+                'downtime_minutes' => 40,
+                'unknown_minutes' => 0,
+                'avg_response_time' => 120.0,
+                'min_response_time' => 100,
+                'max_response_time' => 180,
+                'incidents_count' => 1,
+            ]);
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        foreach ([7, 30, 90] as $days) {
+            $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=' . $days)
+                ->assertOk();
+        }
+
+        $legacyDailyResultsQueries = $this->dailyResultsQueryCount();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime-summary?' . http_build_query([
+            'days' => [7, 30, 90],
+        ]));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('data.7.has_data', true);
+        $testResponse->assertJsonPath('data.30.has_data', true);
+        $testResponse->assertJsonPath('data.90.has_data', true);
+        $testResponse->assertJsonPath('data.7.uptime.minutes', 9_800);
+        $testResponse->assertJsonPath('data.30.downtime.minutes', 1_200);
+        $testResponse->assertJsonPath('data.90.downtime.incidents_count', 90);
+
+        $summaryDailyResultsQueries = $this->dailyResultsQueryCount();
+
+        $this->assertGreaterThan($summaryDailyResultsQueries, $legacyDailyResultsQueries);
+        $this->assertLessThanOrEqual(
+            2,
+            $summaryDailyResultsQueries,
+            (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL)
+        );
+    }
+
+    private function dailyResultsQueryCount(): int
+    {
+        return collect(DB::getQueryLog())
+            ->pluck('query')
+            ->filter(static fn (string $query): bool => str_contains(mb_strtolower($query), 'monitoring_daily_results'))
+            ->count();
     }
 }

@@ -20,8 +20,11 @@ Schedule::command('sitemap:generate')->dailyAt('02:00');
 // Dispatch status change notifications immediately.
 Schedule::command('notifications:dispatch-status-changes')->everyMinute()->withoutOverlapping();
 
-// Remind users weekly about unread notifications in their board.
-Schedule::command('notifications:remind-unread-weekly')->weeklyOn(1, '08:00')->withoutOverlapping();
+// Remind users daily about unread notifications in their board.
+Schedule::command('notifications:remind-unread-weekly')->dailyAt('08:00')->withoutOverlapping();
+
+// Send customers their configured monitoring performance digest.
+Schedule::command('notifications:send-weekly-monitoring-digest')->dailyAt('08:30')->withoutOverlapping();
 
 // Prune old read notifications daily.
 Schedule::command('notifications:prune-read')->dailyAt('01:00');
@@ -39,10 +42,13 @@ Schedule::command('notifications:prune-guest')
 // Aggregate raw monitoring data into daily summaries.
 Schedule::command('monitoring:aggregate-daily')->dailyAt('00:30');
 
+// Evaluate passive heartbeat monitorings for missed pings.
+Schedule::command('monitoring:evaluate-heartbeats')->everyMinute()->withoutOverlapping();
+
 // Archive old monitoring responses weekly.
 Schedule::command('monitoring:archive-responses')->weekly();
 
-// Check for expiring SSL certificates daily.
+// Check for expiring SSL certificates and domains daily.
 Schedule::command('notifications:send-ssl-expiry-warnings')->dailyAt('06:00')->withoutOverlapping();
 
 // Permanently delete soft-deleted monitorings and their data monthly.

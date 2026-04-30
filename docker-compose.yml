@@ -11,6 +11,15 @@ x-app-environment: &app-environment
   LOG_LEVEL: "${LOG_LEVEL:-info}"
   SESSION_DRIVER: "${SESSION_DRIVER:-database}"
   SESSION_LIFETIME: "${SESSION_LIFETIME:-120}"
+  MAIL_MAILER: "${MAIL_MAILER:-smtp}"
+  MAIL_SCHEME: "${MAIL_SCHEME:-null}"
+  MAIL_HOST: "${MAIL_HOST:-smtp.example.com}"
+  MAIL_PORT: "${MAIL_PORT:-587}"
+  MAIL_USERNAME: "${MAIL_USERNAME:-null}"
+  MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
+  MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"
+  MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-noreply@example.com}"
+  MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"
   DB_CONNECTION: "${DB_CONNECTION:-mysql}"
   DB_HOST: "${DB_HOST:-mysql}"
   DB_PORT: "${DB_PORT:-3306}"
@@ -25,6 +34,7 @@ x-app-environment: &app-environment
   REDIS_PORT: "${REDIS_PORT:-6379}"
   REDIS_QUEUE_CONNECTION: "${REDIS_QUEUE_CONNECTION:-default}"
   REDIS_QUEUE: "${REDIS_QUEUE:-default}"
+  HEARTBEAT_QUEUE: "${HEARTBEAT_QUEUE:-heartbeat}"
   WEBGUARD_CORE_INTERNAL_API_URL: "${WEBGUARD_CORE_INTERNAL_API_URL:-http://webguard-core/api/v1/internal}"
   WEBGUARD_INSTANCE_CODE: "${WEBGUARD_INSTANCE_CODE:-}"
   WEBGUARD_INSTANCE_API_KEY: "${WEBGUARD_INSTANCE_API_KEY:-}"
@@ -57,8 +67,10 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
       redis:
         condition: service_healthy
+        required: false
     networks:
       webguard-network:
         aliases:
@@ -81,8 +93,10 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
       redis:
         condition: service_healthy
+        required: false
     networks:
       - webguard-network
 
@@ -100,13 +114,15 @@ services:
       PHP_MAX_EXECUTION_TIME: "${DOCKER_WORKER_MAX_EXECUTION_TIME:-3600}"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "false"
-    command: php artisan queue:work redis --queue=${QUEUE_WORKER_QUEUE:-default} --sleep=${QUEUE_WORKER_SLEEP:-1} --tries=${QUEUE_WORKER_TRIES:-1} --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
+    command: php artisan queue:work redis --queue=${QUEUE_WORKER_QUEUE:-default,heartbeat} --sleep=${QUEUE_WORKER_SLEEP:-1} --tries=${QUEUE_WORKER_TRIES:-1} --max-time=${QUEUE_WORKER_MAX_TIME:-3600}
     stop_signal: SIGTERM
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
       redis:
         condition: service_healthy
+        required: false
     healthcheck:
       test: ["CMD", "healthcheck-queue"]
       start_period: 10s
@@ -115,6 +131,8 @@ services:
 
   mysql:
     container_name: webguard-mysql
+    profiles:
+      - internal-services
     image: mysql:${DOCKER_MYSQL_VERSION:-8.4}
     restart: unless-stopped
     environment:
@@ -134,6 +152,8 @@ services:
 
   redis:
     container_name: webguard-redis
+    profiles:
+      - internal-services
     image: redis:${DOCKER_REDIS_VERSION:-8.4}-alpine
     restart: unless-stopped
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]

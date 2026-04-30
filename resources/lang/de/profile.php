@@ -19,20 +19,65 @@ return [
         'send_verification_email' => 'Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden',
         'verification_email_sent' => 'Eine neue Bestätigungs-E-Mail wurde an Ihre E-Mail-Adresse gesendet.',
     ],
+    'sections' => [
+        'account' => 'Konto',
+        'preferences' => 'Darstellung',
+    ],
     'theme' => [
         'heading' => 'Design',
         'description' => 'Wählen Sie Ihr bevorzugtes Design.',
     ],
     'notification_settings' => [
         'heading' => 'Benachrichtigungseinstellungen',
-        'description' => 'Konfigurieren Sie Ihre globalen Benachrichtigungskanäle. Diese Einstellungen gelten für alle Überwachungen.',
+        'description' => 'Konfigurieren Sie Ihre Benachrichtigungskanäle. Welche Kanäle eine Überwachung nutzt, legen Sie in der jeweiligen Überwachung fest.',
+        'channels_heading' => 'Kanäle',
         'enabled' => 'Aktiviert',
-        'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident- und SSL-Benachrichtigungen zu erhalten.',
+        'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident-, SSL- und Domain-Ablaufbenachrichtigungen zu erhalten.',
+        'digest' => [
+            'heading' => 'Mitteilungsübersicht',
+            'description' => 'Erhalten Sie eine E-Mail-Zusammenfassung über alle Ihre aktiven Überwachungen.',
+            'enabled' => 'Mitteilungsübersicht per E-Mail aktivieren',
+            'frequency' => 'Zeitraum',
+            'frequencies' => [
+                'daily' => 'Täglich',
+                'weekly' => 'Jede Woche',
+                'monthly' => 'Jeden Monat',
+            ],
+        ],
+        'unread_reminder' => [
+            'heading' => 'Erinnerung bei ungelesenen Nachrichten',
+            'description' => 'Erhalten Sie eine E-Mail, wenn in Ihrer Mitteilungsübersicht noch ungelesene Nachrichten vorhanden sind.',
+            'enabled' => 'E-Mail-Erinnerung für ungelesene Nachrichten aktivieren',
+            'frequency' => 'Intervall',
+            'frequencies' => [
+                'daily' => 'Täglich',
+                'weekly' => 'Alle 7 Tage',
+                'monthly' => 'Jeden Monat',
+            ],
+        ],
+        'test' => [
+            'action' => 'Test senden',
+            'messages' => [
+                'sent' => ':channel-Testbenachrichtigung erfolgreich gesendet.',
+                'failed' => ':channel-Testbenachrichtigung konnte nicht gesendet werden. Prüfen Sie die gespeicherte Kanalkonfiguration und versuchen Sie es erneut.',
+            ],
+            'payload' => [
+                'title' => 'WebGuard-Testbenachrichtigung',
+                'message' => 'Ihr :channel-Benachrichtigungskanal ist korrekt konfiguriert.',
+            ],
+        ],
         'events' => [
             'incident' => 'Incident',
             'recovery' => 'Wiederherstellung',
             'ssl_expiring' => 'SSL läuft bald ab',
             'ssl_expired' => 'SSL abgelaufen',
+            'domain_expiring' => 'Domain läuft bald ab',
+            'domain_expired' => 'Domain abgelaufen',
+        ],
+        'expiry_warning_days' => [
+            'heading' => 'Ablauf-Warnfenster',
+            'help' => 'Wählen Sie, wann SSL-Zertifikate und Domains Ablaufwarnungen auslösen sollen.',
+            'option' => '{1} :days Tag vor Ablauf|[2,*] :days Tage vor Ablauf',
         ],
         'fields' => [
             'telegram_bot_token' => 'Telegram Bot Token',

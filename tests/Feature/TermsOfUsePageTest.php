@@ -26,6 +26,30 @@ class TermsOfUsePageTest extends TestCase
         $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
     }
 
+    public function test_terms_of_use_describe_current_monitoring_and_notification_features(): void
+    {
+        $this->configureImprintContact();
+
+        foreach (['de-DE' => 'de', 'en-US' => 'en'] as $acceptLanguage => $locale) {
+            $testResponse = $this->withHeader('Accept-Language', $acceptLanguage)
+                ->get(route('terms-of-use'));
+
+            $scopeItems = (array) trans('legal.terms_of_use.sections.scope.items', [], $locale);
+            $obligationItems = (array) trans('legal.terms_of_use.sections.obligations.items', [], $locale);
+
+            $testResponse->assertOk();
+            $testResponse->assertSeeText($scopeItems[0]);
+            $testResponse->assertSeeText($scopeItems[1]);
+            $testResponse->assertSeeText($scopeItems[2]);
+            $testResponse->assertSeeText($scopeItems[4]);
+            $testResponse->assertSeeText($scopeItems[5]);
+            $testResponse->assertSeeText($scopeItems[6]);
+            $testResponse->assertSeeText($scopeItems[7]);
+            $testResponse->assertSeeText($obligationItems[2]);
+            $testResponse->assertSeeText($obligationItems[6]);
+        }
+    }
+
     public function test_agb_route_redirects_to_terms_of_use(): void
     {
         $testResponse = $this->get('/agb');

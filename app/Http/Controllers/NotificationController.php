@@ -6,12 +6,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
-use App\Models\Scopes\UserScope;
+use App\Models\NotificationChannelDelivery;
 use App\Services\NotificationBoardService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
@@ -33,12 +35,18 @@ class NotificationController extends Controller
         );
 
         [$sslExpiryNotifications, $sslExpiryHasMore] = $this->loadSslExpiryNotifications($showRead, 0, $limit);
+        [$domainExpiryNotifications, $domainExpiryHasMore] = $this->loadDomainExpiryNotifications($showRead, 0, $limit);
+        [$deliveryHistory, $deliveryHistoryHasMore] = $this->loadDeliveryHistory(0, $limit);
 
         return view('notifications.index', compact(
             'statusBoardEntries',
             'statusChangeHasMore',
             'sslExpiryNotifications',
             'sslExpiryHasMore',
+            'domainExpiryNotifications',
+            'domainExpiryHasMore',
+            'deliveryHistory',
+            'deliveryHistoryHasMore',
             'showRead',
             'limit'
         ));
@@ -46,10 +54,25 @@ class NotificationController extends Controller
 
     public function markAsRead(string $notificationId): RedirectResponse
     {
-        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScope(UserScope::class)->findOrFail($notificationId);
+        $monitoringNotification = MonitoringNotification::query()->findOrFail($notificationId);
 
-        $monitoringNotification->read = true;
-        $monitoringNotification->save();
+        if ($monitoringNotification->type === NotificationType::STATUS_CHANGE) {
+            MonitoringNotification::query()
+                ->where('monitoring_id', $monitoringNotification->monitoring_id)
+                ->statusChange()
+                ->unread()
+                ->where(function (Builder $builder) use ($monitoringNotification): void {
+                    $builder->where('created_at', '<', $monitoringNotification->created_at)
+                        ->orWhere(function (Builder $builder) use ($monitoringNotification): void {
+                            $builder->where('created_at', $monitoringNotification->created_at)
+                                ->where('id', '<=', $monitoringNotification->id);
+                        });
+                })
+                ->update(['read' => true]);
+        } else {
+            $monitoringNotification->read = true;
+            $monitoringNotification->save();
+        }
 
         return back()->with('success', __('notifications.messages.notification_marked_as_read'));
     }
@@ -63,10 +86,16 @@ class NotificationController extends Controller
 
     public function loadMore(Request $request, NotificationBoardService $notificationBoardService): JsonResponse
     {
-        $type = $request->input('type');
-        $offset = max(0, (int) $request->input('offset', 0));
+        $validated = $request->validate([
+            'type' => ['required', 'string', Rule::in($this->loadMoreTypes())],
+            'offset' => ['nullable', 'integer', 'min:0'],
+            'show_read' => ['nullable', 'boolean'],
+        ]);
+
+        $type = (string) $validated['type'];
+        $offset = (int) ($validated['offset'] ?? 0);
         $limit = self::DEFAULT_NOTIFICATION_LIMIT;
-        $showRead = $request->boolean('show_read', false);
+        $showRead = (bool) ($validated['show_read'] ?? false);
 
         if ($type === NotificationType::STATUS_CHANGE->value) {
             [$statusBoardEntries, $hasMore] = $this->loadStatusBoardEntries(
@@ -82,6 +111,18 @@ class NotificationController extends Controller
                 'html' => $renderedHtml,
                 'hasMore' => $hasMore,
                 'count' => $statusBoardEntries->count(),
+            ]);
+        }
+
+        if ($type === 'delivery_history') {
+            [$deliveryHistory, $hasMore] = $this->loadDeliveryHistory($offset, $limit);
+
+            $renderedHtml = view('notifications.partials.delivery_history_list', ['deliveries' => $deliveryHistory])->render();
+
+            return response()->json([
+                'html' => $renderedHtml,
+                'hasMore' => $hasMore,
+                'count' => $deliveryHistory->count(),
             ]);
         }
 
@@ -134,6 +175,38 @@ class NotificationController extends Controller
     /**
      * @return array{0: Collection<int, MonitoringNotification>, 1: bool}
      */
+    private function loadDomainExpiryNotifications(
+        bool $showRead,
+        int $offset = 0,
+        int $limit = self::DEFAULT_NOTIFICATION_LIMIT
+    ): array {
+        return $this->loadNotificationsByType(NotificationType::DOMAIN_EXPIRY, $showRead, $offset, $limit);
+    }
+
+    /**
+     * @return array{0: Collection<int, NotificationChannelDelivery>, 1: bool}
+     */
+    private function loadDeliveryHistory(int $offset = 0, int $limit = self::DEFAULT_NOTIFICATION_LIMIT): array
+    {
+        $deliveries = NotificationChannelDelivery::query()
+            ->where('user_id', auth()->id())
+            ->with(['monitoringNotification.monitoring:id,name,target'])
+            ->latest()
+            ->offset($offset)
+            ->limit($limit + 1)
+            ->get();
+
+        $hasMore = $deliveries->count() > $limit;
+        if ($hasMore) {
+            $deliveries->pop();
+        }
+
+        return [$deliveries, $hasMore];
+    }
+
+    /**
+     * @return array{0: Collection<int, MonitoringNotification>, 1: bool}
+     */
     private function loadNotificationsByType(
         NotificationType $notificationType,
         bool $showRead,
@@ -173,5 +246,16 @@ class NotificationController extends Controller
         }
 
         return min($parsedLimit, self::MAX_NOTIFICATION_LIMIT);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function loadMoreTypes(): array
+    {
+        return [
+            ...NotificationType::values(),
+            'delivery_history',
+        ];
     }
 }

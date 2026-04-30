@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\MonitoringStatus;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +28,13 @@ use Illuminate\Support\Carbon;
  * @property-read Monitoring $monitoring
  * @property-read User $user
  */
+#[Fillable([
+    'monitoring_id',
+    'status',
+    'http_status_code',
+    'response_time',
+])]
+#[Table(name: 'monitoring_response_results', key: 'id', keyType: 'string')]
 class MonitoringResponse extends Model
 {
     use HasFactory;
@@ -37,39 +46,6 @@ class MonitoringResponse extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The data type of the primary key.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'monitoring_response_results';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'monitoring_id',
-        'status',
-        'http_status_code',
-        'response_time',
-    ];
 
     /**
      * Get the monitoring instance that this result belongs to.

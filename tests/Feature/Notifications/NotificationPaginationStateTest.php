@@ -158,6 +158,55 @@ class NotificationPaginationStateTest extends TestCase
         $this->assertSame(['1'], $badgeCounts);
     }
 
+    public function test_navigation_badge_counts_unread_status_changes_per_monitoring(): void
+    {
+        Date::setTestNow('2026-03-24 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => false,
+            'created_at' => Date::now()->subMinutes(2),
+            'updated_at' => Date::now()->subMinutes(2),
+        ]);
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => false,
+            'sent' => false,
+            'created_at' => Date::now()->subMinute(),
+            'updated_at' => Date::now()->subMinute(),
+        ]);
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::SSL_EXPIRY,
+            'message' => 'Unread SSL notification',
+            'read' => false,
+            'sent' => false,
+            'created_at' => Date::now(),
+            'updated_at' => Date::now(),
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+
+        $testResponse->assertOk();
+        $content = $testResponse->getContent() ?? '';
+
+        preg_match_all('/bg-red-500[^>]*>(\d+)<\/span>/', $content, $matches);
+        $badgeCounts = array_values(array_unique($matches[1] ?? []));
+
+        $this->assertSame(['2'], $badgeCounts);
+    }
+
     /**
      * @return array<int, MonitoringNotification>
      */

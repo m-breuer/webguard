@@ -84,7 +84,7 @@ class DispatchStatusChangeNotificationsCommand extends Command
                 ],
             );
 
-            $this->notificationRouter->dispatch($user, $payload);
+            $this->notificationRouter->dispatch($user, $payload, $monitoring->notification_channels);
             $notification->update(['sent' => true]);
         }
 

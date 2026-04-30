@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\NotificationChannel;
-use App\Enums\NotificationEventType;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
+use App\Jobs\DeleteUser;
+use App\Models\User;
+use App\Services\Notifications\NotificationChannelTestService;
+use App\Services\UserDeletionPreparationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Throwable;
 
 /**
  * Class ProfileController
@@ -65,6 +70,16 @@ class ProfileController extends Controller
         }
 
         $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
+        $user->monitoring_digest_enabled = $profileRequest->boolean('monitoring_digest_enabled');
+        $user->monitoring_digest_frequency = $this->normalizeFrequency(
+            $profileRequest->input('monitoring_digest_frequency'),
+            'weekly'
+        );
+        $user->unread_notifications_reminder_enabled = $profileRequest->boolean('unread_notifications_reminder_enabled');
+        $user->unread_notifications_reminder_frequency = $this->normalizeFrequency(
+            $profileRequest->input('unread_notifications_reminder_frequency'),
+            'daily'
+        );
         $user->save();
 
         return to_route('profile.edit')
@@ -74,19 +89,27 @@ class ProfileController extends Controller
     /**
      * Delete the authenticated user's account after verifying their password.
      *
-     * This method validates the user's current password using a named error bag ("userDeletion"),
-     * logs the user out, deletes the account, and invalidates the session.
+     * This method logs the user out first, immediately invalidates all login paths,
+     * then dispatches the same queued deletion flow used by the admin panel.
      *
-     * @param  Request  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
+     * @param  DeleteUserRequest  $deleteUserRequest  The incoming HTTP request containing the password confirmation.
      * @return RedirectResponse Redirects to the home page after account deletion.
      */
-    public function destroy(DeleteUserRequest $deleteUserRequest): RedirectResponse
-    {
+    public function destroy(
+        DeleteUserRequest $deleteUserRequest,
+        UserDeletionPreparationService $userDeletionPreparationService
+    ): RedirectResponse {
         $user = $deleteUserRequest->user();
+
+        if (! $user instanceof User) {
+            return Redirect::to('/');
+        }
 
         Auth::logout();
 
-        $user->delete();
+        $userDeletionPreparationService->disableLoginUntilDeletion($user);
+
+        dispatch(new DeleteUser($user));
 
         $deleteUserRequest->session()->invalidate();
         $deleteUserRequest->session()->regenerateToken();
@@ -124,24 +147,49 @@ class ProfileController extends Controller
         return back()->with('success', __('api.configuration.messages.tokens_deleted'));
     }
 
+    public function sendNotificationChannelTest(
+        Request $request,
+        string $channel,
+        NotificationChannelTestService $notificationChannelTestService
+    ): RedirectResponse {
+        $notificationChannel = NotificationChannel::tryFrom($channel);
+
+        abort_unless($notificationChannel instanceof NotificationChannel, 404);
+
+        /** @var User $user */
+        $user = $request->user();
+        $config = data_get($user->notification_channels, $notificationChannel->value, []);
+        $config = is_array($config) ? $config : [];
+        $channelName = __('profile.notification_settings.channels.' . $notificationChannel->value . '.title');
+        $errorKey = 'notification_channels.' . $notificationChannel->value;
+
+        try {
+            $notificationChannelTestService->send($user, $notificationChannel, $config);
+        } catch (Throwable $throwable) {
+            Log::warning('Notification channel test failed.', [
+                'channel' => $notificationChannel->value,
+                'user_id' => $user->id,
+                'exception' => $throwable->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                $errorKey => __('profile.notification_settings.test.messages.failed', ['channel' => $channelName]),
+            ]);
+        }
+
+        return back()->with('success', __('profile.notification_settings.test.messages.sent', ['channel' => $channelName]));
+    }
+
     /**
      * @return array<string, array<string, mixed>>
      */
     private function normalizeNotificationChannels(ProfileRequest $profileRequest): array
     {
-        $eventTypes = NotificationEventType::values();
         $normalized = [];
 
         foreach (NotificationChannel::values() as $channel) {
-            $events = [];
-
-            foreach ($eventTypes as $eventType) {
-                $events[$eventType] = $profileRequest->boolean(sprintf('notification_channels.%s.events.%s', $channel, $eventType));
-            }
-
             $channelConfig = [
                 'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
-                'events' => $events,
             ];
 
             if ($channel === NotificationChannel::SLACK->value || $channel === NotificationChannel::DISCORD->value) {
@@ -161,5 +209,10 @@ class ProfileController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function normalizeFrequency(mixed $value, string $default): string
+    {
+        return blank($value) ? $default : (string) $value;
     }
 }

@@ -3,12 +3,12 @@
     use App\Enums\MonitoringLifecycleStatus;
     use App\Enums\MonitoringStatus;
 
-    $currentUser = Auth::user();
-    $canCreateMonitoring = ! $currentUser->isGuest() && $monitoringsTotal < $currentUser->package->monitoring_limit;
     $monitoringIds = json_encode(collect($monitorings->items())->pluck('id'));
     $monitoringNames = json_encode($monitorings->pluck('name', 'id'));
     $monitoringTargets = json_encode($monitorings->pluck('target', 'id'));
-    $monitoringTypes = json_encode($monitorings->pluck('type', 'id'));
+    $monitoringTypes = json_encode($monitorings->getCollection()->mapWithKeys(fn ($monitoring) => [
+        $monitoring->id => __('monitoring.types.' . $monitoring->type->value),
+    ]));
     $monitoringStatusMap = json_encode($monitorings->pluck('status', 'id'));
     $monitoringPublicLabelMap = json_encode($monitorings->pluck('public_label_enabled', 'id'));
     $maintenanceStatusMap = json_encode($maintenanceStatusMap);
@@ -31,9 +31,9 @@
         <x-container class="sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4" space="true">
             <x-paragraph>
                 <b>{{ __('monitoring.index.total.current') }}</b>: {{ $monitoringsTotal }}
-                @if (Auth::user()->isMember())
+                @if ($currentUser->isMember())
                     {{ __('monitoring.index.total.of') }}
-                    {{ Auth::user()->package->monitoring_limit }}
+                    {{ $monitoringLimit }}
                 @endif
             </x-paragraph>
         </x-container>
@@ -97,7 +97,7 @@
                             :class="(selectedTypes.includes('{{ $type->value }}') ? 'bg-purple-500 text-white' :
                                 'bg-gray-100 text-gray-700') +
                             ' rounded px-2 py-1  font-medium hover:bg-purple-100'">
-                            {{ ucfirst($type->value) }}
+                            {{ __('monitoring.types.' . $type->value) }}
                         </button>
                     @endforeach
                 </div>

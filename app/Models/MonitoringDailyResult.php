@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,27 +37,26 @@ use Illuminate\Support\Carbon;
  * Raw monitoring data is processed daily and summarized into this table
  * to optimize performance for historical data retrieval and reporting.
  */
+#[Fillable([
+    'monitoring_id',
+    'date',
+    'uptime_total',
+    'downtime_total',
+    'unknown_total',
+    'uptime_percentage',
+    'downtime_percentage',
+    'unknown_percentage',
+    'uptime_minutes',
+    'downtime_minutes',
+    'unknown_minutes',
+    'avg_response_time',
+    'min_response_time',
+    'max_response_time',
+    'incidents_count',
+])]
 class MonitoringDailyResult extends Model
 {
     use HasFactory;
-
-    protected $fillable = [
-        'monitoring_id',
-        'date',
-        'uptime_total',
-        'downtime_total',
-        'unknown_total',
-        'uptime_percentage',
-        'downtime_percentage',
-        'unknown_percentage',
-        'uptime_minutes',
-        'downtime_minutes',
-        'unknown_minutes',
-        'avg_response_time',
-        'min_response_time',
-        'max_response_time',
-        'incidents_count',
-    ];
 
     /**
      * @return BelongsTo<Monitoring, $this>

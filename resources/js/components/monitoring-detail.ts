@@ -5,11 +5,27 @@ import dayjs from 'dayjs';
 interface MonitoringDetailComponent {
     sinceDate: any;
     incidents: any[];
+    recentChecks: Array<{
+        id: string;
+        checkedAt: string;
+        checkedAtHuman: string | null;
+        status: string;
+        httpStatusCode: number | null;
+        responseTime: number | null;
+        statusIdentifier: string;
+        source: string;
+    }>;
     status: string | null;
+    statusCode: number | null;
     since: string | null;
     heatmap: any[];
     loading: boolean;
     incidentsLoading: boolean;
+    recentChecksLoading: boolean;
+    recentChecksLoadingMore: boolean;
+    recentChecksHasMore: boolean;
+    recentChecksOffset: number;
+    recentChecksPageSize: number;
     lastCheckedAt: string | null;
     nextCheckIn: string | null;
     lastCheckedAtDate: Date | null;
@@ -29,16 +45,8 @@ interface MonitoringDetailComponent {
     responseStatsLoaded: Record<string, boolean>;
     totalDowntime: string | null;
     isDarkMode: boolean;
-    selectedRange: string;
-    customRangeFrom: string;
-    customRangeUntil: string;
-    customRangeStats: {
-        uptimePercentage: number | null;
-        hasData: boolean;
-        incidentsCount: number;
-    } | null;
-    customRangeStatsLoading: boolean;
-    customRangeStatsError: string | null;
+    responseTimeRange: string;
+    incidentsRange: string;
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
     deferredDataInitialized: boolean;
@@ -47,13 +55,18 @@ interface MonitoringDetailComponent {
     currentLocale: string;
     loadStatus(this: MonitoringDetailComponent): Promise<void>;
     loadIncidents(this: MonitoringDetailComponent, days?: string | number | null): Promise<void>;
+    loadChecks(this: MonitoringDetailComponent, days?: string | number | null, append?: boolean): Promise<void>;
+    loadMoreChecks(this: MonitoringDetailComponent): Promise<void>;
     loadHeatmap(this: MonitoringDetailComponent): Promise<void>;
     loadUptime(this: MonitoringDetailComponent): Promise<void>;
-    loadCustomRangeStats(this: MonitoringDetailComponent): Promise<void>;
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
     initializeDeferredLoads(this: MonitoringDetailComponent): void;
+    resolveCheckStatusLabel(this: MonitoringDetailComponent, statusIdentifier: string): string;
+    resolveCheckStatusClass(this: MonitoringDetailComponent, statusIdentifier: string): string;
+    resolveCheckSourceLabel(this: MonitoringDetailComponent, source: string): string;
+    formatResponseTime(this: MonitoringDetailComponent, responseTime: number | null): string;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -62,11 +75,27 @@ interface AlpineThisContext extends MonitoringDetailComponent {
 
 export default (monitoringId: string, chartLabels: Record<string, string>): MonitoringDetailComponent => ({
     incidents: [] as any[],
+    recentChecks: [] as Array<{
+        id: string;
+        checkedAt: string;
+        checkedAtHuman: string | null;
+        status: string;
+        httpStatusCode: number | null;
+        responseTime: number | null;
+        statusIdentifier: string;
+        source: string;
+    }>,
     status: null as string | null,
+    statusCode: null as number | null,
     since: null as string | null,
     heatmap: [] as any[],
     loading: false,
     incidentsLoading: false,
+    recentChecksLoading: false,
+    recentChecksLoadingMore: false,
+    recentChecksHasMore: false,
+    recentChecksOffset: 0,
+    recentChecksPageSize: 5,
     lastCheckedAt: null as string | null,
     nextCheckIn: null as string | null,
     lastCheckedAtDate: null,
@@ -86,16 +115,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     responseStatsLoaded: {} as Record<string, boolean>,
     totalDowntime: null as string | null,
     isDarkMode: document.documentElement.classList.contains('dark'),
-    selectedRange: '1', // Default value for selected range
-    customRangeFrom: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
-    customRangeUntil: dayjs().format('YYYY-MM-DD'),
-    customRangeStats: null as {
-        uptimePercentage: number | null;
-        hasData: boolean;
-        incidentsCount: number;
-    } | null,
-    customRangeStatsLoading: false,
-    customRangeStatsError: null as string | null,
+    responseTimeRange: '1',
+    incidentsRange: '1',
     uptimeCalendarData: [] as any[],
     uptimeCalendarLoading: false,
     deferredDataInitialized: false,
@@ -109,6 +130,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/status`);
             const responseData = await response.json();
             this.status = responseData.status;
+            this.statusCode = responseData.status_code ?? null;
             if (responseData.since) {
                 this.sinceDate = new Date(responseData.since);
                 this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
@@ -124,6 +146,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             }
         } catch (_) {
             this.status = null;
+            this.statusCode = null;
             this.since = null;
             this.lastCheckedAt = null;
             this.lastCheckedAtHuman = null;
@@ -140,7 +163,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         let finalDays: number;
 
         if (days === null) {
-            finalDays = parseInt(this.selectedRange, 10);
+            finalDays = parseInt(this.incidentsRange, 10);
         } else if (typeof days === 'string') {
             finalDays = parseInt(days, 10);
         } else { // days is a number
@@ -175,6 +198,94 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }
     },
 
+    async loadChecks(this: MonitoringDetailComponent, days: string | number | null = null, append = false): Promise<void> {
+        if (append) {
+            this.recentChecksLoadingMore = true;
+        } else {
+            this.recentChecksLoading = true;
+            this.recentChecksOffset = 0;
+            this.recentChecksHasMore = false;
+        }
+
+        let finalDays: number;
+
+        if (days === null) {
+            finalDays = NaN;
+        } else if (typeof days === 'string') {
+            finalDays = parseInt(days, 10);
+        } else {
+            finalDays = days;
+        }
+
+        try {
+            const query = new URLSearchParams({
+                limit: String(this.recentChecksPageSize),
+                offset: String(append ? this.recentChecksOffset : 0),
+            });
+
+            if (!isNaN(finalDays) && finalDays >= 1) {
+                query.set('days', String(finalDays));
+            }
+
+            const response = await fetch(`/api/monitorings/${monitoringId}/checks?${query.toString()}`);
+
+            if (!response.ok) {
+                throw new Error(`Checks request failed: ${response.status}`);
+            }
+
+            const responseData = await response.json() as {
+                data?: Array<{
+                    id: string;
+                    checked_at: string;
+                    status: string;
+                    http_status_code: number | null;
+                    response_time: number | null;
+                    status_identifier: string;
+                    source: string;
+                }>;
+                meta?: {
+                    has_more?: boolean;
+                    next_offset?: number | null;
+                };
+            };
+
+            const checks = (responseData.data ?? []).map((check) => ({
+                id: check.id,
+                checkedAt: formatDate(check.checked_at, 'L LTS') ?? check.checked_at,
+                checkedAtHuman: humanizeDistance(check.checked_at),
+                status: check.status,
+                httpStatusCode: check.http_status_code,
+                responseTime: check.response_time,
+                statusIdentifier: check.status_identifier,
+                source: check.source,
+            }));
+
+            this.recentChecks = append ? [...this.recentChecks, ...checks] : checks;
+            this.recentChecksHasMore = Boolean(responseData.meta?.has_more);
+            this.recentChecksOffset = responseData.meta?.next_offset ?? this.recentChecks.length;
+        } catch (_) {
+            if (!append) {
+                this.recentChecks = [];
+                this.recentChecksHasMore = false;
+                this.recentChecksOffset = 0;
+            }
+        } finally {
+            if (append) {
+                this.recentChecksLoadingMore = false;
+            } else {
+                this.recentChecksLoading = false;
+            }
+        }
+    },
+
+    async loadMoreChecks(this: MonitoringDetailComponent): Promise<void> {
+        if (this.recentChecksLoading || this.recentChecksLoadingMore || !this.recentChecksHasMore) {
+            return;
+        }
+
+        await this.loadChecks(null, true);
+    },
+
     // Loads heatmap data representing uptime/downtime over the last 24 hours
     async loadHeatmap(this: MonitoringDetailComponent): Promise<void> {
         this.loading = true;
@@ -202,65 +313,30 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
     // Loads uptime data for predefined intervals and supplements it with downtime duration
     async loadUptime(this: MonitoringDetailComponent): Promise<void> {
-        const intervals = {
-            '7': 7,
-            '30': 30,
-            '90': 90,
-        };
+        const query = new URLSearchParams();
+        ['7', '30', '90'].forEach((days) => query.append('days[]', days));
 
-        const promises = Object.entries(intervals).map(async ([label, days]) => {
-            const uptimeData = await fetch(`/api/monitorings/${monitoringId}/uptime-downtime?days=${days}`).then(res => res.ok ? res.json() : null);
+        const response = await fetch(`/api/monitorings/${monitoringId}/uptime-downtime-summary?${query.toString()}`).catch(() => null);
 
-            if (uptimeData && uptimeData.downtime) {
-                uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
-                uptimeData.downtime.incidents_count = Number(uptimeData.downtime.incidents_count ?? 0);
-            }
-
-            return { [label]: uptimeData };
-        });
-
-        const results = await Promise.all(promises);
-
-        this.uptimeStats = Object.assign({}, ...results);
-    },
-
-    // Loads uptime percentage and incident count for a custom date range.
-    async loadCustomRangeStats(this: MonitoringDetailComponent): Promise<void> {
-        if (dayjs(this.customRangeUntil).isBefore(dayjs(this.customRangeFrom), 'day')) {
-            this.customRangeStatsError = this.chartLabels.customRangeInvalidDate;
-            this.customRangeStats = null;
+        if (!response?.ok) {
+            this.uptimeStats = {};
 
             return;
         }
 
-        this.customRangeStatsLoading = true;
-        this.customRangeStatsError = null;
+        const payload = await response.json() as { data?: Record<string, any> };
+        const summary = payload.data ?? {};
 
-        try {
-            const query = new URLSearchParams({
-                from: this.customRangeFrom,
-                until: this.customRangeUntil,
-            });
+        this.uptimeStats = Object.fromEntries(
+            Object.entries(summary).map(([label, uptimeData]) => {
+                if (uptimeData && uptimeData.downtime) {
+                    uptimeData.downtime.human_readable = humanizeDuration(uptimeData.downtime.minutes, 'minutes');
+                    uptimeData.downtime.incidents_count = Number(uptimeData.downtime.incidents_count ?? 0);
+                }
 
-            const response = await fetch(`/api/monitorings/${monitoringId}/custom-range-stats?${query.toString()}`);
-
-            if (!response.ok) {
-                throw new Error(`Custom range stats request failed: ${response.status}`);
-            }
-
-            const responseData = await response.json();
-
-            this.customRangeStats = {
-                uptimePercentage: responseData.uptime_percentage ?? null,
-                hasData: Boolean(responseData.has_data),
-                incidentsCount: responseData.incidents_count ?? 0,
-            };
-        } catch (_) {
-            this.customRangeStats = null;
-            this.customRangeStatsError = this.chartLabels.customRangeLoadError;
-        } finally {
-            this.customRangeStatsLoading = false;
-        }
+                return [label, uptimeData];
+            })
+        );
     },
 
     // Loads SSL certificate status and related metadata
@@ -281,8 +357,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     },
 
     // Loads and renders the performance chart for response times over the specified range
-    async loadPerformanceChart(this: AlpineThisContext, days: string | number = this.selectedRange): Promise<void> {
-        this.selectedRange = days.toString();
+    async loadPerformanceChart(this: AlpineThisContext, days: string | number = this.responseTimeRange): Promise<void> {
+        this.responseTimeRange = days.toString();
         this.chartLoading = true; // Hide canvas and show loading indicator
 
 
@@ -480,6 +556,46 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }
 
         window.setTimeout(loadCalendar, 600);
+    },
+
+    resolveCheckStatusLabel(this: MonitoringDetailComponent, statusIdentifier: string): string {
+        const labels: Record<string, string> = {
+            'status.success': this.chartLabels.checkStatusSuccess,
+            'status.redirect': this.chartLabels.checkStatusRedirect,
+            'status.client_error': this.chartLabels.checkStatusClientError,
+            'status.server_error': this.chartLabels.checkStatusServerError,
+            'status.maintenance': this.chartLabels.checkStatusMaintenance,
+            'status.unknown': this.chartLabels.checkStatusUnknown,
+        };
+
+        return labels[statusIdentifier] ?? this.chartLabels.checkStatusUnknown;
+    },
+
+    resolveCheckStatusClass(this: MonitoringDetailComponent, statusIdentifier: string): string {
+        const classes: Record<string, string> = {
+            'status.success': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
+            'status.redirect': 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200',
+            'status.client_error': 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+            'status.server_error': 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200',
+            'status.maintenance': 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100',
+            'status.unknown': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+        };
+
+        return classes[statusIdentifier] ?? classes['status.unknown'];
+    },
+
+    resolveCheckSourceLabel(this: MonitoringDetailComponent, source: string): string {
+        return source === 'archived'
+            ? this.chartLabels.checkSourceArchived
+            : this.chartLabels.checkSourceLive;
+    },
+
+    formatResponseTime(this: MonitoringDetailComponent, responseTime: number | null): string {
+        if (responseTime === null) {
+            return this.chartLabels.checkResponseTimeUnavailable;
+        }
+
+        return `${Math.round(responseTime)} ms`;
     },
 
     chartLabels: chartLabels

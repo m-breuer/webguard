@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 return [
     'seo' => [
-        'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server und Ports',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword- und Port-Checks mit Benachrichtigungen, SSL-Ablaufkontrolle, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Ping Monitoring, Keyword Monitoring, Port Monitoring, SSL Ablauf, Statusseite, Incident Benachrichtigung',
+        'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, SSL- und Domain-Ablaufprüfungen mit konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
-        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword- und Port-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
+        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
     ],
 
     'nav' => [
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Abdeckung',
-                'value' => 'HTTP, Ping, Keyword und Port',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, SSL und Domains',
             ],
             '3' => [
                 'label' => 'Betrieb',
@@ -55,6 +55,11 @@ return [
             'title' => 'HTTP Monitoring',
             'text' => 'Überwachen Sie API- und Website-Endpunkte mit Latenz- und Statuscode-Prüfung.',
         ],
+        'http_expectations' => [
+            'badge' => 'Kontrolle',
+            'title' => 'Erwartete HTTP-Statusbereiche',
+            'text' => 'Definieren Sie akzeptierte Statuscodes oder Bereiche wie 200-299, 301 und 302 pro HTTP- oder Keyword-Monitor.',
+        ],
         'ping' => [
             'badge' => 'Kernfunktion',
             'title' => 'Ping Monitoring',
@@ -70,15 +75,30 @@ return [
             'title' => 'Port Monitoring',
             'text' => 'Stellen Sie sicher, dass wichtige Service-Ports offen und erreichbar bleiben.',
         ],
+        'heartbeat' => [
+            'badge' => 'Cronjobs',
+            'title' => 'Heartbeat Monitoring',
+            'text' => 'Überwachen Sie Cronjobs, Worker und Hintergrundprozesse über private Ping-URLs und erwartete Intervalle.',
+        ],
         'notifications' => [
             'badge' => 'Alerts',
             'title' => 'Incident- und Status-Benachrichtigungen',
-            'text' => 'Erhalten Sie Incident-Updates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
+            'text' => 'Erhalten Sie Incident-, Recovery-, SSL- und Domain-Ablaufupdates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
+        ],
+        'weekly_digest' => [
+            'badge' => 'Berichte',
+            'title' => 'Wöchentlicher Monitoring-Bericht',
+            'text' => 'Versenden Sie wöchentliche E-Mail-Zusammenfassungen mit Uptime, Incidents, längster Downtime sowie SSL- oder Domain-Ablaufwarnungen.',
         ],
         'ssl' => [
             'badge' => 'Sicherheit',
             'title' => 'SSL-Zertifikat Ablaufprüfung',
             'text' => 'Vermeiden Sie Zertifikatsprobleme mit klarer Ablaufkontrolle und frühzeitigen Warnungen.',
+        ],
+        'domain_expiration' => [
+            'badge' => 'Eigentum',
+            'title' => 'Domain-Ablaufprüfungen',
+            'text' => 'Überwachen Sie den Ablauf wichtiger Domains und versenden Sie proaktive Verlängerungswarnungen, bevor fehlende Verlängerungen zu Ausfällen werden.',
         ],
         'stats' => [
             'badge' => 'Insights',
@@ -122,7 +142,7 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Monitore erstellen',
-                'text' => 'Legen Sie HTTP-, Ping-, Keyword- oder Port-Checks an und definieren Sie das Intervall.',
+                'text' => 'Legen Sie HTTP-, Ping-, Keyword-, Port- oder Heartbeat-Checks an und definieren Sie das Intervall.',
             ],
             '2' => [
                 'title' => 'Alerts festlegen',
@@ -155,11 +175,11 @@ return [
             ],
             '2' => [
                 'label' => 'Standard-Intervall',
-                'value' => '60 Sekunden',
+                'value' => '1 Minute|:count Minuten',
             ],
             '3' => [
                 'label' => 'Empfohlene Monitor-Typen',
-                'value' => 'HTTP, Ping, Keyword, Port',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat',
             ],
         ],
     ],

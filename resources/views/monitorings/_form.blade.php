@@ -2,6 +2,20 @@
     use App\Enums\MonitoringType;
     use App\Enums\MonitoringLifecycleStatus;
     use App\Enums\HttpMethod;
+
+    $httpHeadersValue = old('http_headers', isset($monitoring) ? $monitoring->http_headers : null);
+
+    if (is_array($httpHeadersValue)) {
+        $httpHeadersValue = json_encode($httpHeadersValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    $heartbeatTypeValue = MonitoringType::HEARTBEAT->value;
+    $enabledNotificationChannels = $enabledNotificationChannels ?? [];
+    $selectedNotificationChannels = old(
+        'notification_channels',
+        isset($monitoring) ? ($monitoring->notification_channels ?? $enabledNotificationChannels) : $enabledNotificationChannels
+    );
+    $selectedNotificationChannels = is_array($selectedNotificationChannels) ? $selectedNotificationChannels : [];
 @endphp
 
 @csrf
@@ -19,7 +33,9 @@
         if (!@js(isset($monitoring))) {
             if ((this.type === '{{ MonitoringType::HTTP->value }}' || this.type === '{{ MonitoringType::KEYWORD->value }}') && (!this.target || !this.target.startsWith('http'))) {
                 this.target = 'https://';
-            } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}') {
+            } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}' || this.type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}') {
+                this.target = '';
+            } else if (this.type === '{{ MonitoringType::HEARTBEAT->value }}') {
                 this.target = '';
             }
         }
@@ -27,28 +43,33 @@
 }" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
         target = 'https://';
-    } else if (value === '{{ MonitoringType::PING->value }}') {
+    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}') {
         target = '';
     }
 })">
+    <div class="space-y-8">
+        <section class="space-y-4">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.basic') }}</x-heading>
+            </div>
 
-    <div>
-        <x-input-label for="type" :value="__('monitoring.form.type')" />
-        @if (isset($monitoring))
-            <x-text-input id="type" class="cursor-not-allowed" name="type" :value="$monitoring->type->name" readonly />
-            <input type="hidden" name="type" :value="type">
-        @else
-            <x-select-input id="type" class="mt-1 block w-full" name="type" x-model="type" required autofocus>
-                <option value="" disabled hidden>{{ __('monitoring.form.select_type') }}</option>
-                @foreach ($types as $enumType)
-                    <option value="{{ $enumType->value }}" @selected(old('type') === $enumType->value)>
-                        {{ $enumType->name }}
-                    </option>
-                @endforeach
-            </x-select-input>
-        @endif
-        <x-input-error :messages="$errors->get('type')" />
-    </div>
+            <div>
+                <x-input-label for="type" :value="__('monitoring.form.type')" />
+                @if (isset($monitoring))
+                    <x-text-input id="type" class="cursor-not-allowed" name="type" :value="__('monitoring.types.' . $monitoring->type->value)" readonly />
+                    <input type="hidden" name="type" :value="type">
+                @else
+                    <x-select-input id="type" class="mt-1 block w-full" name="type" x-model="type" required autofocus>
+                        <option value="" disabled hidden>{{ __('monitoring.form.select_type') }}</option>
+                        @foreach ($types as $enumType)
+                            <option value="{{ $enumType->value }}" @selected(old('type') === $enumType->value)>
+                                {{ __('monitoring.types.' . $enumType->value) }}
+                            </option>
+                        @endforeach
+                    </x-select-input>
+                @endif
+                <x-input-error :messages="$errors->get('type')" />
+            </div>
 
     <div class="mt-4">
         <x-input-label for="name" :value="__('monitoring.form.name')" />
@@ -62,20 +83,36 @@
             <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
                 class="cursor-not-allowed" />
             <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('monitoring.form.target_immutable_help') }}
+                {{ $monitoring->type === MonitoringType::HEARTBEAT ? __('monitoring.form.heartbeat_ping_url_help') : __('monitoring.form.target_immutable_help') }}
             </x-paragraph>
         @else
-            <x-text-input id="target" type="text" name="target" x-model="target" required
-                x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
+            <div x-show="type !== '{{ $heartbeatTypeValue }}'">
+                <x-text-input id="target" type="text" name="target" x-model="target"
+                    x-bind:required="type !== '{{ $heartbeatTypeValue }}'"
+                    x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
                     type === '{{ MonitoringType::PING->value }}' ?
                     '{{ __('monitoring.form.placeholders.ping_target') }}' :
                     type === '{{ MonitoringType::KEYWORD->value }}' ?
                     '{{ __('monitoring.form.placeholders.http_target') }}' :
                     type === '{{ MonitoringType::PORT->value }}' ?
-                    '{{ __('monitoring.form.placeholders.port_target') }}' : ''" />
+                    '{{ __('monitoring.form.placeholders.port_target') }}' :
+                    type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' ?
+                    '{{ __('monitoring.form.placeholders.domain_target') }}' : ''" />
+            </div>
+            <div x-show="type === '{{ $heartbeatTypeValue }}'"
+                class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
+                {{ __('monitoring.form.heartbeat_target_generated') }}
+            </div>
             <x-input-error :messages="$errors->get('target')" />
         @endif
     </div>
+
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.check') }}</x-heading>
+            </div>
 
     <template x-if="type === '{{ MonitoringType::PORT->value }}'">
         <div class="mt-4">
@@ -90,6 +127,26 @@
             <x-input-label for="keyword" :value="__('monitoring.form.keyword')" />
             <x-text-input id="keyword" type="text" name="keyword" :value="old('keyword', $monitoring->keyword ?? '')" />
             <x-input-error :messages="$errors->get('keyword')" />
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::HEARTBEAT->value }}'">
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+                <x-input-label for="heartbeat_interval_minutes" :value="__('monitoring.form.heartbeat_interval_minutes')" />
+                <x-text-input id="heartbeat_interval_minutes" type="number" min="1" max="10080"
+                    name="heartbeat_interval_minutes" :value="old('heartbeat_interval_minutes', $monitoring->heartbeat_interval_minutes ?? 60)" />
+                <x-input-error :messages="$errors->get('heartbeat_interval_minutes')" />
+            </div>
+            <div>
+                <x-input-label for="heartbeat_grace_minutes" :value="__('monitoring.form.heartbeat_grace_minutes')" />
+                <x-text-input id="heartbeat_grace_minutes" type="number" min="0" max="1440"
+                    name="heartbeat_grace_minutes" :value="old('heartbeat_grace_minutes', $monitoring->heartbeat_grace_minutes ?? 5)" />
+                <x-input-error :messages="$errors->get('heartbeat_grace_minutes')" />
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 md:col-span-2">
+                {{ __('monitoring.form.heartbeat_help') }}
+            </p>
         </div>
     </template>
 
@@ -122,6 +179,18 @@
 
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
+            <x-input-label for="expected_http_statuses" :value="__('monitoring.form.expected_http_statuses')" />
+            <x-text-input id="expected_http_statuses" type="text" name="expected_http_statuses" :value="old('expected_http_statuses', $monitoring->expected_http_statuses ?? '200-299')"
+                placeholder="{{ __('monitoring.form.placeholders.expected_http_statuses') }}" />
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('monitoring.form.expected_http_statuses_help') }}
+            </p>
+            <x-input-error :messages="$errors->get('expected_http_statuses')" />
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
+        <div class="mt-4">
             <x-input-label for="auth_username" :value="__('monitoring.form.auth_username')" />
             <x-text-input id="auth_username" type="text" name="auth_username" :value="old('auth_username', $monitoring->auth_username ?? '')" />
             <x-input-error :messages="$errors->get('auth_username')" />
@@ -134,10 +203,10 @@
 
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
-            <x-input-label for="http_header" :value="__('monitoring.form.http_headers')" />
-            <x-textarea id="http_header" type="text" name="http_header" rows="4"
-                placeholder="{{ __('monitoring.form.placeholders.http_headers') }}">{{ old('http_header', $monitoring->http_header ?? '') }}</x-textarea>
-            <x-input-error :messages="$errors->get('http_header')" />
+            <x-input-label for="http_headers" :value="__('monitoring.form.http_headers')" />
+            <x-textarea id="http_headers" type="text" name="http_headers" rows="4"
+                placeholder="{{ __('monitoring.form.placeholders.http_headers') }}">{{ $httpHeadersValue ?? '' }}</x-textarea>
+            <x-input-error :messages="$errors->get('http_headers')" />
         </div>
     </template>
 
@@ -149,6 +218,13 @@
             <x-input-error :messages="$errors->get('http_body')" />
         </div>
     </template>
+
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.sharing') }}</x-heading>
+            </div>
 
     <div class="mt-4">
         <x-input-label for="public_label_enabled" :value="__('monitoring.form.public_label')" />
@@ -182,6 +258,13 @@
         @endif
     </div>
 
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
+            </div>
+
     <div class="mt-4">
         <x-input-label for="notification_on_failure" :value="__('monitoring.form.notification_on_failure')" />
         <label class="relative inline-flex cursor-pointer items-center">
@@ -194,6 +277,46 @@
                 class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('monitoring.form.notification_on_failure_enabled') }}</span>
         </label>
     </div>
+
+    <div class="mt-4">
+        <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
+        @if (count($enabledNotificationChannels) > 0)
+            <select id="notification_channels" name="notification_channels[]" multiple size="{{ min(4, count($enabledNotificationChannels)) }}"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                @foreach ($enabledNotificationChannels as $channel)
+                    <option value="{{ $channel }}" @selected(in_array($channel, $selectedNotificationChannels, true))>
+                        {{ __('profile.notification_settings.channels.' . $channel . '.title') }}
+                    </option>
+                @endforeach
+            </select>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('monitoring.form.notification_channels_help') }}
+            </p>
+        @else
+            <p class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
+                {{ __('monitoring.form.notification_channels_empty') }}
+            </p>
+        @endif
+        <x-input-error :messages="$errors->get('notification_channels')" />
+        <x-input-error :messages="$errors->get('notification_channels.*')" />
+    </div>
+
+    <div class="mt-4">
+        <x-input-label for="ssl_expiry_warning_days" :value="__('monitoring.form.ssl_expiry_warning_days')" />
+        <x-text-input id="ssl_expiry_warning_days" type="number" min="1" max="365" name="ssl_expiry_warning_days"
+            :value="old('ssl_expiry_warning_days', $monitoring->ssl_expiry_warning_days ?? 7)" />
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.ssl_expiry_warning_days_help') }}
+        </p>
+        <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
+    </div>
+
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.operations') }}</x-heading>
+            </div>
 
     <div class="mt-4">
         <x-input-label for="preferred_location" :value="__('monitoring.form.preferred_location')" />
@@ -234,6 +357,8 @@
         <x-input-error :messages="$errors->get('maintenance_until')" />
     </div>
 
-    <x-primary-button
-        class="mt-4">{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+        </section>
+
+        <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+    </div>
 </div>

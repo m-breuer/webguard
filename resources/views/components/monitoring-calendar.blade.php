@@ -1,11 +1,11 @@
 <div>
-    <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="mb-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-3 sm:auto-rows-fr">
         <template x-for="(monthData, month) in data" :key="month">
             <div x-data="{
                 monthName: new Date(month + '-02').toLocaleString('{{ app()->getLocale() }}', { month: 'long', year: 'numeric' }),
                 firstDayOfMonth: new Date(monthData.days[0].date).getDay() === 0 ? 7 : new Date(monthData.days[0].date).getDay()
-            }">
-                <x-container>
+            }" class="h-full">
+                <x-container class="h-full">
                     <x-heading type="h3" space=true>
                         <span x-text="monthName"></span>
                         <template x-if="monthData.monthly_average_uptime !== null">

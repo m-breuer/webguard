@@ -7,7 +7,9 @@ namespace App\Models;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +28,35 @@ use Override;
  * associated with a user and having many results.
  *
  **/
+#[Fillable([
+    'user_id',
+    'name',
+    'type',
+    'target',
+    'port',
+    'keyword',
+    'status',
+    'timeout',
+    'http_method',
+    'expected_http_statuses',
+    'http_headers',
+    'http_body',
+    'auth_username',
+    'auth_password',
+    'public_label_enabled',
+    'preferred_location',
+    'notification_on_failure',
+    'notification_channels',
+    'ssl_expiry_warning_days',
+    'deleted_at',
+    'maintenance_from',
+    'maintenance_until',
+    'heartbeat_token',
+    'heartbeat_interval_minutes',
+    'heartbeat_grace_minutes',
+    'heartbeat_last_ping_at',
+])]
+#[Table(name: 'monitorings', key: 'id', keyType: 'string')]
 class Monitoring extends Model
 {
     use HasFactory;
@@ -38,54 +69,6 @@ class Monitoring extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'monitorings';
-
-    /**
-     * The primary key associated with the table.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The "type" of the auto-incrementing ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'user_id',
-        'name',
-        'type',
-        'target',
-        'port',
-        'keyword',
-        'status',
-        'timeout',
-        'http_method',
-        'http_headers',
-        'http_body',
-        'auth_username',
-        'auth_password',
-        'public_label_enabled',
-        'preferred_location',
-        'notification_on_failure',
-        'deleted_at',
-        'maintenance_from',
-        'maintenance_until',
-    ];
 
     /**
      * Get the user that owns the monitoring.
@@ -127,6 +110,14 @@ class Monitoring extends Model
     public function sslResult(): HasOne
     {
         return $this->hasOne(MonitoringSslResult::class, 'monitoring_id');
+    }
+
+    /**
+     * @return HasOne<MonitoringDomainResult, $this>
+     */
+    public function domainResult(): HasOne
+    {
+        return $this->hasOne(MonitoringDomainResult::class, 'monitoring_id');
     }
 
     /**
@@ -203,6 +194,11 @@ class Monitoring extends Model
         return $this->status === MonitoringLifecycleStatus::PAUSED;
     }
 
+    public function isHeartbeat(): bool
+    {
+        return $this->type === MonitoringType::HEARTBEAT;
+    }
+
     /**
      * Determine if the monitoring is currently under maintenance.
      */
@@ -270,15 +266,21 @@ class Monitoring extends Model
             'status' => MonitoringLifecycleStatus::class,
             'timeout' => 'integer',
             'http_method' => HttpMethod::class,
+            'expected_http_statuses' => 'string',
             'http_headers' => 'array',
             'public_label_enabled' => 'boolean',
             'notification_on_failure' => 'boolean',
             'preferred_location' => 'string',
+            'heartbeat_interval_minutes' => 'integer',
+            'heartbeat_grace_minutes' => 'integer',
+            'notification_channels' => 'array',
+            'ssl_expiry_warning_days' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
             'maintenance_from' => 'datetime',
             'maintenance_until' => 'datetime',
+            'heartbeat_last_ping_at' => 'datetime',
         ];
     }
 }

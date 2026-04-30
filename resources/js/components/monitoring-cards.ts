@@ -16,7 +16,6 @@ interface MonitoringCardLoaderComponent {
     lastCheckMap: Record<string, string>;
     currentLocale: string;
     updateSince(this: MonitoringCardLoaderComponent): void;
-    loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void>;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
     init(this: MonitoringCardLoaderComponent): void;
 }
@@ -45,31 +44,40 @@ export default (
 
     currentLocale: getCurrentDayjsLocale(),
 
-    async loadCard(this: MonitoringCardLoaderComponent, monitoringId: string): Promise<void> {
-        const statusPromise = fetch(`/api/monitorings/${monitoringId}/status`).then(res => res.ok ? res.json() : null).catch(() => null);
-        const heatmapPromise = fetch(`/api/monitorings/${monitoringId}/heatmap`).then(res => res.ok ? res.json() : null).catch(() => null);
-
-        const [statusData, heatmapData] = await Promise.all([statusPromise, heatmapPromise]);
-
-        if (statusData) {
-            this.statusMap = { ...this.statusMap, [monitoringId]: statusData.status };
-            this.sinceDateMap = { ...this.sinceDateMap, [monitoringId]: statusData.since };
-            this.sinceMap = { ...this.sinceMap, [monitoringId]: statusData.since ? humanizeDistance(statusData.since, { withoutSuffix: true }) : '' };
-        }
-
-        if (heatmapData) {
-            const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
-            if (heatmapContainer) {
-                renderHeatmap(heatmapContainer, heatmapData);
-            }
-        }
-    },
-
     async loadAll(this: MonitoringCardLoaderComponent): Promise<void> {
         this.hasMonitorings = this.monitoringIds.length > 0;
         if (!this.hasMonitorings) return;
 
-        await Promise.all(this.monitoringIds.map((id: string) => this.loadCard(id)));
+        const query = new URLSearchParams();
+
+        this.monitoringIds.forEach((id: string) => query.append('ids[]', id));
+
+        const response = await fetch(`/api/monitorings/card-data?${query.toString()}`).catch(() => null);
+        if (!response?.ok) {
+            return;
+        }
+
+        const payload = await response.json() as { data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }> };
+        const cardData = payload.data ?? {};
+
+        for (const monitoringId of this.monitoringIds) {
+            const monitoringCardData = cardData[monitoringId];
+            if (!monitoringCardData) {
+                continue;
+            }
+
+            this.statusMap = { ...this.statusMap, [monitoringId]: monitoringCardData.status ?? '' };
+            this.sinceDateMap = { ...this.sinceDateMap, [monitoringId]: monitoringCardData.since ?? null };
+            this.sinceMap = {
+                ...this.sinceMap,
+                [monitoringId]: monitoringCardData.since ? humanizeDistance(monitoringCardData.since, { withoutSuffix: true }) : '',
+            };
+
+            const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
+            if (heatmapContainer && monitoringCardData.heatmap) {
+                renderHeatmap(heatmapContainer, monitoringCardData.heatmap);
+            }
+        }
     },
 
     updateSince(this: MonitoringCardLoaderComponent): void {

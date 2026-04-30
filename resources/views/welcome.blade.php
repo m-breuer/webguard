@@ -89,7 +89,7 @@
                 <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.feature_section.subtitle') }}</x-paragraph>
 
                 <div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    @foreach (['http', 'ping', 'keyword', 'port', 'notifications', 'ssl', 'stats', 'multi_location'] as $feature)
+                    @foreach (['http', 'http_expectations', 'ping', 'keyword', 'port', 'heartbeat', 'notifications', 'weekly_digest', 'ssl', 'domain_expiration', 'stats', 'multi_location'] as $feature)
                         <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-950/20">
                             <div class="flex items-center justify-between gap-4">
                                 <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">
@@ -102,6 +102,10 @@
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 13h4l3-6 4 12 2-6h3" /></svg>
                                         @break
 
+                                        @case('http_expectations')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M7 12h4m4 0h2M7 17h10" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" /></svg>
+                                        @break
+
                                         @case('keyword')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6h10M4 12h16M8 18h12" /></svg>
                                         @break
@@ -110,12 +114,24 @@
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10v8H7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8V6m6 2V6m-6 10v2m6-2v2" /></svg>
                                         @break
 
+                                        @case('heartbeat')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h3l2-5 4 10 2-5h5" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v2m0 12v2m8-8h-2M6 12H4" /></svg>
+                                        @break
+
                                         @case('notifications')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0" /></svg>
                                         @break
 
+                                        @case('weekly_digest')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 9h10M7 13h5m3 0h2M7 17h7" /></svg>
+                                        @break
+
                                         @case('ssl')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 118 0v3m-9 0h10v9H7z" /></svg>
+                                        @break
+
+                                        @case('domain_expiration')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18z" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M8 4.5c2.2 4.8 2.2 10.2 0 15M16 4.5c-2.2 4.8-2.2 10.2 0 15" /></svg>
                                         @break
 
                                         @case('stats')
@@ -207,7 +223,13 @@
                             @foreach ([1, 2, 3] as $metric)
                                 <div class="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/80">
                                     <dt><x-span class="text-slate-600 dark:text-slate-300">{{ __('welcome.case_study.metrics.' . $metric . '.label') }}</x-span></dt>
-                                    <dd><x-span class="font-semibold text-emerald-700 dark:text-emerald-300">{{ __('welcome.case_study.metrics.' . $metric . '.value') }}</x-span></dd>
+                                    <dd>
+                                        <x-span class="font-semibold text-emerald-700 dark:text-emerald-300">
+                                            {{ $metric === 2
+                                                ? trans_choice('welcome.case_study.metrics.2.value', config('monitoring.interval', 5), ['count' => config('monitoring.interval', 5)])
+                                                : __('welcome.case_study.metrics.' . $metric . '.value') }}
+                                        </x-span>
+                                    </dd>
                                 </div>
                             @endforeach
                         </dl>

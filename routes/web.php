@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MonitoringController;
@@ -28,6 +29,7 @@ Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])->name('terms
 Route::get('/gdpr', [LegalController::class, 'gdpr'])->name('gdpr');
 
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
+Route::match(['get', 'post'], '/heartbeat/{token}', HeartbeatPingController::class)->name('monitorings.heartbeat.ping');
 
 // Public sitemap.xml
 Route::get('/sitemap.xml', function () {
@@ -59,6 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
         Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');
         Route::delete('/api-revoke-token', [ProfileController::class, 'apiRevokeToken'])->name('api-revoke-token');
+        Route::post('/notification-channels/{channel}/test', [ProfileController::class, 'sendNotificationChannelTest'])
+            ->name('notification-channels.test');
     });
 
     Route::resource('monitorings', MonitoringController::class)->names('monitorings');

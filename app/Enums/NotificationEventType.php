@@ -10,6 +10,8 @@ enum NotificationEventType: string
     case RECOVERY = 'recovery';
     case SSL_EXPIRING = 'ssl_expiring';
     case SSL_EXPIRED = 'ssl_expired';
+    case DOMAIN_EXPIRING = 'domain_expiring';
+    case DOMAIN_EXPIRED = 'domain_expired';
 
     /**
      * @return array<int, string>

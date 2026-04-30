@@ -4,10 +4,22 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[Fillable([
+    'id',
+    'monitoring_id',
+    'status',
+    'http_status_code',
+    'response_time',
+    'created_at',
+    'updated_at',
+])]
+#[Table(name: 'monitoring_response_archived', key: 'id', keyType: 'string')]
 class MonitoringResponseArchived extends Model
 {
     use HasFactory;
@@ -18,42 +30,6 @@ class MonitoringResponseArchived extends Model
      * @var bool
      */
     public $incrementing = false;
-
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'monitoring_response_archived';
-
-    /**
-     * The primary key for the model.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-
-    /**
-     * The "type" of the auto-incrementing ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'id',
-        'monitoring_id',
-        'status',
-        'http_status_code',
-        'response_time',
-        'created_at',
-        'updated_at',
-    ];
 
     /**
      * Get the monitoring that owns the archived response.

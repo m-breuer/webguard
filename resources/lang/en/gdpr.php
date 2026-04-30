@@ -16,7 +16,7 @@ return [
         'title' => 'Privacy Policy',
         'subtitle' => 'Information on the processing of personal data in accordance with the GDPR.',
         'last_updated' => 'Last updated: :date',
-        'last_updated_date' => 'March 24, 2026',
+        'last_updated_date' => 'April 26, 2026',
     ],
     'sections' => [
         'controller' => [
@@ -30,10 +30,12 @@ return [
                 'Account and profile data (name, email, password hash, role, locale, theme settings, and optional avatar).',
                 'Authentication and session data (login timestamps, session identifiers, IP address, user agent, and required session/CSRF metadata).',
                 'Consent and auditability data (timestamps of acceptance for Terms of Use and Privacy Policy).',
-                'Monitoring configuration data (name, monitoring type, target, port, keyword, HTTP method, headers/body, optional credentials, preferred location, maintenance window, public label setting).',
-                'Monitoring result data (status, HTTP status codes, response times, SSL/TLS certificate data, incidents, and daily uptime/downtime aggregates).',
-                'Notification data (channel configuration, delivery status, and read state).',
-                'API data (personal access tokens, logged API routes, timestamps).',
+                'Monitoring configuration data (name, monitoring type, target, port, keyword, HTTP method, expected HTTP status codes, headers/body, optional credentials, preferred location, maintenance window, public label/widget setting, heartbeat interval, grace period, and private heartbeat ping URL or token).',
+                'Monitoring result data (status, HTTP status codes, response times, SSL/TLS certificate data, domain-expiration data including registrar where available, heartbeat ping timestamps, incidents, recent individual checks, archived raw data, and daily uptime/downtime aggregates).',
+                'Publicly exposed status data when public labels or public widgets are enabled (for example monitoring name, current status, uptime metrics, and maintenance status).',
+                'Notification data (channel configuration including webhook URLs, Telegram bot token/chat ID, event preferences, delivery status, delivery history, technical payloads/error messages, and read state).',
+                'Email communication data for verification, password reset, incident/SSL/domain-expiration warnings, weekly digests, and unread-notification reminders.',
+                'API and operations data (personal access tokens, logged API routes, timestamps, monitoring locations, server-instance codes, IP addresses, and last-seen timestamps where administratively required).',
                 'Optional for GitHub login: GitHub ID, OAuth token/refresh token, avatar URL, and linked email address.',
             ],
         ],
@@ -43,8 +45,9 @@ return [
             'purposes_title' => 'Processing purposes',
             'purposes' => [
                 'Providing registration, login (including optional GitHub login), account management, and authentication.',
-                'Performing monitoring checks (HTTP, ping, keyword, port), incident detection, and uptime/performance reporting.',
-                'Sending service-related messages (for example verification/password reset emails and incident/SSL alerts via configured channels).',
+                'Performing monitoring checks (HTTP, ping, keyword, port, heartbeat, domain expiration), incident detection, and uptime, domain, SSL, and performance reporting.',
+                'Providing public status labels and public widgets when users enable these features.',
+                'Sending service-related messages (for example verification/password reset emails, weekly digests, unread-notification reminders, and incident/recovery/SSL/domain-expiration alerts via configured channels).',
                 'Providing and securing API access (token handling, abuse protection, usage logging).',
                 'Security and operations (troubleshooting, fault analysis, integrity protection).',
             ],
@@ -62,7 +65,7 @@ return [
             'items' => [
                 'Hosting and infrastructure providers (compute, storage, network, backups).',
                 'Email delivery providers for transactional account emails (for example verification and password reset).',
-                'Third-party APIs/webhook endpoints for user-configured notification channels (for example Slack, Telegram, Discord, custom webhooks).',
+                'Third-party APIs/webhook endpoints for user-configured notification channels (for example Slack, Telegram, Discord, custom webhooks). Status data, monitoring names, and technical error details may be sent to recipients configured by the user.',
                 'GitHub as OAuth provider when you choose GitHub sign-in.',
                 'Operational and security tooling required for stable and secure delivery.',
             ],
@@ -95,11 +98,11 @@ return [
         ],
         'retention' => [
             'title' => '7. Storage Duration',
-            'lead' => 'Personal data is stored only as long as needed for contractual, legal, and operational purposes. In the current app configuration, read notifications are regularly deleted after about one month, and guest notifications are removed after about one week. Older raw monitoring responses are regularly moved to an archive table. When accounts or monitorings are deleted, related data is removed as part of technical deletion workflows.',
+            'lead' => 'Personal data is stored only as long as needed for contractual, legal, and operational purposes. In the current app configuration, read notifications are regularly deleted after about one month, and guest notifications are removed after about one week. Older raw monitoring responses are regularly moved to an archive table. Delivery histories and technical error data are stored temporarily for auditability and troubleshooting. When accounts or monitorings are deleted, related data is removed as part of technical deletion workflows.',
         ],
         'security' => [
             'title' => '8. Security Measures',
-            'lead' => 'WebGuard applies appropriate technical and organizational measures to protect personal data against unauthorized access, loss, or manipulation. These include role-based access control, token-based API authentication, and hashed storage of passwords and instance API keys.',
+            'lead' => 'WebGuard applies appropriate technical and organizational measures to protect personal data against unauthorized access, loss, or manipulation. These include role-based access control, email verification, token-based API authentication, and hashed storage of passwords and instance API keys. Users should keep API tokens, heartbeat ping URLs, webhook URLs, bot tokens, and optional monitoring credentials confidential.',
         ],
         'contact' => [
             'title' => '9. Data Protection Contact',

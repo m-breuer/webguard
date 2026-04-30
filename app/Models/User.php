@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -36,6 +38,10 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @property string|null $package_id
  * @property array<string, mixed>|null $notification_channels
  * @property Carbon|null $notification_channels_hint_seen_at
+ * @property bool $monitoring_digest_enabled
+ * @property string $monitoring_digest_frequency
+ * @property bool $unread_notifications_reminder_enabled
+ * @property string $unread_notifications_reminder_frequency
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -50,45 +56,37 @@ use Laravel\Sanctum\PersonalAccessToken;
  * @method static Builder|static newQuery()
  * @method static Builder|static query()
  */
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'role',
+    'terms_accepted_at',
+    'privacy_accepted_at',
+    'package_id',
+    'locale',
+    'theme',
+    'github_id',
+    'github_token',
+    'github_refresh_token',
+    'avatar',
+    'notification_channels',
+    'notification_channels_hint_seen_at',
+    'monitoring_digest_enabled',
+    'monitoring_digest_frequency',
+    'unread_notifications_reminder_enabled',
+    'unread_notifications_reminder_frequency',
+])]
+#[Hidden([
+    'password',
+    'remember_token',
+])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
     use HasUlids;
     use Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'terms_accepted_at',
-        'privacy_accepted_at',
-        'package_id',
-        'locale',
-        'theme',
-        'github_id',
-        'github_token',
-        'github_refresh_token',
-        'avatar',
-        'notification_channels',
-        'notification_channels_hint_seen_at',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
 
     /**
      * Get all monitorings that belong to the user.
@@ -166,19 +164,28 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasEnabledNotificationChannels(): bool
     {
-        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+        return $this->enabledNotificationChannelKeys() !== [];
+    }
 
-        foreach ($channels as $channel) {
-            if (! is_array($channel)) {
+    /**
+     * @return list<string>
+     */
+    public function enabledNotificationChannelKeys(): array
+    {
+        $channels = is_array($this->notification_channels) ? $this->notification_channels : [];
+        $enabledChannels = [];
+
+        foreach ($channels as $channel => $config) {
+            if (! is_array($config)) {
                 continue;
             }
 
-            if ((bool) ($channel['enabled'] ?? false) === true) {
-                return true;
+            if ((bool) ($config['enabled'] ?? false) === true) {
+                $enabledChannels[] = (string) $channel;
             }
         }
 
-        return false;
+        return $enabledChannels;
     }
 
     /**
@@ -197,6 +204,10 @@ class User extends Authenticatable implements MustVerifyEmail
             'theme' => 'string',
             'notification_channels' => 'array',
             'notification_channels_hint_seen_at' => 'datetime',
+            'monitoring_digest_enabled' => 'boolean',
+            'monitoring_digest_frequency' => 'string',
+            'unread_notifications_reminder_enabled' => 'boolean',
+            'unread_notifications_reminder_frequency' => 'string',
         ];
     }
 }

@@ -7,7 +7,7 @@
     <x-slot name="header">
         <x-heading type="h1" class="flex flex-wrap items-baseline">
             {{ $monitoring->name }}:
-            <x-span class="ml-2">{{ $monitoring->target }}</x-span>
+            <x-span class="ml-2 {{ $monitoring->isHeartbeat() ? 'break-all text-sm sm:text-base' : '' }}">{{ $monitoring->target }}</x-span>
             <x-span class="ml-2 text-gray-500">({{ strtoupper($monitoring->type->value) }})</x-span>
             @if ($monitoring->public_label_enabled)
                 <a href="{{ route('public-label', $monitoring) }}" target="_blank"
@@ -80,20 +80,25 @@
     <x-main x-init="loadStatus();
     loadHeatmap();
     loadUptime();
-    loadCustomRangeStats();
-    loadPerformanceChart(selectedRange);
-    loadIncidents(selectedRange);
-    initializeDeferredLoads();" x-data="Object.assign({
-        selectedRange: 1
-    }, monitoringDetail('{{ $monitoring->id }}', {
+    loadPerformanceChart(responseTimeRange);
+    loadIncidents(incidentsRange);
+    loadChecks();
+    initializeDeferredLoads();" x-data="monitoringDetail('{{ $monitoring->id }}', {
         min: '{{ __('monitoring.detail.response_time.min_label') }}',
         avg: '{{ __('monitoring.detail.response_time.avg_label') }}',
         max: '{{ __('monitoring.detail.response_time.max_label') }}',
         yAxis: '{{ __('monitoring.detail.response_time.y_axis_label') }}',
         xAxis: '{{ __('monitoring.detail.response_time.x_axis_label') }}',
-        customRangeInvalidDate: '{{ __('monitoring.detail.custom_range.errors.invalid_date_range') }}',
-        customRangeLoadError: '{{ __('monitoring.detail.custom_range.errors.load_failed') }}',
-    }))">
+        checkStatusSuccess: '{{ __('monitoring.detail.checks.statuses.success') }}',
+        checkStatusRedirect: '{{ __('monitoring.detail.checks.statuses.redirect') }}',
+        checkStatusClientError: '{{ __('monitoring.detail.checks.statuses.client_error') }}',
+        checkStatusServerError: '{{ __('monitoring.detail.checks.statuses.server_error') }}',
+        checkStatusUnknown: '{{ __('monitoring.detail.checks.statuses.unknown') }}',
+        checkStatusMaintenance: '{{ __('monitoring.detail.checks.statuses.maintenance') }}',
+        checkSourceLive: '{{ __('monitoring.detail.checks.sources.live') }}',
+        checkSourceArchived: '{{ __('monitoring.detail.checks.sources.archived') }}',
+        checkResponseTimeUnavailable: '{{ __('monitoring.detail.checks.response_time_unavailable') }}',
+    })">
 
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <x-container>
@@ -106,6 +111,10 @@
                         <div>
                             <x-span x-text="status === 'up' ? '🟢' : (status === 'down' ? '🔴' : '🟡')"></x-span>
                             <x-span x-text="status ? status.toUpperCase() : ''" class="font-bold"></x-span>
+                            <template x-if="statusCode !== null">
+                                <x-span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400"
+                                    x-text="'HTTP ' + statusCode"></x-span>
+                            </template>
                         </div>
                         <x-paragraph x-show="since" x-text="'{{ __('monitoring.index.table.since') }} ' + since"
                             class="text-gray-400">
@@ -161,6 +170,51 @@
                             <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
                         </div>
                     </template>
+                </x-container>
+            @endif
+
+            @if ($monitoring->isHeartbeat())
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.heartbeat.heading') }}</x-heading>
+                    <x-paragraph class="mt-2 text-sm text-gray-500">{{ __('monitoring.detail.heartbeat.ping_url') }}</x-paragraph>
+                    <x-paragraph class="break-all font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->target }}</x-paragraph>
+                    <x-paragraph class="mt-3 text-sm text-gray-500">
+                        {{ trans_choice('monitoring.detail.heartbeat.cadence', $monitoring->heartbeat_interval_minutes ?? 0, ['minutes' => $monitoring->heartbeat_interval_minutes]) }}
+                    </x-paragraph>
+                    <x-paragraph class="text-sm text-gray-500">
+                        {{ trans_choice('monitoring.detail.heartbeat.grace', $monitoring->heartbeat_grace_minutes ?? 0, ['minutes' => $monitoring->heartbeat_grace_minutes]) }}
+                    </x-paragraph>
+                    @if ($monitoring->heartbeat_last_ping_at)
+                        <x-paragraph class="text-sm text-gray-500">
+                            {{ __('monitoring.detail.heartbeat.last_ping') }} {{ $monitoring->heartbeat_last_ping_at->diffForHumans() }}
+                        </x-paragraph>
+                    @endif
+                </x-container>
+            @endif
+
+            @if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION)
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.domain.heading') }}</x-heading>
+                    @if ($monitoring->domainResult)
+                        <x-paragraph
+                            class="font-bold {{ $monitoring->domainResult->is_valid ? 'text-green-600 dark:text-green-600' : 'text-red-600 dark:text-red-600' }}">
+                            {{ $monitoring->domainResult->is_valid ? __('monitoring.detail.domain.valid') : __('monitoring.detail.domain.invalid') }}
+                        </x-paragraph>
+                        @if ($monitoring->domainResult->expires_at)
+                            <x-paragraph>
+                                {{ __('monitoring.detail.domain.expires_at') }}:
+                                {{ $monitoring->domainResult->expires_at->toFormattedDateString() }}
+                            </x-paragraph>
+                        @endif
+                        @if ($monitoring->domainResult->registrar)
+                            <x-paragraph>
+                                {{ __('monitoring.detail.domain.registrar') }}:
+                                {{ $monitoring->domainResult->registrar }}
+                            </x-paragraph>
+                        @endif
+                    @else
+                        <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
+                    @endif
                 </x-container>
             @endif
 
@@ -222,54 +276,6 @@
                 </x-container>
             @endforeach
 
-            <x-container id="uptime-card-custom-range">
-                <x-heading type="h2">{{ __('monitoring.detail.custom_range.heading') }}</x-heading>
-                <x-paragraph class="mt-2 text-sm text-gray-500">
-                    {{ __('monitoring.detail.custom_range.help') }}
-                </x-paragraph>
-
-                <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div>
-                        <x-input-label for="custom-range-from" :value="__('monitoring.detail.custom_range.from')" />
-                        <input id="custom-range-from" type="date" x-model="customRangeFrom" :max="customRangeUntil"
-                            max="{{ now()->toDateString() }}" @change="loadCustomRangeStats()"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    </div>
-                    <div>
-                        <x-input-label for="custom-range-until" :value="__('monitoring.detail.custom_range.until')" />
-                        <input id="custom-range-until" type="date" x-model="customRangeUntil" :min="customRangeFrom"
-                            max="{{ now()->toDateString() }}" @change="loadCustomRangeStats()"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    </div>
-                </div>
-
-                <template x-if="customRangeStatsLoading">
-                    <div class="mt-4" x-transition.opacity>
-                        <x-loading-indicator>{{ __('monitoring.detail.custom_range.loading') }}</x-loading-indicator>
-                    </div>
-                </template>
-
-                <template x-if="!customRangeStatsLoading && customRangeStatsError">
-                    <x-paragraph class="mt-4 text-sm font-medium text-red-600" x-text="customRangeStatsError"></x-paragraph>
-                </template>
-
-                <template x-if="!customRangeStatsLoading && !customRangeStatsError">
-                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.uptime') }}</x-paragraph>
-                            <x-paragraph class="text-2xl font-bold text-purple-600"
-                                x-text="customRangeStats?.hasData && customRangeStats.uptimePercentage !== null
-                                    ? customRangeStats.uptimePercentage.toFixed(2) + '%'
-                                    : '—'">—</x-paragraph>
-                        </div>
-                        <div>
-                            <x-paragraph class="text-sm text-gray-500">{{ __('monitoring.detail.custom_range.incidents') }}</x-paragraph>
-                            <x-paragraph class="text-2xl font-semibold"
-                                x-text="customRangeStats ? customRangeStats.incidentsCount : '—'">—</x-paragraph>
-                        </div>
-                    </div>
-                </template>
-            </x-container>
         </div>
 
         <div class="my-4" id="uptime-calendar-{{ $monitoring->id }}">
@@ -285,15 +291,15 @@
             </template>
         </div>
 
-        @if ($monitoring->type !== MonitoringType::PING)
+        @if (! in_array($monitoring->type, [MonitoringType::PING, MonitoringType::HEARTBEAT, MonitoringType::DOMAIN_EXPIRATION], true))
             <div class="mb-2 flex items-center justify-between">
                 <x-heading type="h2">{{ __('monitoring.detail.response_time.heading') }}</x-heading>
 
                 <div>
-                    <label for="range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
+                    <label for="response-time-range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
 
-                    <select x-model="selectedRange"
-                        @change="loadPerformanceChart(selectedRange); loadIncidents(selectedRange);"
+                    <select id="response-time-range" x-model="responseTimeRange"
+                        @change="loadPerformanceChart(responseTimeRange)"
                         class="rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         <option value="1">{{ __('monitoring.filter.options.today') }}</option>
                         <option value="7">{{ __('monitoring.filter.options.last_week') }}</option>
@@ -313,13 +319,13 @@
                 </div>
             </x-container>
 
-            <template x-if="responseStats[selectedRange + 'd']">
+            <template x-if="responseStats[responseTimeRange + 'd']">
                 <div class="mb-4 grid grid-cols-1 gap-4 text-center md:grid-cols-3">
                     <x-container>
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.min') }}</x-paragraph>
                         <x-paragraph class="text-xl font-semibold text-gray-800"
-                            x-text="responseStats[selectedRange + 'd']?.avg !== undefined ? Math.round(responseStats[selectedRange + 'd'].avg) + ' ms' : '—'">
+                            x-text="responseStats[responseTimeRange + 'd']?.avg !== undefined ? Math.round(responseStats[responseTimeRange + 'd'].avg) + ' ms' : '—'">
                             —
                         </x-paragraph>
                     </x-container>
@@ -327,7 +333,7 @@
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.avg') }}</x-paragraph>
                         <x-paragraph class="text-xl font-semibold text-gray-800"
-                            x-text="responseStats[selectedRange + 'd']?.avg !== undefined ? Math.round(responseStats[selectedRange + 'd'].avg) + ' ms' : '—'">
+                            x-text="responseStats[responseTimeRange + 'd']?.avg !== undefined ? Math.round(responseStats[responseTimeRange + 'd'].avg) + ' ms' : '—'">
                             —
                         </x-paragraph>
                     </x-container>
@@ -335,7 +341,7 @@
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.max') }}</x-paragraph>
                         <x-paragraph class="text-xl font-semibold text-gray-800"
-                            x-text="responseStats[selectedRange + 'd']?.max !== undefined ? Math.round(responseStats[selectedRange + 'd'].max) + ' ms' : '—'">
+                            x-text="responseStats[responseTimeRange + 'd']?.max !== undefined ? Math.round(responseStats[responseTimeRange + 'd'].max) + ' ms' : '—'">
                             —
                         </x-paragraph>
                     </x-container>
@@ -344,9 +350,25 @@
         @endif
 
         <div id="incidents" class="mt-4">
-            <x-heading type="h2"
-                class="mb-2 text-lg font-semibold text-gray-800">{{ __('monitoring.detail.incidents.heading') }}
-            </x-heading>
+            <div class="mb-2 flex items-center justify-between gap-4">
+                <x-heading type="h2"
+                    class="text-lg font-semibold text-gray-800">{{ __('monitoring.detail.incidents.heading') }}
+                </x-heading>
+
+                <div>
+                    <label for="incidents-range" class="hidden">{{ __('monitoring.filter.heading') }}</label>
+
+                    <select id="incidents-range" x-model="incidentsRange"
+                        @change="loadIncidents(incidentsRange)"
+                        class="rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                        <option value="1">{{ __('monitoring.filter.options.today') }}</option>
+                        <option value="7">{{ __('monitoring.filter.options.last_week') }}</option>
+                        <option value="30">{{ __('monitoring.filter.options.last_month') }}</option>
+                        <option value="90">{{ __('monitoring.filter.options.last_quarter') }}</option>
+                        <option value="365">{{ __('monitoring.filter.options.last_year') }}</option>
+                    </select>
+                </div>
+            </div>
 
             <template x-if="incidentsLoading">
                 <div x-transition.opacity>
@@ -383,6 +405,87 @@
                         </div>
                     </x-container>
                 </template>
+            </template>
+        </div>
+
+        <div id="recent-checks" class="mt-8">
+            <div class="mb-2 flex items-center justify-between gap-4">
+                <x-heading type="h2" class="text-lg font-semibold text-gray-800">
+                    {{ __('monitoring.detail.checks.heading') }}
+                </x-heading>
+                <x-paragraph class="text-sm text-gray-500">
+                    {{ __('monitoring.detail.checks.help') }}
+                </x-paragraph>
+            </div>
+
+            <template x-if="recentChecksLoading">
+                <div x-transition.opacity>
+                    <x-loading-indicator>{{ __('monitoring.detail.checks.loading') }}</x-loading-indicator>
+                </div>
+            </template>
+
+            <template x-if="!recentChecksLoading && recentChecks.length === 0">
+                <x-paragraph class="text-gray-500">{{ __('monitoring.detail.checks.no_checks') }}</x-paragraph>
+            </template>
+
+            <template x-if="!recentChecksLoading && recentChecks.length > 0">
+                <div class="space-y-3">
+                    <template x-for="check in recentChecks" :key="check.id">
+                        <x-container space="true">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <x-paragraph class="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                                        x-text="check.checkedAt"></x-paragraph>
+                                    <x-paragraph class="text-sm text-gray-500"
+                                        x-text="check.checkedAtHuman"></x-paragraph>
+                                </div>
+                                <x-span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                                    x-bind:class="resolveCheckStatusClass(check.statusIdentifier)"
+                                    x-text="resolveCheckStatusLabel(check.statusIdentifier)"></x-span>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.status_code') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="check.httpStatusCode ?? '{{ __('monitoring.detail.checks.status_code_unavailable') }}'"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.response_time') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="formatResponseTime(check.responseTime)"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.source') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="resolveCheckSourceLabel(check.source)"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.raw_status') }}
+                                    </x-span>
+                                    <x-span class="text-sm uppercase text-gray-800 dark:text-gray-200"
+                                        x-text="check.status"></x-span>
+                                </div>
+                            </div>
+                        </x-container>
+                    </template>
+
+                    <div class="pt-1 text-center" x-show="recentChecksHasMore">
+                        <x-primary-button type="button" @click="loadMoreChecks()"
+                            x-bind:disabled="recentChecksLoadingMore"
+                            x-bind:class="{ 'opacity-60 cursor-not-allowed': recentChecksLoadingMore }">
+                            <span
+                                x-text="recentChecksLoadingMore ? '{{ __('monitoring.detail.checks.loading_more') }}' : '{{ __('monitoring.detail.checks.load_more') }}'"></span>
+                        </x-primary-button>
+                    </div>
+                </div>
             </template>
         </div>
     </x-main>
