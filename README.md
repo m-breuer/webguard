@@ -116,8 +116,9 @@ The bundled `mysql` and `redis` services are behind the `internal-services` Comp
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
-The application listens internally on port `8080`.
-If you use Traefik or another reverse proxy in front of the deployment, route traffic to the `php` service on that port.
+The application listens internally on `8080` for HTTP and `8443` for HTTPS. Production enables `SSL_MODE=mixed`, so the ServerSideUp PHP image generates a self-signed certificate automatically when no custom certificate is mounted.
+
+If you use Coolify, Traefik, or another reverse proxy in front of the deployment, you can route traffic to the `php` service on `8080` and let the proxy terminate public TLS. Use `8443` only when you explicitly want encrypted traffic between the proxy and the application container.
 
 ## Docker Local Development
 

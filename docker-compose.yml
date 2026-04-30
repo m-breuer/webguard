@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
     environment:
       <<: *app-environment
-      SSL_MODE: "off"
+      SSL_MODE: "mixed"
       PHP_MEMORY_LIMIT: "512M"
       PHP_UPLOAD_MAX_FILE_SIZE: "100M"
       PHP_MAX_EXECUTION_TIME: "300"
@@ -56,6 +56,7 @@ services:
       AUTORUN_LARAVEL_STORAGE_LINK: "true"
     expose:
       - "8080"
+      - "8443"
     volumes:
       - config:/config
       - data:/data
