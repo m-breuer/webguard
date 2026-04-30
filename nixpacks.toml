@@ -1,5 +1,12 @@
 [phases.setup]
-nixPkgs = ["...", "bun", "python311Packages.supervisor"]
+nixPkgs = ["...", "python311Packages.supervisor"]
+
+[phases.install]
+cmds = [
+    "mkdir -p /var/log/nginx /var/cache/nginx",
+    "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+    "bun install --frozen-lockfile",
+]
 
 [phases.build]
 cmds = [
@@ -7,10 +14,6 @@ cmds = [
     "cp /assets/worker-*.conf /etc/supervisor/conf.d/",
     "cp /assets/supervisord.conf /etc/supervisord.conf",
     "chmod +x /assets/start.sh",
-    "chmod -R 775 /app/storage /app/bootstrap/cache",
-    "chown -R www-data:www-data /app/storage /app/bootstrap/cache",
-    "bun install --frozen-lockfile",
-    "bun run build",
     "...",
 ]
 
