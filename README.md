@@ -81,14 +81,21 @@ DB_PASSWORD=super-secret-password
 
 REDIS_HOST=redis
 REDIS_PORT=6379
+REDIS_USERNAME=null
 REDIS_PASSWORD=null
 
 MAIL_HOST=mail.example.com
 MAIL_PORT=587
+MAIL_ENCRYPTION=tls
 MAIL_USERNAME=mailer-user
 MAIL_PASSWORD=mailer-password
 MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME=WebGuard
 ```
+
+When using Coolify, set concrete values instead of referencing another variable inside the value. For example, use `APP_URL=https://webguard.example.com`, `MAIL_USERNAME=noreply@example.com`, `MAIL_FROM_NAME=WebGuard`, and `GITHUB_REDIRECT_URI=https://webguard.example.com/auth/github/callback`. Do not use values such as `APP_URL={$SERVICE_URL_PHP}` or `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
+
+For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `MAIL_ENCRYPTION=tls`.
 
 Optional:
 * `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
@@ -205,12 +212,14 @@ QUEUE_CONNECTION=redis
 REDIS_CLIENT=phpredis
 REDIS_HOST=redis
 REDIS_PORT=6379
+REDIS_USERNAME=null
 REDIS_PASSWORD=null
 HEARTBEAT_QUEUE=heartbeat
 
 MAIL_MAILER=smtp
 MAIL_HOST=mailpit
 MAIL_PORT=1025
+MAIL_ENCRYPTION=null
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_FROM_ADDRESS=noreply@webguard.test

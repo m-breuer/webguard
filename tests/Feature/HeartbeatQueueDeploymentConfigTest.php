@@ -27,11 +27,46 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertIsString($composeConfiguration);
         $this->assertStringContainsString('DB_HOST: "${DB_HOST:-mysql}"', $composeConfiguration);
         $this->assertStringContainsString('REDIS_HOST: "${REDIS_HOST:-redis}"', $composeConfiguration);
+        $this->assertStringContainsString('REDIS_USERNAME: "${REDIS_USERNAME:-null}"', $composeConfiguration);
         $this->assertStringContainsString('profiles:', $composeConfiguration);
         $this->assertStringContainsString('- internal-services', $composeConfiguration);
         $this->assertStringContainsString('required: false', $composeConfiguration);
         $this->assertStringNotContainsString('WEBGUARD_INSTANCE_API_KEY', $composeConfiguration);
         $this->assertStringNotContainsString('DB_ROOT_PASSWORD', $composeConfiguration);
+    }
+
+    public function test_production_mail_encryption_is_available_to_the_container(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"', $composeConfiguration);
+        $this->assertStringContainsString('MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"', $composeConfiguration);
+    }
+
+    public function test_production_compose_uses_defaults_for_interpolated_environment_variables(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        preg_match_all('/\$\{([^}]+)}/', $composeConfiguration, $matches);
+
+        foreach ($matches[1] as $interpolatedVariable) {
+            $this->assertStringContainsString(
+                ':-',
+                $interpolatedVariable,
+                sprintf('Compose variable "%s" must define a default value.', $interpolatedVariable)
+            );
+        }
+    }
+
+    public function test_env_example_uses_literal_values_instead_of_nested_interpolation(): void
+    {
+        $environmentExample = file_get_contents(base_path('.env.example'));
+
+        $this->assertIsString($environmentExample);
+        $this->assertStringNotContainsString('${', $environmentExample);
+        $this->assertStringNotContainsString('{$', $environmentExample);
     }
 
     public function test_production_php_container_enables_automatic_self_signed_ssl(): void
