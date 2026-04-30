@@ -17,7 +17,6 @@ x-app-environment: &app-environment
   MAIL_PORT: "${MAIL_PORT:-587}"
   MAIL_USERNAME: "${MAIL_USERNAME:-null}"
   MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
-  MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"
   MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-noreply@example.com}"
   MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"
   DB_CONNECTION: "${DB_CONNECTION:-mysql}"

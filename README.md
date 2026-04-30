@@ -102,7 +102,6 @@ MAIL_HOST=mail.example.com
 MAIL_PORT=587
 MAIL_USERNAME=mailer-user
 MAIL_PASSWORD=mailer-password
-MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME=WebGuard
 
@@ -233,7 +232,6 @@ MAIL_HOST=mailpit
 MAIL_PORT=1025
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=noreply@webguard.test
 MAIL_FROM_NAME=WebGuard
 

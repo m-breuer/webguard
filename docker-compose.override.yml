@@ -65,7 +65,6 @@ services:
       MAIL_PORT: "1025"
       MAIL_USERNAME: "null"
       MAIL_PASSWORD: "null"
-      MAIL_ENCRYPTION: "null"
       AUTORUN_DEBUG: "true"
     depends_on:
       mysql:
@@ -105,7 +104,6 @@ services:
       MAIL_PORT: "1025"
       MAIL_USERNAME: "null"
       MAIL_PASSWORD: "null"
-      MAIL_ENCRYPTION: "null"
 
   queue-default:
     volumes:
@@ -131,7 +129,6 @@ services:
       MAIL_PORT: "1025"
       MAIL_USERNAME: "null"
       MAIL_PASSWORD: "null"
-      MAIL_ENCRYPTION: "null"
 
   node:
     container_name: webguard-node
