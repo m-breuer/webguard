@@ -38,13 +38,6 @@ USER root
 ############################################
 # Production Image
 ############################################
-FROM oven/bun:latest AS frontend_build
-WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-COPY . .
-RUN bun run build
-
 FROM base AS app_build
 # Install Composer
 USER root
@@ -55,12 +48,19 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-req=ext-redis
 COPY . .
-COPY --from=frontend_build --chown=www-data:www-data /app/public/build /app/public/build
 RUN rm -f bootstrap/cache/*.php && \
     composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
 
+FROM oven/bun:latest AS frontend_build
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+COPY . .
+RUN bun run build
+
 FROM base AS production
 COPY --from=app_build --chown=www-data:www-data /app /var/www/html
+COPY --from=frontend_build --chown=www-data:www-data /app/public/build /var/www/html/public/build
 USER www-data
 WORKDIR /var/www/html
 

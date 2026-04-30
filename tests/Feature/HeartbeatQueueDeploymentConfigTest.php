@@ -69,6 +69,21 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringNotContainsString('{$', $environmentExample);
     }
 
+    public function test_worker_image_does_not_depend_on_the_frontend_build_stage(): void
+    {
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+
+        $this->assertIsString($dockerfile);
+        $workerStageStart = strpos($dockerfile, 'FROM serversideup/php:8.5-cli AS worker');
+
+        $this->assertNotFalse($workerStageStart);
+        $workerStage = substr($dockerfile, $workerStageStart);
+        $this->assertIsString($workerStage);
+        $this->assertStringContainsString('COPY --from=app_build', $workerStage);
+        $this->assertStringNotContainsString('frontend_build', $workerStage);
+        $this->assertStringNotContainsString('bun install', $workerStage);
+    }
+
     public function test_production_php_container_enables_automatic_self_signed_ssl(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
