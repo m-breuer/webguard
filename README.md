@@ -106,8 +106,6 @@ MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME=WebGuard
 
-WEBGUARD_CORE_INTERNAL_API_URL=https://webguard.example.com/api/v1/internal
-WEBGUARD_INSTANCE_CODE=...
 WEBGUARD_INSTANCE_API_KEY=...
 QUEUE_WORKER_QUEUE=default,heartbeat
 ```
@@ -242,9 +240,7 @@ MAIL_FROM_NAME=WebGuard
 VITE_DEV_SERVER_URL=http://webguard.test:5173
 VITE_HMR_HOST=webguard.test
 
-WEBGUARD_INSTANCE_CODE=
 WEBGUARD_INSTANCE_API_KEY=your_generated_key_here
-WEBGUARD_CORE_INTERNAL_API_URL=http://webguard-core/api/v1/internal
 
 DOCKER_APP_HOST=webguard.test
 DOCKER_MAILPIT_HOST=mailpit.webguard.test
