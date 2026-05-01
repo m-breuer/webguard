@@ -28,7 +28,7 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('monitoring.detail.checks.heading'));
-        $testResponse->assertSeeText(__('monitoring.detail.checks.help'));
+        $testResponse->assertDontSeeText(__('monitoring.detail.checks.help'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.no_checks'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.labels.status_code'));
         $testResponse->assertSeeText(__('monitoring.detail.checks.labels.response_time'));

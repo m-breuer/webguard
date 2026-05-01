@@ -413,9 +413,6 @@
                 <x-heading type="h2" class="text-lg font-semibold text-gray-800">
                     {{ __('monitoring.detail.checks.heading') }}
                 </x-heading>
-                <x-paragraph class="text-sm text-gray-500">
-                    {{ __('monitoring.detail.checks.help') }}
-                </x-paragraph>
             </div>
 
             <template x-if="recentChecksLoading">
