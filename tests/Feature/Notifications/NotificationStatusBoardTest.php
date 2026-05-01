@@ -59,6 +59,7 @@ class NotificationStatusBoardTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('notifications.index', ['show_read' => true]));
 
         $testResponse->assertOk();
+        $testResponse->assertSeeText(__('notifications.status_change_notifications'));
         $testResponse->assertSeeHtml('id="' . $latestNotification->id . '"');
         $testResponse->assertDontSeeHtml('id="' . $monitoringNotification->id . '"');
     }

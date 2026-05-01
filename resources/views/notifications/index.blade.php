@@ -153,6 +153,7 @@
 
             @if ($statusBoardEntries->isNotEmpty())
                 <div class="mb-8">
+                    <x-heading type="h2" space=true>{{ __('notifications.status_change_notifications') }}</x-heading>
                     <div id="status-change-notifications">
                         @include('notifications.partials.status_board_list', [
                             'entries' => $statusBoardEntries,
