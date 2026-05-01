@@ -1,0 +1,195 @@
+x-app-environment: &app-environment
+  APP_NAME: "WebGuard"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_KEY: "${APP_KEY:-}"
+  APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"
+  APP_TIMEZONE: "Europe/Berlin"
+  APP_LOCALE: "en"
+  APP_FALLBACK_LOCALE: "en"
+  LOG_CHANNEL: "stack"
+  LOG_LEVEL: "info"
+  SESSION_DRIVER: "database"
+  SESSION_LIFETIME: "120"
+  MAIL_MAILER: "smtp"
+  MAIL_HOST: "${MAIL_HOST:-smtp.example.com}"
+  MAIL_PORT: "${MAIL_PORT:-587}"
+  MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"
+  MAIL_USERNAME: "${SMTP_USERNAME:-null}"
+  MAIL_PASSWORD: "${MAIL_PASSWORD:-null}"
+  MAIL_FROM_ADDRESS: "${MAIL_FROM_ADDRESS:-noreply@example.com}"
+  MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "${DB_HOST:-mysql}"
+  DB_PORT: "${DB_PORT:-3306}"
+  DB_DATABASE: "${DB_DATABASE:-webguard_core}"
+  DB_USERNAME: "${DB_USERNAME:-webguard}"
+  DB_PASSWORD: "${DB_PASSWORD:-webguard}"
+  CACHE_STORE: "redis"
+  QUEUE_CONNECTION: "redis"
+  REDIS_CLIENT: "phpredis"
+  REDIS_HOST: "${REDIS_HOST:-redis}"
+  REDIS_USERNAME: "${REDIS_USERNAME:-null}"
+  REDIS_PASSWORD: "${REDIS_PASSWORD:-null}"
+  REDIS_PORT: "${REDIS_PORT:-6379}"
+  REDIS_QUEUE_CONNECTION: "default"
+  REDIS_QUEUE: "default"
+  HEARTBEAT_QUEUE: "heartbeat"
+
+services:
+  php:
+    container_name: webguard-php
+    build:
+      context: .
+      target: production
+    image: webguard-core-php:latest
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      SSL_MODE: "${DOCKER_SSL_MODE:-off}"
+      PHP_MEMORY_LIMIT: "512M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_EXECUTION_TIME: "300"
+      PHP_OPCACHE_ENABLE: "1"
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_MIGRATE: "true"
+      AUTORUN_LARAVEL_MIGRATION_FORCE: "true"
+      AUTORUN_LARAVEL_OPTIMIZE: "true"
+      AUTORUN_LARAVEL_STORAGE_LINK: "true"
+    expose:
+      - "8080"
+      - "8443"
+    volumes:
+      - config:/config
+      - data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+        required: false
+      redis:
+        condition: service_healthy
+        required: false
+    networks:
+      webguard-network:
+        aliases:
+          - webguard-core
+          - webguard-api
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${WEBGUARD_NETWORK:-webguard-network}
+      - traefik.http.middlewares.webguard-${COOLIFY_RESOURCE_UUID:-local}-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.rule=Host(`${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.entrypoints=http
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.middlewares=webguard-${COOLIFY_RESOURCE_UUID:-local}-redirect
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-http.service=webguard-${COOLIFY_RESOURCE_UUID:-local}
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.rule=Host(`${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.entrypoints=https
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.tls=true
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-https.service=webguard-${COOLIFY_RESOURCE_UUID:-local}
+      - traefik.http.services.webguard-${COOLIFY_RESOURCE_UUID:-local}.loadbalancer.server.port=8080
+
+  schedule:
+    container_name: webguard-schedule
+    image: webguard-core-worker:latest
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      PHP_MEMORY_LIMIT: "2048M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_EXECUTION_TIME: "3600"
+      PHP_OPCACHE_ENABLE: "1"
+      AUTORUN_ENABLED: "false"
+    command: php artisan schedule:work --verbose --no-interaction
+    stop_signal: SIGTERM
+    depends_on:
+      mysql:
+        condition: service_healthy
+        required: false
+      redis:
+        condition: service_healthy
+        required: false
+    networks:
+      - webguard-network
+
+  queue-default:
+    container_name: webguard-queue-default
+    build:
+      context: .
+      target: worker
+    image: webguard-core-worker:latest
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      PHP_MEMORY_LIMIT: "2048M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_EXECUTION_TIME: "3600"
+      PHP_OPCACHE_ENABLE: "1"
+      AUTORUN_ENABLED: "false"
+    command: php artisan queue:work redis --queue=default,heartbeat --sleep=1 --tries=1 --max-time=3600
+    stop_signal: SIGTERM
+    depends_on:
+      mysql:
+        condition: service_healthy
+        required: false
+      redis:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD", "healthcheck-queue"]
+      start_period: 10s
+    networks:
+      - webguard-network
+
+  mysql:
+    container_name: webguard-mysql
+    profiles:
+      - internal-services
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "${DB_DATABASE:-webguard_core}"
+      MYSQL_USER: "${DB_USERNAME:-webguard}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-webguard}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - webguard-network
+
+  redis:
+    container_name: webguard-redis
+    profiles:
+      - internal-services
+    image: redis:8.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - redis_data:/data
+    networks:
+      - webguard-network
+
+volumes:
+  config:
+    driver: local
+  data:
+    driver: local
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  webguard-network:
+    name: "${WEBGUARD_NETWORK:-webguard-network}"
+    external: true

@@ -38,7 +38,7 @@ php artisan test
 
 - [Features](docs/features.md)
 - [Architecture and technology stack](docs/architecture.md)
-- [Installation and operations](docs/installation.md)
+- [Installation, Docker, and operations](docs/installation.md)
 - [Contributing](docs/contributing.md)
 
 ## License

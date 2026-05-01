@@ -38,10 +38,14 @@ class DocumentationStructureTest extends TestCase
                 'Chart.js',
             ],
             'docs/installation.md' => [
+                'Docker Deployment',
+                'Docker Local Development',
+                'Native Setup Without Docker',
                 'composer install',
                 'bun install',
                 'php artisan migrate',
                 'queue:work redis',
+                'webguard-instance Integration With Local Docker',
             ],
             'docs/contributing.md' => [
                 'Conventional Commits',

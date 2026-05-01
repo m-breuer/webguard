@@ -8,50 +8,115 @@ use Tests\TestCase;
 
 class HeartbeatQueueDeploymentConfigTest extends TestCase
 {
-    public function test_nixpacks_supervisor_starts_a_dedicated_heartbeat_queue_worker_for_the_configured_queue_name(): void
+    public function test_docker_worker_processes_default_and_heartbeat_queues_by_default(): void
     {
-        $nixpacksConfiguration = file_get_contents(base_path('nixpacks.toml'));
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
-        $this->assertIsString($nixpacksConfiguration);
-        $this->assertStringContainsString('"worker-laravel-heartbeat.conf"', $nixpacksConfiguration);
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('HEARTBEAT_QUEUE: "heartbeat"', $composeConfiguration);
         $this->assertStringContainsString(
-            'php /app/artisan queue:work redis --queue=${HEARTBEAT_QUEUE:-heartbeat} --sleep=3 --tries=3 --max-time=3600',
-            $nixpacksConfiguration
+            'php artisan queue:work redis --queue=default,heartbeat',
+            $composeConfiguration
         );
     }
 
-    public function test_nixpacks_build_does_not_mutate_laravel_runtime_directory_permissions(): void
+    public function test_internal_database_and_redis_services_are_optional_for_external_deployments(): void
     {
-        $nixpacksConfiguration = file_get_contents(base_path('nixpacks.toml'));
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
-        $this->assertIsString($nixpacksConfiguration);
-        $this->assertStringNotContainsString('chmod -R 775 /app/storage /app/bootstrap/cache', $nixpacksConfiguration);
-        $this->assertStringNotContainsString('chown -R www-data:www-data /app/storage /app/bootstrap/cache', $nixpacksConfiguration);
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('DB_HOST: "${DB_HOST:-mysql}"', $composeConfiguration);
+        $this->assertStringContainsString('REDIS_HOST: "${REDIS_HOST:-redis}"', $composeConfiguration);
+        $this->assertStringContainsString('REDIS_USERNAME: "${REDIS_USERNAME:-null}"', $composeConfiguration);
+        $this->assertStringContainsString('profiles:', $composeConfiguration);
+        $this->assertStringContainsString('- internal-services', $composeConfiguration);
+        $this->assertStringContainsString('required: false', $composeConfiguration);
+        $this->assertStringContainsString('name: "${WEBGUARD_NETWORK:-webguard-network}"', $composeConfiguration);
+        $this->assertStringContainsString('external: true', $composeConfiguration);
+        $this->assertStringNotContainsString('WEBGUARD_INSTANCE_API_KEY', $composeConfiguration);
+        $this->assertStringNotContainsString('DB_ROOT_PASSWORD', $composeConfiguration);
     }
 
-    public function test_nixpacks_uses_deterministic_dependency_install_commands_for_deployments(): void
+    public function test_production_mail_encryption_is_available_to_the_container(): void
     {
-        $nixpacksConfiguration = file_get_contents(base_path('nixpacks.toml'));
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
-        $this->assertIsString($nixpacksConfiguration);
-        $this->assertStringContainsString('nixPkgs = ["...", "python311Packages.supervisor"]', $nixpacksConfiguration);
-        $this->assertStringContainsString(
-            '"composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader"',
-            $nixpacksConfiguration
-        );
-        $this->assertStringContainsString('"bun install --frozen-lockfile"', $nixpacksConfiguration);
-        $this->assertStringNotContainsString('"bun i --no-save"', $nixpacksConfiguration);
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('MAIL_ENCRYPTION: "${MAIL_ENCRYPTION:-tls}"', $composeConfiguration);
+        $this->assertStringContainsString('MAIL_USERNAME: "${SMTP_USERNAME:-null}"', $composeConfiguration);
+        $this->assertStringNotContainsString('MAIL_USERNAME: "${MAIL_USERNAME:-null}"', $composeConfiguration);
+        $this->assertStringContainsString('MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"', $composeConfiguration);
     }
 
-    public function test_nixpacks_build_leaves_frontend_build_to_the_default_plan(): void
+    public function test_production_compose_uses_defaults_for_interpolated_environment_variables(): void
     {
-        $nixpacksConfiguration = file_get_contents(base_path('nixpacks.toml'));
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
-        $this->assertIsString($nixpacksConfiguration);
-        preg_match('/\[phases\.build\]\s+cmds = \[(.*?)\]/s', $nixpacksConfiguration, $matches);
+        $this->assertIsString($composeConfiguration);
+        preg_match_all('/\$\{([^}]+)}/', $composeConfiguration, $matches);
 
-        $this->assertNotEmpty($matches[1] ?? null);
-        $this->assertStringNotContainsString('bun install', $matches[1]);
-        $this->assertStringNotContainsString('bun run build', $matches[1]);
+        foreach ($matches[1] as $interpolatedVariable) {
+            $this->assertStringContainsString(
+                ':-',
+                $interpolatedVariable,
+                sprintf('Compose variable "%s" must define a default value.', $interpolatedVariable)
+            );
+        }
+    }
+
+    public function test_production_app_url_is_derived_from_coolify_service_url(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"', $composeConfiguration);
+        $this->assertStringNotContainsString('APP_URL: "${APP_URL:-https://webguard.example.com}"', $composeConfiguration);
+    }
+
+    public function test_env_example_uses_literal_values_instead_of_nested_interpolation(): void
+    {
+        $environmentExample = file_get_contents(base_path('.env.example'));
+
+        $this->assertIsString($environmentExample);
+        $this->assertStringNotContainsString('${', $environmentExample);
+        $this->assertStringNotContainsString('{$', $environmentExample);
+    }
+
+    public function test_worker_image_does_not_depend_on_the_frontend_build_stage(): void
+    {
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+
+        $this->assertIsString($dockerfile);
+        $workerStageStart = mb_strpos($dockerfile, 'FROM serversideup/php:8.5-cli AS worker');
+
+        $this->assertNotFalse($workerStageStart);
+        $workerStage = mb_substr($dockerfile, $workerStageStart);
+        $this->assertIsString($workerStage);
+        $this->assertStringContainsString('COPY --from=app_build', $workerStage);
+        $this->assertStringNotContainsString('frontend_build', $workerStage);
+        $this->assertStringNotContainsString('bun install', $workerStage);
+    }
+
+    public function test_production_php_container_defaults_to_proxy_terminated_ssl(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('SSL_MODE: "${DOCKER_SSL_MODE:-off}"', $composeConfiguration);
+        $this->assertStringContainsString('- "8080"', $composeConfiguration);
+        $this->assertStringContainsString('- "8443"', $composeConfiguration);
+    }
+
+    public function test_production_php_container_declares_coolify_traefik_labels(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('traefik.enable=true', $composeConfiguration);
+        $this->assertStringContainsString('traefik.docker.network=${WEBGUARD_NETWORK:-webguard-network}', $composeConfiguration);
+        $this->assertStringContainsString('Host(`${SERVICE_FQDN_PHP:-webguard.example.com}`)', $composeConfiguration);
+        $this->assertStringContainsString('entrypoints=https', $composeConfiguration);
+        $this->assertStringContainsString('tls.certresolver=letsencrypt', $composeConfiguration);
+        $this->assertStringContainsString('loadbalancer.server.port=8080', $composeConfiguration);
     }
 }
