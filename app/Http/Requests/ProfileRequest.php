@@ -94,4 +94,25 @@ class ProfileRequest extends FormRequest
             }
         });
     }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'monitoring_digest_frequency' => $this->normalizeNullableFrequency('monitoring_digest_frequency'),
+            'unread_notifications_reminder_frequency' => $this->normalizeNullableFrequency('unread_notifications_reminder_frequency'),
+        ]);
+    }
+
+    private function normalizeNullableFrequency(string $key): ?string
+    {
+        $value = $this->input($key);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $value = mb_trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
 }
