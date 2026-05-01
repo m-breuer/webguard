@@ -2,142 +2,44 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> 💡 **System Architecture Note:** This repository contains the **Management Core & API**. For the distributed scanning node/worker, please visit the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
+WebGuard is an open-source monitoring core built with Laravel 13. It provides the management UI, REST API, public status pages, notification workflows, and package administration for monitoring websites, domains, SSL certificates, and background jobs.
 
-WebGuard is a powerful, open-source web monitoring service built with Laravel 13. It's designed to help you track website uptime, response times, SSL certificate statuses, and domain registration expiry with ease. Whether you're a developer, a small business owner, or a system administrator, WebGuard provides the tools you need to ensure your online services are running smoothly.
+> **System architecture note:** this repository contains the Management Core & API. Distributed scanning nodes live in the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
 
-The application features a user-friendly dashboard for at-a-glance statistics, a comprehensive admin panel for user and package management, and a REST API for programmatic access and integration with other systems.
+## What It Does
 
-## Key Features
+- Tracks uptime, response times, expected HTTP status ranges, SSL expiry, and domain expiry.
+- Monitors heartbeats and cron jobs through private ping URLs.
+- Sends in-app, configurable, expiry, status-change, and weekly digest notifications.
+- Provides dashboards, public status pages, an embeddable widget, and a REST API.
+- Supports a global language switch across public and authenticated navigation.
 
-* **Uptime Monitoring:** Keep a close eye on your website's availability with asynchronous uptime checks.
-* **Heartbeat & Cron Monitoring:** Detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
-* **Response Time Tracking:** Monitor your website's performance by tracking response times.
-* **Expected HTTP Status Ranges:** Define accepted HTTP status codes or ranges, such as `200-299, 301, 302`, per HTTP or keyword monitoring.
-* **SSL Certificate Monitoring:** Get notified before your SSL certificates expire, so you can renew them in time.
-* **Domain Expiration Monitoring:** Track domain registration expiry and receive proactive renewal warnings before critical domains lapse.
-* **Customizable Checks:** Configure HTTP method, body, and headers for your monitoring checks.
-* **Real-Time Dashboard:** Visualize your monitoring data with real-time statistics and charts.
-* **Admin Panel:** Manage users, subscription packages, and review API usage logs.
-* **REST API:** Programmatically access your monitoring data and integrate WebGuard with your existing workflows.
-* **Embeddable Widget:** Display your website's monitoring status on external sites with a simple JavaScript widget.
-* **Flexible Notifications:** Receive notifications for status changes, SSL expiry, and domain expiry via in-app notifications and configurable channels.
-* **Weekly Monitoring Digest:** Email weekly uptime, incident, downtime, SSL, and domain expiry summaries to active users.
-* **Public Status Pages:** Create public status pages for your monitorings to keep your users informed.
-* **Global Language Switch:** Switch between supported languages from both public and authenticated top navigation.
-* **Landing Navigation Anchors:** Landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
+## Quick Start
 
-## Core Technologies
+Requirements: PHP 8.4+, Composer, Bun, a supported database, and Redis.
 
-### Backend
+```bash
+composer install
+bun install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+bun run build
+composer dev
+```
 
-* **Framework:** Laravel 13 (PHP 8.4+) - *Chosen for robust MVC architecture and modern PHP features.*
-* **Package Manager:** Composer
-*   **API Authentication:** Laravel Sanctum
-*   **API Documentation:** Scribe
-*   **Social Authentication (Future):** Laravel Socialite - *Installed for future social login integrations, currently configured for GitHub.*
-*   **Cache & Queue:** Redis - *Utilized for high-performance caching and efficient queue management for asynchronous monitoring tasks, ensuring minimal latency.*
-*   **Testing:** Pest + Pest Browser Plugin
+Run tests with:
 
-### Frontend
+```bash
+php artisan test
+```
 
-* **Build Tool:** Vite
-* **CSS Framework:** Tailwind CSS
-* **JavaScript:**
-    * **Reactive Components:** Alpine.js
-    * **Data Visualization:** Chart.js
-    * **HTTP Requests:** Axios
+## Documentation
 
-## Getting Started
-
-To get started with WebGuard, you'll need to have the following prerequisites installed on your system:
-
-* PHP 8.4 or higher
-* Composer
-* Bun
-* A database (MySQL, PostgreSQL)
-* Redis
-
-### Installation
-
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/m-breuer/webguard.git
-    cd webguard
-    ```
-
-2.  **Install PHP dependencies:**
-
-    ```bash
-    composer install
-    ```
-
-3.  **Install JavaScript dependencies:**
-
-    ```bash
-    bun install
-    ```
-
-4.  **Set up your environment:**
-
-    * Copy the `.env.example` file to `.env`:
-
-        ```bash
-        cp .env.example .env
-        ```
-
-    * Generate your application key:
-
-        ```bash
-        php artisan key:generate
-        ```
-
-    * Configure your database and Redis connection details in the `.env` file.
-
-5.  **Run the database migrations:**
-
-    ```bash
-    php artisan migrate
-    ```
-
-6.  **Build the frontend assets:**
-
-    ```bash
-    bun run build
-    ```
-
-7.  **Run the development server:**
-
-    ```bash
-    bun run dev
-    ```
-
-    This will start the Laravel development server, the default queue worker, the dedicated Redis-backed `heartbeat` queue worker, the Pail log viewer, and the Vite development server.
-
-    In production, run a dedicated worker for the configured heartbeat queue on the standard Redis connection as well. If you do not override `HEARTBEAT_QUEUE`, it defaults to `heartbeat`:
-
-    ```bash
-    php artisan queue:work redis --queue="${HEARTBEAT_QUEUE:-heartbeat}" --sleep=3 --tries=3 --max-time=3600
-    ```
-
-8.  **Run the test suite:**
-
-    ```bash
-    php artisan test
-    ```
-
-## Contributing
-
-We welcome contributions from the community! If you'd like to contribute to WebGuard, please follow these steps:
-
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix: `git checkout -b feature-or-bugfix-name`.
-3.  Make your changes and commit them with a descriptive commit message (adhering to Conventional Commits).
-4.  Push your changes to your forked repository.
-5.  Create a pull request to the `main` branch of the original repository.
-
-Please make sure to write tests for your changes and ensure that the existing test suite passes.
+- [Features](docs/features.md)
+- [Architecture and technology stack](docs/architecture.md)
+- [Installation and operations](docs/installation.md)
+- [Contributing](docs/contributing.md)
 
 ## License
 

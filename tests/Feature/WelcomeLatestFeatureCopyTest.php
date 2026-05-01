@@ -58,16 +58,19 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $testResponse->assertSeeText($expectedDomainText);
     }
 
-    public function test_readme_documents_latest_features(): void
+    public function test_documentation_covers_latest_features(): void
     {
         $readme = file_get_contents(base_path('README.md'));
+        $features = file_get_contents(base_path('docs/features.md'));
 
         $this->assertIsString($readme);
-        $this->assertStringContainsString('Expected HTTP Status Ranges', $readme);
-        $this->assertStringContainsString('200-299, 301, 302', $readme);
-        $this->assertStringContainsString('Weekly Monitoring Digest', $readme);
-        $this->assertStringContainsString('weekly uptime, incident, downtime, SSL, and domain expiry summaries', $readme);
-        $this->assertStringContainsString('receive proactive renewal warnings', $readme);
-        $this->assertStringContainsString('status changes, SSL expiry, and domain expiry', $readme);
+        $this->assertIsString($features);
+        $this->assertStringContainsString('docs/features.md', $readme);
+        $this->assertStringContainsString('Expected HTTP status ranges', $features);
+        $this->assertStringContainsString('200-299, 301, 302', $features);
+        $this->assertStringContainsString('Weekly monitoring digest', $features);
+        $this->assertStringContainsString('weekly uptime, incident, downtime, SSL, and domain expiry summaries', $features);
+        $this->assertStringContainsString('receive proactive renewal warnings', $features);
+        $this->assertStringContainsString('status changes, SSL expiry, and domain expiry', $features);
     }
 }
