@@ -265,6 +265,35 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertSame('daily', $user->unread_notifications_reminder_frequency);
     }
 
+    public function test_profile_update_trims_notification_frequencies_before_validation(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'monitoring_digest_frequency' => 'monthly',
+            'unread_notifications_reminder_frequency' => 'monthly',
+        ]);
+
+        $testResponse = $this->actingAs($user)->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'theme' => 'system',
+            'monitoring_digest_enabled' => '1',
+            'monitoring_digest_frequency' => ' weekly ',
+            'unread_notifications_reminder_enabled' => '1',
+            'unread_notifications_reminder_frequency' => "\tdaily\n",
+        ]);
+
+        $testResponse->assertRedirect(route('profile.edit'));
+        $testResponse->assertSessionHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertTrue($user->monitoring_digest_enabled);
+        $this->assertSame('weekly', $user->monitoring_digest_frequency);
+        $this->assertTrue($user->unread_notifications_reminder_enabled);
+        $this->assertSame('daily', $user->unread_notifications_reminder_frequency);
+    }
+
     public function test_profile_update_defaults_missing_notification_frequencies(): void
     {
         Package::factory()->create();
