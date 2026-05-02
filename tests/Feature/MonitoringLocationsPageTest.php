@@ -28,6 +28,20 @@ class MonitoringLocationsPageTest extends TestCase
         $testResponse->assertSeeText('203.0.113.10');
     }
 
+    public function test_monitoring_locations_guidance_and_note_use_the_default_card_style(): void
+    {
+        $testResponse = $this->get(route('monitoring-locations'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring_locations.guidance.title'));
+        $testResponse->assertSeeText(__('monitoring_locations.note.title'));
+        $testResponse->assertDontSeeHtml('border-amber-200');
+        $testResponse->assertDontSeeHtml('bg-amber-50/80');
+        $testResponse->assertDontSeeHtml('bg-amber-500');
+        $testResponse->assertDontSeeHtml('border-sky-200');
+        $testResponse->assertDontSeeHtml('bg-sky-50/80');
+    }
+
     public function test_monitoring_locations_page_lists_only_active_server_instances(): void
     {
         ServerInstance::query()->create([

@@ -77,14 +77,6 @@
                 </dl>
             </section>
 
-            <section class="rounded-3xl border border-amber-200 bg-amber-50/80 p-8 dark:border-amber-900/50 dark:bg-amber-950/20 sm:p-10">
-                <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
-                    {{ __('imprint.sections.disclaimer') }}
-                </x-heading>
-                <x-paragraph class="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
-                    {{ __('imprint.disclaimer') }}
-                </x-paragraph>
-            </section>
         </x-main>
     </main>
 </x-marketing-layout>

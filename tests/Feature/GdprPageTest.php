@@ -33,6 +33,18 @@ class GdprPageTest extends TestCase
         $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
     }
 
+    public function test_gdpr_contact_section_uses_the_default_card_style(): void
+    {
+        $testResponse = $this->get(route('gdpr'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('gdpr.sections.contact.title'));
+        $testResponse->assertDontSeeHtml('border-emerald-200');
+        $testResponse->assertDontSeeHtml('bg-emerald-50/70');
+        $testResponse->assertDontSeeHtml('dark:border-emerald-900/50');
+        $testResponse->assertDontSeeHtml('dark:bg-emerald-950/20');
+    }
+
     public function test_gdpr_page_describes_current_feature_data_processing(): void
     {
         foreach (['de-DE' => 'de', 'en-US' => 'en'] as $acceptLanguage => $locale) {
