@@ -20,7 +20,7 @@
                 </x-paragraph>
             </header>
 
-            <section class="rounded-3xl border border-amber-200 bg-amber-50/80 p-8 dark:border-amber-900/50 dark:bg-amber-950/20 sm:p-10">
+            <section class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
                 <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
                     {{ __('monitoring_locations.guidance.title') }}
                 </x-heading>
@@ -35,7 +35,7 @@
                 <ul class="mt-3 space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
                     @foreach ([1, 2, 3] as $item)
                         <li class="flex items-start gap-3">
-                            <span class="mt-1 inline-block h-2 w-2 flex-none rounded-full bg-amber-500 dark:bg-amber-300"></span>
+                            <span class="mt-1 inline-block h-2 w-2 flex-none rounded-full bg-slate-400 dark:bg-slate-500"></span>
                             <span>{{ __('monitoring_locations.guidance.items.' . $item) }}</span>
                         </li>
                     @endforeach
@@ -80,7 +80,7 @@
                 </div>
             </section>
 
-            <section class="rounded-3xl border border-sky-200 bg-sky-50/80 p-8 dark:border-sky-900/50 dark:bg-sky-950/30 sm:p-10">
+            <section class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
                 <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
                     {{ __('monitoring_locations.note.title') }}
                 </x-heading>

@@ -23,6 +23,8 @@ class ImprintPageTest extends TestCase
         $testResponse->assertDontSeeText('+49 1512 3456789');
         $testResponse->assertSeeHtml('data-email-payload=');
         $testResponse->assertSeeHtml('data-phone-payload=');
+        $testResponse->assertDontSeeText(__('imprint.sections.disclaimer'));
+        $testResponse->assertDontSeeText(__('imprint.disclaimer'));
     }
 
     public function test_impressum_route_redirects_to_imprint(): void

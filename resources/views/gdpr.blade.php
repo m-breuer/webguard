@@ -165,7 +165,7 @@
                 </x-paragraph>
             </section>
 
-            <section class="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-8 dark:border-emerald-900/50 dark:bg-emerald-950/20 sm:p-10">
+            <section class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
                 <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
                     {{ __('gdpr.sections.contact.title') }}
                 </x-heading>
