@@ -48,6 +48,15 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('MAIL_FROM_NAME: "${MAIL_FROM_NAME:-WebGuard}"', $composeConfiguration);
     }
 
+    public function test_docker_mail_username_input_uses_smtp_username_in_environment_example(): void
+    {
+        $environmentExample = file_get_contents(base_path('.env.example'));
+
+        $this->assertIsString($environmentExample);
+        $this->assertStringContainsString('SMTP_USERNAME=null', $environmentExample);
+        $this->assertStringNotContainsString('MAIL_USERNAME=${MAIL_FROM_ADDRESS}', $environmentExample);
+    }
+
     public function test_production_compose_uses_defaults_for_interpolated_environment_variables(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
