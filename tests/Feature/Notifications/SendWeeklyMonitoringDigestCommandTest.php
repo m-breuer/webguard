@@ -168,6 +168,26 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_does_not_send_weekly_digest_when_user_email_is_unverified(): void
+    {
+        Date::setTestNow('2026-04-20 09:00:00');
+        Package::factory()->create();
+
+        $user = User::factory()->unverified()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'weekly',
+        ]);
+        Monitoring::factory()->for($user)->create();
+
+        Mail::fake();
+
+        Artisan::call('notifications:send-weekly-monitoring-digest', [
+            '--period-end' => '2026-04-19',
+        ]);
+
+        Mail::assertNothingSent();
+    }
+
     public function test_digest_respects_user_frequency_settings(): void
     {
         Date::setTestNow('2026-04-21 09:00:00');

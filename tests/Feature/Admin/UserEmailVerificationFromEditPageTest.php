@@ -24,6 +24,23 @@ class UserEmailVerificationFromEditPageTest extends TestCase
         $testResponse->assertSeeHtml('action="' . route('admin.users.verify', $user) . '"');
     }
 
+    public function test_admin_user_overview_shows_email_verification_status(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
+        $verifiedUser = User::factory()->create(['email' => 'verified@example.test']);
+        $unverifiedUser = User::factory()->unverified()->create(['email' => 'unverified@example.test']);
+
+        $testResponse = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSee(__('user.fields.email_verification'));
+        $testResponse->assertSee($verifiedUser->email);
+        $testResponse->assertSee($unverifiedUser->email);
+        $testResponse->assertSee(__('user.messages.email_verified'));
+        $testResponse->assertSee(__('user.messages.email_unverified'));
+    }
+
     public function test_admin_edit_page_hides_verify_email_action_for_verified_user(): void
     {
         Package::factory()->create();

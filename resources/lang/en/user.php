@@ -15,6 +15,7 @@ return [
     'fields' => [
         'name' => 'Name',
         'email' => 'Email',
+        'email_verification' => 'Email Verification',
         'password' => 'Password',
         'confirm_password' => 'Confirm Password',
         'role' => 'Role',

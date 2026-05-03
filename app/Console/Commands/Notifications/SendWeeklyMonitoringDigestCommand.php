@@ -40,6 +40,7 @@ class SendWeeklyMonitoringDigestCommand extends Command
         User::query()
             ->whereNotNull('email')
             ->where('email', '!=', '')
+            ->whereNotNull('email_verified_at')
             ->where('monitoring_digest_enabled', true)
             ->whereHas('monitorings', fn ($builder) => $builder->active())
             ->chunkById(100, function ($users) use ($periodEnd): void {
