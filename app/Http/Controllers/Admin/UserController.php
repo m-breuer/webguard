@@ -146,6 +146,12 @@ class UserController extends Controller
             return to_route('admin.users.index')->with('error', __('user.messages.cannot_delete_self'));
         }
 
+        activity('user')
+            ->performedOn($model)
+            ->event('delete_requested')
+            ->withProperties(['action' => 'admin_user_deletion_requested'])
+            ->log('user_delete_requested');
+
         $userDeletionPreparationService->disableLoginUntilDeletion($model);
 
         dispatch(new DeleteUser($model));

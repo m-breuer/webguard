@@ -105,6 +105,13 @@ class ProfileController extends Controller
             return Redirect::to('/');
         }
 
+        activity('user')
+            ->causedBy($user)
+            ->performedOn($user)
+            ->event('delete_requested')
+            ->withProperties(['action' => 'account_deletion_requested'])
+            ->log('user_delete_requested');
+
         Auth::logout();
 
         $userDeletionPreparationService->disableLoginUntilDeletion($user);
@@ -131,6 +138,12 @@ class ProfileController extends Controller
 
         $user->createToken('api-access');
 
+        activity('user')
+            ->performedOn($user)
+            ->event('api_token_generated')
+            ->withProperties(['action' => 'api_token_generated'])
+            ->log('user_api_token_generated');
+
         return to_route('profile.edit', ['#api-token']);
     }
 
@@ -142,7 +155,15 @@ class ProfileController extends Controller
      */
     public function apiRevokeToken(Request $request): RedirectResponse
     {
-        $request->user()->tokens()->delete();
+        $user = $request->user();
+
+        $user->tokens()->delete();
+
+        activity('user')
+            ->performedOn($user)
+            ->event('api_token_revoked')
+            ->withProperties(['action' => 'api_token_revoked'])
+            ->log('user_api_token_revoked');
 
         return back()->with('success', __('api.configuration.messages.tokens_deleted'));
     }

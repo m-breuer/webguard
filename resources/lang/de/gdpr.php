@@ -16,7 +16,7 @@ return [
         'title' => 'Datenschutzerklärung',
         'subtitle' => 'Informationen zur Verarbeitung personenbezogener Daten gemäß DSGVO.',
         'last_updated' => 'Letzte Aktualisierung: :date',
-        'last_updated_date' => '26. April 2026',
+        'last_updated_date' => '3. Mai 2026',
     ],
     'sections' => [
         'controller' => [
@@ -36,6 +36,7 @@ return [
                 'Benachrichtigungsdaten (Kanal-Konfiguration inkl. Webhook-URLs, Telegram-Bot-Token/Chat-ID, Ereignispräferenzen, Versandstatus, Versandhistorie, technische Payloads/Fehlermeldungen und Lesezustand von Benachrichtigungen).',
                 'E-Mail-Kommunikationsdaten für Verifikation, Passwort-Reset, Incident-/SSL-/Domain-Ablaufwarnungen, Wochen-Digests und Erinnerungen an ungelesene Benachrichtigungen.',
                 'API- und Betriebsdaten (persönliche Access-Tokens, protokollierte API-Routen, Zeitstempel, Monitoring-Standorte, Serverinstanz-Codes, IP-Adressen und Last-Seen-Zeitpunkte, soweit administrativ erforderlich).',
+                'Audit-Log-Daten zu nutzergesteuerten Änderungen (z. B. Registrierung, Profiländerungen, Benachrichtigungseinstellungen, API-Token-Aktionen, Erstellung/Änderung/Löschung von Monitorings, Konto-Löschanfragen, handelnder Nutzer, betroffener Datensatz, Ereignisname, Zeitstempel und geänderte Felder mit maskierten Geheimwerten).',
                 'Optional bei GitHub-Login: GitHub-ID, OAuth-Token/Refresh-Token, Profilbild-URL und verknüpfte E-Mail-Adresse.',
             ],
         ],
@@ -49,7 +50,7 @@ return [
                 'Bereitstellung öffentlicher Status-Labels und Public Widgets, wenn Nutzer diese Funktion aktivieren.',
                 'Versand servicebezogener Nachrichten (z. B. Verifikations-/Passwort-Reset-E-Mails, Wochen-Digests, Erinnerungen an ungelesene Benachrichtigungen sowie Incident-/Recovery-/SSL-/Domain-Ablaufbenachrichtigungen über konfigurierte Kanäle).',
                 'Bereitstellung und Absicherung der API (Token-Verwaltung, Missbrauchsschutz, Nutzungsprotokollierung).',
-                'Sicherheits- und Betriebszwecke (Fehleranalyse, Störungsbehebung, Integritätsschutz).',
+                'Sicherheits- und Betriebszwecke (Fehleranalyse, Störungsbehebung, Integritätsschutz und Nachvollziehbarkeit von Konto- und Monitoring-Änderungen).',
             ],
             'legal_basis_title' => 'Rechtsgrundlagen nach Art. 6 DSGVO',
             'legal_basis' => [
@@ -98,7 +99,7 @@ return [
         ],
         'retention' => [
             'title' => '7. Speicherdauer',
-            'lead' => 'Personenbezogene Daten werden nur so lange gespeichert, wie dies für vertragliche, gesetzliche und betriebliche Zwecke erforderlich ist. In der aktuellen App-Konfiguration werden z. B. gelesene Benachrichtigungen regelmäßig nach rund einem Monat gelöscht und Gast-Benachrichtigungen nach rund einer Woche entfernt. Ältere Roh-Monitoringdaten werden regelmäßig in eine Archivtabelle überführt. Zustellhistorien und technische Fehlerdaten werden für Nachvollziehbarkeit und Fehleranalyse vorübergehend gespeichert. Bei Löschung von Konten oder Monitorings werden zugehörige Daten im Rahmen der technischen Löschprozesse entfernt.',
+            'lead' => 'Personenbezogene Daten werden nur so lange gespeichert, wie dies für vertragliche, gesetzliche und betriebliche Zwecke erforderlich ist. In der aktuellen App-Konfiguration werden z. B. gelesene Benachrichtigungen regelmäßig nach rund einem Monat gelöscht und Gast-Benachrichtigungen nach rund einer Woche entfernt. Audit-Log-Einträge zu nutzergesteuerten Konto-, Profil-, API-Token- und Monitoring-Änderungen werden nach 30 Tagen gelöscht. Ältere Roh-Monitoringdaten werden regelmäßig in eine Archivtabelle überführt. Zustellhistorien und technische Fehlerdaten werden für Nachvollziehbarkeit und Fehleranalyse vorübergehend gespeichert. Bei Löschung von Konten oder Monitorings werden zugehörige Daten im Rahmen der technischen Löschprozesse entfernt.',
         ],
         'security' => [
             'title' => '8. Sicherheitsmaßnahmen',

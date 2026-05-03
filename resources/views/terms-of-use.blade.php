@@ -60,6 +60,15 @@
 
             <section class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
                 <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
+                    {{ __('legal.terms_of_use.sections.audit_logs.title') }}
+                </x-heading>
+                <x-paragraph class="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    {{ __('legal.terms_of_use.sections.audit_logs.body') }}
+                </x-paragraph>
+            </section>
+
+            <section class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
+                <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">
                     {{ __('legal.terms_of_use.sections.termination.title') }}
                 </x-heading>
                 <x-paragraph class="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">

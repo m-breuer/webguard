@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Override;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Class Monitoring
@@ -61,6 +63,7 @@ class Monitoring extends Model
 {
     use HasFactory;
     use HasUlids;
+    use LogsActivity;
     use SoftDeletes;
 
     /**
@@ -160,6 +163,20 @@ class Monitoring extends Model
                 $builder->statusChange()->unread();
             }
         );
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('monitoring')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->dontLogIfAttributesChangedOnly([
+                'heartbeat_last_ping_at',
+                'updated_at',
+            ])
+            ->setDescriptionForEvent(fn (string $eventName): string => 'monitoring_' . $eventName);
     }
 
     /**

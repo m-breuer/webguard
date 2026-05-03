@@ -47,6 +47,8 @@ class TermsOfUsePageTest extends TestCase
             $testResponse->assertSeeText($scopeItems[7]);
             $testResponse->assertSeeText($obligationItems[2]);
             $testResponse->assertSeeText($obligationItems[6]);
+            $testResponse->assertSeeText(__('legal.terms_of_use.sections.audit_logs.title', [], $locale));
+            $testResponse->assertSeeText(__('legal.terms_of_use.sections.audit_logs.body', [], $locale));
         }
     }
 

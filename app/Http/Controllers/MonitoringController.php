@@ -256,6 +256,12 @@ class MonitoringController extends Controller
             cache()->tags(['monitoring:' . $monitoring->id])->flush();
         }
 
+        activity('monitoring')
+            ->performedOn($monitoring)
+            ->event('results_deleted')
+            ->withProperties(['action' => 'monitoring_results_deleted'])
+            ->log('monitoring_results_deleted');
+
         dispatch(new DeleteMonitoringResults($monitoring));
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.results_deleted'));

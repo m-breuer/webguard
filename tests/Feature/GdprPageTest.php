@@ -63,9 +63,11 @@ class GdprPageTest extends TestCase
             $testResponse->assertSeeText($dataCategories[6]);
             $testResponse->assertSeeText($dataCategories[7]);
             $testResponse->assertSeeText($dataCategories[8]);
+            $testResponse->assertSeeText($dataCategories[9]);
             $testResponse->assertSeeText($processingPurposes[1]);
             $testResponse->assertSeeText($processingPurposes[2]);
             $testResponse->assertSeeText($processingPurposes[3]);
+            $testResponse->assertSeeText($processingPurposes[5]);
             $testResponse->assertSeeText($thirdPartyServices[2]);
             $testResponse->assertSeeText(__('gdpr.sections.retention.lead', [], $locale));
             $testResponse->assertSeeText(__('gdpr.sections.security.lead', [], $locale));

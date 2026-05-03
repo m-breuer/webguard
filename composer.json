@@ -16,6 +16,7 @@
         "laravel/sanctum": "^4.1",
         "laravel/socialite": "^5.24",
         "laravel/tinker": "^3.0",
+        "spatie/laravel-activitylog": "^5.0",
         "spatie/laravel-sitemap": "^7.3"
     },
     "require-dev": {
