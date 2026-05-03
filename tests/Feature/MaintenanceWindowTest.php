@@ -37,6 +37,28 @@ class MaintenanceWindowTest extends TestCase
         $this->monitoring = Monitoring::factory()->create(['user_id' => $this->user->id]);
     }
 
+    protected function tearDown(): void
+    {
+        $this->artisan('up')->assertSuccessful();
+
+        parent::tearDown();
+    }
+
+    public function test_internal_monitoring_api_is_available_during_application_maintenance(): void
+    {
+        $this->artisan('down')->assertSuccessful();
+
+        $this->get('/')->assertServiceUnavailable();
+
+        $this->withHeaders([
+            'X-INSTANCE-CODE' => $this->serverInstance->code,
+            'X-API-KEY' => 'test-token-1234567890',
+        ])
+            ->getJson(route('v1.internal.monitorings.list', ['location' => $this->serverInstance->code]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $this->monitoring->id]);
+    }
+
     public function test_api_returns_correct_maintenance_active_value()
     {
         // No maintenance window
