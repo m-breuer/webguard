@@ -40,6 +40,7 @@ class SendUnreadNotificationsReminderCommand extends Command
 
         $users = User::query()
             ->whereIn('id', $unreadNotificationCountsByUser->keys())
+            ->whereNotNull('email_verified_at')
             ->where('unread_notifications_reminder_enabled', true)
             ->get();
 

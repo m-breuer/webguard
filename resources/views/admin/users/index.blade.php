@@ -28,6 +28,7 @@
             <x-slot name="head">
                 <x-table.heading>{{ __('user.fields.name') }}</x-table.heading>
                 <x-table.heading>{{ __('user.fields.email') }}</x-table.heading>
+                <x-table.heading>{{ __('user.fields.email_verification') }}</x-table.heading>
                 <x-table.heading>{{ __('user.fields.role') }}</x-table.heading>
                 <x-table.heading>{{ __('user.fields.monitoring_limit') }}</x-table.heading>
                 <x-table.heading>{{ __('user.fields.created_at') }}</x-table.heading>
@@ -40,6 +41,13 @@
                     <x-table.row>
                         <x-table.cell>{{ $user->name }}</x-table.cell>
                         <x-table.cell>{{ $user->email }}</x-table.cell>
+                        <x-table.cell>
+                            @if ($user->hasVerifiedEmail())
+                                <x-badge type="success">{{ __('user.messages.email_verified') }}</x-badge>
+                            @else
+                                <x-badge type="danger">{{ __('user.messages.email_unverified') }}</x-badge>
+                            @endif
+                        </x-table.cell>
                         <x-table.cell>
                             {{ ucfirst($user->role->value) }}
                         </x-table.cell>
@@ -61,7 +69,7 @@
 
                 @empty
                     <x-table.row>
-                        <x-table.cell colSpan="7" class="text-center text-gray-500">
+                        <x-table.cell colSpan="8" class="text-center text-gray-500">
                             {{ __('user.messages.empty') }}
                         </x-table.cell>
                     </x-table.row>
