@@ -265,6 +265,7 @@ return [
         'ongoing' => 'Ongoing',
         'private_target' => 'Private heartbeat target',
         'range_days' => 'Last :days day|Last :days days',
+        'recent_incidents' => 'Recent Incidents',
         'resolved' => 'Resolved',
     ],
     'validation' => [
