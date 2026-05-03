@@ -23,8 +23,9 @@ class ImprintPageTest extends TestCase
         $testResponse->assertDontSeeText('+49 1512 3456789');
         $testResponse->assertSeeHtml('data-email-payload=');
         $testResponse->assertSeeHtml('data-phone-payload=');
-        $testResponse->assertDontSeeText(__('imprint.sections.disclaimer'));
-        $testResponse->assertDontSeeText(__('imprint.disclaimer'));
+        $testResponse->assertSeeText(__('imprint.sections.disclaimer'));
+        $testResponse->assertSeeText(__('imprint.disclaimer'));
+        $testResponse->assertSeeHtml('rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10');
     }
 
     public function test_impressum_route_redirects_to_imprint(): void
