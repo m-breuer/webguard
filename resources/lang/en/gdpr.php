@@ -16,7 +16,7 @@ return [
         'title' => 'Privacy Policy',
         'subtitle' => 'Information on the processing of personal data in accordance with the GDPR.',
         'last_updated' => 'Last updated: :date',
-        'last_updated_date' => 'April 26, 2026',
+        'last_updated_date' => 'May 3, 2026',
     ],
     'sections' => [
         'controller' => [
@@ -36,6 +36,7 @@ return [
                 'Notification data (channel configuration including webhook URLs, Telegram bot token/chat ID, event preferences, delivery status, delivery history, technical payloads/error messages, and read state).',
                 'Email communication data for verification, password reset, incident/SSL/domain-expiration warnings, weekly digests, and unread-notification reminders.',
                 'API and operations data (personal access tokens, logged API routes, timestamps, monitoring locations, server-instance codes, IP addresses, and last-seen timestamps where administratively required).',
+                'Audit log data for user-controlled changes (for example registration, profile changes, notification settings, API-token actions, monitoring creation/update/deletion, account-deletion requests, actor, affected record, event name, timestamp, and changed fields with configured secrets redacted).',
                 'Optional for GitHub login: GitHub ID, OAuth token/refresh token, avatar URL, and linked email address.',
             ],
         ],
@@ -49,7 +50,7 @@ return [
                 'Providing public status labels and public widgets when users enable these features.',
                 'Sending service-related messages (for example verification/password reset emails, weekly digests, unread-notification reminders, and incident/recovery/SSL/domain-expiration alerts via configured channels).',
                 'Providing and securing API access (token handling, abuse protection, usage logging).',
-                'Security and operations (troubleshooting, fault analysis, integrity protection).',
+                'Security and operations (troubleshooting, fault analysis, integrity protection, and auditability of account and monitoring changes).',
             ],
             'legal_basis_title' => 'Legal basis under GDPR Art. 6',
             'legal_basis' => [
@@ -98,7 +99,7 @@ return [
         ],
         'retention' => [
             'title' => '7. Storage Duration',
-            'lead' => 'Personal data is stored only as long as needed for contractual, legal, and operational purposes. In the current app configuration, read notifications are regularly deleted after about one month, and guest notifications are removed after about one week. Older raw monitoring responses are regularly moved to an archive table. Delivery histories and technical error data are stored temporarily for auditability and troubleshooting. When accounts or monitorings are deleted, related data is removed as part of technical deletion workflows.',
+            'lead' => 'Personal data is stored only as long as needed for contractual, legal, and operational purposes. In the current app configuration, read notifications are regularly deleted after about one month, and guest notifications are removed after about one week. Audit log entries for user-controlled account, profile, API-token, and monitoring changes are deleted after 30 days. Older raw monitoring responses are regularly moved to an archive table. Delivery histories and technical error data are stored temporarily for auditability and troubleshooting. When accounts or monitorings are deleted, related data is removed as part of technical deletion workflows.',
         ],
         'security' => [
             'title' => '8. Security Measures',

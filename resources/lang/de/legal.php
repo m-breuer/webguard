@@ -49,6 +49,10 @@ return [
                 'title' => 'Haftungsbeschränkung',
                 'body' => 'WebGuard wird "wie besehen" und "wie verfügbar" bereitgestellt. Es besteht kein Anspruch auf unterbrechungsfreie Verfügbarkeit, bestimmte Reaktionszeiten oder lückenlose Alarmierung. Monitoringdaten können durch externe Faktoren (z. B. Netzwerkstörungen, Drittanbieter-Ausfälle, Zielsystemkonfigurationen) verzögert oder ungenau sein. Eine Haftung für mittelbare Schäden, Folgeschäden, entgangenen Gewinn sowie Schäden durch Ausfälle oder Fehlinterpretation von Monitoringdaten ist ausgeschlossen, soweit gesetzlich zulässig. Zwingende gesetzliche Haftung bleibt unberührt.',
             ],
+            'audit_logs' => [
+                'title' => 'Betriebliche Audit-Protokolle',
+                'body' => 'Zum Schutz von Konten, zur Fehleranalyse und zur Nachvollziehbarkeit nutzergesteuerter Änderungen protokolliert WebGuard relevante Konto-, Profil-, API-Token-, Benachrichtigungs- und Monitoring-Aktionen. Geheimwerte wie Passwörter, OAuth-Tokens, Webhook-URLs, Bot-Tokens, Heartbeat-Tokens, HTTP-Bodies und sensible Header werden, soweit sie protokolliert werden, maskiert. Audit-Log-Einträge werden 30 Tage gespeichert und danach automatisch gelöscht.',
+            ],
             'termination' => [
                 'title' => 'Beendigung und Sperrung',
                 'body' => 'Konten können bei Missbrauch, Rechtsverstößen, Sicherheitsrisiken oder störendem Verhalten vorübergehend gesperrt oder dauerhaft geschlossen werden. Nutzer können die Nutzung jederzeit beenden und ihr Konto löschen. Als nicht-kommerzielles Demonstrationssystem kann WebGuard Funktionen jederzeit anpassen, einschränken oder einstellen.',

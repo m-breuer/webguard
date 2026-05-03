@@ -49,6 +49,10 @@ return [
                 'title' => 'Limitation of Liability',
                 'body' => 'WebGuard is provided "as is" and "as available". We do not guarantee uninterrupted availability, specific response times, or complete alert coverage. Monitoring data may be delayed or inaccurate due to external factors (for example network conditions, third-party outages, or target-system configuration). To the extent legally permitted, we are not liable for indirect or consequential damages, lost profits, outages, or losses resulting from reliance on reported monitoring data. Mandatory statutory liability remains unaffected.',
             ],
+            'audit_logs' => [
+                'title' => 'Operational Audit Logs',
+                'body' => 'To protect accounts, diagnose issues, and make user-controlled changes traceable, WebGuard records audit logs for relevant account, profile, API-token, notification, and monitoring actions. Secrets such as passwords, OAuth tokens, webhook URLs, bot tokens, heartbeat tokens, HTTP bodies, and sensitive headers are redacted where logged. Audit log entries are retained for 30 days and then deleted automatically.',
+            ],
             'termination' => [
                 'title' => 'Termination Conditions',
                 'body' => 'We may suspend or terminate accounts at any time, especially in cases of misuse, legal violations, security risks, or interference with platform operations. Users may stop using the service and delete their account at any time. As a non-commercial demonstration system, WebGuard may change, limit, or discontinue features at any time.',

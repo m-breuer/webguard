@@ -39,6 +39,9 @@ Schedule::command('notifications:prune-guest')
  * MONITORING & DATA MANAGEMENT
  * =================================================================
  */
+// Prune audit log entries older than one month.
+Schedule::command('activitylog:clean --days=30 --force')->dailyAt('02:30')->withoutOverlapping();
+
 // Aggregate raw monitoring data into daily summaries.
 Schedule::command('monitoring:aggregate-daily')->dailyAt('00:30');
 

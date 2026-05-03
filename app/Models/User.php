@@ -20,6 +20,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * Class User
@@ -86,6 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens;
     use HasFactory;
     use HasUlids;
+    use LogsActivity;
     use Notifiable;
 
     /**
@@ -150,6 +153,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function notifications(): HasManyThrough
     {
         return $this->hasManyThrough(MonitoringNotification::class, Monitoring::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges()
+            ->dontLogIfAttributesChangedOnly([
+                'notification_channels_hint_seen_at',
+                'updated_at',
+            ])
+            ->setDescriptionForEvent(fn (string $eventName): string => 'user_' . $eventName);
     }
 
     /**
