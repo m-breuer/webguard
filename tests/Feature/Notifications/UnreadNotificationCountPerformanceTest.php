@@ -181,15 +181,15 @@ class UnreadNotificationCountPerformanceTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $counts = resolve(NotificationBoardService::class)->getUnreadNotificationCountsByUser();
+        $unreadNotificationCountsByUser = resolve(NotificationBoardService::class)->getUnreadNotificationCountsByUser();
 
         $selectQueries = collect(DB::getQueryLog())
             ->pluck('query')
             ->filter(fn (string $query): bool => str_starts_with(mb_strtolower($query), 'select'))
             ->values();
 
-        $this->assertSame(2, $counts->get($firstUser->id));
-        $this->assertSame(1, $counts->get($secondUser->id));
+        $this->assertSame(2, $unreadNotificationCountsByUser->get($firstUser->id));
+        $this->assertSame(1, $unreadNotificationCountsByUser->get($secondUser->id));
         $this->assertCount(1, $selectQueries);
         $this->assertTrue($selectQueries->contains(
             fn (string $query): bool => str_contains(mb_strtolower($query), 'count(distinct')
