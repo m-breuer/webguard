@@ -203,32 +203,30 @@ class NotificationBoardService
      */
     public function getUnreadNotificationCountsByUser(): Collection
     {
-        $unreadStatusChangeCounts = MonitoringNotification::query()
-            ->withoutGlobalScopes()
-            ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
-            ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
-            ->where('monitoring_notifications.read', false)
-            ->whereNull('monitorings.deleted_at')
-            ->selectRaw('monitorings.user_id as user_id, count(distinct monitoring_notifications.monitoring_id) as total')
-            ->groupBy('monitorings.user_id')
-            ->pluck('total', 'user_id');
-
-        $unreadNonStatusChangeCounts = MonitoringNotification::query()
+        return MonitoringNotification::query()
             ->withoutGlobalScopes()
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
             ->where('monitoring_notifications.read', false)
-            ->where('monitoring_notifications.type', '!=', NotificationType::STATUS_CHANGE->value)
             ->whereNull('monitorings.deleted_at')
-            ->selectRaw('monitorings.user_id as user_id, count(*) as total')
+            ->selectRaw(
+                <<<'SQL'
+                monitorings.user_id as user_id,
+                count(distinct case
+                    when monitoring_notifications.type = ?
+                    then monitoring_notifications.monitoring_id
+                end) + coalesce(sum(case
+                    when monitoring_notifications.type != ?
+                    then 1
+                    else 0
+                end), 0) as total
+                SQL,
+                [
+                    NotificationType::STATUS_CHANGE->value,
+                    NotificationType::STATUS_CHANGE->value,
+                ]
+            )
             ->groupBy('monitorings.user_id')
-            ->pluck('total', 'user_id');
-
-        return $unreadStatusChangeCounts->keys()
-            ->merge($unreadNonStatusChangeCounts->keys())
-            ->unique()
-            ->mapWithKeys(fn (string $userId): array => [
-                $userId => (int) ($unreadStatusChangeCounts->get($userId, 0))
-                    + (int) ($unreadNonStatusChangeCounts->get($userId, 0)),
-            ]);
+            ->pluck('total', 'user_id')
+            ->map(fn (int|string $total): int => (int) $total);
     }
 }
