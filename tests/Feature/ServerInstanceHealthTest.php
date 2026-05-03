@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\MonitoringType;
 use App\Enums\UserRole;
+use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
@@ -142,5 +144,82 @@ class ServerInstanceHealthTest extends TestCase
         $testResponse->assertSeeText(__('admin.server_instances.health.never_seen'));
         $testResponse->assertSeeText('disabled-1');
         $testResponse->assertSeeText(__('admin.server_instances.health.inactive'));
+    }
+
+    public function test_admin_server_instance_list_shows_monitoring_load_and_type_distribution(): void
+    {
+        config(['monitoring.instance_stale_after_minutes' => 10]);
+        Date::setTestNow('2026-04-25 08:00:00');
+
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $owner = User::factory()->create();
+
+        ServerInstance::query()->create([
+            'code' => 'load-de-1',
+            'ip_address' => '192.0.2.30',
+            'api_key_hash' => 'valid-instance-key',
+            'is_active' => true,
+            'last_seen_at' => Date::now()->subMinutes(2),
+        ]);
+        ServerInstance::query()->create([
+            'code' => 'load-us-1',
+            'ip_address' => '192.0.2.31',
+            'api_key_hash' => 'valid-instance-key',
+            'is_active' => true,
+            'last_seen_at' => Date::now()->subMinutes(11),
+        ]);
+        ServerInstance::query()->create([
+            'code' => 'empty-1',
+            'ip_address' => '192.0.2.32',
+            'api_key_hash' => 'valid-instance-key',
+            'is_active' => false,
+            'last_seen_at' => null,
+        ]);
+
+        Monitoring::factory()->for($owner)->create([
+            'type' => MonitoringType::HTTP,
+            'preferred_location' => 'load-de-1',
+        ]);
+        Monitoring::factory()->for($owner)->create([
+            'type' => MonitoringType::HTTP,
+            'preferred_location' => 'load-de-1',
+        ]);
+        Monitoring::factory()->for($owner)->create([
+            'type' => MonitoringType::PING,
+            'preferred_location' => 'load-de-1',
+        ]);
+        Monitoring::factory()->heartbeat()->for($owner)->create([
+            'preferred_location' => 'load-us-1',
+        ]);
+        Monitoring::factory()->for($owner)->create([
+            'type' => MonitoringType::PORT,
+            'preferred_location' => 'missing-1',
+        ]);
+        $deletedMonitoring = Monitoring::factory()->for($owner)->create([
+            'type' => MonitoringType::HTTP,
+            'preferred_location' => 'load-de-1',
+        ]);
+        $deletedMonitoring->delete();
+
+        $testResponse = $this->actingAs($admin)->get(route('admin.server-instances.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('admin.server_instances.summary.total_instances'));
+        $testResponse->assertSeeText(__('admin.server_instances.summary.active_instances'));
+        $testResponse->assertSeeText(__('admin.server_instances.summary.stale_instances'));
+        $testResponse->assertSeeText(__('admin.server_instances.summary.total_monitorings'));
+        $testResponse->assertSeeText('load-de-1');
+        $testResponse->assertSeeText(trans_choice('admin.server_instances.monitorings_count', 3, ['count' => 3]));
+        $testResponse->assertSeeText(__('monitoring.types.http') . ': 2');
+        $testResponse->assertSeeText(__('monitoring.types.ping') . ': 1');
+        $testResponse->assertSeeText('load-us-1');
+        $testResponse->assertSeeText(trans_choice('admin.server_instances.monitorings_count', 1, ['count' => 1]));
+        $testResponse->assertSeeText(__('monitoring.types.heartbeat') . ': 1');
+        $testResponse->assertSeeText('empty-1');
+        $testResponse->assertSeeText(trans_choice('admin.server_instances.monitorings_count', 0, ['count' => 0]));
+        $testResponse->assertSeeText(__('admin.server_instances.fields.none'));
+        $testResponse->assertDontSeeText('missing-1');
+        $testResponse->assertDontSeeText(__('monitoring.types.port') . ': 1');
     }
 }

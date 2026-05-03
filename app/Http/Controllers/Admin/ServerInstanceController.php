@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreServerInstanceRequest;
 use App\Http\Requests\UpdateServerInstanceRequest;
+use App\Models\Monitoring;
 use App\Models\ServerInstance;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class ServerInstanceController extends Controller
@@ -16,8 +18,40 @@ class ServerInstanceController extends Controller
     public function index(): View
     {
         $instances = ServerInstance::query()->orderBy('code')->get();
+        $instanceCodes = $instances->pluck('code');
+        $monitoringCounts = Monitoring::query()
+            ->withoutGlobalScope('user')
+            ->selectRaw('preferred_location, count(*) as monitorings_count')
+            ->whereIn('preferred_location', $instanceCodes)
+            ->groupBy('preferred_location')
+            ->pluck('monitorings_count', 'preferred_location');
+        $monitoringTypeCounts = Monitoring::query()
+            ->withoutGlobalScope('user')
+            ->selectRaw('preferred_location, type, count(*) as monitorings_count')
+            ->whereIn('preferred_location', $instanceCodes)
+            ->groupBy('preferred_location', 'type')
+            ->get()
+            ->groupBy('preferred_location')
+            ->map(fn (Collection $rows): Collection => $rows->mapWithKeys(
+                fn (Monitoring $monitoring): array => [
+                    (string) $monitoring->type->value => (int) $monitoring->getAttribute('monitorings_count'),
+                ]
+            ));
+        $healthCounts = $instances
+            ->map(fn (ServerInstance $serverInstance): string => $serverInstance->healthStatus())
+            ->countBy();
 
-        return view('admin.server-instances.index', ['instances' => $instances]);
+        return view('admin.server-instances.index', [
+            'instances' => $instances,
+            'monitoringCounts' => $monitoringCounts,
+            'monitoringTypeCounts' => $monitoringTypeCounts,
+            'summary' => [
+                'total_instances' => $instances->count(),
+                'active_instances' => $instances->where('is_active', true)->count(),
+                'stale_instances' => (int) $healthCounts->get('stale', 0),
+                'total_monitorings' => (int) $monitoringCounts->sum(),
+            ],
+        ]);
     }
 
     public function create(): View
