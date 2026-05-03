@@ -33,12 +33,12 @@ class AuditLogTest extends TestCase
 
         $testResponse->assertRedirect(route('dashboard', absolute: false));
 
-        $user = User::query()->where('email', 'audit-registration@example.test')->firstOrFail();
+        $model = User::query()->where('email', 'audit-registration@example.test')->firstOrFail();
         $activity = Activity::query()
             ->where('log_name', 'user')
             ->where('event', 'created')
             ->where('subject_type', User::class)
-            ->where('subject_id', $user->id)
+            ->where('subject_id', $model->id)
             ->firstOrFail();
 
         $changes = $activity->attribute_changes->toArray();
@@ -183,8 +183,8 @@ class AuditLogTest extends TestCase
         ]);
         Activity::query()->delete();
 
-        $tokenResponse = $this->actingAs($user)->post(route('profile.api-generate-token'));
-        $tokenResponse->assertRedirect(route('profile.edit', ['#api-token']));
+        $testResponse = $this->actingAs($user)->post(route('profile.api-generate-token'));
+        $testResponse->assertRedirect(route('profile.edit', ['#api-token']));
 
         $resetResponse = $this->actingAs($user)->delete(route('monitorings.destroyResults', $monitoring));
         $resetResponse->assertRedirect(route('monitorings.show', $monitoring));

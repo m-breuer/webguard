@@ -26,7 +26,7 @@ class ActivityLogController extends Controller
             'date_to' => ['nullable', 'date'],
         ]);
 
-        $activities = Activity::query()
+        $lengthAwarePaginator = Activity::query()
             ->with('causer')
             ->when($validated['log_name'] ?? null, fn (Builder $builder, string $logName): Builder => $builder->where('log_name', $logName))
             ->when($validated['event'] ?? null, fn (Builder $builder, string $event): Builder => $builder->where('event', $event))
@@ -39,7 +39,7 @@ class ActivityLogController extends Controller
             ->paginate(25);
 
         return view('admin.activity-logs.index', [
-            'activities' => $activities,
+            'activities' => $lengthAwarePaginator,
             'users' => User::query()->select('id', 'email')->orderBy('email')->get(),
             'logNames' => Activity::query()->whereNotNull('log_name')->distinct()->orderBy('log_name')->pluck('log_name'),
             'events' => Activity::query()->whereNotNull('event')->distinct()->orderBy('event')->pluck('event'),

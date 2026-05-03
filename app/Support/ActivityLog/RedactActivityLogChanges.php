@@ -48,23 +48,23 @@ class RedactActivityLogChanges extends LogActivityAction
      * @param  Collection<string, mixed>|array<string, mixed>  $values
      * @return Collection<string, mixed>
      */
-    private function redactCollection(Collection|array $values, Model $activity): Collection
+    private function redactCollection(Collection|array $values, Model $model): Collection
     {
         $array = $values instanceof Collection ? $values->toArray() : $values;
 
-        return collect($this->redactArray($array, $activity));
+        return collect($this->redactArray($array, $model));
     }
 
     /**
      * @param  array<string, mixed>  $values
      * @return array<string, mixed>
      */
-    private function redactArray(array $values, Model $activity, ?string $parentKey = null): array
+    private function redactArray(array $values, Model $model, ?string $parentKey = null): array
     {
         foreach ($values as $key => $value) {
             $key = (string) $key;
 
-            if ($this->isSensitiveKey($key, $parentKey, $activity)) {
+            if ($this->isSensitiveKey($key, $parentKey, $model)) {
                 $values[$key] = self::REDACTED;
 
                 continue;
@@ -77,14 +77,14 @@ class RedactActivityLogChanges extends LogActivityAction
             }
 
             if (is_array($value)) {
-                $values[$key] = $this->redactArray($value, $activity, $key);
+                $values[$key] = $this->redactArray($value, $model, $key);
             }
         }
 
         return $values;
     }
 
-    private function isSensitiveKey(string $key, ?string $parentKey, Model $activity): bool
+    private function isSensitiveKey(string $key, ?string $parentKey, Model $model): bool
     {
         $normalizedKey = $this->normalizeKey($key);
 
@@ -101,8 +101,8 @@ class RedactActivityLogChanges extends LogActivityAction
         }
 
         return $normalizedKey === 'target'
-            && $activity->subject instanceof Monitoring
-            && $activity->subject->type === MonitoringType::HEARTBEAT;
+            && $model->subject instanceof Monitoring
+            && $model->subject->type === MonitoringType::HEARTBEAT;
     }
 
     /**
