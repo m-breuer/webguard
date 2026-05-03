@@ -116,6 +116,20 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('- "8443"', $composeConfiguration);
     }
 
+    public function test_production_php_container_generates_scribe_docs_on_startup(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+        $scribeEntrypoint = file_get_contents(base_path('docker/php/entrypoint.d/60-laravel-scribe-generate.sh'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertIsString($dockerfile);
+        $this->assertIsString($scribeEntrypoint);
+        $this->assertStringContainsString('AUTORUN_LARAVEL_SCRIBE_GENERATE: "true"', $composeConfiguration);
+        $this->assertStringContainsString('COPY docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" scribe:generate --force', $scribeEntrypoint);
+    }
+
     public function test_production_php_container_declares_coolify_traefik_labels(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));

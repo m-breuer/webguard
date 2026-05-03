@@ -61,6 +61,8 @@ RUN bun run build
 FROM base AS production
 COPY --from=app_build --chown=www-data:www-data /app /var/www/html
 COPY --from=frontend_build --chown=www-data:www-data /app/public/build /var/www/html/public/build
+COPY docker/php/entrypoint.d/ /etc/entrypoint.d/
+RUN chmod +x /etc/entrypoint.d/*.sh
 USER www-data
 WORKDIR /var/www/html
 
