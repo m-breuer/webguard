@@ -259,6 +259,13 @@ return [
     ],
     'public_label' => [
         'title' => ':monitoringName - Public Status',
+        'current_status' => 'Current Status',
+        'incidents_count' => ':count incident|:count incidents',
+        'no_data' => 'No data yet',
+        'ongoing' => 'Ongoing',
+        'private_target' => 'Private heartbeat target',
+        'range_days' => 'Last :days day|Last :days days',
+        'resolved' => 'Resolved',
     ],
     'validation' => [
         'invalid_type' => 'The selected type \':type\' is invalid.',
