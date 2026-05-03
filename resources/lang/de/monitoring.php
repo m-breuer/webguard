@@ -259,6 +259,13 @@ return [
     ],
     'public_label' => [
         'title' => ':monitoringName - Öffentlicher Status',
+        'current_status' => 'Aktueller Status',
+        'incidents_count' => ':count Vorfall|:count Vorfälle',
+        'no_data' => 'Noch keine Daten',
+        'ongoing' => 'Laufend',
+        'private_target' => 'Privates Heartbeat-Ziel',
+        'range_days' => 'Letzter :days Tag|Letzte :days Tage',
+        'resolved' => 'Behoben',
     ],
     'validation' => [
         'invalid_type' => 'Der ausgewählte Typ \':type\' ist ungültig.',
