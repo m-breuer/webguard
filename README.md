@@ -16,7 +16,7 @@ WebGuard is an open-source monitoring core built with Laravel 13. It provides th
 
 ## Quick Start
 
-Requirements: PHP 8.4+, Composer, Bun, a supported database, and Redis.
+Requirements: PHP 8.5+, Composer, Bun, a supported database, and Redis.
 
 ```bash
 composer install

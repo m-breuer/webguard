@@ -22,7 +22,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4'
+        php-version: '8.5'
         extensions: redis, sockets, zip
         tools: composer
 
@@ -63,7 +63,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4'
+        php-version: '8.5'
         extensions: redis, mbstring, pdo_mysql, curl, intl, gd, zip, bz2, opcache, xdebug, gmp, ldap, pdo_sqlite, sqlite3, pspell, snmp, tidy
         coverage: xdebug
 
