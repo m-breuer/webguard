@@ -124,6 +124,47 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         });
     }
 
+    public function test_weekly_digest_monitoring_table_uses_mobile_responsive_markup(): void
+    {
+        $user = User::factory()->make([
+            'name' => 'Mobile User',
+        ]);
+
+        $mail = new WeeklyMonitoringDigestMail([
+            'period_start' => Date::parse('2026-04-13'),
+            'period_end' => Date::parse('2026-04-19'),
+            'frequency' => 'weekly',
+            'overview' => [
+                'uptime_percentage' => 99.12,
+                'incidents_count' => 2,
+                'longest_downtime_minutes' => 12,
+                'monitorings_count' => 1,
+            ],
+            'monitorings' => [
+                [
+                    'name' => 'Very long storefront monitor name',
+                    'target' => 'https://very-long-subdomain.example.com/status/with/a/path/that/needs/to-wrap-on-mobile',
+                    'uptime_percentage' => 99.12,
+                    'incidents_count' => 2,
+                    'downtime_minutes' => 12,
+                    'longest_downtime_minutes' => 12,
+                ],
+            ],
+            'ssl_warnings' => [],
+            'domain_warnings' => [],
+        ], $user);
+
+        $rendered = $mail->render();
+
+        $this->assertStringContainsString('class="digest-table digest-monitorings-table"', $rendered);
+        $this->assertStringContainsString('class="digest-monitoring-row"', $rendered);
+        $this->assertStringContainsString('class="digest-mobile-label"', $rendered);
+        $this->assertStringContainsString('class="digest-monitoring-target"', $rendered);
+        $this->assertStringContainsString('.digest-monitorings-table thead', $rendered);
+        $this->assertStringContainsString('display: block !important;', $rendered);
+        $this->assertStringContainsString('overflow-wrap: anywhere;', $rendered);
+    }
+
     public function test_sends_weekly_digest_to_guest_users_when_profile_setting_is_enabled(): void
     {
         Date::setTestNow('2026-04-20 09:00:00');

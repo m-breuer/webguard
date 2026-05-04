@@ -20,7 +20,7 @@
     ]) }}</p>
 
     <h2>{{ __('mail.weekly_monitoring_digest.overview_heading') }}</h2>
-    <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse: collapse; margin-bottom: 20px;">
+    <table class="digest-table" width="100%" cellpadding="8" cellspacing="0">
         <tbody>
             <tr>
                 <td><strong>{{ __('mail.weekly_monitoring_digest.uptime_label') }}</strong></td>
@@ -38,25 +38,35 @@
     </table>
 
     <h2>{{ __('mail.weekly_monitoring_digest.monitorings_heading') }}</h2>
-    <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse: collapse; margin-bottom: 20px;">
+    <table class="digest-table digest-monitorings-table" width="100%" cellpadding="8" cellspacing="0">
         <thead>
             <tr>
-                <th align="left">{{ __('mail.weekly_monitoring_digest.monitor_label') }}</th>
-                <th align="left">{{ __('mail.weekly_monitoring_digest.uptime_label') }}</th>
-                <th align="left">{{ __('mail.weekly_monitoring_digest.incidents_label') }}</th>
-                <th align="left">{{ __('mail.weekly_monitoring_digest.longest_downtime_label') }}</th>
+                <th align="left" width="46%">{{ __('mail.weekly_monitoring_digest.monitor_label') }}</th>
+                <th align="left" width="18%">{{ __('mail.weekly_monitoring_digest.uptime_label') }}</th>
+                <th align="left" width="18%">{{ __('mail.weekly_monitoring_digest.incidents_label') }}</th>
+                <th align="left" width="18%">{{ __('mail.weekly_monitoring_digest.longest_downtime_label') }}</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($digest['monitorings'] as $monitoring)
-                <tr>
+                <tr class="digest-monitoring-row">
                     <td>
-                        <strong>{{ $monitoring['name'] }}</strong><br>
-                        <span style="color: #666;">{{ $monitoring['target'] }}</span>
+                        <span class="digest-mobile-label">{{ __('mail.weekly_monitoring_digest.monitor_label') }}</span>
+                        <strong class="digest-monitoring-name">{{ $monitoring['name'] }}</strong><br>
+                        <span class="digest-monitoring-target">{{ $monitoring['target'] }}</span>
                     </td>
-                    <td>{{ $formatPercentage($monitoring['uptime_percentage']) }}</td>
-                    <td>{{ $monitoring['incidents_count'] }}</td>
-                    <td>{{ $formatMinutes($monitoring['longest_downtime_minutes']) }}</td>
+                    <td>
+                        <span class="digest-mobile-label">{{ __('mail.weekly_monitoring_digest.uptime_label') }}</span>
+                        {{ $formatPercentage($monitoring['uptime_percentage']) }}
+                    </td>
+                    <td>
+                        <span class="digest-mobile-label">{{ __('mail.weekly_monitoring_digest.incidents_label') }}</span>
+                        {{ $monitoring['incidents_count'] }}
+                    </td>
+                    <td>
+                        <span class="digest-mobile-label">{{ __('mail.weekly_monitoring_digest.longest_downtime_label') }}</span>
+                        {{ $formatMinutes($monitoring['longest_downtime_minutes']) }}
+                    </td>
                 </tr>
             @endforeach
         </tbody>
