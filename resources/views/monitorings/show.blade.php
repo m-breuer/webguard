@@ -49,7 +49,7 @@
                             {{ __('monitoring.actions.edit') }}
                         </a>
                         <form method="POST" action="{{ route('monitorings.destroyResults', $monitoring) }}"
-                            onsubmit="return confirm('{{ __('monitoring.actions.reset.confirmation') }}')">
+                            data-confirm-message="{{ __('monitoring.actions.reset.confirmation') }}">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -58,7 +58,7 @@
                             </button>
                         </form>
                         <form method="POST" action="{{ route('monitorings.destroy', $monitoring) }}"
-                            onsubmit="return confirm('{{ __('monitoring.actions.delete.confirmation') }}')">
+                            data-confirm-message="{{ __('monitoring.actions.delete.confirmation') }}">
                             @csrf
                             @method('DELETE')
                             <button type="submit"

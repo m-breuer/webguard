@@ -5,7 +5,9 @@
         $theme = 'system';
     }
 @endphp
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}"
+    data-theme="{{ $theme }}" data-confirm-title="{{ __('app.confirmation.title') }}"
+    data-confirm-confirm="{{ __('app.confirmation.confirm') }}" data-confirm-cancel="{{ __('button.cancel') }}">
 
 <head>
     <meta charset="utf-8">
@@ -58,6 +60,7 @@
         {{ $slot }}
 
         @include('components.toast')
+        <x-confirm-dialog />
     </main>
 
     @include('components.footer')

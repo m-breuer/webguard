@@ -13,11 +13,11 @@
             <a href="{{ route('admin.packages.edit', $package) }}" class="text-purple-600 hover:underline">
                 {{ __('button.edit') }}
             </a>
-            <form action="{{ route('admin.packages.destroy', $package) }}" method="POST" class="inline">
+            <form action="{{ route('admin.packages.destroy', $package) }}" method="POST" class="inline"
+                data-confirm-message="{{ __('admin.packages.messages.confirm_delete') }}">
                 @csrf
                 @method('DELETE')
-                <button type="submit" onclick="return confirm('{{ __('admin.packages.messages.confirm_delete') }}')"
-                    class="ml-2 text-red-600 hover:underline">{{ __('button.delete') }}</button>
+                <button type="submit" class="ml-2 text-red-600 hover:underline">{{ __('button.delete') }}</button>
             </form>
         </x-table.cell>
     </x-table.row>

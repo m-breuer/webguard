@@ -18,6 +18,23 @@ class UserDeletionTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_user_index_renders_clickable_delete_button_for_other_users(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
+        $user = User::factory()->create();
+
+        $testResponse = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('action="' . route('admin.users.destroy', $user) . '"');
+        $testResponse->assertSeeHtml('data-confirm-message');
+        $testResponse->assertSeeHtml('data-testid="delete-user-' . $user->id . '"');
+        $testResponse->assertSeeHtml('type="submit"');
+        $testResponse->assertDontSeeHtml('return confirm(');
+        $testResponse->assertDontSeeHtml('data-testid="delete-user-' . $admin->id . '"');
+    }
+
     public function test_admin_delete_revokes_target_user_access_immediately_and_dispatches_job(): void
     {
         Queue::fake();
