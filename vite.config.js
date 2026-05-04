@@ -31,6 +31,10 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.ts',
+                'resources/images/Logo-WebGuard.png',
+                'resources/images/landing-dashboard.svg',
+                'resources/images/landing-monitoring-detail.svg',
+                'resources/images/landing-public-status.svg',
             ],
             refresh: true
         }),
