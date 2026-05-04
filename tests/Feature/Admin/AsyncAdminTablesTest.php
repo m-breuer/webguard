@@ -30,7 +30,40 @@ class AsyncAdminTablesTest extends TestCase
         foreach ($routes as $route) {
             $this->actingAs($admin)
                 ->get($route)->assertOk()->assertSeeHtml('asyncTable')
-                ->assertSee(__('search.filter.heading'));
+                ->assertSee(__('search.filter.heading'))
+                ->assertSeeHtml('type="search"')
+                ->assertDontSeeHtml('&#128269;')
+                ->assertDontSeeHtml('pl-9');
+        }
+    }
+
+    public function test_admin_delete_forms_use_app_confirm_dialog_instead_of_native_browser_confirm(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $user = User::factory()->create();
+        $package = Package::factory()->create();
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'confirm-dialog-instance',
+            'ip_address' => '10.0.0.99',
+            'api_key_hash' => 'secret',
+            'is_active' => true,
+        ]);
+
+        $routes = [
+            route('admin.users.index') => route('admin.users.destroy', $user),
+            route('admin.packages.index') => route('admin.packages.destroy', $package),
+            route('admin.server-instances.index') => route('admin.server-instances.destroy', $serverInstance),
+        ];
+
+        foreach ($routes as $route => $destroyRoute) {
+            $this->actingAs($admin)
+                ->get($route)
+                ->assertOk()
+                ->assertSeeHtml('x-data="confirmDialog()"')
+                ->assertSeeHtml('data-confirm-message')
+                ->assertSeeHtml('action="' . $destroyRoute . '"')
+                ->assertDontSeeHtml('return confirm(');
         }
     }
 

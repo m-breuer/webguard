@@ -14,5 +14,9 @@ return [
         'copied_to_clipboard' => 'In die Zwischenablage kopiert!',
         'loading' => 'Wird geladen...',
     ],
+    'confirmation' => [
+        'title' => 'Aktion bestätigen',
+        'confirm' => 'Bestätigen',
+    ],
     'public_status_title' => 'WebGuard Öffentlicher Status',
 ];

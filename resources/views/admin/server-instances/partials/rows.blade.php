@@ -64,12 +64,11 @@
             <a href="{{ route('admin.server-instances.edit', $instance) }}" class="text-purple-600 hover:underline">
                 {{ __('button.edit') }}
             </a>
-            <form action="{{ route('admin.server-instances.destroy', $instance) }}" method="POST" class="inline">
+            <form action="{{ route('admin.server-instances.destroy', $instance) }}" method="POST" class="inline"
+                data-confirm-message="{{ __('admin.server_instances.messages.confirm_delete') }}">
                 @csrf
                 @method('DELETE')
-                <button type="submit"
-                    onclick="return confirm('{{ __('admin.server_instances.messages.confirm_delete') }}')"
-                    class="ml-2 text-red-600 hover:underline">{{ __('button.delete') }}</button>
+                <button type="submit" class="ml-2 text-red-600 hover:underline">{{ __('button.delete') }}</button>
             </form>
         </x-table.cell>
     </x-table.row>

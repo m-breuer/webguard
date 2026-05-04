@@ -16,15 +16,22 @@
         <x-table.cell>{{ $user->created_at->format('d.m.Y') }}</x-table.cell>
         <x-table.cell>{{ $user->updated_at->format('d.m.Y') }}</x-table.cell>
         <x-table.cell>
-            <a href="{{ route('admin.users.edit', $user) }}" class="text-purple-600 hover:underline">
-                {{ __('button.edit') }}
-            </a>
-            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit" onclick="return confirm('{{ __('user.delete.confirmation_question') }}')"
-                    class="ml-2 text-red-600 hover:underline">{{ __('button.delete') }}</button>
-            </form>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('admin.users.edit', $user) }}"
+                    class="inline-flex min-h-10 items-center text-purple-600 hover:underline">
+                    {{ __('button.edit') }}
+                </a>
+                @if ($user->id !== auth()->id())
+                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline-flex"
+                        data-confirm-message="{{ __('user.delete.confirmation_question') }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="inline-flex min-h-10 cursor-pointer items-center text-red-600 hover:underline"
+                            data-testid="delete-user-{{ $user->id }}">{{ __('button.delete') }}</button>
+                    </form>
+                @endif
+            </div>
         </x-table.cell>
     </x-table.row>
 @empty

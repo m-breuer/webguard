@@ -14,5 +14,9 @@ return [
         'copied_to_clipboard' => 'Copied to clipboard!',
         'loading' => 'Loading...',
     ],
+    'confirmation' => [
+        'title' => 'Confirm action',
+        'confirm' => 'Confirm',
+    ],
     'public_status_title' => 'WebGuard Public Status',
 ];

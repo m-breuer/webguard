@@ -88,12 +88,9 @@
         </label>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label class="relative block sm:w-72">
-                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                    <span aria-hidden="true">&#128269;</span>
-                </span>
+            <label class="block sm:w-72">
                 <input type="search"
-                    class="w-full rounded-md border-gray-300 pl-9 shadow-xs focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    class="w-full rounded-md border-gray-300 shadow-xs focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                     placeholder="{{ $searchPlaceholder }}" x-model="search"
                     @input.debounce.400ms="setSearch($event.target.value)" />
             </label>
