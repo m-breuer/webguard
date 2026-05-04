@@ -67,4 +67,31 @@ class UserEmailVerificationFromEditPageTest extends TestCase
         $user->refresh();
         $this->assertNotNull($user->email_verified_at);
     }
+
+    public function test_admin_can_update_unverified_user_profile(): void
+    {
+        $package = Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
+        $user = User::factory()->unverified()->create([
+            'name' => 'Original User',
+            'email' => 'original-user@example.test',
+            'package_id' => $package->id,
+        ]);
+
+        $testResponse = $this->actingAs($admin)->patch(route('admin.users.update', $user), [
+            'name' => 'Updated User',
+            'email' => 'updated-user@example.test',
+            'password' => '',
+            'role' => UserRole::REGULAR->value,
+            'package_id' => $package->id,
+        ]);
+
+        $testResponse->assertRedirect(route('admin.users.index'));
+        $testResponse->assertSessionHas('success', __('user.messages.user_updated'));
+
+        $user->refresh();
+        $this->assertSame('Updated User', $user->name);
+        $this->assertSame('updated-user@example.test', $user->email);
+        $this->assertNull($user->email_verified_at);
+    }
 }

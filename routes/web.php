@@ -51,15 +51,20 @@ Route::get('/widget.js', function () {
     return response(file_get_contents(public_path('js/widget.js')))->header('Content-Type', 'application/javascript');
 })->name('widget.js');
 
+Route::middleware(['auth', 'role:member,admin'])
+    ->prefix('profile')
+    ->as('profile.')
+    ->group(function (): void {
+        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+        Route::patch('/', [ProfileController::class, 'update'])->name('update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+    });
+
 Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
 
     Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
-        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-
         Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');
         Route::delete('/api-revoke-token', [ProfileController::class, 'apiRevokeToken'])->name('api-revoke-token');
         Route::post('/notification-channels/{channel}/test', [ProfileController::class, 'sendNotificationChannelTest'])
