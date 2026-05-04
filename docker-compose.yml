@@ -2,7 +2,7 @@ x-app-environment: &app-environment
   APP_NAME: "WebGuard"
   APP_ENV: "production"
   APP_DEBUG: "false"
-  APP_KEY: "${APP_KEY:-}"
+  APP_KEY: "${APP_KEY:?APP_KEY must be set to a persistent Laravel application key}"
   APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"
   APP_TIMEZONE: "Europe/Berlin"
   APP_LOCALE: "en"

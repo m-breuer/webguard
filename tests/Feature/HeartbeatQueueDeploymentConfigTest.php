@@ -65,12 +65,29 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         preg_match_all('/\$\{([^}]+)}/', $composeConfiguration, $matches);
 
         foreach ($matches[1] as $interpolatedVariable) {
-            $this->assertStringContainsString(
-                ':-',
-                $interpolatedVariable,
-                sprintf('Compose variable "%s" must define a default value.', $interpolatedVariable)
+            $this->assertTrue(
+                str_contains($interpolatedVariable, ':-') || str_contains($interpolatedVariable, ':?'),
+                sprintf('Compose variable "%s" must define a default value or be explicitly required.', $interpolatedVariable)
             );
         }
+    }
+
+    public function test_production_requires_app_key_before_serving_http_requests(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+        $appKeyEntrypoint = file_get_contents(base_path('docker/php/entrypoint.d/10-require-app-key.sh'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertIsString($dockerfile);
+        $this->assertIsString($appKeyEntrypoint);
+        $this->assertStringContainsString(
+            'APP_KEY: "${APP_KEY:?APP_KEY must be set to a persistent Laravel application key}"',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString('COPY docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString('APP_KEY must be set to a persistent Laravel application key in production.', $appKeyEntrypoint);
+        $this->assertStringContainsString('php artisan key:generate --show', $appKeyEntrypoint);
     }
 
     public function test_production_app_url_is_derived_from_coolify_service_url(): void
