@@ -80,4 +80,23 @@ class ProfileAccountDeletionTest extends TestCase
         $loginAttempt->assertSessionHasErrors('email');
         $this->assertGuest();
     }
+
+    public function test_unverified_user_can_delete_own_profile(): void
+    {
+        Queue::fake();
+        Package::factory()->create();
+
+        $user = User::factory()->unverified()->create();
+
+        $testResponse = $this->actingAs($user)->delete(route('profile.destroy'), [
+            'password' => 'password',
+        ]);
+
+        $testResponse->assertRedirect('/');
+        $this->assertGuest();
+
+        Queue::assertPushed(DeleteUser::class, function (DeleteUser $deleteUser) use ($user): bool {
+            return $deleteUser->user->is($user);
+        });
+    }
 }
