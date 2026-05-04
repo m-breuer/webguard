@@ -130,7 +130,7 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             'name' => 'Mobile User',
         ]);
 
-        $mail = new WeeklyMonitoringDigestMail([
+        $weeklyMonitoringDigestMail = new WeeklyMonitoringDigestMail([
             'period_start' => Date::parse('2026-04-13'),
             'period_end' => Date::parse('2026-04-19'),
             'frequency' => 'weekly',
@@ -154,7 +154,7 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             'domain_warnings' => [],
         ], $user);
 
-        $rendered = $mail->render();
+        $rendered = $weeklyMonitoringDigestMail->render();
 
         $this->assertStringContainsString('class="digest-table digest-monitorings-table"', $rendered);
         $this->assertStringContainsString('class="digest-monitoring-row"', $rendered);
