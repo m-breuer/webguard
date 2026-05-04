@@ -174,6 +174,40 @@ class AuditLogTest extends TestCase
         $this->assertStringNotContainsString('fresh-basic-password', $encodedChanges);
     }
 
+    public function test_heartbeat_monitoring_audit_log_redacts_ping_url_and_token(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $serverInstance = $this->activeServerInstance();
+        Activity::query()->delete();
+
+        $testResponse = $this->actingAs($user)->post(route('monitorings.store'), [
+            'name' => 'Sensitive Heartbeat Monitor',
+            'type' => MonitoringType::HEARTBEAT->value,
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'heartbeat_interval_minutes' => 60,
+            'heartbeat_grace_minutes' => 10,
+            'preferred_location' => $serverInstance->code,
+            'ssl_expiry_warning_days' => 7,
+        ]);
+
+        $testResponse->assertRedirect(route('monitorings.index'));
+
+        $monitoring = Monitoring::query()->where('name', 'Sensitive Heartbeat Monitor')->firstOrFail();
+        $activity = Activity::query()
+            ->where('log_name', 'monitoring')
+            ->where('event', 'created')
+            ->where('subject_id', $monitoring->id)
+            ->firstOrFail();
+        $changes = $activity->attribute_changes->toArray();
+        $encodedChanges = json_encode($changes, JSON_THROW_ON_ERROR);
+
+        $this->assertSame('[redacted]', data_get($changes, 'attributes.target'));
+        $this->assertSame('[redacted]', data_get($changes, 'attributes.heartbeat_token'));
+        $this->assertStringNotContainsString((string) $monitoring->target, $encodedChanges);
+        $this->assertStringNotContainsString((string) $monitoring->heartbeat_token, $encodedChanges);
+    }
+
     public function test_manual_user_and_monitoring_actions_are_logged(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
