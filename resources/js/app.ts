@@ -14,6 +14,7 @@ import monitoringCardLoader from './components/monitoring-cards';
 import monitoringDetail from './components/monitoring-detail';
 import uptimeCalendar from './components/uptime-calendar';
 import guestLogin from './components/guestLogin';
+import asyncTable from './components/async-table';
 
 const decodeImprintPayload = (payload: string): string => {
     try {
@@ -63,6 +64,7 @@ Alpine.data('monitoringDetail', monitoringDetail);
 Alpine.data('monitoringCardLoader', monitoringCardLoader);
 Alpine.data('uptimeCalendar', uptimeCalendar);
 Alpine.data('guestLogin', guestLogin);
+Alpine.data('asyncTable', asyncTable);
 
 window.Alpine = Alpine;
 window.Chart = Chart;
