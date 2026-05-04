@@ -29,6 +29,7 @@ class AuditLogTest extends TestCase
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
             'terms' => '1',
+            'captcha' => $this->validCaptchaValue(),
         ]);
 
         $testResponse->assertRedirect(route('dashboard', absolute: false));

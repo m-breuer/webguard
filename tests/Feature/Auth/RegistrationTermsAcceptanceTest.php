@@ -32,11 +32,26 @@ class RegistrationTermsAcceptanceTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => $registrationData['email']]);
     }
 
+    public function test_registration_requires_captcha_solution(): void
+    {
+        $registrationData = [
+            ...$this->validRegistrationData(),
+            'terms' => '1',
+        ];
+
+        $testResponse = $this->post('/register', $registrationData);
+
+        $testResponse->assertSessionHasErrors('captcha');
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => $registrationData['email']]);
+    }
+
     public function test_registration_stores_terms_accepted_timestamp(): void
     {
         $registrationData = [
             ...$this->validRegistrationData(),
             'terms' => '1',
+            'captcha' => $this->validCaptchaValue(),
         ];
 
         $testResponse = $this->post('/register', $registrationData);
