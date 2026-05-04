@@ -35,10 +35,15 @@ class ViteManifestAssetTest extends TestCase
         $views = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views')));
 
         foreach ($views as $view) {
-            if (! $view instanceof SplFileInfo || ! $view->isFile() || $view->getExtension() !== 'php') {
+            if (! $view instanceof SplFileInfo) {
                 continue;
             }
-
+            if (! $view->isFile()) {
+                continue;
+            }
+            if ($view->getExtension() !== 'php') {
+                continue;
+            }
             $contents = file_get_contents($view->getPathname());
             $this->assertIsString($contents);
 
