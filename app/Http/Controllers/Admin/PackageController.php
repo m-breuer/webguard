@@ -41,7 +41,7 @@ class PackageController extends Controller
         $direction = $validated['direction'] ?? 'asc';
         $perPage = (int) ($validated['per_page'] ?? 10);
 
-        $packages = Package::query()
+        $lengthAwarePaginator = Package::query()
             ->withoutGlobalScope('selectable')
             ->when($validated['search'] ?? null, function (Builder $query, string $search): void {
                 $query->where(function (Builder $builder) use ($search): void {
@@ -49,27 +49,27 @@ class PackageController extends Controller
                         ->orWhere('price', 'like', '%' . $search . '%');
                 });
             })
-            ->when(isset($validated['is_selectable']), fn (Builder $query): Builder => $query->where('is_selectable', (bool) $validated['is_selectable']))
+            ->when(isset($validated['is_selectable']), fn (Builder $builder): Builder => $builder->where('is_selectable', (bool) $validated['is_selectable']))
             ->orderBy($sort, $direction)
             ->orderBy('id')
             ->paginate($perPage);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'html' => view('admin.packages.partials.rows', ['packages' => $packages])->render(),
+                'html' => view('admin.packages.partials.rows', ['packages' => $lengthAwarePaginator])->render(),
                 'pagination' => [
-                    'current_page' => $packages->currentPage(),
-                    'last_page' => $packages->lastPage(),
-                    'from' => $packages->firstItem(),
-                    'to' => $packages->lastItem(),
-                    'total' => $packages->total(),
-                    'per_page' => $packages->perPage(),
+                    'current_page' => $lengthAwarePaginator->currentPage(),
+                    'last_page' => $lengthAwarePaginator->lastPage(),
+                    'from' => $lengthAwarePaginator->firstItem(),
+                    'to' => $lengthAwarePaginator->lastItem(),
+                    'total' => $lengthAwarePaginator->total(),
+                    'per_page' => $lengthAwarePaginator->perPage(),
                 ],
             ]);
         }
 
         return view('admin.packages.index', [
-            'packages' => $packages,
+            'packages' => $lengthAwarePaginator,
             'filters' => [
                 [
                     'name' => 'is_selectable',

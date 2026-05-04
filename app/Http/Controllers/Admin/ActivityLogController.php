@@ -43,8 +43,8 @@ class ActivityLogController extends Controller
         $lengthAwarePaginator = Activity::query()
             ->with('causer')
             ->when($validated['search'] ?? null, function (Builder $builder, string $search): void {
-                $builder->where(function (Builder $query) use ($search): void {
-                    $query->where('description', 'like', '%' . $search . '%')
+                $builder->where(function (Builder $builder) use ($search): void {
+                    $builder->where('description', 'like', '%' . $search . '%')
                         ->orWhere('log_name', 'like', '%' . $search . '%')
                         ->orWhere('event', 'like', '%' . $search . '%')
                         ->orWhere('subject_id', 'like', '%' . $search . '%');

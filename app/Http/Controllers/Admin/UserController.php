@@ -57,24 +57,24 @@ class UserController extends Controller
                     $builder->where('users.name', 'like', '%' . $search . '%')
                         ->orWhere('users.email', 'like', '%' . $search . '%')
                         ->orWhere('users.role', 'like', '%' . $search . '%')
-                        ->orWhereHas('package', function (Builder $packageQuery) use ($search): void {
-                            $packageQuery->where('monitoring_limit', 'like', '%' . $search . '%')
+                        ->orWhereHas('package', function (Builder $builder) use ($search): void {
+                            $builder->where('monitoring_limit', 'like', '%' . $search . '%')
                                 ->orWhere('price', 'like', '%' . $search . '%');
                         });
                 });
             })
-            ->when($validated['role'] ?? null, fn (Builder $query, string $role): Builder => $query->where('users.role', $role))
-            ->when($validated['email_verification'] ?? null, function (Builder $query, string $verification): Builder {
+            ->when($validated['role'] ?? null, fn (Builder $builder, string $role): Builder => $builder->where('users.role', $role))
+            ->when($validated['email_verification'] ?? null, function (Builder $builder, string $verification): Builder {
                 return $verification === 'verified'
-                    ? $query->whereNotNull('users.email_verified_at')
-                    : $query->whereNull('users.email_verified_at');
+                    ? $builder->whereNotNull('users.email_verified_at')
+                    : $builder->whereNull('users.email_verified_at');
             })
-            ->when($validated['package_id'] ?? null, fn (Builder $query, string $packageId): Builder => $query->where('users.package_id', $packageId));
+            ->when($validated['package_id'] ?? null, fn (Builder $builder, string $packageId): Builder => $builder->where('users.package_id', $packageId));
 
         if ($sort === 'monitoring_limit') {
             $query->leftJoin('packages as sort_packages', 'sort_packages.id', '=', 'users.package_id')
                 ->orderBy('sort_packages.monitoring_limit', $direction)
-                ->orderBy('users.created_at', 'desc');
+                ->latest('users.created_at');
         } else {
             $query->orderBy('users.' . $sort, $direction)
                 ->orderBy('users.id');
@@ -102,7 +102,7 @@ class UserController extends Controller
                 'name' => 'role',
                 'label' => __('user.fields.role'),
                 'placeholder' => __('search.filter.text', ['attribute' => __('user.fields.role')]),
-                'options' => collect(UserRole::cases())->mapWithKeys(fn (UserRole $role): array => [$role->value => ucfirst($role->value)])->all(),
+                'options' => collect(UserRole::cases())->mapWithKeys(fn (UserRole $userRole): array => [$userRole->value => ucfirst($userRole->value)])->all(),
             ],
             [
                 'name' => 'email_verification',

@@ -29,9 +29,7 @@ class AsyncAdminTablesTest extends TestCase
 
         foreach ($routes as $route) {
             $this->actingAs($admin)
-                ->get($route)
-                ->assertOk()
-                ->assertSee('asyncTable', false)
+                ->get($route)->assertOk()->assertSeeHtml('asyncTable')
                 ->assertSee(__('search.filter.heading'));
         }
     }
@@ -56,15 +54,15 @@ class AsyncAdminTablesTest extends TestCase
             User::factory()->create(['name' => 'Paged User ' . $index]);
         }
 
-        $sortedResponse = $this->actingAs($admin)->getJson(route('admin.users.index', [
+        $testResponse = $this->actingAs($admin)->getJson(route('admin.users.index', [
             'search' => 'Sortable',
             'sort' => 'name',
             'direction' => 'desc',
             'per_page' => 5,
         ]));
 
-        $sortedResponse->assertOk()->assertJsonPath('pagination.total', 2);
-        $sortedHtml = $sortedResponse->json('html');
+        $testResponse->assertOk()->assertJsonPath('pagination.total', 2);
+        $sortedHtml = $testResponse->json('html');
         $this->assertStringContainsString('Sortable Zulu', $sortedHtml);
         $this->assertLessThan(mb_strpos($sortedHtml, 'Sortable Alpha'), mb_strpos($sortedHtml, 'Sortable Zulu'));
 
@@ -96,16 +94,16 @@ class AsyncAdminTablesTest extends TestCase
         Package::factory()->create(['monitoring_limit' => 10, 'price' => 29.99, 'is_selectable' => true]);
         Package::factory()->create(['monitoring_limit' => 99, 'price' => 9.99, 'is_selectable' => false]);
 
-        $response = $this->actingAs($admin)->getJson(route('admin.packages.index', [
+        $testResponse = $this->actingAs($admin)->getJson(route('admin.packages.index', [
             'is_selectable' => '0',
             'sort' => 'price',
             'direction' => 'asc',
             'per_page' => 5,
         ]));
 
-        $response->assertOk()->assertJsonPath('pagination.total', 1);
-        $this->assertStringContainsString('99', $response->json('html'));
-        $this->assertStringNotContainsString('29.99', $response->json('html'));
+        $testResponse->assertOk()->assertJsonPath('pagination.total', 1);
+        $this->assertStringContainsString('99', $testResponse->json('html'));
+        $this->assertStringNotContainsString('29.99', $testResponse->json('html'));
     }
 
     public function test_admin_server_instance_table_supports_backend_search_health_filter_and_sorting(): void
@@ -131,7 +129,7 @@ class AsyncAdminTablesTest extends TestCase
             'last_seen_at' => Date::now()->subHour(),
         ]);
 
-        $response = $this->actingAs($admin)->getJson(route('admin.server-instances.index', [
+        $testResponse = $this->actingAs($admin)->getJson(route('admin.server-instances.index', [
             'search' => 'async',
             'health' => 'stale',
             'sort' => 'code',
@@ -139,9 +137,9 @@ class AsyncAdminTablesTest extends TestCase
             'per_page' => 5,
         ]));
 
-        $response->assertOk()->assertJsonPath('pagination.total', 1);
-        $this->assertStringContainsString('async-stale', $response->json('html'));
-        $this->assertStringNotContainsString('async-healthy', $response->json('html'));
+        $testResponse->assertOk()->assertJsonPath('pagination.total', 1);
+        $this->assertStringContainsString('async-stale', $testResponse->json('html'));
+        $this->assertStringNotContainsString('async-healthy', $testResponse->json('html'));
     }
 
     public function test_admin_api_log_table_supports_backend_user_filter_search_and_email_sorting(): void
@@ -154,14 +152,14 @@ class AsyncAdminTablesTest extends TestCase
         ApiLog::query()->create(['user_id' => $zulu->id, 'route' => '/api/monitorings']);
         ApiLog::query()->create(['user_id' => $alpha->id, 'route' => '/api/status']);
 
-        $filteredResponse = $this->actingAs($admin)->getJson(route('admin.apis.index', [
+        $testResponse = $this->actingAs($admin)->getJson(route('admin.apis.index', [
             'user_id' => $zulu->id,
             'search' => 'monitorings',
         ]));
 
-        $filteredResponse->assertOk()->assertJsonPath('pagination.total', 1);
-        $this->assertStringContainsString('zulu-api@example.test', $filteredResponse->json('html'));
-        $this->assertStringNotContainsString('alpha-api@example.test', $filteredResponse->json('html'));
+        $testResponse->assertOk()->assertJsonPath('pagination.total', 1);
+        $this->assertStringContainsString('zulu-api@example.test', $testResponse->json('html'));
+        $this->assertStringNotContainsString('alpha-api@example.test', $testResponse->json('html'));
 
         $sortedResponse = $this->actingAs($admin)->getJson(route('admin.apis.index', [
             'sort' => 'email',
@@ -186,7 +184,7 @@ class AsyncAdminTablesTest extends TestCase
             ->event('created')
             ->log('monitoring_created');
 
-        $response = $this->actingAs($admin)->getJson(route('admin.activity-logs.index', [
+        $testResponse = $this->actingAs($admin)->getJson(route('admin.activity-logs.index', [
             'search' => 'async_profile',
             'log_name' => 'user',
             'event' => 'updated',
@@ -195,8 +193,8 @@ class AsyncAdminTablesTest extends TestCase
             'per_page' => 5,
         ]));
 
-        $response->assertOk()->assertJsonPath('pagination.total', 1);
-        $this->assertStringContainsString('async_profile_changed', $response->json('html'));
-        $this->assertStringNotContainsString('monitoring_created', $response->json('html'));
+        $testResponse->assertOk()->assertJsonPath('pagination.total', 1);
+        $this->assertStringContainsString('async_profile_changed', $testResponse->json('html'));
+        $this->assertStringNotContainsString('monitoring_created', $testResponse->json('html'));
     }
 }

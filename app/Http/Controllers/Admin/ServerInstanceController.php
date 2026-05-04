@@ -36,27 +36,27 @@ class ServerInstanceController extends Controller
         $perPage = (int) ($validated['per_page'] ?? 10);
         $staleCutoff = Date::now()->subMinutes(max(1, (int) config('monitoring.instance_stale_after_minutes', 10)));
 
-        $instances = ServerInstance::query()
+        $lengthAwarePaginator = ServerInstance::query()
             ->when($validated['search'] ?? null, function (Builder $query, string $search): void {
                 $query->where(function (Builder $builder) use ($search): void {
                     $builder->where('code', 'like', '%' . $search . '%')
                         ->orWhere('ip_address', 'like', '%' . $search . '%');
                 });
             })
-            ->when(isset($validated['is_active']), fn (Builder $query): Builder => $query->where('is_active', (bool) $validated['is_active']))
-            ->when($validated['health'] ?? null, function (Builder $query, string $health) use ($staleCutoff): Builder {
+            ->when(isset($validated['is_active']), fn (Builder $builder): Builder => $builder->where('is_active', (bool) $validated['is_active']))
+            ->when($validated['health'] ?? null, function (Builder $builder, string $health) use ($staleCutoff): Builder {
                 return match ($health) {
-                    'healthy' => $query->where('is_active', true)->whereNotNull('last_seen_at')->where('last_seen_at', '>=', $staleCutoff),
-                    'stale' => $query->where('is_active', true)->whereNotNull('last_seen_at')->where('last_seen_at', '<', $staleCutoff),
-                    'never_seen' => $query->where('is_active', true)->whereNull('last_seen_at'),
-                    'inactive' => $query->where('is_active', false),
+                    'healthy' => $builder->where('is_active', true)->whereNotNull('last_seen_at')->where('last_seen_at', '>=', $staleCutoff),
+                    'stale' => $builder->where('is_active', true)->whereNotNull('last_seen_at')->where('last_seen_at', '<', $staleCutoff),
+                    'never_seen' => $builder->where('is_active', true)->whereNull('last_seen_at'),
+                    'inactive' => $builder->where('is_active', false),
                 };
             })
             ->orderBy($sort, $direction)
             ->orderBy('id')
             ->paginate($perPage);
 
-        $instanceCodes = $instances->getCollection()->pluck('code');
+        $instanceCodes = $lengthAwarePaginator->getCollection()->pluck('code');
         $monitoringCounts = Monitoring::query()
             ->withoutGlobalScope('user')
             ->selectRaw('preferred_location, count(*) as monitorings_count')
@@ -79,17 +79,17 @@ class ServerInstanceController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'html' => view('admin.server-instances.partials.rows', [
-                    'instances' => $instances,
+                    'instances' => $lengthAwarePaginator,
                     'monitoringCounts' => $monitoringCounts,
                     'monitoringTypeCounts' => $monitoringTypeCounts,
                 ])->render(),
                 'pagination' => [
-                    'current_page' => $instances->currentPage(),
-                    'last_page' => $instances->lastPage(),
-                    'from' => $instances->firstItem(),
-                    'to' => $instances->lastItem(),
-                    'total' => $instances->total(),
-                    'per_page' => $instances->perPage(),
+                    'current_page' => $lengthAwarePaginator->currentPage(),
+                    'last_page' => $lengthAwarePaginator->lastPage(),
+                    'from' => $lengthAwarePaginator->firstItem(),
+                    'to' => $lengthAwarePaginator->lastItem(),
+                    'total' => $lengthAwarePaginator->total(),
+                    'per_page' => $lengthAwarePaginator->perPage(),
                 ],
             ]);
         }
@@ -107,7 +107,7 @@ class ServerInstanceController extends Controller
             ->countBy();
 
         return view('admin.server-instances.index', [
-            'instances' => $instances,
+            'instances' => $lengthAwarePaginator,
             'monitoringCounts' => $monitoringCounts,
             'monitoringTypeCounts' => $monitoringTypeCounts,
             'filters' => [

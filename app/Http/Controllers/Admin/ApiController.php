@@ -60,15 +60,15 @@ class ApiController extends Controller
             ->when($validated['search'] ?? null, function (Builder $query, string $search): void {
                 $query->where(function (Builder $builder) use ($search): void {
                     $builder->where('api_logs.route', 'like', '%' . $search . '%')
-                        ->orWhereHas('user', fn (Builder $userQuery): Builder => $userQuery->where('email', 'like', '%' . $search . '%'));
+                        ->orWhereHas('user', fn (Builder $builder): Builder => $builder->where('email', 'like', '%' . $search . '%'));
                 });
             })
-            ->when($validated['user_id'] ?? null, fn (Builder $query, string $userId): Builder => $query->where('user_id', $userId));
+            ->when($validated['user_id'] ?? null, fn (Builder $builder, string $userId): Builder => $builder->where('user_id', $userId));
 
         if ($sort === 'email') {
             $query->join('users as sort_users', 'sort_users.id', '=', 'api_logs.user_id')
                 ->orderBy('sort_users.email', $direction)
-                ->orderBy('api_logs.created_at', 'desc');
+                ->latest('api_logs.created_at');
         } else {
             $query->orderBy('api_logs.' . $sort, $direction)
                 ->orderBy('api_logs.id');
