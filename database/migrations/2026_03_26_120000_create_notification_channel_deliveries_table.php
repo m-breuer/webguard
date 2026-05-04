@@ -23,7 +23,7 @@ return new class() extends Migration
         Schema::create('notification_channel_deliveries', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignUlid('monitoring_notification_id')->nullable()->constrained('monitoring_notifications')->nullOnDelete();
+            $table->foreignUlid('monitoring_notification_id')->nullable();
             $table->string('channel', 32);
             $table->string('event_type', 64);
             $table->enum('status', array_column(NotificationDeliveryStatus::cases(), 'value'));
@@ -32,6 +32,11 @@ return new class() extends Migration
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
 
+            $table
+                ->foreign('monitoring_notification_id', 'notif_channel_deliveries_monitoring_notification_fk')
+                ->references('id')
+                ->on('monitoring_notifications')
+                ->nullOnDelete();
             $table->index(['user_id', 'channel', 'event_type'], 'idx_notification_channel_deliveries_user_channel_event');
         });
     }

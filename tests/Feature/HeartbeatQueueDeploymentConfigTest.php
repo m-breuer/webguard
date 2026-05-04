@@ -90,6 +90,28 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('php artisan key:generate --show', $appKeyEntrypoint);
     }
 
+    public function test_production_container_requires_imprint_configuration_for_legal_pages(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+
+        foreach ([
+            'IMPRINT_OPERATOR_NAME',
+            'IMPRINT_ADDRESS_STREET',
+            'IMPRINT_ADDRESS_POSTAL_CODE',
+            'IMPRINT_ADDRESS_CITY',
+            'IMPRINT_ADDRESS_COUNTRY',
+            'IMPRINT_CONTACT_EMAIL',
+            'IMPRINT_CONTACT_PHONE',
+        ] as $environmentVariable) {
+            $this->assertStringContainsString(
+                "{$environmentVariable}: \"\${{$environmentVariable}:?{$environmentVariable} must be set for legal pages}\"",
+                $composeConfiguration
+            );
+        }
+    }
+
     public function test_production_app_url_is_derived_from_coolify_service_url(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
