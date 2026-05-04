@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'fields' => [
+        'placeholder_generic' => 'Suchen',
         'placeholder' => 'Suche nach :attribute',
         'placeholder_monitoring' => 'Suche nach Name, Ziel, Port oder Schlüsselwort',
     ],
@@ -15,6 +16,7 @@ return [
         'loading' => 'Wird geladen ...',
     ],
     'filter' => [
+        'heading' => 'Filter',
         'text' => 'Filtern nach :attribute',
         'all' => 'Alle',
         'name' => [
@@ -30,5 +32,13 @@ return [
             'paused' => 'Pausiert',
         ],
         'lifecycle' => 'Lebenszyklusstatus',
+    ],
+    'table' => [
+        'per_page' => 'Einträge pro Seite',
+        'showing' => 'Zeige',
+        'to' => 'bis',
+        'of' => 'von',
+        'entries' => 'Einträgen',
+        'pagination' => 'Seitennavigation',
     ],
 ];

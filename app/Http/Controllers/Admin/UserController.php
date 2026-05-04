@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -11,7 +12,8 @@ use App\Jobs\DeleteUser;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\UserDeletionPreparationService;
-use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,21 +30,112 @@ class UserController extends Controller
      * Display a listing of the users.
      *
      * @param  Request  $request  The HTTP request instance, potentially containing a 'search' parameter.
-     * @return View The view displaying the list of users.
+     * @return View|JsonResponse The view displaying the list of users or async table rows.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
-        $lengthAwarePaginator = User::query()
-            ->with('package')
-            ->when($request->filled('search'), function ($query) use ($request): void {
-                $query->where(function (Builder $builder) use ($request): void {
-                    $builder->where('name', 'like', '%' . $request->search . '%')
-                        ->orWhere('email', 'like', '%' . $request->search . '%');
-                });
-            })->latest()
-            ->paginate(10);
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'role' => ['nullable', 'string', 'in:' . implode(',', UserRole::values())],
+            'email_verification' => ['nullable', 'string', 'in:verified,unverified'],
+            'package_id' => ['nullable', 'string', 'exists:packages,id'],
+            'sort' => ['nullable', 'string', 'in:name,email,email_verified_at,role,monitoring_limit,created_at,updated_at'],
+            'direction' => ['nullable', 'string', 'in:asc,desc'],
+            'per_page' => ['nullable', 'integer', 'in:5,10,25,50'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
 
-        return view('admin.users.index', ['users' => $lengthAwarePaginator]);
+        $sort = $validated['sort'] ?? 'created_at';
+        $direction = $validated['direction'] ?? 'desc';
+        $perPage = (int) ($validated['per_page'] ?? 10);
+
+        $query = User::query()
+            ->with('package')
+            ->select('users.*')
+            ->when($validated['search'] ?? null, function (Builder $query, string $search): void {
+                $query->where(function (Builder $builder) use ($search): void {
+                    $builder->where('users.name', 'like', '%' . $search . '%')
+                        ->orWhere('users.email', 'like', '%' . $search . '%')
+                        ->orWhere('users.role', 'like', '%' . $search . '%')
+                        ->orWhereHas('package', function (Builder $packageQuery) use ($search): void {
+                            $packageQuery->where('monitoring_limit', 'like', '%' . $search . '%')
+                                ->orWhere('price', 'like', '%' . $search . '%');
+                        });
+                });
+            })
+            ->when($validated['role'] ?? null, fn (Builder $query, string $role): Builder => $query->where('users.role', $role))
+            ->when($validated['email_verification'] ?? null, function (Builder $query, string $verification): Builder {
+                return $verification === 'verified'
+                    ? $query->whereNotNull('users.email_verified_at')
+                    : $query->whereNull('users.email_verified_at');
+            })
+            ->when($validated['package_id'] ?? null, fn (Builder $query, string $packageId): Builder => $query->where('users.package_id', $packageId));
+
+        if ($sort === 'monitoring_limit') {
+            $query->leftJoin('packages as sort_packages', 'sort_packages.id', '=', 'users.package_id')
+                ->orderBy('sort_packages.monitoring_limit', $direction)
+                ->orderBy('users.created_at', 'desc');
+        } else {
+            $query->orderBy('users.' . $sort, $direction)
+                ->orderBy('users.id');
+        }
+
+        $lengthAwarePaginator = $query->paginate($perPage);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html' => view('admin.users.partials.rows', ['users' => $lengthAwarePaginator])->render(),
+                'pagination' => [
+                    'current_page' => $lengthAwarePaginator->currentPage(),
+                    'last_page' => $lengthAwarePaginator->lastPage(),
+                    'from' => $lengthAwarePaginator->firstItem(),
+                    'to' => $lengthAwarePaginator->lastItem(),
+                    'total' => $lengthAwarePaginator->total(),
+                    'per_page' => $lengthAwarePaginator->perPage(),
+                ],
+            ]);
+        }
+
+        $packages = Package::query()->withoutGlobalScope('selectable')->orderBy('monitoring_limit')->get();
+        $filters = [
+            [
+                'name' => 'role',
+                'label' => __('user.fields.role'),
+                'placeholder' => __('search.filter.text', ['attribute' => __('user.fields.role')]),
+                'options' => collect(UserRole::cases())->mapWithKeys(fn (UserRole $role): array => [$role->value => ucfirst($role->value)])->all(),
+            ],
+            [
+                'name' => 'email_verification',
+                'label' => __('user.fields.email_verification'),
+                'placeholder' => __('search.filter.text', ['attribute' => __('user.fields.email_verification')]),
+                'options' => [
+                    'verified' => __('user.messages.email_verified'),
+                    'unverified' => __('user.messages.email_unverified'),
+                ],
+            ],
+            [
+                'name' => 'package_id',
+                'label' => __('user.fields.package'),
+                'placeholder' => __('search.filter.text', ['attribute' => __('user.fields.package')]),
+                'options' => $packages
+                    ->mapWithKeys(fn (Package $package): array => [
+                        $package->id => __('user.fields.monitoring_limit') . ': ' . $package->monitoring_limit,
+                    ])
+                    ->all(),
+            ],
+        ];
+
+        return view('admin.users.index', [
+            'users' => $lengthAwarePaginator,
+            'filters' => $filters,
+            'activeFilters' => [
+                'role' => (string) ($validated['role'] ?? ''),
+                'email_verification' => (string) ($validated['email_verification'] ?? ''),
+                'package_id' => (string) ($validated['package_id'] ?? ''),
+            ],
+            'sort' => $sort,
+            'direction' => $direction,
+        ]);
     }
 
     /**

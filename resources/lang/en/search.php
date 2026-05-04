@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'fields' => [
+        'placeholder_generic' => 'Search',
         'placeholder' => 'Search by :attribute',
         'placeholder_monitoring' => 'Search by name, target, port or keyword',
     ],
@@ -15,6 +16,7 @@ return [
         'loading' => 'Loading ...',
     ],
     'filter' => [
+        'heading' => 'Filter',
         'text' => 'Filter by :attribute',
         'all' => 'All',
         'name' => [
@@ -30,5 +32,13 @@ return [
             'paused' => 'Paused',
         ],
         'lifecycle' => 'Lifecycle status',
+    ],
+    'table' => [
+        'per_page' => 'Entries per page',
+        'showing' => 'Showing',
+        'to' => 'to',
+        'of' => 'of',
+        'entries' => 'entries',
+        'pagination' => 'Pagination',
     ],
 ];
