@@ -55,7 +55,18 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('id="register_terms"');
         $testResponse->assertSeeHtml('name="terms"');
+        $testResponse->assertSeeHtml('id="register_captcha"');
+        $testResponse->assertSeeHtml('name="captcha"');
+        $testResponse->assertSeeHtml(url('captcha/register'));
         $testResponse->assertSeeHtml(route('terms-of-use'));
         $testResponse->assertSeeHtml(route('gdpr'));
+    }
+
+    public function test_register_captcha_image_is_served_locally(): void
+    {
+        $testResponse = $this->get(url('captcha/register'));
+
+        $testResponse->assertOk();
+        $testResponse->assertHeader('Content-Type', 'image/jpeg');
     }
 }

@@ -165,6 +165,24 @@
                             <x-input-error :messages="$errors->get('terms')" />
                         </div>
 
+                        <div class="mt-4" x-data="{ captchaUrl: @js(captcha_src('register')) }">
+                            <x-input-label for="register_captcha" :value="__('auth.register.captcha')" />
+
+                            <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                                <img :src="captchaUrl" alt="{{ __('auth.register.captcha_image_alt') }}"
+                                    class="h-[54px] w-[220px] rounded-md border border-gray-300 object-cover dark:border-gray-600">
+                                <button type="button"
+                                    @click="captchaUrl = '{{ url('captcha/register') }}?' + Date.now()"
+                                    class="focus:outline-hidden rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    {{ __('auth.register.captcha_reload') }}
+                                </button>
+                            </div>
+
+                            <x-text-input id="register_captcha" type="text" name="captcha" required autocomplete="off"
+                                inputmode="text" class="mt-3" />
+                            <x-input-error :messages="$errors->get('captcha')" />
+                        </div>
+
                         <div class="mt-4 flex flex-wrap items-center gap-3">
                             <x-primary-button>
                                 {{ __('auth.register.button') }}

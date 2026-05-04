@@ -47,6 +47,7 @@ class RegistrationPrivacyConsentTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'terms' => '1',
+            'captcha' => $this->validCaptchaValue(),
         ]);
 
         $testResponse->assertRedirect('/dashboard');

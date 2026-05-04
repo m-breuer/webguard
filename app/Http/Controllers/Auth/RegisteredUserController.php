@@ -50,6 +50,10 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
             'terms' => ['accepted'],
+            'captcha' => ['required', 'captcha'],
+        ], [
+            'captcha.required' => __('auth.register.captcha_required'),
+            'captcha.captcha' => __('auth.register.captcha_invalid'),
         ]);
 
         $model = User::query()->create([
