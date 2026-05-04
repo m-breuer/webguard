@@ -23,6 +23,42 @@
                 font-size: 28px !important;
                 line-height: 34px !important;
             }
+
+            .digest-monitorings-table,
+            .digest-monitorings-table thead,
+            .digest-monitorings-table tbody,
+            .digest-monitorings-table tr,
+            .digest-monitorings-table th,
+            .digest-monitorings-table td {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .digest-monitorings-table thead {
+                display: none !important;
+            }
+
+            .digest-monitoring-row {
+                margin-bottom: 14px !important;
+                padding: 14px !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8px !important;
+                background-color: #f8fafc !important;
+            }
+
+            .digest-monitoring-row td {
+                padding: 7px 0 !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+            }
+
+            .digest-monitoring-row td:last-child {
+                border-bottom: 0 !important;
+            }
+
+            .digest-mobile-label {
+                display: block !important;
+                margin-bottom: 2px !important;
+            }
         }
 
         body {
@@ -136,6 +172,45 @@
 
         .mail-content p:last-child {
             margin-bottom: 0;
+        }
+
+        .digest-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .digest-table th,
+        .digest-table td {
+            padding: 8px;
+            color: #475569;
+            font-size: 14px;
+            line-height: 20px;
+            vertical-align: top;
+        }
+
+        .digest-table th {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .digest-monitoring-name {
+            color: #0f172a;
+        }
+
+        .digest-monitoring-target {
+            color: #64748b;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .digest-mobile-label {
+            display: none;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 18px;
         }
 
         .mail-button {
