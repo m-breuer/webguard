@@ -6,7 +6,7 @@ Distributed scanning nodes and workers are maintained separately in the [WebGuar
 
 ## Backend
 
-- **Framework:** Laravel 13 on PHP 8.4+
+- **Framework:** Laravel 13 on PHP 8.5+
 - **Package manager:** Composer
 - **API authentication:** Laravel Sanctum
 - **API documentation:** Scribe

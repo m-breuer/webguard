@@ -8,7 +8,7 @@ FROM serversideup/php:8.5-fpm-nginx AS base
 
 # Additional PHP extensions
 USER root
-RUN install-php-extensions bcmath gd intl pdo_mysql zip redis
+RUN install-php-extensions bcmath gd intl pdo_mysql sockets zip redis
 
 ############################################
 # Development Image
