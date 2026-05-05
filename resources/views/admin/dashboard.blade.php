@@ -41,6 +41,13 @@
                     <x-paragraph>{{ __('admin.dashboard.activity_logs.description') }}</x-paragraph>
                 </x-container>
             </a>
+
+            <a href="{{ route('admin.infrastructure-health.index') }}">
+                <x-container class="h-full">
+                    <x-heading type="h2" space="true">{{ __('admin.dashboard.infrastructure_health.heading') }}</x-heading>
+                    <x-paragraph>{{ __('admin.dashboard.infrastructure_health.description') }}</x-paragraph>
+                </x-container>
+            </a>
         </div>
     </x-main>
 </x-app-layout>

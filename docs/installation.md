@@ -71,6 +71,10 @@ php artisan queue:work redis --queue="${HEARTBEAT_QUEUE:-heartbeat}" --sleep=3 -
 
 Docker worker processes handle `default,heartbeat` by default.
 
+## Infrastructure Diagnostics
+
+Admins can open the infrastructure health page from the admin dashboard to inspect database, cache, queue, scheduler, and scanner-instance health. The scheduler records a heartbeat every minute through `infrastructure:heartbeat`; if that marker becomes stale, the diagnostics page reports the scheduler as degraded.
+
 ## Docker Deployment
 
 This repository uses two Docker modes:

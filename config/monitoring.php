@@ -43,6 +43,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Infrastructure Health
+    |--------------------------------------------------------------------------
+    |
+    | These thresholds power the admin diagnostics surface. The scheduler
+    | heartbeat is written through the Laravel scheduler itself, so a stale
+    | marker is a signal that scheduled work is not running reliably.
+    |
+    */
+    'infrastructure_health' => [
+        'scheduler_cache_key' => env('INFRASTRUCTURE_HEALTH_SCHEDULER_CACHE_KEY', 'infrastructure:health:scheduler:last_seen_at'),
+        'scheduler_stale_after_minutes' => (int) env('INFRASTRUCTURE_HEALTH_SCHEDULER_STALE_AFTER_MINUTES', 5),
+        'failed_jobs_warning_threshold' => (int) env('INFRASTRUCTURE_HEALTH_FAILED_JOBS_WARNING_THRESHOLD', 1),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Weekly Digest
     |--------------------------------------------------------------------------
     |

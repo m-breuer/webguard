@@ -6,6 +6,14 @@ use Illuminate\Support\Facades\Schedule;
 
 /**
  * =================================================================
+ * INFRASTRUCTURE
+ * =================================================================
+ */
+// Record a scheduler heartbeat for admin infrastructure diagnostics.
+Schedule::command('infrastructure:heartbeat')->everyMinute()->withoutOverlapping();
+
+/**
+ * =================================================================
  * SITEMAP
  * =================================================================
  */
