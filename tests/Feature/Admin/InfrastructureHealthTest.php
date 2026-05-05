@@ -98,7 +98,7 @@ class InfrastructureHealthTest extends TestCase
             'last_seen_at' => Date::now()->subMinutes(20),
         ]);
 
-        $report = app(InfrastructureHealthService::class)->report();
+        $report = resolve(InfrastructureHealthService::class)->report();
 
         $this->assertSame(InfrastructureHealthService::STATUS_WARNING, $report['status']);
         $this->assertSame(InfrastructureHealthService::STATUS_WARNING, $report['checks']['scheduler']['status']);
@@ -116,7 +116,7 @@ class InfrastructureHealthTest extends TestCase
             60
         );
 
-        $report = app(InfrastructureHealthService::class)->report();
+        $report = resolve(InfrastructureHealthService::class)->report();
 
         $this->assertSame(InfrastructureHealthService::STATUS_WARNING, $report['status']);
         $this->assertSame(InfrastructureHealthService::STATUS_WARNING, $report['checks']['scheduler']['status']);
