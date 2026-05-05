@@ -9,6 +9,7 @@ use App\Http\Requests\StoreServerInstanceRequest;
 use App\Http\Requests\UpdateServerInstanceRequest;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
+use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -21,19 +22,12 @@ class ServerInstanceController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(AsyncTable::requestRules([
             'search' => ['nullable', 'string', 'max:100'],
             'is_active' => ['nullable', 'string', 'in:1,0'],
             'health' => ['nullable', 'string', 'in:healthy,stale,never_seen,inactive'],
-            'sort' => ['nullable', 'string', 'in:code,is_active,last_seen_at,created_at,updated_at'],
-            'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'per_page' => ['nullable', 'integer', 'in:5,10,25,50'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        $sort = $validated['sort'] ?? 'code';
-        $direction = $validated['direction'] ?? 'asc';
-        $perPage = (int) ($validated['per_page'] ?? 10);
+        ], ['code', 'is_active', 'last_seen_at', 'created_at', 'updated_at']));
+        $table = AsyncTable::options($validated, 'code', 'asc', 10);
         $staleCutoff = Date::now()->subMinutes(max(1, (int) config('monitoring.instance_stale_after_minutes', 10)));
 
         $lengthAwarePaginator = ServerInstance::query()
@@ -52,9 +46,9 @@ class ServerInstanceController extends Controller
                     'inactive' => $builder->where('is_active', false),
                 };
             })
-            ->orderBy($sort, $direction)
+            ->orderBy($table->sort, $table->direction)
             ->orderBy('id')
-            ->paginate($perPage);
+            ->paginate($table->perPage);
 
         $instanceCodes = $lengthAwarePaginator->getCollection()->pluck('code');
         $monitoringCounts = Monitoring::query()
@@ -77,21 +71,15 @@ class ServerInstanceController extends Controller
             ));
 
         if ($request->expectsJson()) {
-            return response()->json([
-                'html' => view('admin.server-instances.partials.rows', [
+            return AsyncTable::json(
+                $lengthAwarePaginator,
+                'admin.server-instances.partials.rows',
+                [
                     'instances' => $lengthAwarePaginator,
                     'monitoringCounts' => $monitoringCounts,
                     'monitoringTypeCounts' => $monitoringTypeCounts,
-                ])->render(),
-                'pagination' => [
-                    'current_page' => $lengthAwarePaginator->currentPage(),
-                    'last_page' => $lengthAwarePaginator->lastPage(),
-                    'from' => $lengthAwarePaginator->firstItem(),
-                    'to' => $lengthAwarePaginator->lastItem(),
-                    'total' => $lengthAwarePaginator->total(),
-                    'per_page' => $lengthAwarePaginator->perPage(),
-                ],
-            ]);
+                ]
+            );
         }
 
         $summaryInstances = ServerInstance::query()->get();
@@ -136,8 +124,8 @@ class ServerInstanceController extends Controller
                 'is_active' => (string) ($validated['is_active'] ?? ''),
                 'health' => (string) ($validated['health'] ?? ''),
             ],
-            'sort' => $sort,
-            'direction' => $direction,
+            'sort' => $table->sort,
+            'direction' => $table->direction,
             'summary' => [
                 'total_instances' => $summaryInstances->count(),
                 'active_instances' => $summaryInstances->where('is_active', true)->count(),
