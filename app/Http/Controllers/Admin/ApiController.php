@@ -45,7 +45,7 @@ class ApiController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'user_id' => ['nullable', 'string', 'exists:users,id'],
         ], ['created_at', 'email', 'route']));
-        $table = AsyncTable::options($validated, 'created_at', 'desc', 25);
+        $asyncTableOptions = AsyncTable::options($validated, 'created_at', 'desc', 25);
 
         $query = ApiLog::query()
             ->withoutGlobalScope('api_logs')
@@ -59,16 +59,16 @@ class ApiController extends Controller
             })
             ->when($validated['user_id'] ?? null, fn (Builder $builder, string $userId): Builder => $builder->where('user_id', $userId));
 
-        if ($table->sort === 'email') {
+        if ($asyncTableOptions->sort === 'email') {
             $query->join('users as sort_users', 'sort_users.id', '=', 'api_logs.user_id')
-                ->orderBy('sort_users.email', $table->direction)
+                ->orderBy('sort_users.email', $asyncTableOptions->direction)
                 ->latest('api_logs.created_at');
         } else {
-            $query->orderBy('api_logs.' . $table->sort, $table->direction)
+            $query->orderBy('api_logs.' . $asyncTableOptions->sort, $asyncTableOptions->direction)
                 ->orderBy('api_logs.id');
         }
 
-        $lengthAwarePaginator = $query->paginate($table->perPage);
+        $lengthAwarePaginator = $query->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
             return AsyncTable::json($lengthAwarePaginator, 'admin.api.partials.rows', ['apiLogs' => $lengthAwarePaginator]);
@@ -90,8 +90,8 @@ class ApiController extends Controller
             'activeFilters' => [
                 'user_id' => (string) ($validated['user_id'] ?? ''),
             ],
-            'sort' => $table->sort,
-            'direction' => $table->direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 }

@@ -49,26 +49,26 @@ final class AsyncTable
     /**
      * @param  array<string, mixed>  $data
      */
-    public static function json(LengthAwarePaginator $paginator, string $view, array $data): JsonResponse
+    public static function json(LengthAwarePaginator $lengthAwarePaginator, string $view, array $data): JsonResponse
     {
         return response()->json([
             'html' => view($view, $data)->render(),
-            'pagination' => self::pagination($paginator),
+            'pagination' => self::pagination($lengthAwarePaginator),
         ]);
     }
 
     /**
      * @return array{current_page: int, last_page: int, from: int|null, to: int|null, total: int, per_page: int}
      */
-    public static function pagination(LengthAwarePaginator $paginator): array
+    public static function pagination(LengthAwarePaginator $lengthAwarePaginator): array
     {
         return [
-            'current_page' => $paginator->currentPage(),
-            'last_page' => $paginator->lastPage(),
-            'from' => $paginator->firstItem(),
-            'to' => $paginator->lastItem(),
-            'total' => $paginator->total(),
-            'per_page' => $paginator->perPage(),
+            'current_page' => $lengthAwarePaginator->currentPage(),
+            'last_page' => $lengthAwarePaginator->lastPage(),
+            'from' => $lengthAwarePaginator->firstItem(),
+            'to' => $lengthAwarePaginator->lastItem(),
+            'total' => $lengthAwarePaginator->total(),
+            'per_page' => $lengthAwarePaginator->perPage(),
         ];
     }
 }

@@ -33,7 +33,7 @@ class PackageController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'is_selectable' => ['nullable', 'string', 'in:1,0'],
         ], ['monitoring_limit', 'price', 'is_selectable', 'created_at', 'updated_at']));
-        $table = AsyncTable::options($validated, 'price', 'asc', 10);
+        $asyncTableOptions = AsyncTable::options($validated, 'price', 'asc', 10);
 
         $lengthAwarePaginator = Package::query()
             ->withoutGlobalScope('selectable')
@@ -44,9 +44,9 @@ class PackageController extends Controller
                 });
             })
             ->when(isset($validated['is_selectable']), fn (Builder $builder): Builder => $builder->where('is_selectable', (bool) $validated['is_selectable']))
-            ->orderBy($table->sort, $table->direction)
+            ->orderBy($asyncTableOptions->sort, $asyncTableOptions->direction)
             ->orderBy('id')
-            ->paginate($table->perPage);
+            ->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
             return AsyncTable::json($lengthAwarePaginator, 'admin.packages.partials.rows', ['packages' => $lengthAwarePaginator]);
@@ -68,8 +68,8 @@ class PackageController extends Controller
             'activeFilters' => [
                 'is_selectable' => (string) ($validated['is_selectable'] ?? ''),
             ],
-            'sort' => $table->sort,
-            'direction' => $table->direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 

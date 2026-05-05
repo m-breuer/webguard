@@ -27,7 +27,7 @@ class ServerInstanceController extends Controller
             'is_active' => ['nullable', 'string', 'in:1,0'],
             'health' => ['nullable', 'string', 'in:healthy,stale,never_seen,inactive'],
         ], ['code', 'is_active', 'last_seen_at', 'created_at', 'updated_at']));
-        $table = AsyncTable::options($validated, 'code', 'asc', 10);
+        $asyncTableOptions = AsyncTable::options($validated, 'code', 'asc', 10);
         $staleCutoff = Date::now()->subMinutes(max(1, (int) config('monitoring.instance_stale_after_minutes', 10)));
 
         $lengthAwarePaginator = ServerInstance::query()
@@ -46,9 +46,9 @@ class ServerInstanceController extends Controller
                     'inactive' => $builder->where('is_active', false),
                 };
             })
-            ->orderBy($table->sort, $table->direction)
+            ->orderBy($asyncTableOptions->sort, $asyncTableOptions->direction)
             ->orderBy('id')
-            ->paginate($table->perPage);
+            ->paginate($asyncTableOptions->perPage);
 
         $instanceCodes = $lengthAwarePaginator->getCollection()->pluck('code');
         $monitoringCounts = Monitoring::query()
@@ -124,8 +124,8 @@ class ServerInstanceController extends Controller
                 'is_active' => (string) ($validated['is_active'] ?? ''),
                 'health' => (string) ($validated['health'] ?? ''),
             ],
-            'sort' => $table->sort,
-            'direction' => $table->direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
             'summary' => [
                 'total_instances' => $summaryInstances->count(),
                 'active_instances' => $summaryInstances->where('is_active', true)->count(),

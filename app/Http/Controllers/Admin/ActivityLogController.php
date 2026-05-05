@@ -28,7 +28,7 @@ class ActivityLogController extends Controller
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date'],
         ], ['created_at', 'log_name', 'event', 'description']));
-        $table = AsyncTable::options($validated, 'created_at', 'desc', 25);
+        $asyncTableOptions = AsyncTable::options($validated, 'created_at', 'desc', 25);
         $subjectTypes = [
             User::class => __('admin.activity_logs.subject_types.user'),
             Monitoring::class => __('admin.activity_logs.subject_types.monitoring'),
@@ -51,9 +51,9 @@ class ActivityLogController extends Controller
             ->when($validated['subject_id'] ?? null, fn (Builder $builder, string $subjectId): Builder => $builder->where('subject_id', $subjectId))
             ->when($validated['date_from'] ?? null, fn (Builder $builder, string $dateFrom): Builder => $builder->whereDate('created_at', '>=', $dateFrom))
             ->when($validated['date_to'] ?? null, fn (Builder $builder, string $dateTo): Builder => $builder->whereDate('created_at', '<=', $dateTo))
-            ->orderBy($table->sort, $table->direction)
+            ->orderBy($asyncTableOptions->sort, $asyncTableOptions->direction)
             ->orderBy('id')
-            ->paginate($table->perPage);
+            ->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
             return AsyncTable::json(
@@ -126,8 +126,8 @@ class ActivityLogController extends Controller
                 'date_from' => (string) ($validated['date_from'] ?? ''),
                 'date_to' => (string) ($validated['date_to'] ?? ''),
             ],
-            'sort' => $table->sort,
-            'direction' => $table->direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 }

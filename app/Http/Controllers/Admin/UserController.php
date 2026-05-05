@@ -41,7 +41,7 @@ class UserController extends Controller
             'email_verification' => ['nullable', 'string', 'in:verified,unverified'],
             'package_id' => ['nullable', 'string', 'exists:packages,id'],
         ], ['name', 'email', 'email_verified_at', 'role', 'monitoring_limit', 'created_at', 'updated_at']));
-        $table = AsyncTable::options($validated, 'created_at', 'desc', 10);
+        $asyncTableOptions = AsyncTable::options($validated, 'created_at', 'desc', 10);
 
         $query = User::query()
             ->with('package')
@@ -65,16 +65,16 @@ class UserController extends Controller
             })
             ->when($validated['package_id'] ?? null, fn (Builder $builder, string $packageId): Builder => $builder->where('users.package_id', $packageId));
 
-        if ($table->sort === 'monitoring_limit') {
+        if ($asyncTableOptions->sort === 'monitoring_limit') {
             $query->leftJoin('packages as sort_packages', 'sort_packages.id', '=', 'users.package_id')
-                ->orderBy('sort_packages.monitoring_limit', $table->direction)
+                ->orderBy('sort_packages.monitoring_limit', $asyncTableOptions->direction)
                 ->latest('users.created_at');
         } else {
-            $query->orderBy('users.' . $table->sort, $table->direction)
+            $query->orderBy('users.' . $asyncTableOptions->sort, $asyncTableOptions->direction)
                 ->orderBy('users.id');
         }
 
-        $lengthAwarePaginator = $query->paginate($table->perPage);
+        $lengthAwarePaginator = $query->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
             return AsyncTable::json($lengthAwarePaginator, 'admin.users.partials.rows', ['users' => $lengthAwarePaginator]);
@@ -117,8 +117,8 @@ class UserController extends Controller
                 'email_verification' => (string) ($validated['email_verification'] ?? ''),
                 'package_id' => (string) ($validated['package_id'] ?? ''),
             ],
-            'sort' => $table->sort,
-            'direction' => $table->direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 

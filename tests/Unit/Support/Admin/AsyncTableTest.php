@@ -25,11 +25,11 @@ class AsyncTableTest extends TestCase
 
     public function test_options_resolve_defaults_and_validated_values(): void
     {
-        $defaults = AsyncTable::options([], 'created_at', 'desc', 25);
+        $asyncTableOptions = AsyncTable::options([], 'created_at', 'desc', 25);
 
-        $this->assertSame('created_at', $defaults->sort);
-        $this->assertSame('desc', $defaults->direction);
-        $this->assertSame(25, $defaults->perPage);
+        $this->assertSame('created_at', $asyncTableOptions->sort);
+        $this->assertSame('desc', $asyncTableOptions->direction);
+        $this->assertSame(25, $asyncTableOptions->perPage);
 
         $options = AsyncTable::options([
             'sort' => 'name',
@@ -44,7 +44,7 @@ class AsyncTableTest extends TestCase
 
     public function test_pagination_metadata_matches_async_table_response_shape(): void
     {
-        $paginator = new LengthAwarePaginator(
+        $lengthAwarePaginator = new LengthAwarePaginator(
             items: collect(['alpha', 'bravo']),
             total: 12,
             perPage: 2,
@@ -58,6 +58,6 @@ class AsyncTableTest extends TestCase
             'to' => 6,
             'total' => 12,
             'per_page' => 2,
-        ], AsyncTable::pagination($paginator));
+        ], AsyncTable::pagination($lengthAwarePaginator));
     }
 }
