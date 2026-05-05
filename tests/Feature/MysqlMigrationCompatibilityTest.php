@@ -14,7 +14,7 @@ class MysqlMigrationCompatibilityTest extends TestCase
         $foreignKeyName = 'notif_channel_deliveries_monitoring_notification_fk';
 
         $this->assertIsString($migration);
-        $this->assertLessThanOrEqual(64, strlen($foreignKeyName));
+        $this->assertLessThanOrEqual(64, mb_strlen($foreignKeyName));
         $this->assertStringContainsString("->foreign('monitoring_notification_id', '{$foreignKeyName}')", $migration);
     }
 }
