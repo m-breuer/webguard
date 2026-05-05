@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Monitoring;
 use App\Models\User;
+use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(AsyncTable::requestRules([
             'search' => ['nullable', 'string', 'max:100'],
             'log_name' => ['nullable', 'string', 'max:100'],
             'event' => ['nullable', 'string', 'max:100'],
@@ -26,15 +27,8 @@ class ActivityLogController extends Controller
             'subject_id' => ['nullable', 'string', 'max:36'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date'],
-            'sort' => ['nullable', 'string', 'in:created_at,log_name,event,description'],
-            'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'per_page' => ['nullable', 'integer', 'in:5,10,25,50'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        $sort = $validated['sort'] ?? 'created_at';
-        $direction = $validated['direction'] ?? 'desc';
-        $perPage = (int) ($validated['per_page'] ?? 25);
+        ], ['created_at', 'log_name', 'event', 'description']));
+        $asyncTableOptions = AsyncTable::options($validated, 'created_at', 'desc', 25);
         $subjectTypes = [
             User::class => __('admin.activity_logs.subject_types.user'),
             Monitoring::class => __('admin.activity_logs.subject_types.monitoring'),
@@ -57,25 +51,19 @@ class ActivityLogController extends Controller
             ->when($validated['subject_id'] ?? null, fn (Builder $builder, string $subjectId): Builder => $builder->where('subject_id', $subjectId))
             ->when($validated['date_from'] ?? null, fn (Builder $builder, string $dateFrom): Builder => $builder->whereDate('created_at', '>=', $dateFrom))
             ->when($validated['date_to'] ?? null, fn (Builder $builder, string $dateTo): Builder => $builder->whereDate('created_at', '<=', $dateTo))
-            ->orderBy($sort, $direction)
+            ->orderBy($asyncTableOptions->sort, $asyncTableOptions->direction)
             ->orderBy('id')
-            ->paginate($perPage);
+            ->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
-            return response()->json([
-                'html' => view('admin.activity-logs.partials.rows', [
+            return AsyncTable::json(
+                $lengthAwarePaginator,
+                'admin.activity-logs.partials.rows',
+                [
                     'activities' => $lengthAwarePaginator,
                     'subjectTypes' => $subjectTypes,
-                ])->render(),
-                'pagination' => [
-                    'current_page' => $lengthAwarePaginator->currentPage(),
-                    'last_page' => $lengthAwarePaginator->lastPage(),
-                    'from' => $lengthAwarePaginator->firstItem(),
-                    'to' => $lengthAwarePaginator->lastItem(),
-                    'total' => $lengthAwarePaginator->total(),
-                    'per_page' => $lengthAwarePaginator->perPage(),
-                ],
-            ]);
+                ]
+            );
         }
 
         $users = User::query()->select('id', 'email')->orderBy('email')->get();
@@ -138,8 +126,8 @@ class ActivityLogController extends Controller
                 'date_from' => (string) ($validated['date_from'] ?? ''),
                 'date_to' => (string) ($validated['date_to'] ?? ''),
             ],
-            'sort' => $sort,
-            'direction' => $direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 }

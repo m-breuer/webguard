@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePackageRequest;
 use App\Http\Requests\UpdatePackageRequest;
 use App\Models\Package;
+use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,18 +29,11 @@ class PackageController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(AsyncTable::requestRules([
             'search' => ['nullable', 'string', 'max:100'],
             'is_selectable' => ['nullable', 'string', 'in:1,0'],
-            'sort' => ['nullable', 'string', 'in:monitoring_limit,price,is_selectable,created_at,updated_at'],
-            'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'per_page' => ['nullable', 'integer', 'in:5,10,25,50'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        $sort = $validated['sort'] ?? 'price';
-        $direction = $validated['direction'] ?? 'asc';
-        $perPage = (int) ($validated['per_page'] ?? 10);
+        ], ['monitoring_limit', 'price', 'is_selectable', 'created_at', 'updated_at']));
+        $asyncTableOptions = AsyncTable::options($validated, 'price', 'asc', 10);
 
         $lengthAwarePaginator = Package::query()
             ->withoutGlobalScope('selectable')
@@ -50,22 +44,12 @@ class PackageController extends Controller
                 });
             })
             ->when(isset($validated['is_selectable']), fn (Builder $builder): Builder => $builder->where('is_selectable', (bool) $validated['is_selectable']))
-            ->orderBy($sort, $direction)
+            ->orderBy($asyncTableOptions->sort, $asyncTableOptions->direction)
             ->orderBy('id')
-            ->paginate($perPage);
+            ->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
-            return response()->json([
-                'html' => view('admin.packages.partials.rows', ['packages' => $lengthAwarePaginator])->render(),
-                'pagination' => [
-                    'current_page' => $lengthAwarePaginator->currentPage(),
-                    'last_page' => $lengthAwarePaginator->lastPage(),
-                    'from' => $lengthAwarePaginator->firstItem(),
-                    'to' => $lengthAwarePaginator->lastItem(),
-                    'total' => $lengthAwarePaginator->total(),
-                    'per_page' => $lengthAwarePaginator->perPage(),
-                ],
-            ]);
+            return AsyncTable::json($lengthAwarePaginator, 'admin.packages.partials.rows', ['packages' => $lengthAwarePaginator]);
         }
 
         return view('admin.packages.index', [
@@ -84,8 +68,8 @@ class PackageController extends Controller
             'activeFilters' => [
                 'is_selectable' => (string) ($validated['is_selectable'] ?? ''),
             ],
-            'sort' => $sort,
-            'direction' => $direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 

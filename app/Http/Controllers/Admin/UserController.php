@@ -12,6 +12,7 @@ use App\Jobs\DeleteUser;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\UserDeletionPreparationService;
+use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -34,20 +35,13 @@ class UserController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(AsyncTable::requestRules([
             'search' => ['nullable', 'string', 'max:100'],
             'role' => ['nullable', 'string', 'in:' . implode(',', UserRole::values())],
             'email_verification' => ['nullable', 'string', 'in:verified,unverified'],
             'package_id' => ['nullable', 'string', 'exists:packages,id'],
-            'sort' => ['nullable', 'string', 'in:name,email,email_verified_at,role,monitoring_limit,created_at,updated_at'],
-            'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'per_page' => ['nullable', 'integer', 'in:5,10,25,50'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        $sort = $validated['sort'] ?? 'created_at';
-        $direction = $validated['direction'] ?? 'desc';
-        $perPage = (int) ($validated['per_page'] ?? 10);
+        ], ['name', 'email', 'email_verified_at', 'role', 'monitoring_limit', 'created_at', 'updated_at']));
+        $asyncTableOptions = AsyncTable::options($validated, 'created_at', 'desc', 10);
 
         $query = User::query()
             ->with('package')
@@ -71,29 +65,19 @@ class UserController extends Controller
             })
             ->when($validated['package_id'] ?? null, fn (Builder $builder, string $packageId): Builder => $builder->where('users.package_id', $packageId));
 
-        if ($sort === 'monitoring_limit') {
+        if ($asyncTableOptions->sort === 'monitoring_limit') {
             $query->leftJoin('packages as sort_packages', 'sort_packages.id', '=', 'users.package_id')
-                ->orderBy('sort_packages.monitoring_limit', $direction)
+                ->orderBy('sort_packages.monitoring_limit', $asyncTableOptions->direction)
                 ->latest('users.created_at');
         } else {
-            $query->orderBy('users.' . $sort, $direction)
+            $query->orderBy('users.' . $asyncTableOptions->sort, $asyncTableOptions->direction)
                 ->orderBy('users.id');
         }
 
-        $lengthAwarePaginator = $query->paginate($perPage);
+        $lengthAwarePaginator = $query->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
-            return response()->json([
-                'html' => view('admin.users.partials.rows', ['users' => $lengthAwarePaginator])->render(),
-                'pagination' => [
-                    'current_page' => $lengthAwarePaginator->currentPage(),
-                    'last_page' => $lengthAwarePaginator->lastPage(),
-                    'from' => $lengthAwarePaginator->firstItem(),
-                    'to' => $lengthAwarePaginator->lastItem(),
-                    'total' => $lengthAwarePaginator->total(),
-                    'per_page' => $lengthAwarePaginator->perPage(),
-                ],
-            ]);
+            return AsyncTable::json($lengthAwarePaginator, 'admin.users.partials.rows', ['users' => $lengthAwarePaginator]);
         }
 
         $packages = Package::query()->withoutGlobalScope('selectable')->orderBy('monitoring_limit')->get();
@@ -133,8 +117,8 @@ class UserController extends Controller
                 'email_verification' => (string) ($validated['email_verification'] ?? ''),
                 'package_id' => (string) ($validated['package_id'] ?? ''),
             ],
-            'sort' => $sort,
-            'direction' => $direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 

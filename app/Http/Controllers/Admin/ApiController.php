@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ApiLog;
 use App\Models\User;
+use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,18 +41,11 @@ class ApiController extends Controller
      */
     public function index(Request $request): View|JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(AsyncTable::requestRules([
             'search' => ['nullable', 'string', 'max:100'],
             'user_id' => ['nullable', 'string', 'exists:users,id'],
-            'sort' => ['nullable', 'string', 'in:created_at,email,route'],
-            'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'per_page' => ['nullable', 'integer', 'in:5,10,25,50'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        $sort = $validated['sort'] ?? 'created_at';
-        $direction = $validated['direction'] ?? 'desc';
-        $perPage = (int) ($validated['per_page'] ?? 25);
+        ], ['created_at', 'email', 'route']));
+        $asyncTableOptions = AsyncTable::options($validated, 'created_at', 'desc', 25);
 
         $query = ApiLog::query()
             ->withoutGlobalScope('api_logs')
@@ -65,29 +59,19 @@ class ApiController extends Controller
             })
             ->when($validated['user_id'] ?? null, fn (Builder $builder, string $userId): Builder => $builder->where('user_id', $userId));
 
-        if ($sort === 'email') {
+        if ($asyncTableOptions->sort === 'email') {
             $query->join('users as sort_users', 'sort_users.id', '=', 'api_logs.user_id')
-                ->orderBy('sort_users.email', $direction)
+                ->orderBy('sort_users.email', $asyncTableOptions->direction)
                 ->latest('api_logs.created_at');
         } else {
-            $query->orderBy('api_logs.' . $sort, $direction)
+            $query->orderBy('api_logs.' . $asyncTableOptions->sort, $asyncTableOptions->direction)
                 ->orderBy('api_logs.id');
         }
 
-        $lengthAwarePaginator = $query->paginate($perPage);
+        $lengthAwarePaginator = $query->paginate($asyncTableOptions->perPage);
 
         if ($request->expectsJson()) {
-            return response()->json([
-                'html' => view('admin.api.partials.rows', ['apiLogs' => $lengthAwarePaginator])->render(),
-                'pagination' => [
-                    'current_page' => $lengthAwarePaginator->currentPage(),
-                    'last_page' => $lengthAwarePaginator->lastPage(),
-                    'from' => $lengthAwarePaginator->firstItem(),
-                    'to' => $lengthAwarePaginator->lastItem(),
-                    'total' => $lengthAwarePaginator->total(),
-                    'per_page' => $lengthAwarePaginator->perPage(),
-                ],
-            ]);
+            return AsyncTable::json($lengthAwarePaginator, 'admin.api.partials.rows', ['apiLogs' => $lengthAwarePaginator]);
         }
 
         $users = User::query()->select('id', 'email')->orderBy('email')->get();
@@ -106,8 +90,8 @@ class ApiController extends Controller
             'activeFilters' => [
                 'user_id' => (string) ($validated['user_id'] ?? ''),
             ],
-            'sort' => $sort,
-            'direction' => $direction,
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 }
