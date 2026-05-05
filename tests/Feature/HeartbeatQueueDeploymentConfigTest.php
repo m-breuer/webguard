@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 class HeartbeatQueueDeploymentConfigTest extends TestCase
@@ -110,6 +111,50 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
                 $composeConfiguration
             );
         }
+    }
+
+    public function test_app_key_entrypoint_rejects_missing_production_key(): void
+    {
+        $process = new Process([
+            'env',
+            '-i',
+            'APP_ENV=production',
+            'sh',
+            base_path('docker/php/entrypoint.d/10-require-app-key.sh'),
+        ]);
+
+        $process->run();
+
+        $this->assertSame(1, $process->getExitCode());
+        $this->assertStringContainsString(
+            'APP_KEY must be set to a persistent Laravel application key in production.',
+            $process->getErrorOutput()
+        );
+    }
+
+    public function test_app_key_entrypoint_allows_keyed_production_and_non_production_environments(): void
+    {
+        $productionProcess = new Process([
+            'env',
+            '-i',
+            'APP_ENV=production',
+            'APP_KEY=base64:test-key',
+            'sh',
+            base_path('docker/php/entrypoint.d/10-require-app-key.sh'),
+        ]);
+        $localProcess = new Process([
+            'env',
+            '-i',
+            'APP_ENV=local',
+            'sh',
+            base_path('docker/php/entrypoint.d/10-require-app-key.sh'),
+        ]);
+
+        $productionProcess->run();
+        $localProcess->run();
+
+        $this->assertSame(0, $productionProcess->getExitCode(), $productionProcess->getErrorOutput());
+        $this->assertSame(0, $localProcess->getExitCode(), $localProcess->getErrorOutput());
     }
 
     public function test_production_app_url_is_derived_from_coolify_service_url(): void
