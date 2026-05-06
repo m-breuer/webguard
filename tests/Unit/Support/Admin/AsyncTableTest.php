@@ -78,12 +78,12 @@ class AsyncTableTest extends TestCase
             currentPage: 2
         );
 
-        $testResponse = AsyncTable::json($lengthAwarePaginator, 'async-table-test::rows', [
+        $jsonResponse = AsyncTable::json($lengthAwarePaginator, 'async-table-test::rows', [
             'items' => $lengthAwarePaginator,
         ]);
 
-        $this->assertSame(200, $testResponse->getStatusCode());
-        $this->assertSame('<span>alpha</span><span>bravo</span>', $testResponse->getData(true)['html']);
+        $this->assertSame(200, $jsonResponse->getStatusCode());
+        $this->assertSame('<span>alpha</span><span>bravo</span>', $jsonResponse->getData(true)['html']);
         $this->assertSame([
             'current_page' => 2,
             'last_page' => 4,
@@ -91,6 +91,6 @@ class AsyncTableTest extends TestCase
             'to' => 4,
             'total' => 7,
             'per_page' => 2,
-        ], $testResponse->getData(true)['pagination']);
+        ], $jsonResponse->getData(true)['pagination']);
     }
 }
