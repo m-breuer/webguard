@@ -46,6 +46,23 @@ class RegistrationTermsAcceptanceTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => $registrationData['email']]);
     }
 
+    public function test_registration_rejects_invalid_captcha_solution_with_localized_error(): void
+    {
+        $registrationData = [
+            ...$this->validRegistrationData(),
+            'terms' => '1',
+            'captcha' => 'wrong-solution',
+        ];
+
+        $testResponse = $this->post('/register', $registrationData);
+
+        $testResponse->assertSessionHasErrors([
+            'captcha' => __('auth.register.captcha_invalid'),
+        ]);
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => $registrationData['email']]);
+    }
+
     public function test_registration_stores_terms_accepted_timestamp(): void
     {
         $registrationData = [
