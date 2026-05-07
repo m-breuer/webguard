@@ -67,6 +67,37 @@ class AsyncAdminTablesTest extends TestCase
         }
     }
 
+    public function test_admin_async_table_routes_reject_invalid_shared_controls(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+
+        $routes = [
+            route('admin.users.index'),
+            route('admin.packages.index'),
+            route('admin.server-instances.index'),
+            route('admin.apis.index'),
+            route('admin.activity-logs.index'),
+        ];
+
+        foreach ($routes as $route) {
+            $this->actingAs($admin)
+                ->getJson($route . '?' . http_build_query([
+                    'sort' => 'unsupported_column',
+                    'direction' => 'sideways',
+                    'per_page' => 100,
+                    'page' => 0,
+                ]))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors([
+                    'sort',
+                    'direction',
+                    'per_page',
+                    'page',
+                ]);
+        }
+    }
+
     public function test_admin_user_table_supports_backend_search_filter_sorting_and_pagination(): void
     {
         Package::factory()->create(['monitoring_limit' => 5]);
