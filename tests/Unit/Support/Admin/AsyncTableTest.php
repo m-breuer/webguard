@@ -6,6 +6,8 @@ namespace Tests\Unit\Support\Admin;
 
 use App\Support\Admin\AsyncTable;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\View;
 use Tests\TestCase;
 
 class AsyncTableTest extends TestCase
@@ -59,5 +61,36 @@ class AsyncTableTest extends TestCase
             'total' => 12,
             'per_page' => 2,
         ], AsyncTable::pagination($lengthAwarePaginator));
+    }
+
+    public function test_json_renders_rows_view_with_pagination_metadata(): void
+    {
+        $viewPath = storage_path('framework/testing/async-table-views');
+
+        File::ensureDirectoryExists($viewPath);
+        File::put($viewPath . '/rows.blade.php', '@foreach ($items as $item)<span>{{ $item }}</span>@endforeach');
+        View::addNamespace('async-table-test', $viewPath);
+
+        $lengthAwarePaginator = new LengthAwarePaginator(
+            items: collect(['alpha', 'bravo']),
+            total: 7,
+            perPage: 2,
+            currentPage: 2
+        );
+
+        $jsonResponse = AsyncTable::json($lengthAwarePaginator, 'async-table-test::rows', [
+            'items' => $lengthAwarePaginator,
+        ]);
+
+        $this->assertSame(200, $jsonResponse->getStatusCode());
+        $this->assertSame('<span>alpha</span><span>bravo</span>', $jsonResponse->getData(true)['html']);
+        $this->assertSame([
+            'current_page' => 2,
+            'last_page' => 4,
+            'from' => 3,
+            'to' => 4,
+            'total' => 7,
+            'per_page' => 2,
+        ], $jsonResponse->getData(true)['pagination']);
     }
 }
