@@ -119,6 +119,32 @@ class AsyncAdminTablesTest extends TestCase
             ->assertJsonPath('pagination.current_page', 2);
     }
 
+    public function test_admin_async_tables_reject_invalid_shared_table_controls(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+
+        $routes = [
+            route('admin.users.index'),
+            route('admin.packages.index'),
+            route('admin.server-instances.index'),
+            route('admin.apis.index'),
+            route('admin.activity-logs.index'),
+        ];
+
+        foreach ($routes as $route) {
+            $this->actingAs($admin)
+                ->getJson($route . '?' . http_build_query([
+                    'sort' => 'unsupported_column',
+                    'direction' => 'sideways',
+                    'per_page' => 100,
+                    'page' => 0,
+                ]))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['sort', 'direction', 'per_page', 'page']);
+        }
+    }
+
     public function test_admin_package_table_supports_backend_filtering_and_sorting(): void
     {
         Package::factory()->create();
