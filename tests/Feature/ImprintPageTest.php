@@ -35,12 +35,12 @@ class ImprintPageTest extends TestCase
         $testResponse->assertRedirect(route('imprint'));
     }
 
-    public function test_imprint_page_is_included_in_sitemap(): void
+    public function test_imprint_page_is_excluded_from_sitemap_because_it_is_noindexed(): void
     {
         $testResponse = $this->get(route('sitemap'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml(route('imprint'));
+        $testResponse->assertDontSeeHtml(route('imprint'));
     }
 
     public function test_footer_contains_imprint_link(): void

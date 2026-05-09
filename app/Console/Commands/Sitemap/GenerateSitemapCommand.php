@@ -32,9 +32,6 @@ class GenerateSitemapCommand extends Command
         Sitemap::create()
             ->add(Url::create(route('welcome')))
             ->add(Url::create(route('monitoring-locations')))
-            ->add(Url::create(route('imprint')))
-            ->add(Url::create(route('terms-of-use')))
-            ->add(Url::create(route('gdpr')))
             ->writeToFile(public_path('sitemap.xml'));
 
         return Command::SUCCESS;
