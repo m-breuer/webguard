@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 @php
-    $theme = auth()->check() ? auth()->user()->theme : 'system';
+    $theme = 'system';
     if (! in_array($theme, ['light', 'dark', 'system'], true)) {
         $theme = 'system';
     }
@@ -10,7 +10,6 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="{{ isset($robots) ? trim($robots) : 'index, follow' }}">
 
     {!! $head ?? '' !!}
@@ -64,17 +63,10 @@
                     <div class="flex items-center gap-2 sm:gap-3">
                         <x-language-switch id="language-switch-guest" variant="marketing" />
 
-                        @guest
-                            <x-primary-button :href="route('login')"
-                                class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
-                                {{ __('welcome.nav.login') }}
-                            </x-primary-button>
-                        @else
-                            <x-primary-button :href="route('dashboard')"
-                                class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
-                                {{ __('welcome.nav.dashboard') }}
-                            </x-primary-button>
-                        @endguest
+                        <x-primary-button :href="route('login')"
+                            class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
+                            {{ __('welcome.nav.login') }}
+                        </x-primary-button>
                     </div>
                 </x-main>
             </nav>

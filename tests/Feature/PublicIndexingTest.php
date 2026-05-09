@@ -39,7 +39,19 @@ class PublicIndexingTest extends TestCase
         $this->assertStringNotContainsString('no-cache', $cacheControl);
     }
 
-    public function test_authenticated_public_page_responses_keep_private_cache_headers(): void
+    public function test_indexable_public_routes_do_not_start_sessions_or_queue_cookies(): void
+    {
+        foreach (self::indexablePublicRouteProvider() as [$routeName]) {
+            $testResponse = $this->withCookie(config('session.cookie'), 'existing-session-id')
+                ->get(route($routeName));
+
+            $testResponse->assertOk();
+            $testResponse->assertHeaderMissing('Set-Cookie');
+            $this->assertEmpty($testResponse->headers->getCookies());
+        }
+    }
+
+    public function test_authenticated_public_page_responses_are_served_as_sessionless_public_pages(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -50,8 +62,11 @@ class PublicIndexingTest extends TestCase
 
         $cacheControl = (string) $testResponse->headers->get('Cache-Control');
 
-        $this->assertStringNotContainsString('public', $cacheControl);
-        $this->assertStringContainsString('private', $cacheControl);
+        $this->assertStringContainsString('public', $cacheControl);
+        $this->assertStringNotContainsString('private', $cacheControl);
+        $testResponse->assertSeeText(__('welcome.nav.login'));
+        $testResponse->assertDontSeeHtml(route('dashboard'));
+        $testResponse->assertDontSeeHtml('name="csrf-token"');
     }
 
     public function test_sitemap_does_not_list_robots_blocked_legal_pages(): void

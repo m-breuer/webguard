@@ -20,7 +20,7 @@ class SetLocaleMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
+        if ($request->hasSession() && Auth::check()) {
             $user = Auth::user();
             $locale = SupportedLanguage::isSupported($user->locale)
                 ? $user->locale
