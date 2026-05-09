@@ -16,15 +16,30 @@ use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
+
+$sessionlessPublicRoutes = [
+    PreventRequestForgery::class,
+    ShareErrorsFromSession::class,
+    StartSession::class,
+];
 
 Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
-Route::get('/', fn () => view('welcome'))->middleware('public.cache')->name('welcome');
-Route::get('/monitoring-locations', MonitoringLocationsController::class)->middleware('public.cache')->name('monitoring-locations');
+Route::get('/', fn () => view('welcome'))
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('welcome');
+Route::get('/monitoring-locations', MonitoringLocationsController::class)
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('monitoring-locations');
 Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
 Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])->name('terms-of-use');
 Route::get('/gdpr', [LegalController::class, 'gdpr'])->name('gdpr');
@@ -38,7 +53,10 @@ Route::get('/sitemap.xml', function () {
         ->add(Url::create(route('welcome')))
         ->add(Url::create(route('monitoring-locations')))
         ->toResponse(request());
-})->middleware('cache.headers:public;max_age=300;s_maxage=3600;etag')->name('sitemap');
+})
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('sitemap');
 
 Route::get('/label/{monitoring}', PublicLabelController::class)
     ->name('public-label')

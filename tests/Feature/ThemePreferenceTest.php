@@ -21,7 +21,7 @@ class ThemePreferenceTest extends TestCase
         $testResponse->assertSeeHtml('data-theme="system"');
     }
 
-    public function test_authenticated_user_theme_comes_from_database_and_not_session(): void
+    public function test_sessionless_welcome_page_uses_system_theme_for_authenticated_light_theme_user(): void
     {
         Package::factory()->create();
         $user = User::factory()->create([
@@ -33,10 +33,10 @@ class ThemePreferenceTest extends TestCase
             ->get('/');
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml('data-theme="light"');
+        $testResponse->assertSeeHtml('data-theme="system"');
     }
 
-    public function test_authenticated_dark_theme_from_database_sets_dark_class(): void
+    public function test_sessionless_welcome_page_uses_system_theme_for_authenticated_dark_theme_user(): void
     {
         Package::factory()->create();
         $user = User::factory()->create([
@@ -48,6 +48,6 @@ class ThemePreferenceTest extends TestCase
             ->get('/');
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml('class="dark" data-theme="dark"');
+        $testResponse->assertSeeHtml('class="" data-theme="system"');
     }
 }
