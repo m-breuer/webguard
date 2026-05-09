@@ -214,6 +214,20 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" scribe:generate --force', $scribeEntrypoint);
     }
 
+    public function test_production_php_container_generates_sitemap_on_startup(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+        $sitemapEntrypoint = file_get_contents(base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertIsString($dockerfile);
+        $this->assertIsString($sitemapEntrypoint);
+        $this->assertStringContainsString('AUTORUN_LARAVEL_SITEMAP_GENERATE: "true"', $composeConfiguration);
+        $this->assertStringContainsString('COPY docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" sitemap:generate', $sitemapEntrypoint);
+    }
+
     public function test_production_php_container_declares_coolify_traefik_labels(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
