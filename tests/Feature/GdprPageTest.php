@@ -88,12 +88,12 @@ class GdprPageTest extends TestCase
         $testResponse->assertRedirect(route('gdpr'));
     }
 
-    public function test_gdpr_page_is_included_in_sitemap(): void
+    public function test_gdpr_page_is_excluded_from_sitemap_because_it_is_noindexed(): void
     {
         $testResponse = $this->get(route('sitemap'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml(route('gdpr'));
+        $testResponse->assertDontSeeHtml(route('gdpr'));
     }
 
     public function test_footer_contains_gdpr_link(): void

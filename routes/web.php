@@ -23,8 +23,8 @@ use Spatie\Sitemap\Tags\Url;
 Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
-Route::get('/', fn () => view('welcome'))->name('welcome');
-Route::get('/monitoring-locations', MonitoringLocationsController::class)->name('monitoring-locations');
+Route::get('/', fn () => view('welcome'))->middleware('public.cache')->name('welcome');
+Route::get('/monitoring-locations', MonitoringLocationsController::class)->middleware('public.cache')->name('monitoring-locations');
 Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
 Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])->name('terms-of-use');
 Route::get('/gdpr', [LegalController::class, 'gdpr'])->name('gdpr');
@@ -37,11 +37,8 @@ Route::get('/sitemap.xml', function () {
     return Sitemap::create()
         ->add(Url::create(route('welcome')))
         ->add(Url::create(route('monitoring-locations')))
-        ->add(Url::create(route('imprint')))
-        ->add(Url::create(route('terms-of-use')))
-        ->add(Url::create(route('gdpr')))
         ->toResponse(request());
-})->name('sitemap');
+})->middleware('cache.headers:public;max_age=300;s_maxage=3600;etag')->name('sitemap');
 
 Route::get('/label/{monitoring}', PublicLabelController::class)
     ->name('public-label')

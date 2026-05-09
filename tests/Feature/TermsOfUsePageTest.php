@@ -59,12 +59,12 @@ class TermsOfUsePageTest extends TestCase
         $testResponse->assertRedirect(route('terms-of-use'));
     }
 
-    public function test_terms_of_use_page_is_included_in_sitemap(): void
+    public function test_terms_of_use_page_is_excluded_from_sitemap_because_it_is_noindexed(): void
     {
         $testResponse = $this->get(route('sitemap'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml(route('terms-of-use'));
+        $testResponse->assertDontSeeHtml(route('terms-of-use'));
     }
 
     public function test_footer_contains_terms_of_use_link(): void
