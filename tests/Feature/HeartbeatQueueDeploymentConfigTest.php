@@ -228,6 +228,78 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" sitemap:generate', $sitemapEntrypoint);
     }
 
+    public function test_sitemap_entrypoint_skips_generation_unless_enabled(): void
+    {
+        $process = new Process([
+            'env',
+            '-i',
+            'sh',
+            base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'),
+        ]);
+
+        $process->run();
+
+        $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+        $this->assertSame('', $process->getOutput());
+    }
+
+    public function test_sitemap_entrypoint_requires_artisan_when_generation_is_enabled(): void
+    {
+        $process = new Process([
+            'env',
+            '-i',
+            'AUTORUN_LARAVEL_SITEMAP_GENERATE=true',
+            'APP_BASE_DIR=' . base_path('storage/framework/testing/missing-sitemap-app'),
+            'sh',
+            base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'),
+        ]);
+
+        $process->run();
+
+        $this->assertSame(1, $process->getExitCode());
+        $this->assertStringContainsString(
+            'Artisan file not found in ' . base_path('storage/framework/testing/missing-sitemap-app'),
+            $process->getOutput()
+        );
+    }
+
+    public function test_sitemap_entrypoint_generates_sitemap_when_enabled(): void
+    {
+        $appBaseDirectory = base_path('storage/framework/testing/sitemap-entrypoint-app');
+        $argumentsPath = $appBaseDirectory . '/sitemap-arguments.txt';
+
+        if (! is_dir($appBaseDirectory)) {
+            mkdir($appBaseDirectory, 0777, true);
+        }
+
+        file_put_contents(
+            $appBaseDirectory . '/artisan',
+            <<<'PHP'
+<?php
+file_put_contents(__DIR__.'/sitemap-arguments.txt', implode(' ', array_slice($argv, 1)));
+PHP
+        );
+
+        $process = new Process([
+            'env',
+            '-i',
+            'AUTORUN_LARAVEL_SITEMAP_GENERATE=true',
+            'APP_BASE_DIR=' . $appBaseDirectory,
+            'PATH=' . getenv('PATH'),
+            'sh',
+            base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'),
+        ]);
+
+        $process->run();
+
+        $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+        $this->assertSame('sitemap:generate', file_get_contents($argumentsPath));
+
+        unlink($argumentsPath);
+        unlink($appBaseDirectory . '/artisan');
+        rmdir($appBaseDirectory);
+    }
+
     public function test_production_php_container_declares_coolify_traefik_labels(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
