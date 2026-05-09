@@ -22,7 +22,15 @@ class SetPublicCacheHeaders
     {
         $response = $this->setCacheHeaders->handle($request, $next, 'public;max_age=300;s_maxage=3600;etag');
 
-        $response->headers->set('Vary', 'Accept-Language, Cookie', false);
+        if ($response->isSuccessful()) {
+            $response->setCache([
+                'public' => true,
+                'max_age' => 300,
+                's_maxage' => 3600,
+            ]);
+
+            $response->headers->set('Vary', 'Accept-Language, Cookie', false);
+        }
 
         return $response;
     }

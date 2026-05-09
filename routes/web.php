@@ -55,7 +55,7 @@ Route::get('/sitemap.xml', function () {
         ->toResponse(request());
 })
     ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('cache.headers:public;max_age=300;s_maxage=3600;etag')
+    ->middleware('public.cache')
     ->name('sitemap');
 
 Route::get('/label/{monitoring}', PublicLabelController::class)

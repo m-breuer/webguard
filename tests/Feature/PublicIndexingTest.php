@@ -51,6 +51,25 @@ class PublicIndexingTest extends TestCase
         }
     }
 
+    public function test_indexable_public_routes_are_publicly_cacheable_for_head_requests(): void
+    {
+        foreach (self::indexablePublicRouteProvider() as [$routeName]) {
+            $testResponse = $this->withCookie(config('session.cookie'), 'existing-session-id')
+                ->head(route($routeName));
+
+            $testResponse->assertOk();
+            $testResponse->assertHeaderMissing('Set-Cookie');
+
+            $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+
+            $this->assertStringContainsString('public', $cacheControl);
+            $this->assertStringContainsString('max-age=300', $cacheControl);
+            $this->assertStringContainsString('s-maxage=3600', $cacheControl);
+            $this->assertStringNotContainsString('private', $cacheControl);
+            $this->assertStringNotContainsString('no-cache', $cacheControl);
+        }
+    }
+
     public function test_authenticated_public_page_responses_are_served_as_sessionless_public_pages(): void
     {
         Package::factory()->create();
