@@ -37,10 +37,16 @@ class NotificationBoardService
     {
         $latestStatusChangeTimestamps = MonitoringNotification::query()
             ->withoutGlobalScopes()
-            ->selectRaw('monitoring_id, max(created_at) as latest_created_at')
-            ->statusChange()
-            ->when(! $showRead, fn (Builder $builder): Builder => $builder->unread())
-            ->groupBy('monitoring_id');
+            ->selectRaw('monitoring_notifications.monitoring_id, max(monitoring_notifications.created_at) as latest_created_at')
+            ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
+            ->when(auth()->check(), function (Builder $builder): Builder {
+                return $builder
+                    ->join('monitorings as status_change_monitorings', 'monitoring_notifications.monitoring_id', '=', 'status_change_monitorings.id')
+                    ->where('status_change_monitorings.user_id', auth()->id())
+                    ->whereNull('status_change_monitorings.deleted_at');
+            })
+            ->when(! $showRead, fn (Builder $builder): Builder => $builder->where('monitoring_notifications.read', false))
+            ->groupBy('monitoring_notifications.monitoring_id');
 
         $monitorings = Monitoring::query()
             ->select([
