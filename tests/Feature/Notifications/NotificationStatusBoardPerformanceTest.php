@@ -45,6 +45,9 @@ class NotificationStatusBoardPerformanceTest extends TestCase
             ->values();
 
         $this->assertCount(1, $selectQueries);
+        $this->assertTrue($selectQueries->contains(
+            fn (string $query): bool => str_contains($query, 'status_change_monitorings')
+        ));
         $this->assertSame([$secondMonitoring->id, $firstMonitoring->id], $entries->pluck('monitoring_id')->all());
     }
 
