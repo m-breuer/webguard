@@ -40,14 +40,15 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $entries = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true, limit: 5);
 
         $selectQueries = collect(DB::getQueryLog())
-            ->pluck('query')
-            ->filter(fn (string $query): bool => str_starts_with(mb_strtolower($query), 'select'))
+            ->filter(fn (array $query): bool => str_starts_with(mb_strtolower($query['query']), 'select'))
             ->values();
+        $statusBoardQuery = $selectQueries->sole();
+        $normalizedStatusBoardSql = str_replace(['"', '`'], '', $statusBoardQuery['query']);
 
         $this->assertCount(1, $selectQueries);
-        $this->assertTrue($selectQueries->contains(
-            fn (string $query): bool => str_contains($query, 'status_change_monitorings')
-        ));
+        $this->assertStringContainsString('status_change_monitorings.user_id = ?', $normalizedStatusBoardSql);
+        $this->assertStringContainsString('status_change_monitorings.deleted_at is null', $normalizedStatusBoardSql);
+        $this->assertContains($user->id, $statusBoardQuery['bindings']);
         $this->assertSame([$secondMonitoring->id, $firstMonitoring->id], $entries->pluck('monitoring_id')->all());
     }
 
