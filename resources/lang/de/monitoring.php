@@ -267,6 +267,16 @@ return [
         'range_days' => 'Letzter :days Tag|Letzte :days Tage',
         'recent_incidents' => 'Letzte Vorfälle',
         'resolved' => 'Behoben',
+        'maintenance' => [
+            'active' => 'Jetzt aktiv',
+            'active_description' => 'Verfügbarkeitsprüfungen können während dieses Wartungsfensters übersprungen werden.',
+            'ends_at' => 'Endet',
+            'heading' => 'Geplante Wartung',
+            'open_ended' => 'Keine Endzeit geplant',
+            'starts_at' => 'Beginnt',
+            'upcoming' => 'Bevorstehend',
+            'upcoming_description' => 'Für diese Überwachung ist ein Wartungsfenster geplant.',
+        ],
     ],
     'validation' => [
         'invalid_type' => 'Der ausgewählte Typ \':type\' ist ungültig.',

@@ -72,12 +72,66 @@ class PublicStatusPageTest extends TestCase
         $testResponse->assertSeeText('UP');
         $testResponse->assertSeeText('HTTP 200');
         $testResponse->assertSeeText(__('monitoring.index.table.maintenance'));
+        $testResponse->assertSeeText(__('monitoring.public_label.maintenance.heading'));
+        $testResponse->assertSeeText(__('monitoring.public_label.maintenance.active'));
+        $testResponse->assertSeeText(__('monitoring.public_label.maintenance.starts_at'));
+        $testResponse->assertSeeText(__('monitoring.public_label.maintenance.ends_at'));
         $testResponse->assertSeeText('Last 7 days');
         $testResponse->assertSeeText('Last 30 days');
         $testResponse->assertSeeText('Last 90 days');
         $testResponse->assertSeeText('100.00%');
         $testResponse->assertSeeText(__('monitoring.detail.incidents.heading'));
         $testResponse->assertSeeText(__('monitoring.public_label.resolved'));
+    }
+
+    public function test_public_status_page_shows_upcoming_maintenance_window(): void
+    {
+        Date::setTestNow('2026-05-03 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Primary API',
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'public_label_enabled' => true,
+            'maintenance_from' => Date::now()->addDay(),
+            'maintenance_until' => Date::now()->addDay()->addHours(2),
+        ]);
+
+        $testResponse = $this->get(route('public-label', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.public_label.maintenance.heading'));
+        $testResponse->assertSeeText(__('monitoring.public_label.maintenance.upcoming'));
+        $testResponse->assertSeeText('Mon, May 4, 2026 12:00 PM');
+        $testResponse->assertSeeText('Mon, May 4, 2026 2:00 PM');
+        $testResponse->assertDontSeeText(__('monitoring.public_label.maintenance.active'));
+    }
+
+    public function test_public_status_page_hides_expired_maintenance_window(): void
+    {
+        Date::setTestNow('2026-05-03 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Primary API',
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'public_label_enabled' => true,
+            'maintenance_from' => Date::now()->subDays(2),
+            'maintenance_until' => Date::now()->subDay(),
+        ]);
+
+        $testResponse = $this->get(route('public-label', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeText(__('monitoring.public_label.maintenance.heading'));
+        $testResponse->assertDontSeeText(__('monitoring.public_label.maintenance.active'));
+        $testResponse->assertDontSeeText(__('monitoring.public_label.maintenance.upcoming'));
     }
 
     public function test_public_status_page_returns_not_found_when_public_label_is_disabled(): void

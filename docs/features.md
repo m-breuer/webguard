@@ -18,7 +18,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **Admin panel:** manage users, subscription packages, and API usage logs.
 - **REST API:** access monitoring data programmatically and integrate WebGuard with external systems.
 - **Embeddable widget:** display website monitoring status on external sites with a JavaScript widget.
-- **Public status pages:** publish monitoring status for users and customers.
+- **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers.
 - **Global language switch:** switch between supported languages from both public and authenticated top navigation.
 - **Landing navigation anchors:** landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
 
