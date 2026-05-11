@@ -84,6 +84,43 @@
                 </x-container>
             </section>
 
+            @if ($maintenanceWindow)
+                <section id="public-maintenance-window">
+                    <x-container>
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <x-heading type="h2">{{ __('monitoring.public_label.maintenance.heading') }}</x-heading>
+                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $maintenanceWindow['active'] ? __('monitoring.public_label.maintenance.active_description') : __('monitoring.public_label.maintenance.upcoming_description') }}
+                                </p>
+                            </div>
+                            <x-badge :type="$maintenanceWindow['active'] ? 'info' : 'warning'">
+                                {{ $maintenanceWindow['active'] ? __('monitoring.public_label.maintenance.active') : __('monitoring.public_label.maintenance.upcoming') }}
+                            </x-badge>
+                        </div>
+
+                        <dl class="mt-4 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+                            <div>
+                                <dt class="font-medium text-gray-500 dark:text-gray-400">
+                                    {{ __('monitoring.public_label.maintenance.starts_at') }}
+                                </dt>
+                                <dd class="mt-1 text-gray-900 dark:text-gray-100">
+                                    {{ $maintenanceWindow['starts_at']->toDayDateTimeString() }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="font-medium text-gray-500 dark:text-gray-400">
+                                    {{ __('monitoring.public_label.maintenance.ends_at') }}
+                                </dt>
+                                <dd class="mt-1 text-gray-900 dark:text-gray-100">
+                                    {{ $maintenanceWindow['ends_at']?->toDayDateTimeString() ?? __('monitoring.public_label.maintenance.open_ended') }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </x-container>
+                </section>
+            @endif
+
             <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 @foreach ([7, 30, 90] as $days)
                     @php

@@ -267,6 +267,16 @@ return [
         'range_days' => 'Last :days day|Last :days days',
         'recent_incidents' => 'Recent Incidents',
         'resolved' => 'Resolved',
+        'maintenance' => [
+            'active' => 'Active now',
+            'active_description' => 'Availability checks may be skipped while this maintenance window is active.',
+            'ends_at' => 'Ends',
+            'heading' => 'Scheduled Maintenance',
+            'open_ended' => 'No end time scheduled',
+            'starts_at' => 'Starts',
+            'upcoming' => 'Upcoming',
+            'upcoming_description' => 'This monitor has a planned maintenance window.',
+        ],
     ],
     'validation' => [
         'invalid_type' => 'The selected type \':type\' is invalid.',

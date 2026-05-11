@@ -8,6 +8,7 @@ use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Services\MonitoringResultService;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\View\View;
@@ -70,7 +71,28 @@ class PublicLabelController extends Controller
             'incidents' => $incidents,
             'displayTarget' => $monitoring->type === MonitoringType::HEARTBEAT ? null : $monitoring->target,
             'isUnderMaintenance' => $monitoring->isUnderMaintenance(),
+            'maintenanceWindow' => $this->maintenanceWindow($monitoring),
         ]);
+    }
+
+    /**
+     * @return array{starts_at: CarbonInterface, ends_at: CarbonInterface|null, active: bool}|null
+     */
+    private function maintenanceWindow(Monitoring $monitoring): ?array
+    {
+        if (! $monitoring->maintenance_from) {
+            return null;
+        }
+
+        if ($monitoring->maintenance_until && $monitoring->maintenance_until->isPast()) {
+            return null;
+        }
+
+        return [
+            'starts_at' => $monitoring->maintenance_from,
+            'ends_at' => $monitoring->maintenance_until,
+            'active' => $monitoring->isUnderMaintenance(),
+        ];
     }
 
     private function normalizeStatus(mixed $status): string
