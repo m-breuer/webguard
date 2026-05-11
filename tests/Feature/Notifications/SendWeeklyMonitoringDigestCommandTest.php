@@ -362,4 +362,68 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         $this->assertSame(3, $digest['monitorings'][0]['incidents_count']);
         $this->assertSame(119, $digest['monitorings'][0]['longest_downtime_minutes']);
     }
+
+    public function test_weekly_digest_excludes_maintenance_windows_from_availability(): void
+    {
+        Date::setTestNow('2026-05-11 09:00:00');
+        Package::factory()->create();
+
+        $user = User::factory()->create();
+        $availableMonitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Available monitor',
+            'target' => 'https://available.example.com',
+            'type' => MonitoringType::HTTP,
+        ]);
+        $maintenanceMonitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Maintenance monitor',
+            'target' => 'https://maintenance.example.com',
+            'type' => MonitoringType::HTTP,
+            'maintenance_from' => Date::parse('2026-05-04 00:00:00'),
+            'maintenance_until' => Date::parse('2026-05-10 23:59:59'),
+        ]);
+
+        for ($day = 4; $day <= 10; $day++) {
+            MonitoringDailyResult::query()->create([
+                'monitoring_id' => $availableMonitoring->id,
+                'date' => '2026-05-' . mb_str_pad((string) $day, 2, '0', STR_PAD_LEFT),
+                'uptime_total' => 288,
+                'downtime_total' => 0,
+                'unknown_total' => 0,
+                'uptime_percentage' => 100,
+                'downtime_percentage' => 0,
+                'unknown_percentage' => 0,
+                'uptime_minutes' => 1440,
+                'downtime_minutes' => 0,
+                'unknown_minutes' => 0,
+                'avg_response_time' => 120,
+                'min_response_time' => 80,
+                'max_response_time' => 250,
+                'incidents_count' => 0,
+            ]);
+            MonitoringDailyResult::query()->create([
+                'monitoring_id' => $maintenanceMonitoring->id,
+                'date' => '2026-05-' . mb_str_pad((string) $day, 2, '0', STR_PAD_LEFT),
+                'uptime_total' => 0,
+                'downtime_total' => 0,
+                'unknown_total' => 288,
+                'uptime_percentage' => 0,
+                'downtime_percentage' => 0,
+                'unknown_percentage' => 100,
+                'uptime_minutes' => 0,
+                'downtime_minutes' => 0,
+                'unknown_minutes' => 1440,
+                'avg_response_time' => 0,
+                'min_response_time' => 0,
+                'max_response_time' => 0,
+                'incidents_count' => 0,
+            ]);
+        }
+
+        $digest = resolve(WeeklyMonitoringDigestService::class)->buildForUser($user, Date::parse('2026-05-10'));
+        $maintenanceRow = collect($digest['monitorings'])->firstWhere('name', 'Maintenance monitor');
+
+        $this->assertSame(100.0, round($digest['overview']['uptime_percentage'], 2));
+        $this->assertNull($maintenanceRow['uptime_percentage']);
+        $this->assertSame(0, $maintenanceRow['downtime_minutes']);
+    }
 }

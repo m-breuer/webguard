@@ -62,14 +62,18 @@ class WeeklyMonitoringDigestService
                 true,
                 false
             );
+            $maintenanceWindow = $this->getOverlappingMaintenanceWindow($monitoring, $periodStart, $periodEnd);
+            $maintenanceMinutes = $this->getMaintenanceMinutes($maintenanceWindow);
 
-            $incidentDurations = $this->getOverlappingIncidentDurations($monitoring, $periodStart, $periodEnd);
+            $incidentDurations = $this->getOverlappingIncidentDurations($monitoring, $periodStart, $periodEnd, $maintenanceWindow);
             $incidentsCount = count($incidentDurations);
             $monitoringLongestDowntimeMinutes = empty($incidentDurations) ? 0 : max($incidentDurations);
 
             $uptimeMinutes = (int) ($uptimeDowntime['uptime']['minutes'] ?? 0);
             $downtimeMinutes = (int) ($uptimeDowntime['downtime']['minutes'] ?? 0);
             $unknownMinutes = (int) ($uptimeDowntime['unknown']['minutes'] ?? 0);
+            $this->removeMaintenanceMinutes($maintenanceMinutes, $uptimeMinutes, $downtimeMinutes, $unknownMinutes);
+            $monitoringTrackedMinutes = $uptimeMinutes + $downtimeMinutes + $unknownMinutes;
 
             $totalUptimeMinutes += $uptimeMinutes;
             $totalDowntimeMinutes += $downtimeMinutes;
@@ -80,7 +84,7 @@ class WeeklyMonitoringDigestService
             $monitoringRows[] = [
                 'name' => $monitoring->name,
                 'target' => $monitoring->target,
-                'uptime_percentage' => $uptimeDowntime['uptime']['percentage'] ?? null,
+                'uptime_percentage' => $monitoringTrackedMinutes > 0 ? ($uptimeMinutes / $monitoringTrackedMinutes) * 100 : null,
                 'incidents_count' => $incidentsCount,
                 'downtime_minutes' => $downtimeMinutes,
                 'longest_downtime_minutes' => $monitoringLongestDowntimeMinutes,
@@ -114,10 +118,15 @@ class WeeklyMonitoringDigestService
     }
 
     /**
+     * @param  array{from: Carbon, until: Carbon}|null  $maintenanceWindow
      * @return list<int>
      */
-    private function getOverlappingIncidentDurations(Monitoring $monitoring, Carbon $periodStart, Carbon $periodEnd): array
-    {
+    private function getOverlappingIncidentDurations(
+        Monitoring $monitoring,
+        Carbon $periodStart,
+        Carbon $periodEnd,
+        ?array $maintenanceWindow = null
+    ): array {
         return $monitoring->incidents()
             ->where('down_at', '<=', $periodEnd)
             ->where(function ($builder) use ($periodStart): void {
@@ -125,14 +134,91 @@ class WeeklyMonitoringDigestService
                     ->orWhereNull('up_at');
             })
             ->get(['down_at', 'up_at'])
-            ->map(function (Incident $incident) use ($periodStart, $periodEnd): int {
+            ->map(function (Incident $incident) use ($periodStart, $periodEnd, $maintenanceWindow): int {
                 $downAt = $incident->down_at->copy()->max($periodStart);
                 $upAt = ($incident->up_at ?? $periodEnd)->copy()->min($periodEnd);
+                $durationMinutes = max(0, (int) floor(($upAt->getTimestamp() - $downAt->getTimestamp()) / 60));
 
-                return max(0, (int) floor(($upAt->getTimestamp() - $downAt->getTimestamp()) / 60));
+                if ($durationMinutes === 0 || ! $maintenanceWindow) {
+                    return $durationMinutes;
+                }
+
+                $overlapStart = $downAt->copy()->max($maintenanceWindow['from']);
+                $overlapEnd = $upAt->copy()->min($maintenanceWindow['until']);
+                $maintenanceOverlapMinutes = $overlapStart->lt($overlapEnd)
+                    ? max(0, (int) floor(($overlapEnd->getTimestamp() - $overlapStart->getTimestamp()) / 60))
+                    : 0;
+
+                return max(0, $durationMinutes - $maintenanceOverlapMinutes);
             })
+            ->filter(static fn (int $durationMinutes): bool => $durationMinutes > 0)
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array{from: Carbon, until: Carbon}|null
+     */
+    private function getOverlappingMaintenanceWindow(Monitoring $monitoring, Carbon $periodStart, Carbon $periodEnd): ?array
+    {
+        if (! $monitoring->maintenance_from) {
+            return null;
+        }
+
+        $maintenanceFrom = $monitoring->maintenance_from->copy();
+        $maintenanceUntil = ($monitoring->maintenance_until ?? $periodEnd)->copy();
+
+        if ($maintenanceUntil->lt($periodStart) || $maintenanceFrom->gt($periodEnd)) {
+            return null;
+        }
+
+        $overlapFrom = $maintenanceFrom->max($periodStart);
+        $overlapUntil = $maintenanceUntil->min($periodEnd);
+
+        if ($overlapFrom->gt($overlapUntil)) {
+            return null;
+        }
+
+        return [
+            'from' => $overlapFrom,
+            'until' => $overlapUntil,
+        ];
+    }
+
+    /**
+     * @param  array{from: Carbon, until: Carbon}|null  $maintenanceWindow
+     */
+    private function getMaintenanceMinutes(?array $maintenanceWindow): int
+    {
+        if (! $maintenanceWindow) {
+            return 0;
+        }
+
+        return max(0, (int) ceil(
+            ($maintenanceWindow['until']->getTimestamp() - $maintenanceWindow['from']->getTimestamp()) / 60
+        ));
+    }
+
+    private function removeMaintenanceMinutes(
+        int $maintenanceMinutes,
+        int &$uptimeMinutes,
+        int &$downtimeMinutes,
+        int &$unknownMinutes
+    ): void {
+        if ($maintenanceMinutes <= 0) {
+            return;
+        }
+
+        $removedUnknownMinutes = min($unknownMinutes, $maintenanceMinutes);
+        $unknownMinutes -= $removedUnknownMinutes;
+        $maintenanceMinutes -= $removedUnknownMinutes;
+
+        $removedDowntimeMinutes = min($downtimeMinutes, $maintenanceMinutes);
+        $downtimeMinutes -= $removedDowntimeMinutes;
+        $maintenanceMinutes -= $removedDowntimeMinutes;
+
+        $removedUptimeMinutes = min($uptimeMinutes, $maintenanceMinutes);
+        $uptimeMinutes -= $removedUptimeMinutes;
     }
 
     private function expiresSoonOrIsInvalid(MonitoringSslResult|MonitoringDomainResult|null $result, Carbon $warningThreshold): bool
