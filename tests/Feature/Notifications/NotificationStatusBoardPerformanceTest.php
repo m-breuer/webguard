@@ -51,6 +51,38 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $this->assertSame([$secondMonitoring->id, $firstMonitoring->id], $entries->pluck('monitoring_id')->all());
     }
 
+    public function test_status_board_aggregate_is_scoped_to_the_authenticated_users_active_monitorings(): void
+    {
+        Date::setTestNow('2026-04-19 10:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+        $otherUser = User::factory()->for($package)->create();
+
+        $monitoring = $this->createStatusBoardMonitoring($user, 204, Date::now()->copy()->subMinutes(3));
+        $this->createStatusBoardMonitoring($otherUser, 503, Date::now()->copy()->subMinutes(2));
+        $deletedMonitoring = $this->createStatusBoardMonitoring($user, 503, Date::now()->copy()->subMinute());
+        $deletedMonitoring->delete();
+
+        $this->actingAs($user);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $entries = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true, limit: 5);
+
+        $selectQuery = collect(DB::getQueryLog())
+            ->first(fn (array $query): bool => str_starts_with(mb_strtolower($query['query']), 'select'));
+
+        $normalizedSql = str_replace(['"', '`'], '', $selectQuery['query']);
+
+        $this->assertSame([$monitoring->id], $entries->pluck('monitoring_id')->all());
+        $this->assertStringContainsString('status_change_monitorings.user_id', $normalizedSql);
+        $this->assertStringContainsString('status_change_monitorings.deleted_at is null', $normalizedSql);
+        $this->assertContains($user->id, $selectQuery['bindings']);
+        $this->assertNotContains($otherUser->id, $selectQuery['bindings']);
+    }
+
     public function test_status_board_orders_entries_by_notification_id_when_status_change_timestamps_match(): void
     {
         Date::setTestNow('2026-04-19 10:00:00');
