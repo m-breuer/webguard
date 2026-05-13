@@ -426,4 +426,37 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         $this->assertNull($maintenanceRow['uptime_percentage']);
         $this->assertSame(0, $maintenanceRow['downtime_minutes']);
     }
+
+    public function test_weekly_digest_excludes_maintenance_overlap_from_incident_downtime(): void
+    {
+        Date::setTestNow('2026-05-11 09:00:00');
+        Package::factory()->create();
+
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Maintenance incident monitor',
+            'target' => 'https://maintenance.example.com',
+            'type' => MonitoringType::HTTP,
+            'maintenance_from' => Date::parse('2026-05-06 10:00:00'),
+            'maintenance_until' => Date::parse('2026-05-06 11:00:00'),
+        ]);
+
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-05-06 09:30:00',
+            'up_at' => '2026-05-06 11:30:00',
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => '2026-05-06 10:15:00',
+            'up_at' => '2026-05-06 10:45:00',
+        ]);
+
+        $digest = resolve(WeeklyMonitoringDigestService::class)->buildForUser($user, Date::parse('2026-05-10'));
+
+        $this->assertSame(1, $digest['overview']['incidents_count']);
+        $this->assertSame(60, $digest['overview']['longest_downtime_minutes']);
+        $this->assertSame(1, $digest['monitorings'][0]['incidents_count']);
+        $this->assertSame(60, $digest['monitorings'][0]['longest_downtime_minutes']);
+    }
 }
