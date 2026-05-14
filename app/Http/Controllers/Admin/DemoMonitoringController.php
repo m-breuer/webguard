@@ -95,11 +95,11 @@ class DemoMonitoringController extends Controller
         ]);
     }
 
-    public function update(DemoMonitoringRequest $request, string $demoMonitoring): RedirectResponse
+    public function update(DemoMonitoringRequest $demoMonitoringRequest, string $demoMonitoring): RedirectResponse
     {
         $demoUser = $this->demoUser();
         $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
-        $validated = $request->validated();
+        $validated = $demoMonitoringRequest->validated();
         unset($validated['target']);
 
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
