@@ -25,8 +25,8 @@ class PublicStatusPageController extends Controller
                 ->with(['latestIncident', 'latestResponseResult']),
         ]);
 
-        $components = $statusPage->components->map(function (StatusPageComponent $component): array {
-            $monitorings = $component->monitorings->map(function (Monitoring $monitoring): array {
+        $components = $statusPage->components->map(function (StatusPageComponent $statusPageComponent): array {
+            $monitorings = $statusPageComponent->monitorings->map(function (Monitoring $monitoring): array {
                 $status = $this->monitoringStatus($monitoring);
 
                 return [
@@ -41,7 +41,7 @@ class PublicStatusPageController extends Controller
             $status = $this->aggregateStatus($monitorings->pluck('status'));
 
             return [
-                'model' => $component,
+                'model' => $statusPageComponent,
                 'status' => $status,
                 'badgeType' => $this->statusBadgeType($status),
                 'monitorings' => $monitorings,
@@ -116,7 +116,7 @@ class PublicStatusPageController extends Controller
     private function recentIncidents(StatusPage $statusPage): Collection
     {
         $monitoringIds = $statusPage->components
-            ->flatMap(static fn (StatusPageComponent $component): Collection => $component->monitorings->pluck('id'))
+            ->flatMap(static fn (StatusPageComponent $statusPageComponent): Collection => $statusPageComponent->monitorings->pluck('id'))
             ->unique()
             ->values();
 

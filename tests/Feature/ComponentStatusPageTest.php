@@ -68,22 +68,22 @@ class ComponentStatusPageTest extends TestCase
             'description' => 'Public operating status',
             'is_public' => true,
         ]);
-        $apiComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
-        $apiComponent->monitorings()->attach($apiMonitoring->id, ['position' => 0]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($apiMonitoring->id, ['position' => 0]);
         $workerComponent = $statusPage->components()->create(['name' => 'Workers', 'position' => 1]);
         $workerComponent->monitorings()->attach($workerMonitoring->id, ['position' => 0]);
 
-        $response = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
 
-        $response->assertOk();
-        $response->assertSeeText('Acme Status');
-        $response->assertSeeText(__('status_page.public.overall_status') . ': DOWN');
-        $response->assertSeeTextInOrder(['API', 'UP', 'Workers', 'DOWN']);
-        $response->assertSeeText('Primary API');
-        $response->assertSeeText('Queue Worker');
-        $response->assertSeeText(__('status_page.public.recent_incidents'));
-        $response->assertSeeText(__('monitoring.public_label.ongoing'));
-        $response->assertDontSeeText('https://api.example.test/secret-path');
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('Acme Status');
+        $testResponse->assertSeeText(__('status_page.public.overall_status') . ': DOWN');
+        $testResponse->assertSeeTextInOrder(['API', 'UP', 'Workers', 'DOWN']);
+        $testResponse->assertSeeText('Primary API');
+        $testResponse->assertSeeText('Queue Worker');
+        $testResponse->assertSeeText(__('status_page.public.recent_incidents'));
+        $testResponse->assertSeeText(__('monitoring.public_label.ongoing'));
+        $testResponse->assertDontSeeText('https://api.example.test/secret-path');
     }
 
     public function test_private_component_status_page_returns_not_found_publicly(): void
@@ -97,8 +97,8 @@ class ComponentStatusPageTest extends TestCase
             'is_public' => false,
         ]);
 
-        $response = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
 
-        $response->assertNotFound();
+        $testResponse->assertNotFound();
     }
 }

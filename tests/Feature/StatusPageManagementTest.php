@@ -18,15 +18,15 @@ class StatusPageManagementTest extends TestCase
         $user = User::factory()->create(['package_id' => $package->id]);
         Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
 
-        $response = $this->actingAs($user)->get(route('status-pages.create'));
+        $testResponse = $this->actingAs($user)->get(route('status-pages.create'));
 
-        $response->assertOk();
-        $response->assertSeeText(__('status_page.form.components'));
-        $response->assertSee('API', false);
-        $response->assertSee('Web App', false);
-        $response->assertSee('Workers', false);
-        $response->assertSee('Database', false);
-        $response->assertSeeText('Primary API');
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('status_page.form.components'));
+        $testResponse->assertSeeHtml('API');
+        $testResponse->assertSeeHtml('Web App');
+        $testResponse->assertSeeHtml('Workers');
+        $testResponse->assertSeeHtml('Database');
+        $testResponse->assertSeeText('Primary API');
     }
 
     public function test_user_can_create_component_based_status_page(): void
@@ -36,7 +36,7 @@ class StatusPageManagementTest extends TestCase
         $apiMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
         $workerMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Queue Worker']);
 
-        $response = $this->actingAs($user)->post(route('status-pages.store'), [
+        $testResponse = $this->actingAs($user)->post(route('status-pages.store'), [
             'name' => 'Acme Status',
             'slug' => 'acme-status',
             'description' => 'Customer-facing status page',
@@ -55,7 +55,7 @@ class StatusPageManagementTest extends TestCase
 
         $statusPage = StatusPage::query()->firstOrFail();
 
-        $response->assertRedirect(route('status-pages.show', $statusPage));
+        $testResponse->assertRedirect(route('status-pages.show', $statusPage));
         $this->assertDatabaseHas('status_pages', [
             'user_id' => $user->id,
             'name' => 'Acme Status',
@@ -85,7 +85,7 @@ class StatusPageManagementTest extends TestCase
         $otherUser = User::factory()->create(['package_id' => $package->id]);
         $otherMonitoring = Monitoring::factory()->for($otherUser)->create();
 
-        $response = $this->from(route('status-pages.create'))
+        $testResponse = $this->from(route('status-pages.create'))
             ->actingAs($user)
             ->post(route('status-pages.store'), [
                 'name' => 'Acme Status',
@@ -99,8 +99,8 @@ class StatusPageManagementTest extends TestCase
                 ],
             ]);
 
-        $response->assertRedirect(route('status-pages.create'));
-        $response->assertSessionHasErrors(['components.0.monitoring_ids.0']);
+        $testResponse->assertRedirect(route('status-pages.create'));
+        $testResponse->assertSessionHasErrors(['components.0.monitoring_ids.0']);
         $this->assertDatabaseMissing('status_pages', ['slug' => 'acme-status']);
     }
 
@@ -116,8 +116,8 @@ class StatusPageManagementTest extends TestCase
             'is_public' => true,
         ]);
 
-        $response = $this->actingAs($otherUser)->get(route('status-pages.show', $statusPage));
+        $testResponse = $this->actingAs($otherUser)->get(route('status-pages.show', $statusPage));
 
-        $response->assertNotFound();
+        $testResponse->assertNotFound();
     }
 }

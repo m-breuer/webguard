@@ -8,6 +8,7 @@ use App\Http\Requests\StatusPages\StatusPageRequest;
 use App\Models\Monitoring;
 use App\Models\StatusPage;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -37,13 +38,13 @@ class StatusPageController extends Controller
         ]);
     }
 
-    public function store(StatusPageRequest $request): RedirectResponse
+    public function store(StatusPageRequest $statusPageRequest): RedirectResponse
     {
         abort_if(Auth::user()->isDemo(), 403);
 
         /** @var User $user */
-        $user = $request->user();
-        $validated = $request->validated();
+        $user = $statusPageRequest->user();
+        $validated = $statusPageRequest->validated();
 
         $statusPage = $user->statusPages()->create([
             'name' => $validated['name'],
@@ -83,12 +84,12 @@ class StatusPageController extends Controller
         ]);
     }
 
-    public function update(StatusPageRequest $request, StatusPage $statusPage): RedirectResponse
+    public function update(StatusPageRequest $statusPageRequest, StatusPage $statusPage): RedirectResponse
     {
         abort_if(Auth::user()->isDemo(), 403);
         $this->authorizeOwner($statusPage);
 
-        $validated = $request->validated();
+        $validated = $statusPageRequest->validated();
 
         $statusPage->update([
             'name' => $validated['name'],
@@ -120,7 +121,7 @@ class StatusPageController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Monitoring>
+     * @return Collection<int, Monitoring>
      */
     private function monitoringOptions()
     {
