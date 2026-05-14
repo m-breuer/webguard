@@ -157,7 +157,7 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
             'public_label_enabled' => true,
         ]);
 
-        $verifiedSubscriber = StatusPageSubscriber::query()->create([
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
             'monitoring_id' => $monitoring->id,
             'email' => 'verified@example.com',
             'confirmation_token_hash' => null,
@@ -187,12 +187,12 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         $monitoringNotification->refresh();
         $this->assertTrue($monitoringNotification->sent);
 
-        Mail::assertSent(StatusPageStatusUpdateMail::class, function (StatusPageStatusUpdateMail $mail) use ($verifiedSubscriber): bool {
-            return $mail->hasTo('verified@example.com')
-                && $mail->subscriber->is($verifiedSubscriber)
-                && $mail->status === 'down';
+        Mail::assertSent(StatusPageStatusUpdateMail::class, function (StatusPageStatusUpdateMail $statusPageStatusUpdateMail) use ($statusPageSubscriber): bool {
+            return $statusPageStatusUpdateMail->hasTo('verified@example.com')
+                && $statusPageStatusUpdateMail->subscriber->is($statusPageSubscriber)
+                && $statusPageStatusUpdateMail->status === 'down';
         });
-        Mail::assertNotSent(StatusPageStatusUpdateMail::class, fn (StatusPageStatusUpdateMail $mail): bool => $mail->hasTo('pending@example.com'));
+        Mail::assertNotSent(StatusPageStatusUpdateMail::class, fn (StatusPageStatusUpdateMail $statusPageStatusUpdateMail): bool => $statusPageStatusUpdateMail->hasTo('pending@example.com'));
         Http::assertNothingSent();
     }
 }

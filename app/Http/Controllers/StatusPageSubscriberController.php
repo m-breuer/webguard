@@ -25,22 +25,22 @@ class StatusPageSubscriberController extends Controller
         ]);
 
         $email = Str::lower((string) $validated['email']);
-        $subscriber = StatusPageSubscriber::query()->firstOrNew([
+        $statusPageSubscriber = StatusPageSubscriber::query()->firstOrNew([
             'monitoring_id' => $monitoring->id,
             'email' => $email,
         ]);
 
-        if (! $subscriber->exists || ! $subscriber->isVerified()) {
+        if (! $statusPageSubscriber->exists || ! $statusPageSubscriber->isVerified()) {
             $confirmationToken = Str::random(48);
 
-            $subscriber->forceFill([
+            $statusPageSubscriber->forceFill([
                 'confirmation_token_hash' => StatusPageSubscriber::hashToken($confirmationToken),
                 'unsubscribe_token' => Str::random(48),
                 'verified_at' => null,
             ])->save();
 
-            Mail::to($subscriber->email)->send(
-                new StatusPageSubscriptionConfirmationMail($subscriber, $confirmationToken)
+            Mail::to($statusPageSubscriber->email)->send(
+                new StatusPageSubscriptionConfirmationMail($statusPageSubscriber, $confirmationToken)
             );
         }
 
@@ -52,11 +52,11 @@ class StatusPageSubscriberController extends Controller
     {
         abort_unless($monitoring->public_label_enabled, 404);
 
-        $subscriber = $monitoring->statusPageSubscribers()
+        $statusPageSubscriber = $monitoring->statusPageSubscribers()
             ->where('confirmation_token_hash', StatusPageSubscriber::hashToken($token))
             ->firstOrFail();
 
-        $subscriber->markVerified();
+        $statusPageSubscriber->markVerified();
 
         return to_route('public-label', $monitoring)
             ->with('status_page_subscription_success', __('monitoring.public_label.subscribe.confirmed'));
@@ -64,14 +64,14 @@ class StatusPageSubscriberController extends Controller
 
     public function unsubscribe(Monitoring $monitoring, string $token): View
     {
-        $subscriber = $monitoring->statusPageSubscribers()
+        $statusPageSubscriber = $monitoring->statusPageSubscribers()
             ->where('unsubscribe_token', $token)
             ->firstOrFail();
 
         return view('monitorings.status-page-unsubscribe', [
             'monitoring' => $monitoring,
             'token' => $token,
-            'subscriber' => $subscriber,
+            'subscriber' => $statusPageSubscriber,
         ]);
     }
 

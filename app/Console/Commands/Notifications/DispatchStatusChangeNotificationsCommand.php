@@ -98,7 +98,7 @@ class DispatchStatusChangeNotificationsCommand extends Command
 
     private function dispatchStatusPageSubscriberEmails(
         Monitoring $monitoring,
-        MonitoringNotification $notification,
+        MonitoringNotification $monitoringNotification,
         string $status
     ): void {
         if (! $monitoring->public_label_enabled || ! in_array($status, ['down', 'up'], true)) {
@@ -107,9 +107,9 @@ class DispatchStatusChangeNotificationsCommand extends Command
 
         $monitoring->statusPageSubscribers()
             ->verified()
-            ->each(function ($subscriber) use ($notification, $status): void {
+            ->each(function ($subscriber) use ($monitoringNotification, $status): void {
                 Mail::to($subscriber->email)->send(
-                    new StatusPageStatusUpdateMail($subscriber, $notification, $status)
+                    new StatusPageStatusUpdateMail($subscriber, $monitoringNotification, $status)
                 );
             });
     }

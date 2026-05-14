@@ -106,14 +106,14 @@ class PublicStatusPageTest extends TestCase
         $testResponse->assertRedirect(route('public-label', $monitoring));
         $testResponse->assertSessionHas('status_page_subscription_success');
 
-        $subscriber = StatusPageSubscriber::query()->firstOrFail();
-        $this->assertSame($monitoring->id, $subscriber->monitoring_id);
-        $this->assertSame('customer@example.com', $subscriber->email);
-        $this->assertNull($subscriber->verified_at);
-        $this->assertNotNull($subscriber->confirmation_token_hash);
+        $statusPageSubscriber = StatusPageSubscriber::query()->firstOrFail();
+        $this->assertSame($monitoring->id, $statusPageSubscriber->monitoring_id);
+        $this->assertSame('customer@example.com', $statusPageSubscriber->email);
+        $this->assertNull($statusPageSubscriber->verified_at);
+        $this->assertNotNull($statusPageSubscriber->confirmation_token_hash);
 
-        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class, function (StatusPageSubscriptionConfirmationMail $mail): bool {
-            return $mail->hasTo('customer@example.com') && filled($mail->token);
+        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class, function (StatusPageSubscriptionConfirmationMail $statusPageSubscriptionConfirmationMail): bool {
+            return $statusPageSubscriptionConfirmationMail->hasTo('customer@example.com') && filled($statusPageSubscriptionConfirmationMail->token);
         });
     }
 
@@ -132,8 +132,8 @@ class PublicStatusPageTest extends TestCase
         ]);
 
         $confirmationToken = null;
-        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class, function (StatusPageSubscriptionConfirmationMail $mail) use (&$confirmationToken): bool {
-            $confirmationToken = $mail->token;
+        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class, function (StatusPageSubscriptionConfirmationMail $statusPageSubscriptionConfirmationMail) use (&$confirmationToken): bool {
+            $confirmationToken = $statusPageSubscriptionConfirmationMail->token;
 
             return true;
         });
@@ -157,7 +157,7 @@ class PublicStatusPageTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create([
             'public_label_enabled' => true,
         ]);
-        $subscriber = StatusPageSubscriber::query()->create([
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
             'monitoring_id' => $monitoring->id,
             'email' => 'customer@example.com',
             'confirmation_token_hash' => null,
@@ -169,9 +169,9 @@ class PublicStatusPageTest extends TestCase
             'email' => 'customer@example.com',
         ])->assertRedirect(route('public-label', $monitoring));
 
-        $subscriber->refresh();
-        $this->assertTrue($subscriber->isVerified());
-        $this->assertSame('unsubscribe-token', $subscriber->unsubscribe_token);
+        $statusPageSubscriber->refresh();
+        $this->assertTrue($statusPageSubscriber->isVerified());
+        $this->assertSame('unsubscribe-token', $statusPageSubscriber->unsubscribe_token);
         Mail::assertNothingSent();
     }
 
@@ -182,7 +182,7 @@ class PublicStatusPageTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create([
             'public_label_enabled' => true,
         ]);
-        $subscriber = StatusPageSubscriber::query()->create([
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
             'monitoring_id' => $monitoring->id,
             'email' => 'customer@example.com',
             'confirmation_token_hash' => null,
@@ -192,19 +192,19 @@ class PublicStatusPageTest extends TestCase
 
         $this->get(route('public-label.subscribers.unsubscribe', [
             'monitoring' => $monitoring,
-            'token' => $subscriber->unsubscribe_token,
+            'token' => $statusPageSubscriber->unsubscribe_token,
         ]))->assertOk();
 
         $testResponse = $this->delete(route('public-label.subscribers.destroy', [
             'monitoring' => $monitoring,
-            'token' => $subscriber->unsubscribe_token,
+            'token' => $statusPageSubscriber->unsubscribe_token,
         ]), [
-            'email' => $subscriber->email,
+            'email' => $statusPageSubscriber->email,
         ]);
 
         $testResponse->assertRedirect(route('public-label', $monitoring));
         $this->assertDatabaseMissing('status_page_subscribers', [
-            'id' => $subscriber->id,
+            'id' => $statusPageSubscriber->id,
         ]);
     }
 
@@ -215,7 +215,7 @@ class PublicStatusPageTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create([
             'public_label_enabled' => false,
         ]);
-        $subscriber = StatusPageSubscriber::query()->create([
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
             'monitoring_id' => $monitoring->id,
             'email' => 'customer@example.com',
             'confirmation_token_hash' => null,
@@ -225,19 +225,19 @@ class PublicStatusPageTest extends TestCase
 
         $this->get(route('public-label.subscribers.unsubscribe', [
             'monitoring' => $monitoring,
-            'token' => $subscriber->unsubscribe_token,
+            'token' => $statusPageSubscriber->unsubscribe_token,
         ]))->assertOk();
 
         $testResponse = $this->delete(route('public-label.subscribers.destroy', [
             'monitoring' => $monitoring,
-            'token' => $subscriber->unsubscribe_token,
+            'token' => $statusPageSubscriber->unsubscribe_token,
         ]), [
-            'email' => $subscriber->email,
+            'email' => $statusPageSubscriber->email,
         ]);
 
         $testResponse->assertRedirect('/');
         $this->assertDatabaseMissing('status_page_subscribers', [
-            'id' => $subscriber->id,
+            'id' => $statusPageSubscriber->id,
         ]);
     }
 
