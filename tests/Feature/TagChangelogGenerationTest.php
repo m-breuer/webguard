@@ -82,13 +82,25 @@ class TagChangelogGenerationTest extends TestCase
         $workflow = Yaml::parseFile(base_path('.github/workflows/tag.yml'));
 
         $this->assertArrayHasKey('workflow_dispatch', $workflow['on']);
+        $this->assertSame(['main'], $workflow['on']['workflow_run']['branches']);
         $this->assertSame('Create Tag', $workflow['jobs']['create-tag']['name']);
         $this->assertSame('${{ steps.tag_version.outputs.new_tag }}', $workflow['jobs']['create-tag']['outputs']['new_tag']);
 
+        $createCheckout = collect($workflow['jobs']['create-tag']['steps'])->firstWhere('uses', 'actions/checkout@v6');
+
+        $this->assertIsArray($createCheckout);
+        $this->assertSame('${{ github.event.workflow_run.head_sha }}', $createCheckout['with']['ref']);
+
         $publishSteps = $workflow['jobs']['publish-changelog']['steps'];
+        $publishCheckout = collect($publishSteps)->firstWhere('uses', 'actions/checkout@v6');
+        $fetchTags = collect($publishSteps)->firstWhere('name', 'Fetch release tags');
         $publishScript = collect($publishSteps)->firstWhere('name', 'Generate changelog');
         $publishRelease = collect($publishSteps)->firstWhere('name', 'Publish GitHub release notes');
 
+        $this->assertIsArray($publishCheckout);
+        $this->assertSame('${{ github.event.workflow_run.head_sha }}', $publishCheckout['with']['ref']);
+        $this->assertIsArray($fetchTags);
+        $this->assertSame('git fetch --force --tags origin', $fetchTags['run']);
         $this->assertIsArray($publishScript);
         $this->assertStringContainsString('.github/scripts/generate-changelog.php', $publishScript['run']);
         $this->assertStringContainsString('needs.create-tag.outputs.new_tag', $publishScript['run']);
