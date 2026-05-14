@@ -47,8 +47,10 @@ return [
         ],
         'messages' => [
             'empty' => 'Keine Monitorings für den Demo-Benutzer gefunden.',
+            'confirm_delete' => 'Möchten Sie dieses Demo-Benutzer-Monitoring wirklich löschen?',
             'created' => 'Demo-Benutzer-Monitoring erfolgreich erstellt.',
             'updated' => 'Demo-Benutzer-Monitoring erfolgreich aktualisiert.',
+            'deleted' => 'Demo-Benutzer-Monitoring erfolgreich gelöscht.',
         ],
         'create' => [
             'title' => 'Demo-Benutzer-Monitoring erstellen',

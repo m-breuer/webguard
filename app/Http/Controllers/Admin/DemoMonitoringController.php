@@ -114,6 +114,17 @@ class DemoMonitoringController extends Controller
             ->with('success', __('admin.demo_monitorings.messages.updated'));
     }
 
+    public function destroy(string $demoMonitoring): RedirectResponse
+    {
+        $demoUser = $this->demoUser();
+        $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
+
+        $monitoring->delete();
+
+        return to_route('admin.demo-monitorings.index')
+            ->with('success', __('admin.demo_monitorings.messages.deleted'));
+    }
+
     private function demoUser(): User
     {
         return User::query()

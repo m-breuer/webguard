@@ -59,10 +59,23 @@
                         <x-table.cell>{{ $monitoring->preferred_location }}</x-table.cell>
                         <x-table.cell>{{ $monitoring->created_at?->format('Y-m-d H:i') }}</x-table.cell>
                         <x-table.cell>
-                            <a href="{{ route('admin.demo-monitorings.edit', $monitoring) }}"
-                                class="text-purple-600 hover:underline">
-                                {{ __('button.edit') }}
-                            </a>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('admin.demo-monitorings.edit', $monitoring) }}"
+                                    class="inline-flex min-h-10 items-center text-purple-600 hover:underline">
+                                    {{ __('button.edit') }}
+                                </a>
+                                <form action="{{ route('admin.demo-monitorings.destroy', $monitoring) }}" method="POST"
+                                    class="inline-flex"
+                                    data-confirm-message="{{ __('admin.demo_monitorings.messages.confirm_delete') }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="inline-flex min-h-10 cursor-pointer items-center text-red-600 hover:underline"
+                                        data-testid="delete-demo-monitoring-{{ $monitoring->id }}">
+                                        {{ __('button.delete') }}
+                                    </button>
+                                </form>
+                            </div>
                         </x-table.cell>
                     </x-table.row>
                 @empty

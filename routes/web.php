@@ -106,7 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::resource('/packages', PackageController::class)->except(['show'])->names('packages');
         Route::resource('/server-instances', ServerInstanceController::class)->except(['show'])->names('server-instances');
         Route::resource('/apis', AdminApiController::class)->only(['index'])->names('apis');
-        Route::resource('/demo-monitorings', DemoMonitoringController::class)->except(['show', 'destroy'])->names('demo-monitorings');
+        Route::resource('/demo-monitorings', DemoMonitoringController::class)->except(['show'])->names('demo-monitorings');
         Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     });
 });

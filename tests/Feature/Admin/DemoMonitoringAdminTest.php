@@ -51,6 +51,8 @@ class DemoMonitoringAdminTest extends TestCase
         $testResponse->assertDontSeeText('Admin Private Check');
         $testResponse->assertSeeText($demoUser->email);
         $testResponse->assertSeeHtml('href="' . route('admin.demo-monitorings.edit', $demoMonitoring) . '"');
+        $testResponse->assertSeeHtml('action="' . route('admin.demo-monitorings.destroy', $demoMonitoring) . '"');
+        $testResponse->assertSeeHtml('data-confirm-message');
     }
 
     public function test_admin_can_create_monitoring_for_demo_user(): void
@@ -157,6 +159,45 @@ class DemoMonitoringAdminTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.demo-monitorings.edit', $monitoring))
             ->assertNotFound();
+    }
+
+    public function test_admin_can_delete_monitoring_for_demo_user(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $demoUser = User::factory()->create(['role' => UserRole::DEMO]);
+        $monitoring = Monitoring::factory()->for($demoUser)->create([
+            'name' => 'Delete Demo Check',
+        ]);
+
+        $testResponse = $this->actingAs($admin)
+            ->delete(route('admin.demo-monitorings.destroy', $monitoring));
+
+        $testResponse->assertRedirect(route('admin.demo-monitorings.index'));
+        $testResponse->assertSessionHas('success', __('admin.demo_monitorings.messages.deleted'));
+        $this->assertSoftDeleted('monitorings', [
+            'id' => $monitoring->id,
+            'user_id' => $demoUser->id,
+        ]);
+    }
+
+    public function test_admin_cannot_delete_non_demo_monitoring_through_demo_management(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $regularUser = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($regularUser)->create([
+            'name' => 'Regular Delete Check',
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.demo-monitorings.destroy', $monitoring))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'deleted_at' => null,
+        ]);
     }
 
     public function test_demo_user_still_cannot_create_monitorings_directly(): void
