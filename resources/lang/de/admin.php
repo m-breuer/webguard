@@ -38,6 +38,7 @@ return [
         ],
         'fields' => [
             'created_at' => 'Erstellt',
+            'actions' => 'Aktionen',
         ],
         'summary' => [
             'demo_user' => 'Demo-Benutzer',
@@ -47,10 +48,14 @@ return [
         'messages' => [
             'empty' => 'Keine Monitorings für den Demo-Benutzer gefunden.',
             'created' => 'Demo-Benutzer-Monitoring erfolgreich erstellt.',
+            'updated' => 'Demo-Benutzer-Monitoring erfolgreich aktualisiert.',
         ],
         'create' => [
             'title' => 'Demo-Benutzer-Monitoring erstellen',
             'demo_user' => 'Monitoring-Besitzer',
+        ],
+        'edit' => [
+            'title' => ':monitoring bearbeiten',
         ],
     ],
     'activity_logs' => [

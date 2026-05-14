@@ -76,10 +76,55 @@ class DemoMonitoringController extends Controller
             ->with('success', __('admin.demo_monitorings.messages.created'));
     }
 
+    public function edit(string $demoMonitoring): View
+    {
+        $demoUser = $this->demoUser();
+        $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
+        $serverInstances = ServerInstance::query()
+            ->where('is_active', true)
+            ->orWhere('code', $monitoring->preferred_location)
+            ->orderBy('code')
+            ->get(['code']);
+
+        return view('admin.demo-monitorings.edit', [
+            'demoUser' => $demoUser,
+            'monitoring' => $monitoring,
+            'types' => MonitoringType::cases(),
+            'serverInstances' => $serverInstances,
+            'enabledNotificationChannels' => $demoUser->enabledNotificationChannelKeys(),
+        ]);
+    }
+
+    public function update(DemoMonitoringRequest $request, string $demoMonitoring): RedirectResponse
+    {
+        $demoUser = $this->demoUser();
+        $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
+        $validated = $request->validated();
+        unset($validated['target']);
+
+        $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
+
+        if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {
+            $validated['public_label_enabled'] = false;
+        }
+
+        $monitoring->update($validated);
+
+        return to_route('admin.demo-monitorings.index')
+            ->with('success', __('admin.demo_monitorings.messages.updated'));
+    }
+
     private function demoUser(): User
     {
         return User::query()
             ->where('role', UserRole::DEMO)
+            ->firstOrFail();
+    }
+
+    private function demoMonitoring(User $demoUser, string $monitoringId): Monitoring
+    {
+        return $this->demoMonitoringsQuery($demoUser)
+            ->whereKey($monitoringId)
             ->firstOrFail();
     }
 

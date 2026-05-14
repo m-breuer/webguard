@@ -42,6 +42,7 @@
                 <x-table.heading>{{ __('monitoring.index.table.status') }}</x-table.heading>
                 <x-table.heading>{{ __('monitoring.form.preferred_location') }}</x-table.heading>
                 <x-table.heading>{{ __('admin.demo_monitorings.fields.created_at') }}</x-table.heading>
+                <x-table.heading>{{ __('admin.demo_monitorings.fields.actions') }}</x-table.heading>
             </x-slot>
 
             <x-slot name="body">
@@ -57,10 +58,16 @@
                         <x-table.cell>{{ ucfirst($monitoring->status->value) }}</x-table.cell>
                         <x-table.cell>{{ $monitoring->preferred_location }}</x-table.cell>
                         <x-table.cell>{{ $monitoring->created_at?->format('Y-m-d H:i') }}</x-table.cell>
+                        <x-table.cell>
+                            <a href="{{ route('admin.demo-monitorings.edit', $monitoring) }}"
+                                class="text-purple-600 hover:underline">
+                                {{ __('button.edit') }}
+                            </a>
+                        </x-table.cell>
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="6">
+                        <x-table.cell colspan="7">
                             {{ __('admin.demo_monitorings.messages.empty') }}
                         </x-table.cell>
                     </x-table.row>
