@@ -52,6 +52,7 @@ class ProfileRequest extends FormRequest
             'notification_channels.telegram.bot_token' => ['nullable', 'string', 'max:255'],
             'notification_channels.telegram.chat_id' => ['nullable', 'string', 'max:255'],
             'notification_channels.discord.webhook_url' => ['nullable', 'url', 'max:2048'],
+            'notification_channels.teams.webhook_url' => ['nullable', 'url', 'max:2048'],
             'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048'],
             'monitoring_digest_enabled' => ['nullable', 'boolean'],
             'monitoring_digest_frequency' => ['nullable', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
@@ -77,6 +78,10 @@ class ProfileRequest extends FormRequest
 
             if ($this->boolean('notification_channels.discord.enabled') && blank($this->input('notification_channels.discord.webhook_url'))) {
                 $validator->errors()->add('notification_channels.discord.webhook_url', __('validation.required'));
+            }
+
+            if ($this->boolean('notification_channels.teams.enabled') && blank($this->input('notification_channels.teams.webhook_url'))) {
+                $validator->errors()->add('notification_channels.teams.webhook_url', __('validation.required'));
             }
 
             if ($this->boolean('notification_channels.webhook.enabled') && blank($this->input('notification_channels.webhook.url'))) {

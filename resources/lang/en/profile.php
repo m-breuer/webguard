@@ -84,6 +84,7 @@ return [
             'telegram_chat_id' => 'Telegram Chat ID',
             'slack_webhook_url' => 'Slack Webhook URL',
             'discord_webhook_url' => 'Discord Webhook URL',
+            'teams_webhook_url' => 'Microsoft Teams Webhook URL',
             'webhook_url' => 'Webhook URL',
         ],
         'channels' => [
@@ -98,6 +99,10 @@ return [
             'discord' => [
                 'title' => 'Discord',
                 'help' => 'Use a Discord webhook URL.',
+            ],
+            'teams' => [
+                'title' => 'Microsoft Teams',
+                'help' => 'Use a Microsoft Teams incoming webhook URL.',
             ],
             'webhook' => [
                 'title' => 'Webhook',

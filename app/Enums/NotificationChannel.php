@@ -9,6 +9,7 @@ enum NotificationChannel: string
     case SLACK = 'slack';
     case TELEGRAM = 'telegram';
     case DISCORD = 'discord';
+    case TEAMS = 'teams';
     case WEBHOOK = 'webhook';
 
     /**
