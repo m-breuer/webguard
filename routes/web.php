@@ -17,6 +17,8 @@ use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
+use App\Http\Controllers\PublicStatusPageController;
+use App\Http\Controllers\StatusPageController;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +64,8 @@ Route::get('/sitemap.xml', function () {
 Route::get('/label/{monitoring}', PublicLabelController::class)
     ->name('public-label')
     ->scopeBindings();
+Route::get('/status/{statusPage:slug}', PublicStatusPageController::class)
+    ->name('public-status-pages.show');
 
 Route::get('/widget.js', function () {
     return response(file_get_contents(public_path('js/widget.js')))->header('Content-Type', 'application/javascript');
@@ -88,6 +92,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     });
 
     Route::resource('monitorings', MonitoringController::class)->names('monitorings');
+    Route::resource('status-pages', StatusPageController::class)
+        ->parameters(['status-pages' => 'statusPage'])
+        ->names('status-pages');
 
     Route::delete('/monitorings/{monitoring}/reset', [MonitoringController::class, 'destroyResults'])
         ->name('monitorings.destroyResults');

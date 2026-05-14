@@ -16,6 +16,10 @@
                         {{ __('monitoring.title') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('status-pages.index')" :active="request()->routeIs('status-pages.*')">
+                        {{ __('status_page.title') }}
+                    </x-nav-link>
+
                     <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')" class="relative">
                         {{ __('notifications.title') }}
                         @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
@@ -93,6 +97,10 @@
         <div class="space-y-1 pb-3 pt-2">
             <x-responsive-nav-link :href="route('monitorings.index')" :active="request()->routeIs('monitorings.*')">
                 {{ __('monitoring.title') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('status-pages.index')" :active="request()->routeIs('status-pages.*')">
+                {{ __('status_page.title') }}
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
