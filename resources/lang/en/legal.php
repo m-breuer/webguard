@@ -21,7 +21,7 @@ return [
                 'title' => 'Scope of Service',
                 'intro' => 'WebGuard currently provides monitoring and operational support features, including:',
                 'items' => [
-                    'HTTP, ping, keyword, port, heartbeat, and domain-expiration monitoring for configured targets.',
+                    'HTTP, ping, keyword, port, heartbeat, DNS-record, and domain-expiration monitoring for configured targets.',
                     'HTTP/keyword checks with configurable method, timeout, expected HTTP status codes, headers, body, and optional Basic Authentication.',
                     'SSL/TLS certificate checks and domain-expiration checks, including expiry warnings for supported endpoints and domains.',
                     'Status and incident tracking, response-time insights, recent individual checks, maintenance windows, and uptime/downtime visualizations.',

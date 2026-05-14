@@ -17,4 +17,17 @@ class MysqlMigrationCompatibilityTest extends TestCase
         $this->assertLessThanOrEqual(64, mb_strlen($foreignKeyName));
         $this->assertStringContainsString("->foreign('monitoring_notification_id', '{$foreignKeyName}')", $migration);
     }
+
+    public function test_status_page_component_pivot_foreign_key_names_fit_mysql_identifier_limit(): void
+    {
+        $migration = file_get_contents(base_path('database/migrations/2026_05_14_132000_create_status_page_component_monitoring_table.php'));
+        $componentForeignKeyName = 'status_page_component_monitoring_component_fk';
+        $monitoringForeignKeyName = 'status_page_component_monitoring_monitoring_fk';
+
+        $this->assertIsString($migration);
+        $this->assertLessThanOrEqual(64, mb_strlen($componentForeignKeyName));
+        $this->assertLessThanOrEqual(64, mb_strlen($monitoringForeignKeyName));
+        $this->assertStringContainsString("->foreign('status_page_component_id', '{$componentForeignKeyName}')", $migration);
+        $this->assertStringContainsString("->foreign('monitoring_id', '{$monitoringForeignKeyName}')", $migration);
+    }
 }

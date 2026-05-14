@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -37,6 +38,8 @@ use Spatie\Activitylog\Support\LogOptions;
     'target',
     'port',
     'keyword',
+    'dns_record_type',
+    'dns_expected_values',
     'status',
     'timeout',
     'http_method',
@@ -204,6 +207,16 @@ class Monitoring extends Model
     }
 
     /**
+     * @return BelongsToMany<StatusPageComponent, $this>
+     */
+    public function statusPageComponents(): BelongsToMany
+    {
+        return $this->belongsToMany(StatusPageComponent::class, 'status_page_component_monitoring')
+            ->withPivot('position')
+            ->withTimestamps();
+    }
+
+    /**
      * Determine if the monitoring is active.
      */
     public function isActive(): bool
@@ -292,6 +305,7 @@ class Monitoring extends Model
             'timeout' => 'integer',
             'http_method' => HttpMethod::class,
             'expected_http_statuses' => 'string',
+            'dns_expected_values' => 'array',
             'http_headers' => 'array',
             'public_label_enabled' => 'boolean',
             'notification_on_failure' => 'boolean',

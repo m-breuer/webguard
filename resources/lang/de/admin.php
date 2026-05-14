@@ -24,7 +24,7 @@ return [
         ],
         'demo_monitorings' => [
             'heading' => 'Demo-Monitorings verwalten',
-            'description' => 'Monitorings des Demo-Benutzers anzeigen und hinzufügen.',
+            'description' => 'Monitorings des Demo-Benutzers anzeigen, erstellen, bearbeiten und löschen.',
         ],
         'activity_logs' => [
             'heading' => 'Audit-Protokolle',

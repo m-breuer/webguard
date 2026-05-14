@@ -9,6 +9,12 @@
         $httpHeadersValue = json_encode($httpHeadersValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 
+    $dnsExpectedValues = old('dns_expected_values', isset($monitoring) ? $monitoring->dns_expected_values : null);
+
+    if (is_array($dnsExpectedValues)) {
+        $dnsExpectedValues = implode(PHP_EOL, $dnsExpectedValues);
+    }
+
     $heartbeatTypeValue = MonitoringType::HEARTBEAT->value;
     $enabledNotificationChannels = $enabledNotificationChannels ?? [];
     $selectedNotificationChannels = old(
@@ -33,7 +39,7 @@
         if (!@js(isset($monitoring))) {
             if ((this.type === '{{ MonitoringType::HTTP->value }}' || this.type === '{{ MonitoringType::KEYWORD->value }}') && (!this.target || !this.target.startsWith('http'))) {
                 this.target = 'https://';
-            } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}' || this.type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}') {
+            } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}' || this.type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' || this.type === '{{ MonitoringType::DNS_RECORD->value }}') {
                 this.target = '';
             } else if (this.type === '{{ MonitoringType::HEARTBEAT->value }}') {
                 this.target = '';
@@ -43,7 +49,7 @@
 }" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
         target = 'https://';
-    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}') {
+    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' || value === '{{ MonitoringType::DNS_RECORD->value }}') {
         target = '';
     }
 })">
@@ -97,7 +103,9 @@
                     type === '{{ MonitoringType::PORT->value }}' ?
                     '{{ __('monitoring.form.placeholders.port_target') }}' :
                     type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' ?
-                    '{{ __('monitoring.form.placeholders.domain_target') }}' : ''" />
+                    '{{ __('monitoring.form.placeholders.domain_target') }}' :
+                    type === '{{ MonitoringType::DNS_RECORD->value }}' ?
+                    '{{ __('monitoring.form.placeholders.dns_target') }}' : ''" />
             </div>
             <div x-show="type === '{{ $heartbeatTypeValue }}'"
                 class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
@@ -147,6 +155,31 @@
             <p class="text-sm text-gray-600 dark:text-gray-400 md:col-span-2">
                 {{ __('monitoring.form.heartbeat_help') }}
             </p>
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::DNS_RECORD->value }}'">
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+                <x-input-label for="dns_record_type" :value="__('monitoring.form.dns_record_type')" />
+                <x-select-input id="dns_record_type" class="mt-1 block w-full" name="dns_record_type">
+                    @foreach (\App\Support\DnsRecordExpectation::recordTypes() as $recordType)
+                        <option value="{{ $recordType }}" @selected(old('dns_record_type', $monitoring->dns_record_type ?? 'A') === $recordType)>
+                            {{ $recordType }}
+                        </option>
+                    @endforeach
+                </x-select-input>
+                <x-input-error :messages="$errors->get('dns_record_type')" />
+            </div>
+            <div class="md:col-span-2">
+                <x-input-label for="dns_expected_values" :value="__('monitoring.form.dns_expected_values')" />
+                <x-textarea id="dns_expected_values" name="dns_expected_values" rows="5"
+                    placeholder="{{ __('monitoring.form.placeholders.dns_expected_values') }}">{{ $dnsExpectedValues ?? '' }}</x-textarea>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('monitoring.form.dns_expected_values_help') }}
+                </p>
+                <x-input-error :messages="$errors->get('dns_expected_values')" />
+            </div>
         </div>
     </template>
 

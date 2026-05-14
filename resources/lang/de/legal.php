@@ -21,7 +21,7 @@ return [
                 'title' => 'Leistungsumfang',
                 'intro' => 'WebGuard stellt derzeit insbesondere folgende Funktionen bereit:',
                 'items' => [
-                    'Monitoring-Typen HTTP, Ping, Keyword, Port, Heartbeat und Domain-Ablauf für konfigurierte Ziele.',
+                    'Monitoring-Typen HTTP, Ping, Keyword, Port, Heartbeat, DNS-Eintrag und Domain-Ablauf für konfigurierte Ziele.',
                     'HTTP-/Keyword-Prüfungen mit konfigurierbarer Methode, Timeout, erwarteten HTTP-Statuscodes, Headern, Body und optionaler Basic Authentication.',
                     'SSL-/TLS-Zertifikatsprüfungen und Domain-Ablaufprüfungen inkl. Ablaufwarnungen für geeignete Endpunkte und Domains.',
                     'Status- und Vorfallauswertung, Antwortzeiten, letzte Einzelprüfungen, Wartungsfenster sowie Uptime-/Downtime-Visualisierungen.',

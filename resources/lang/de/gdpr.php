@@ -30,7 +30,7 @@ return [
                 'Konto- und Profildaten (Name, E-Mail, Passwort-Hash, Rolle, Spracheinstellung, Theme-Einstellungen, ggf. Avatar).',
                 'Authentifizierungs- und Sitzungsdaten (Login-Zeitpunkte, Session-IDs, IP-Adresse, User-Agent, technisch erforderliche Session-/CSRF-Metadaten).',
                 'Einwilligungs- und Nachweisdaten (Zeitstempel zur Zustimmung zu Nutzungsbedingungen und Datenschutzerklärung).',
-                'Monitoring-Konfigurationsdaten (Name, Monitoring-Typ, Zieladresse, Port, Keyword, HTTP-Methode, erwartete HTTP-Statuscodes, Header/Body, optionale Zugangsdaten, bevorzugter Standort, Wartungsfenster, Public-Label-/Widget-Einstellung, Heartbeat-Intervall, Kulanzzeit und private Heartbeat-Ping-URL bzw. Token).',
+                'Monitoring-Konfigurationsdaten (Name, Monitoring-Typ, Zieladresse, Port, Keyword, DNS-Eintragserwartungen, HTTP-Methode, erwartete HTTP-Statuscodes, Header/Body, optionale Zugangsdaten, bevorzugter Standort, Wartungsfenster, Public-Label-/Widget-Einstellung, Heartbeat-Intervall, Kulanzzeit und private Heartbeat-Ping-URL bzw. Token).',
                 'Monitoring-Ergebnisdaten (Status, HTTP-Statuscodes, Antwortzeiten, SSL/TLS-Zertifikatsdaten, Domain-Ablaufdaten inkl. Registrar soweit verfügbar, Heartbeat-Ping-Zeitpunkte, Vorfälle, letzte Einzelprüfungen, archivierte Rohdaten und Tagesaggregate für Uptime/Downtime).',
                 'Öffentlich freigegebene Statusdaten, wenn Public Labels oder Public Widgets aktiviert sind (z. B. Monitoring-Name, aktueller Status, Uptime-Kennzahlen und Wartungsstatus).',
                 'Benachrichtigungsdaten (Kanal-Konfiguration inkl. Webhook-URLs, Telegram-Bot-Token/Chat-ID, Ereignispräferenzen, Versandstatus, Versandhistorie, technische Payloads/Fehlermeldungen und Lesezustand von Benachrichtigungen).',
@@ -46,7 +46,7 @@ return [
             'purposes_title' => 'Verarbeitungszwecke',
             'purposes' => [
                 'Bereitstellung von Registrierung, Login (inkl. optionalem GitHub-Login), Kontoverwaltung und Authentifizierung.',
-                'Durchführung von Monitoring-Prüfungen (HTTP, Ping, Keyword, Port, Heartbeat, Domain-Ablauf), Incident-Erkennung sowie Berechnung von Uptime-, Domain-, SSL- und Performance-Auswertungen.',
+                'Durchführung von Monitoring-Prüfungen (HTTP, Ping, Keyword, Port, Heartbeat, DNS-Einträge, Domain-Ablauf), Incident-Erkennung sowie Berechnung von Uptime-, Domain-, SSL- und Performance-Auswertungen.',
                 'Bereitstellung öffentlicher Status-Labels und Public Widgets, wenn Nutzer diese Funktion aktivieren.',
                 'Versand servicebezogener Nachrichten (z. B. Verifikations-/Passwort-Reset-E-Mails, Wochen-Digests, Erinnerungen an ungelesene Benachrichtigungen sowie Incident-/Recovery-/SSL-/Domain-Ablaufbenachrichtigungen über konfigurierte Kanäle).',
                 'Bereitstellung und Absicherung der API (Token-Verwaltung, Missbrauchsschutz, Nutzungsprotokollierung).',
