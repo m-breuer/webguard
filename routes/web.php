@@ -17,6 +17,7 @@ use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
+use App\Http\Controllers\StatusPageSubscriberController;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,19 @@ Route::get('/sitemap.xml', function () {
 
 Route::get('/label/{monitoring}', PublicLabelController::class)
     ->name('public-label')
+    ->scopeBindings();
+Route::post('/label/{monitoring}/subscribers', [StatusPageSubscriberController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('public-label.subscribers.store')
+    ->scopeBindings();
+Route::get('/label/{monitoring}/subscribers/confirm/{token}', [StatusPageSubscriberController::class, 'confirm'])
+    ->name('public-label.subscribers.confirm')
+    ->scopeBindings();
+Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'unsubscribe'])
+    ->name('public-label.subscribers.unsubscribe')
+    ->scopeBindings();
+Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
+    ->name('public-label.subscribers.destroy')
     ->scopeBindings();
 
 Route::get('/widget.js', function () {

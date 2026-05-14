@@ -188,6 +188,14 @@ class Monitoring extends Model
     }
 
     /**
+     * @return HasMany<StatusPageSubscriber, $this>
+     */
+    public function statusPageSubscribers(): HasMany
+    {
+        return $this->hasMany(StatusPageSubscriber::class);
+    }
+
+    /**
      * @return HasMany<MonitoringResponseArchived, $this>
      */
     public function archivedResponseResults(): HasMany

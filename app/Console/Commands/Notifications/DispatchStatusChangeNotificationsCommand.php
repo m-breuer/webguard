@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Console\Commands\Notifications;
 
 use App\Enums\NotificationEventType;
+use App\Mail\StatusPageStatusUpdateMail;
+use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
 use App\Services\Notifications\NotificationPayload;
 use App\Services\Notifications\NotificationRouter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class DispatchStatusChangeNotificationsCommand extends Command
 {
@@ -52,16 +55,18 @@ class DispatchStatusChangeNotificationsCommand extends Command
                 continue;
             }
 
+            $identifier = MonitoringNotification::extractStatusChangeIdentifierFromMessage($notification->message);
+            $eventType = $identifier === 'down'
+                ? NotificationEventType::INCIDENT
+                : NotificationEventType::RECOVERY;
+
+            $this->dispatchStatusPageSubscriberEmails($monitoring, $notification, $identifier);
+
             if (! $monitoring->notification_on_failure) {
                 $notification->update(['sent' => true]);
 
                 continue;
             }
-
-            $identifier = MonitoringNotification::extractStatusChangeIdentifierFromMessage($notification->message);
-            $eventType = $identifier === 'down'
-                ? NotificationEventType::INCIDENT
-                : NotificationEventType::RECOVERY;
 
             $payload = new NotificationPayload(
                 eventType: $eventType,
@@ -89,5 +94,23 @@ class DispatchStatusChangeNotificationsCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function dispatchStatusPageSubscriberEmails(
+        Monitoring $monitoring,
+        MonitoringNotification $notification,
+        string $status
+    ): void {
+        if (! $monitoring->public_label_enabled || ! in_array($status, ['down', 'up'], true)) {
+            return;
+        }
+
+        $monitoring->statusPageSubscribers()
+            ->verified()
+            ->each(function ($subscriber) use ($notification, $status): void {
+                Mail::to($subscriber->email)->send(
+                    new StatusPageStatusUpdateMail($subscriber, $notification, $status)
+                );
+            });
     }
 }
