@@ -14,18 +14,18 @@ $options = getopt('', [
     'output::',
 ]);
 
-$tag = isset($options['tag']) ? mb_trim((string) $options['tag']) : '';
-$repository = isset($options['repository']) ? mb_trim((string) $options['repository']) : '';
-$output = isset($options['output']) ? mb_trim((string) $options['output']) : '';
+$tag = isset($options['tag']) ? clean((string) $options['tag']) : '';
+$repository = isset($options['repository']) ? clean((string) $options['repository']) : '';
+$output = isset($options['output']) ? clean((string) $options['output']) : '';
 
 if ($tag === '') {
-    $tag = mb_trim(run(['git', 'describe', '--tags', '--abbrev=0']));
+    $tag = clean(run(['git', 'describe', '--tags', '--abbrev=0']));
 }
 
 assertTagExists($tag);
 
 $previousTag = previousTag($tag);
-$date = mb_trim(run(['git', 'log', '-1', '--format=%cs', $tag]));
+$date = clean(run(['git', 'log', '-1', '--format=%cs', $tag]));
 $commits = commitsForTag($tag, $previousTag);
 $sections = groupConventionalCommits($commits);
 $mergedBranches = mergedBranches($commits, $repository);
@@ -69,7 +69,7 @@ function run(array $command): string
     $exitCode = proc_close($process);
 
     if ($exitCode !== 0) {
-        fwrite(STDERR, mb_trim((string) $stderr) . PHP_EOL);
+        fwrite(STDERR, clean((string) $stderr) . PHP_EOL);
 
         exit($exitCode);
     }
@@ -82,9 +82,14 @@ function assertTagExists(string $tag): void
     run(['git', 'rev-parse', '--verify', '--quiet', $tag]);
 }
 
+function clean(string $value): string
+{
+    return preg_replace('/^\s+|\s+$/u', '', $value) ?? '';
+}
+
 function previousTag(string $tag): ?string
 {
-    $tags = array_values(array_filter(explode(PHP_EOL, mb_trim(run(['git', 'tag', '--sort=version:refname'])))));
+    $tags = array_values(array_filter(explode(PHP_EOL, clean(run(['git', 'tag', '--sort=version:refname'])))));
     $index = array_search($tag, $tags, true);
 
     if ($index === false || $index === 0) {
@@ -101,15 +106,15 @@ function commitsForTag(string $tag, ?string $previousTag): array
 {
     $range = $previousTag ? "{$previousTag}..{$tag}" : $tag;
     $rawLog = run(['git', 'log', '--reverse', '--format=%H%x1f%s%x1f%b%x1e', $range]);
-    $records = array_filter(explode("\x1e", $rawLog), static fn (string $record): bool => mb_trim($record) !== '');
+    $records = array_filter(explode("\x1e", $rawLog), static fn (string $record): bool => clean($record) !== '');
 
     return array_values(array_map(function (string $record): array {
         [$hash, $subject, $body] = array_pad(explode("\x1f", $record, 3), 3, '');
 
         return [
-            'hash' => mb_trim($hash),
-            'subject' => mb_trim($subject),
-            'body' => mb_trim($body),
+            'hash' => clean($hash),
+            'subject' => clean($subject),
+            'body' => clean($body),
         ];
     }, $records));
 }
@@ -179,7 +184,14 @@ function groupName(string $type): string
 
 function entry(string $description, string $hash): string
 {
-    return sprintf('- %s (`%s`)', $description, mb_substr($hash, 0, 7));
+    return sprintf('- %s (`%s`)', $description, shortHash($hash));
+}
+
+function shortHash(string $hash): string
+{
+    preg_match('/^(.{0,7})/s', $hash, $matches);
+
+    return $matches[1] ?? $hash;
 }
 
 /**
