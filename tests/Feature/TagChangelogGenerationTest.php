@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
 use Tests\TestCase;
 
 class TagChangelogGenerationTest extends TestCase
@@ -73,7 +74,7 @@ class TagChangelogGenerationTest extends TestCase
 
     public function test_tag_workflow_publishes_new_and_historical_changelogs(): void
     {
-        $workflow = \Symfony\Component\Yaml\Yaml::parseFile(base_path('.github/workflows/tag.yml'));
+        $workflow = Yaml::parseFile(base_path('.github/workflows/tag.yml'));
 
         $this->assertArrayHasKey('workflow_dispatch', $workflow['on']);
         $this->assertSame('Create Tag', $workflow['jobs']['create-tag']['name']);
@@ -126,10 +127,12 @@ class TagChangelogGenerationTest extends TestCase
         $this->assertIsArray($items);
 
         foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
+            if ($item === '.') {
                 continue;
             }
-
+            if ($item === '..') {
+                continue;
+            }
             $path = $directory . DIRECTORY_SEPARATOR . $item;
 
             if (is_dir($path)) {
