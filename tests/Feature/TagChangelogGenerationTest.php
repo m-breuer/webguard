@@ -35,6 +35,11 @@ class TagChangelogGenerationTest extends TestCase
 
     public function test_changelog_is_generated_from_conventional_commits_and_merged_branches(): void
     {
+        $script = file_get_contents(base_path('.github/scripts/generate-changelog.php'));
+
+        $this->assertIsString($script);
+        $this->assertStringNotContainsString('mb_', $script);
+
         $this->commitFile('README.md', 'initial', 'chore: initial release');
         $this->runCommand(['git', 'tag', 'v1.0.0']);
 
