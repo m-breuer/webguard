@@ -135,4 +135,46 @@ class NotificationRouterTest extends TestCase
             'status' => NotificationDeliveryStatus::SKIPPED->value,
         ]);
     }
+
+    public function test_router_sends_to_teams_channel(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'teams' => [
+                    'enabled' => true,
+                    'webhook_url' => 'https://teams.test/webhook/123',
+                ],
+            ],
+        ]);
+
+        Http::fake([
+            'https://teams.test/*' => Http::response([], 200),
+        ]);
+
+        $notificationPayload = new NotificationPayload(
+            eventType: NotificationEventType::INCIDENT,
+            title: 'Monitoring incident',
+            message: 'Service is down.',
+            severity: 'critical',
+            monitoringId: '01TEST',
+            monitoringName: 'API',
+            monitoringTarget: 'https://example.test',
+            occurredAt: now(),
+        );
+
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['teams']);
+
+        $this->assertTrue($wasDelivered);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://teams.test/webhook/123'
+            && data_get($request->data(), 'type') === 'message'
+            && data_get($request->data(), 'attachments.0.contentType') === 'application/vnd.microsoft.card.adaptive'
+            && str_contains(json_encode($request->data(), JSON_THROW_ON_ERROR), 'Monitoring incident'));
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'teams',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
+    }
 }

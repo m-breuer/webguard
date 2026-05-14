@@ -24,5 +24,5 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 
 ## Notifications
 
-- **Flexible notifications:** receive notifications for status changes, SSL expiry, and domain expiry through in-app notifications and configurable channels.
+- **Flexible notifications:** receive notifications for status changes, SSL expiry, and domain expiry through in-app notifications and configurable Slack, Telegram, Discord, Microsoft Teams, and webhook channels.
 - **Weekly monitoring digest:** email weekly uptime, incident, downtime, SSL, and domain expiry summaries to active users.

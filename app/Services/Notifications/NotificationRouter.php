@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Notifications\Channels\DiscordChannelDriver;
 use App\Services\Notifications\Channels\NotificationChannelDriver;
 use App\Services\Notifications\Channels\SlackChannelDriver;
+use App\Services\Notifications\Channels\TeamsChannelDriver;
 use App\Services\Notifications\Channels\TelegramChannelDriver;
 use App\Services\Notifications\Channels\WebhookChannelDriver;
 use Carbon\CarbonInterface;
@@ -27,12 +28,14 @@ class NotificationRouter
         SlackChannelDriver $slackChannelDriver,
         TelegramChannelDriver $telegramChannelDriver,
         DiscordChannelDriver $discordChannelDriver,
+        TeamsChannelDriver $teamsChannelDriver,
         WebhookChannelDriver $webhookChannelDriver
     ) {
         $this->drivers = [
             $slackChannelDriver->channel() => $slackChannelDriver,
             $telegramChannelDriver->channel() => $telegramChannelDriver,
             $discordChannelDriver->channel() => $discordChannelDriver,
+            $teamsChannelDriver->channel() => $teamsChannelDriver,
             $webhookChannelDriver->channel() => $webhookChannelDriver,
         ];
     }

@@ -213,7 +213,11 @@ class ProfileController extends Controller
                 'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
             ];
 
-            if ($channel === NotificationChannel::SLACK->value || $channel === NotificationChannel::DISCORD->value) {
+            if (in_array($channel, [
+                NotificationChannel::SLACK->value,
+                NotificationChannel::DISCORD->value,
+                NotificationChannel::TEAMS->value,
+            ], true)) {
                 $channelConfig['webhook_url'] = mb_trim((string) $profileRequest->input(sprintf('notification_channels.%s.webhook_url', $channel)));
             }
 

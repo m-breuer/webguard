@@ -1,7 +1,7 @@
 <x-container space="true">
     @php
         $notificationChannels = old('notification_channels', $user->notification_channels ?? []);
-        $notificationChannelKeys = ['slack', 'telegram', 'discord', 'webhook'];
+        $notificationChannelKeys = ['slack', 'telegram', 'discord', 'teams', 'webhook'];
     @endphp
 
     <x-heading type="h2">{{ __('profile.information.heading') }}</x-heading>
@@ -164,6 +164,28 @@
                         <x-text-input id="notification_channels_discord_webhook_url" name="notification_channels[discord][webhook_url]" type="url"
                             :value="data_get($notificationChannels, 'discord.webhook_url')" placeholder="https://discord.com/api/webhooks/..." />
                         <x-input-error :messages="$errors->get('notification_channels.discord.webhook_url')" />
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-xs dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <x-heading type="h3">{{ __('profile.notification_settings.channels.teams.title') }}</x-heading>
+                        <x-text-checkbox id="notification_channels_teams_enabled" name="notification_channels[teams][enabled]"
+                            :checked="(bool) data_get($notificationChannels, 'teams.enabled', false)"
+                            :label="__('profile.notification_settings.enabled')" />
+                        <x-secondary-button form="test-teams-notification-channel" class="text-xs">
+                            {{ __('profile.notification_settings.test.action') }}
+                        </x-secondary-button>
+                    </div>
+                    <x-input-error :messages="$errors->get('notification_channels.teams')" />
+
+                    <x-paragraph class="text-sm text-gray-600 dark:text-gray-300">{{ __('profile.notification_settings.channels.teams.help') }}</x-paragraph>
+
+                    <div class="mt-4">
+                        <x-input-label for="notification_channels_teams_webhook_url" :value="__('profile.notification_settings.fields.teams_webhook_url')" />
+                        <x-text-input id="notification_channels_teams_webhook_url" name="notification_channels[teams][webhook_url]" type="url"
+                            :value="data_get($notificationChannels, 'teams.webhook_url')" placeholder="https://..." />
+                        <x-input-error :messages="$errors->get('notification_channels.teams.webhook_url')" />
                     </div>
                 </div>
 
