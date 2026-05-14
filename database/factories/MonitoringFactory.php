@@ -27,6 +27,7 @@ class MonitoringFactory extends Factory
             MonitoringType::KEYWORD,
             MonitoringType::PORT,
             MonitoringType::DOMAIN_EXPIRATION,
+            MonitoringType::DNS_RECORD,
         ]);
 
         $data = [
@@ -37,6 +38,7 @@ class MonitoringFactory extends Factory
                 MonitoringType::PING => fake()->ipv4(),
                 MonitoringType::PORT => fake()->ipv4(), // Or fake()->domainName() if ports can be checked on domain names
                 MonitoringType::DOMAIN_EXPIRATION => fake()->domainName(),
+                MonitoringType::DNS_RECORD => fake()->domainName(),
             },
             'preferred_location' => 'de-1',
             'status' => MonitoringLifecycleStatus::ACTIVE,
@@ -49,6 +51,11 @@ class MonitoringFactory extends Factory
 
         if ($type === MonitoringType::KEYWORD) {
             $data['keyword'] = fake()->word();
+        }
+
+        if ($type === MonitoringType::DNS_RECORD) {
+            $data['dns_record_type'] = 'A';
+            $data['dns_expected_values'] = [fake()->ipv4()];
         }
 
         return $data;
@@ -73,6 +80,25 @@ class MonitoringFactory extends Factory
         return $this->state(fn (): array => [
             'type' => MonitoringType::DOMAIN_EXPIRATION,
             'target' => 'example.com',
+            'timeout' => 5,
+            'expected_http_statuses' => null,
+            'http_method' => null,
+            'http_headers' => null,
+            'http_body' => null,
+            'auth_username' => null,
+            'auth_password' => null,
+            'port' => null,
+            'keyword' => null,
+        ]);
+    }
+
+    public function dnsRecord(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => MonitoringType::DNS_RECORD,
+            'target' => 'example.com',
+            'dns_record_type' => 'A',
+            'dns_expected_values' => ['192.0.2.10'],
             'timeout' => 5,
             'expected_http_statuses' => null,
             'http_method' => null,

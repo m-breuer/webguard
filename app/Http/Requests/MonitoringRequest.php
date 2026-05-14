@@ -8,6 +8,7 @@ use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Models\User;
+use App\Support\DnsRecordExpectation;
 use App\Support\HttpStatusCodeRanges;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,6 +26,8 @@ use JsonException;
 class MonitoringRequest extends FormRequest
 {
     private bool $invalidHttpHeadersJson = false;
+
+    private bool $invalidDnsExpectedValues = false;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -50,6 +53,42 @@ class MonitoringRequest extends FormRequest
             'type' => ['required', Rule::enum(MonitoringType::class)],
             'port' => ['nullable', 'required_if:type,port', 'integer', 'min:1', 'max:65535'],
             'keyword' => ['nullable', 'required_if:type,keyword', 'string', 'max:255'],
+            'dns_record_type' => [
+                'nullable',
+                Rule::requiredIf(fn (): bool => MonitoringType::tryFrom((string) $this->input('type')) === MonitoringType::DNS_RECORD),
+                'string',
+                Rule::in(DnsRecordExpectation::recordTypes()),
+                function ($attribute, $value, $fail): void {
+                    if (MonitoringType::tryFrom((string) $this->input('type')) !== MonitoringType::DNS_RECORD && $this->filled('dns_record_type')) {
+                        $fail(__('monitoring.validation.dns_record_type_invalid_config'));
+                    }
+                },
+            ],
+            'dns_expected_values' => [
+                'nullable',
+                Rule::requiredIf(fn (): bool => MonitoringType::tryFrom((string) $this->input('type')) === MonitoringType::DNS_RECORD),
+                function ($attribute, $value, $fail): void {
+                    $type = MonitoringType::tryFrom((string) $this->input('type'));
+
+                    if ($type !== MonitoringType::DNS_RECORD) {
+                        if ($this->filled('dns_expected_values')) {
+                            $fail(__('monitoring.validation.dns_expected_values_invalid_config'));
+                        }
+
+                        return;
+                    }
+
+                    if ($this->invalidDnsExpectedValues || ! is_array($value) || count($value) === 0) {
+                        $fail(__('monitoring.validation.dns_expected_values_invalid_format'));
+
+                        return;
+                    }
+
+                    if (count($value) > 50) {
+                        $fail(__('monitoring.validation.dns_expected_values_too_many'));
+                    }
+                },
+            ],
             'status' => ['required', Rule::enum(MonitoringLifecycleStatus::class)],
             'heartbeat_interval_minutes' => ['nullable', 'required_if:type,heartbeat', 'integer', 'min:1', 'max:10080'],
             'heartbeat_grace_minutes' => ['nullable', 'required_if:type,heartbeat', 'integer', 'min:0', 'max:1440'],
@@ -199,11 +238,16 @@ class MonitoringRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $type = mb_strtolower((string) $this->input('type'));
         $httpHeaders = $this->normalizeHttpHeaders();
+        $dnsRecordType = DnsRecordExpectation::normalizeRecordType($this->input('dns_record_type'));
+        $dnsExpectedValues = $this->normalizeDnsExpectedValues($type, $dnsRecordType);
 
         $this->merge([
-            'type' => mb_strtolower((string) $this->input('type')),
+            'type' => $type,
             'http_headers' => $httpHeaders,
+            'dns_record_type' => $dnsRecordType,
+            'dns_expected_values' => $dnsExpectedValues,
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
@@ -260,7 +304,8 @@ class MonitoringRequest extends FormRequest
                     $fail(sprintf('The %s must be a valid IP address or URL for type %s.', $attribute, $type));
                 }
 
-                if ($type === MonitoringType::DOMAIN_EXPIRATION->value && ! $this->isValidDomainTarget((string) $value)) {
+                if (in_array($type, [MonitoringType::DOMAIN_EXPIRATION->value, MonitoringType::DNS_RECORD->value], true)
+                    && ! $this->isValidDomainTarget((string) $value)) {
                     $fail(__('monitoring.validation.target_invalid_domain', ['attribute' => $attribute, 'type' => $type]));
                 }
             },
@@ -319,5 +364,25 @@ class MonitoringRequest extends FormRequest
         }
 
         return $decodedHeaders;
+    }
+
+    /**
+     * @return array<int, string>|mixed
+     */
+    private function normalizeDnsExpectedValues(string $type, ?string $recordType): mixed
+    {
+        $values = $this->input('dns_expected_values');
+
+        if ($type !== MonitoringType::DNS_RECORD->value) {
+            return $values;
+        }
+
+        try {
+            return DnsRecordExpectation::normalizeValues($values, $recordType);
+        } catch (InvalidArgumentException) {
+            $this->invalidDnsExpectedValues = true;
+
+            return $values;
+        }
     }
 }

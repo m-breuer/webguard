@@ -23,6 +23,8 @@ class MonitoringResource extends JsonResource
             'target' => $this->target,
             'port' => $this->port,
             'keyword' => $this->keyword,
+            'dns_record_type' => $this->dns_record_type,
+            'dns_expected_values' => $this->dns_expected_values,
             'status' => $this->status,
             'timeout' => $this->timeout,
             'http_method' => $this->http_method,

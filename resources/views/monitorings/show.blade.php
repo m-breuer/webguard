@@ -218,6 +218,20 @@
                 </x-container>
             @endif
 
+            @if ($monitoring->type === MonitoringType::DNS_RECORD)
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.dns.heading') }}</x-heading>
+                    <x-paragraph class="mt-2 text-sm text-gray-500">{{ __('monitoring.detail.dns.record_type') }}</x-paragraph>
+                    <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->dns_record_type }}</x-paragraph>
+                    <x-paragraph class="mt-3 text-sm text-gray-500">{{ __('monitoring.detail.dns.expected_values') }}</x-paragraph>
+                    <ul class="mt-1 space-y-1">
+                        @foreach (($monitoring->dns_expected_values ?? []) as $expectedValue)
+                            <li class="break-all font-mono text-sm text-gray-800 dark:text-gray-100">{{ $expectedValue }}</li>
+                        @endforeach
+                    </ul>
+                </x-container>
+            @endif
+
             <x-container>
                 <x-heading type="h2">{{ __('monitoring.detail.last_24_hours') }}</x-heading>
                 <div id="heatmap">
