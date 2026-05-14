@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -193,6 +194,16 @@ class Monitoring extends Model
     public function archivedResponseResults(): HasMany
     {
         return $this->hasMany(MonitoringResponseArchived::class, 'monitoring_id');
+    }
+
+    /**
+     * @return BelongsToMany<StatusPageComponent, $this>
+     */
+    public function statusPageComponents(): BelongsToMany
+    {
+        return $this->belongsToMany(StatusPageComponent::class, 'status_page_component_monitoring')
+            ->withPivot('position')
+            ->withTimestamps();
     }
 
     /**

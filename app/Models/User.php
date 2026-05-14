@@ -102,6 +102,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * @return HasMany<StatusPage, $this>
+     */
+    public function statusPages(): HasMany
+    {
+        return $this->hasMany(StatusPage::class);
+    }
+
+    /**
      * Get the API logs associated with the user.
      *
      * @return HasMany<ApiLog, $this>

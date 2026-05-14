@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'Status Pages',
+    'components_count' => ':count component|:count components',
+    'state' => [
+        'public' => 'Public',
+        'private' => 'Private',
+    ],
+    'empty' => [
+        'title' => 'No status pages yet',
+        'text' => 'Group monitorings into customer-facing components such as API, Web App, Workers, or Database.',
+    ],
+    'create' => [
+        'title' => 'Create Status Page',
+    ],
+    'edit' => [
+        'title' => 'Edit :statusPage',
+    ],
+    'form' => [
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'slug_placeholder' => 'Generated from the name when empty',
+        'description' => 'Description',
+        'is_public' => 'Publish this status page',
+        'components' => 'Components',
+        'component_name' => 'Component name',
+        'component_description' => 'Component description',
+        'monitorings' => 'Monitorings',
+        'add_component' => 'Add component',
+        'remove_component' => 'Remove component',
+    ],
+    'actions' => [
+        'public_page' => 'Public page',
+        'delete_confirmation' => 'Are you sure you want to delete this status page?',
+    ],
+    'messages' => [
+        'created' => 'Status page created successfully.',
+        'updated' => 'Status page updated successfully.',
+        'deleted' => 'Status page deleted successfully.',
+    ],
+    'public' => [
+        'title' => ':statusPage - Status',
+        'overall_status' => 'Overall status',
+        'recent_incidents' => 'Recent Incidents',
+    ],
+    'validation' => [
+        'fix_errors' => 'Please fix the highlighted status page settings.',
+    ],
+];
