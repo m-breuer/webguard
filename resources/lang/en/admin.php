@@ -38,6 +38,7 @@ return [
         ],
         'fields' => [
             'created_at' => 'Created',
+            'actions' => 'Actions',
         ],
         'summary' => [
             'demo_user' => 'Demo User',
@@ -46,11 +47,17 @@ return [
         ],
         'messages' => [
             'empty' => 'No demo user monitorings found.',
+            'confirm_delete' => 'Are you sure you want to delete this demo user monitoring?',
             'created' => 'Demo user monitoring created successfully.',
+            'updated' => 'Demo user monitoring updated successfully.',
+            'deleted' => 'Demo user monitoring deleted successfully.',
         ],
         'create' => [
             'title' => 'Create Demo User Monitoring',
             'demo_user' => 'Monitoring owner',
+        ],
+        'edit' => [
+            'title' => 'Edit :monitoring',
         ],
     ],
     'activity_logs' => [
