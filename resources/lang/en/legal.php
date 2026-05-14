@@ -29,7 +29,7 @@ return [
                     'Channel-based notifications for incidents, recoveries, SSL events, and domain-expiration events (for example email, Slack, Telegram, Discord, custom webhooks), including test delivery, delivery history, weekly digest, and unread-notification reminders.',
                     'Token-based API access for supported endpoints and public widget endpoints for enabled public labels.',
                     'Monitoring-location display and multiple server instances used to perform checks.',
-                    'Optional GitHub sign-in and demo/guest access.',
+                    'Optional GitHub sign-in and demo access.',
                 ],
             ],
             'obligations' => [

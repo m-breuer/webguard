@@ -1,36 +1,36 @@
 import axios from 'axios';
 
-interface GuestLoginComponent {
+interface DemoLoginComponent {
     mode: string;
     email: string;
-    guestLoaded: boolean;
+    demoLoaded: boolean;
     usingDemoCredentials: boolean;
     savedEmail: string;
     savedPassword: string;
-    init(this: GuestLoginComponent): void;
-    switchMode(this: GuestLoginComponent, nextMode: string): void;
-    fetchGuestCredentials(this: GuestLoginComponent): Promise<void>;
-    fillLoginForm(this: GuestLoginComponent): void;
-    captureLoginFormState(this: GuestLoginComponent): void;
-    restoreLoginFormState(this: GuestLoginComponent): void;
+    init(this: DemoLoginComponent): void;
+    switchMode(this: DemoLoginComponent, nextMode: string): void;
+    fetchDemoCredentials(this: DemoLoginComponent): Promise<void>;
+    fillLoginForm(this: DemoLoginComponent): void;
+    captureLoginFormState(this: DemoLoginComponent): void;
+    restoreLoginFormState(this: DemoLoginComponent): void;
 }
 
-export default (initialMode: string = 'login'): GuestLoginComponent => ({
+export default (initialMode: string = 'login'): DemoLoginComponent => ({
     mode: initialMode,
     email: '',
-    guestLoaded: false,
+    demoLoaded: false,
     usingDemoCredentials: false,
     savedEmail: '',
     savedPassword: '',
 
-    init(this: GuestLoginComponent): void {
+    init(this: DemoLoginComponent): void {
         if (this.mode === 'demo') {
             this.captureLoginFormState();
-            this.fetchGuestCredentials();
+            this.fetchDemoCredentials();
         }
     },
 
-    switchMode(this: GuestLoginComponent, nextMode: string): void {
+    switchMode(this: DemoLoginComponent, nextMode: string): void {
         const previousMode = this.mode;
 
         if (previousMode === 'demo' && nextMode !== 'demo' && this.usingDemoCredentials) {
@@ -46,27 +46,27 @@ export default (initialMode: string = 'login'): GuestLoginComponent => ({
 
         this.captureLoginFormState();
 
-        if (this.guestLoaded) {
+        if (this.demoLoaded) {
             this.fillLoginForm();
             return;
         }
 
-        this.fetchGuestCredentials();
+        this.fetchDemoCredentials();
     },
 
-    async fetchGuestCredentials(this: GuestLoginComponent): Promise<void> {
+    async fetchDemoCredentials(this: DemoLoginComponent): Promise<void> {
         try {
-            const response = await axios.get('/guest-login-credentials');
+            const response = await axios.get('/demo-login-credentials');
             this.email = response.data.email;
-            this.guestLoaded = true;
+            this.demoLoaded = true;
             this.fillLoginForm();
         } catch (error) {
-            console.error('Failed to fetch guest credentials:', error);
-            alert('Could not find guest user credentials.');
+            console.error('Failed to fetch demo credentials:', error);
+            alert('Could not find demo user credentials.');
         }
     },
 
-    fillLoginForm(this: GuestLoginComponent): void {
+    fillLoginForm(this: DemoLoginComponent): void {
         const emailInput = document.getElementById('email') as HTMLInputElement;
         const passwordInput = document.getElementById('password') as HTMLInputElement;
 
@@ -77,7 +77,7 @@ export default (initialMode: string = 'login'): GuestLoginComponent => ({
         }
     },
 
-    captureLoginFormState(this: GuestLoginComponent): void {
+    captureLoginFormState(this: DemoLoginComponent): void {
         const emailInput = document.getElementById('email') as HTMLInputElement;
         const passwordInput = document.getElementById('password') as HTMLInputElement;
 
@@ -89,7 +89,7 @@ export default (initialMode: string = 'login'): GuestLoginComponent => ({
         this.savedPassword = passwordInput.value;
     },
 
-    restoreLoginFormState(this: GuestLoginComponent): void {
+    restoreLoginFormState(this: DemoLoginComponent): void {
         const emailInput = document.getElementById('email') as HTMLInputElement;
         const passwordInput = document.getElementById('password') as HTMLInputElement;
 

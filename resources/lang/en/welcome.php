@@ -26,7 +26,7 @@ return [
         'title' => 'WebGuard delivers professional monitoring for teams and individual projects.',
         'subtitle' => 'The platform supports reliable monitoring for services and infrastructure and is available without license costs.',
         'primary_cta' => 'Start for Free',
-        'secondary_cta' => 'Use Guest Access',
+        'secondary_cta' => 'Use Demo Access',
         'metrics' => [
             '1' => [
                 'label' => 'License',
@@ -197,14 +197,14 @@ return [
 
     'final_cta' => [
         'title' => 'Use WebGuard for free',
-        'text' => 'The software is available without a purchase model. Login or guest access is enough to explore the core features.',
+        'text' => 'The software is available without a purchase model. Login or demo access is enough to explore the core features.',
         'primary' => 'Go to Login',
-        'secondary' => 'Open Guest Access',
+        'secondary' => 'Open Demo Access',
     ],
 
     'guest_login' => [
         'title' => 'Try WebGuard',
-        'text' => 'Sign in with the guest account and explore dashboards, checks, and notifications in a live example environment. No registration required.',
-        'button' => 'Login as Guest',
+        'text' => 'Sign in with the demo user and explore dashboards, checks, and notifications in a live example environment. No registration required.',
+        'button' => 'Login as Demo User',
     ],
 ];

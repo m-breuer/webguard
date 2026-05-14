@@ -26,7 +26,7 @@ return [
         'title' => 'WebGuard bietet professionelles Monitoring für Teams und Einzelprojekte.',
         'subtitle' => 'Die Plattform unterstützt die zuverlässige Überwachung von Services und Infrastruktur und kann ohne Lizenzkosten genutzt werden.',
         'primary_cta' => 'Kostenfrei starten',
-        'secondary_cta' => 'Gastzugang nutzen',
+        'secondary_cta' => 'Demo-Zugang nutzen',
         'metrics' => [
             '1' => [
                 'label' => 'Lizenz',
@@ -197,14 +197,14 @@ return [
 
     'final_cta' => [
         'title' => 'WebGuard kostenfrei nutzen',
-        'text' => 'Die Software steht ohne Kaufmodell zur Verfügung. Login oder Gastzugang reichen aus, um die zentralen Funktionen auszuprobieren.',
+        'text' => 'Die Software steht ohne Kaufmodell zur Verfügung. Login oder Demo-Zugang reichen aus, um die zentralen Funktionen auszuprobieren.',
         'primary' => 'Zum Login',
-        'secondary' => 'Gastzugang öffnen',
+        'secondary' => 'Demo-Zugang öffnen',
     ],
 
     'guest_login' => [
         'title' => 'WebGuard ausprobieren',
-        'text' => 'Melden Sie sich mit dem Gastkonto an und erkunden Sie Dashboards, Checks und Benachrichtigungen direkt im laufenden Beispiel. Keine Registrierung erforderlich.',
-        'button' => 'Als Gast anmelden',
+        'text' => 'Melden Sie sich mit dem Demo-Benutzer an und erkunden Sie Dashboards, Checks und Benachrichtigungen direkt im laufenden Beispiel. Keine Registrierung erforderlich.',
+        'button' => 'Als Demo-Benutzer anmelden',
     ],
 ];

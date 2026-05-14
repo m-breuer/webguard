@@ -23,7 +23,7 @@ class SendUnreadNotificationsReminderCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Sends email reminders to non-guest users with unread board notifications according to their profile settings.';
+    protected $description = 'Sends email reminders to users with unread board notifications according to their profile settings.';
 
     public function __construct(private readonly NotificationBoardService $notificationBoardService)
     {

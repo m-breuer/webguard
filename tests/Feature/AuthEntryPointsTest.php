@@ -53,7 +53,7 @@ class AuthEntryPointsTest extends TestCase
         $this->assertStringNotContainsString('public', $cacheControl);
     }
 
-    public function test_guest_query_opens_unified_auth_view_in_demo_mode(): void
+    public function test_legacy_guest_query_opens_unified_auth_view_in_demo_mode(): void
     {
         $testResponse = $this->get(route('login', ['guest' => 'true']));
 
@@ -66,12 +66,12 @@ class AuthEntryPointsTest extends TestCase
         $this->get('/demo')->assertNotFound();
     }
 
-    public function test_welcome_secondary_ctas_point_to_guest_login(): void
+    public function test_welcome_secondary_ctas_point_to_demo_login(): void
     {
         $testResponse = $this->get(route('welcome'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml('href="' . route('login', ['guest' => 'true']) . '"');
+        $testResponse->assertSeeHtml('href="' . route('login', ['mode' => 'demo']) . '"');
     }
 
     public function test_register_mode_contains_combined_legal_consent_checkbox(): void

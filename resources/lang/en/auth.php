@@ -76,6 +76,6 @@ return [
         'expired' => 'The GitHub login flow expired. Please start again.',
     ],
     'guest_login' => [
-        'no_guest_user_found' => 'No guest user found.',
+        'no_guest_user_found' => 'No demo user found.',
     ],
 ];

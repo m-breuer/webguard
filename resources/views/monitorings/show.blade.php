@@ -33,7 +33,7 @@
 
         <div class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
 
-            @if (!Auth::user()->isGuest())
+            @if (!Auth::user()->isDemo())
                 <div class="relative" x-data="{ open: false }">
                     <x-secondary-button @click="open = !open">
                         {{ __('monitoring.actions.heading') }}

@@ -138,11 +138,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Determine if the user has guest role.
+     * Determine if the user has demo role.
+     */
+    public function isDemo(): bool
+    {
+        return $this->role === UserRole::DEMO;
+    }
+
+    /**
+     * @deprecated Use isDemo().
      */
     public function isGuest(): bool
     {
-        return $this->role === UserRole::GUEST;
+        return $this->isDemo();
     }
 
     /**

@@ -29,8 +29,8 @@ Schedule::command('notifications:send-weekly-monitoring-digest')->dailyAt('08:30
 // Prune old read notifications daily.
 Schedule::command('notifications:prune-read')->dailyAt('01:00');
 
-// Prune old guest notifications daily.
-Schedule::command('notifications:prune-guest')
+// Prune old demo user notifications daily.
+Schedule::command('notifications:prune-demo')
     ->dailyAt('01:30')
     ->withoutOverlapping();
 

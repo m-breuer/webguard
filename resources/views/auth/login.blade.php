@@ -17,7 +17,7 @@
 @endphp
 
 <x-guest-layout card-width="sm:max-w-7xl">
-    <div x-data="guestLogin(@js($initialMode))" x-init="init()" data-initial-mode="{{ $initialMode }}">
+    <div x-data="demoLogin(@js($initialMode))" x-init="init()" data-initial-mode="{{ $initialMode }}">
         <x-auth-session-status class="mb-4" :status="session('status')" />
 
         <div class="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">

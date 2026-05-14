@@ -53,7 +53,7 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        @if (!Auth::user()->isGuest())
+                        @if (!Auth::user()->isDemo())
                             <x-dropdown-link :href="route('profile.edit')">
                                 {{ __('profile.title') }}
                             </x-dropdown-link>
@@ -116,7 +116,7 @@
             </div>
 
             <div class="mt-3 space-y-1">
-                @if (!Auth::user()->isGuest())
+                @if (!Auth::user()->isDemo())
                     <x-responsive-nav-link :href="route('profile.edit')">
                         {{ __('profile.title') }}
                     </x-responsive-nav-link>

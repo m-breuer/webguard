@@ -13,7 +13,7 @@ import Chart from 'chart.js/auto';
 import monitoringCardLoader from './components/monitoring-cards';
 import monitoringDetail from './components/monitoring-detail';
 import uptimeCalendar from './components/uptime-calendar';
-import guestLogin from './components/guestLogin';
+import demoLogin from './components/demoLogin';
 import asyncTable from './components/async-table';
 import confirmDialog, { registerConfirmableForms } from './components/confirm-dialog';
 
@@ -64,7 +64,7 @@ document.addEventListener('click', (event: MouseEvent): void => {
 Alpine.data('monitoringDetail', monitoringDetail);
 Alpine.data('monitoringCardLoader', monitoringCardLoader);
 Alpine.data('uptimeCalendar', uptimeCalendar);
-Alpine.data('guestLogin', guestLogin);
+Alpine.data('demoLogin', demoLogin);
 Alpine.data('asyncTable', asyncTable);
 Alpine.data('confirmDialog', confirmDialog);
 

@@ -111,7 +111,7 @@ class AsyncAdminTablesTest extends TestCase
         User::factory()->create([
             'name' => 'Sortable Zulu',
             'email' => 'zulu@example.test',
-            'role' => UserRole::GUEST,
+            'role' => UserRole::DEMO,
         ]);
 
         foreach (range(1, 6) as $index) {
@@ -131,7 +131,7 @@ class AsyncAdminTablesTest extends TestCase
         $this->assertLessThan(mb_strpos($sortedHtml, 'Sortable Alpha'), mb_strpos($sortedHtml, 'Sortable Zulu'));
 
         $filteredResponse = $this->actingAs($admin)->getJson(route('admin.users.index', [
-            'role' => UserRole::GUEST->value,
+            'role' => UserRole::DEMO->value,
             'per_page' => 5,
         ]));
 

@@ -99,7 +99,7 @@ return [
         ],
         'retention' => [
             'title' => '7. Storage Duration',
-            'lead' => 'Personal data is stored only as long as needed for contractual, legal, and operational purposes. In the current app configuration, read notifications are regularly deleted after about one month, and guest notifications are removed after about one week. Audit log entries for user-controlled account, profile, API-token, and monitoring changes are deleted after 30 days. Older raw monitoring responses are regularly moved to an archive table. Delivery histories and technical error data are stored temporarily for auditability and troubleshooting. When accounts or monitorings are deleted, related data is removed as part of technical deletion workflows.',
+            'lead' => 'Personal data is stored only as long as needed for contractual, legal, and operational purposes. In the current app configuration, read notifications are regularly deleted after about one month, and demo user notifications are removed after about one week. Audit log entries for user-controlled account, profile, API-token, and monitoring changes are deleted after 30 days. Older raw monitoring responses are regularly moved to an archive table. Delivery histories and technical error data are stored temporarily for auditability and troubleshooting. When accounts or monitorings are deleted, related data is removed as part of technical deletion workflows.',
         ],
         'security' => [
             'title' => '8. Security Measures',

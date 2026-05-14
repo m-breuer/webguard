@@ -53,4 +53,15 @@ class NotificationsScheduleTest extends TestCase
         $this->assertSame('0 6 * * *', $event->expression);
         $this->assertTrue($event->withoutOverlapping);
     }
+
+    public function test_demo_notification_pruning_is_scheduled_daily_without_overlap(): void
+    {
+        /** @var Event|null $event */
+        $event = collect(resolve(Schedule::class)->events())
+            ->first(fn (Event $event): bool => str_contains((string) $event->command, 'notifications:prune-demo'));
+
+        $this->assertNotNull($event);
+        $this->assertSame('30 1 * * *', $event->expression);
+        $this->assertTrue($event->withoutOverlapping);
+    }
 }

@@ -76,6 +76,6 @@ return [
         'expired' => 'Die GitHub-Anmeldung ist abgelaufen. Bitte starten Sie den Login erneut.',
     ],
     'guest_login' => [
-        'no_guest_user_found' => 'Kein Gastbenutzer gefunden.',
+        'no_guest_user_found' => 'Kein Demo-Benutzer gefunden.',
     ],
 ];
