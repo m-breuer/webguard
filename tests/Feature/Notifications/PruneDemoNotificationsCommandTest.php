@@ -23,12 +23,12 @@ class PruneDemoNotificationsCommandTest extends TestCase
         $demoMonitoring = Monitoring::factory()->for($demoUser)->create();
         $regularMonitoring = Monitoring::factory()->for($regularUser)->create();
 
-        $oldDemoNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $demoMonitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
         ]);
-        $oldDemoNotification->forceFill([
+        $monitoringNotification->forceFill([
             'created_at' => now()->subDays(8),
             'updated_at' => now()->subDays(8),
         ])->save();
@@ -53,7 +53,7 @@ class PruneDemoNotificationsCommandTest extends TestCase
 
         Artisan::call('notifications:prune-demo');
 
-        $this->assertDatabaseMissing('monitoring_notifications', ['id' => $oldDemoNotification->id]);
+        $this->assertDatabaseMissing('monitoring_notifications', ['id' => $monitoringNotification->id]);
         $this->assertDatabaseHas('monitoring_notifications', ['id' => $recentDemoNotification->id]);
         $this->assertDatabaseHas('monitoring_notifications', ['id' => $oldRegularNotification->id]);
     }

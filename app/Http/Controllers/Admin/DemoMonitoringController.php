@@ -21,14 +21,14 @@ class DemoMonitoringController extends Controller
     public function index(): View
     {
         $demoUser = $this->demoUser();
-        $monitorings = $this->demoMonitoringsQuery($demoUser)
+        $lengthAwarePaginator = $this->demoMonitoringsQuery($demoUser)
             ->orderBy('status')
             ->orderBy('name')
             ->paginate(10);
 
         return view('admin.demo-monitorings.index', [
             'demoUser' => $demoUser,
-            'monitorings' => $monitorings,
+            'monitorings' => $lengthAwarePaginator,
         ]);
     }
 
@@ -56,7 +56,7 @@ class DemoMonitoringController extends Controller
         ]);
     }
 
-    public function store(DemoMonitoringRequest $request): RedirectResponse
+    public function store(DemoMonitoringRequest $demoMonitoringRequest): RedirectResponse
     {
         $demoUser = $this->demoUser()->loadMissing('package');
 
@@ -65,7 +65,7 @@ class DemoMonitoringController extends Controller
                 ->withErrors(['limit' => __('monitoring.messages.limit_reached')]);
         }
 
-        $validated = MonitoringPayload::prepareStore($request->validated());
+        $validated = MonitoringPayload::prepareStore($demoMonitoringRequest->validated());
         $validated['user_id'] = $demoUser->id;
 
         Monitoring::query()

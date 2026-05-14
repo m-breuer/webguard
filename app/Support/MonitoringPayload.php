@@ -19,9 +19,7 @@ final class MonitoringPayload
         $type = MonitoringType::tryFrom((string) ($validated['type'] ?? ''));
 
         if ($type === MonitoringType::DOMAIN_EXPIRATION) {
-            $validated = self::applyDomainDefaults($validated);
-
-            return $validated;
+            return self::applyDomainDefaults($validated);
         }
 
         if (in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
