@@ -13,6 +13,7 @@ namespace App\Enums;
  * - KEYWORD: Looks for a specific keyword in the response of a web request.
  * - PORT: Checks if a specific port on a host is open and accepting connections.
  * - DOMAIN_EXPIRATION: Checks if a domain registration is still valid and not close to expiry.
+ * - DNS_RECORD: Checks whether DNS records still match the expected values.
  */
 enum MonitoringType: string
 {
@@ -22,6 +23,7 @@ enum MonitoringType: string
     case PORT = 'port';
     case HEARTBEAT = 'heartbeat';
     case DOMAIN_EXPIRATION = 'domain_expiration';
+    case DNS_RECORD = 'dns_record';
 
     /**
      * Get all enum values as a simple array of strings.

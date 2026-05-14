@@ -2,13 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-WebGuard is an open-source monitoring core built with Laravel 13. It provides the management UI, REST API, public status pages, notification workflows, and package administration for monitoring websites, domains, SSL certificates, and background jobs.
+WebGuard is an open-source monitoring core built with Laravel 13. It provides the management UI, REST API, public status pages, notification workflows, and package administration for monitoring websites, DNS records, domains, SSL certificates, and background jobs.
 
 > **System architecture note:** this repository contains the Management Core & API. Distributed scanning nodes live in the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
 
 ## What It Does
 
-- Tracks uptime, response times, expected HTTP status ranges, SSL expiry, and domain expiry.
+- Tracks uptime, response times, expected HTTP status ranges, expected DNS records, SSL expiry, and domain expiry.
 - Monitors heartbeats and cron jobs through private ping URLs.
 - Sends in-app, configurable, expiry, status-change, and weekly digest notifications.
 - Provides dashboards, public status pages, an embeddable widget, and a REST API.

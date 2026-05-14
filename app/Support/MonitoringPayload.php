@@ -22,6 +22,10 @@ final class MonitoringPayload
             return self::applyDomainDefaults($validated);
         }
 
+        if ($type === MonitoringType::DNS_RECORD) {
+            return self::applyDnsDefaults($validated);
+        }
+
         if (in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
             $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
 
@@ -52,6 +56,12 @@ final class MonitoringPayload
             $validated['target'] = $monitoring->target;
 
             return self::applyDomainDefaults($validated);
+        }
+
+        if ($monitoring->type === MonitoringType::DNS_RECORD) {
+            $validated['target'] = $monitoring->target;
+
+            return self::applyDnsDefaults($validated);
         }
 
         if (in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
@@ -86,7 +96,23 @@ final class MonitoringPayload
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
-    private static function applyNonHttpDefaults(array $validated): array
+    private static function applyDnsDefaults(array $validated): array
+    {
+        $validated['target'] = mb_strtolower(mb_trim((string) $validated['target']));
+        $validated['dns_record_type'] = DnsRecordExpectation::normalizeRecordType($validated['dns_record_type'] ?? null);
+        $validated['dns_expected_values'] = DnsRecordExpectation::normalizeValues(
+            $validated['dns_expected_values'] ?? [],
+            $validated['dns_record_type']
+        );
+
+        return self::applyNonHttpDefaults($validated, clearDnsFields: false);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private static function applyNonHttpDefaults(array $validated, bool $clearDnsFields = true): array
     {
         $validated['timeout'] = 5;
         $validated['http_method'] = null;
@@ -97,6 +123,11 @@ final class MonitoringPayload
         $validated['auth_password'] = null;
         $validated['port'] = null;
         $validated['keyword'] = null;
+
+        if ($clearDnsFields) {
+            $validated['dns_record_type'] = null;
+            $validated['dns_expected_values'] = null;
+        }
 
         return $validated;
     }
