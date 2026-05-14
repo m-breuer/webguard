@@ -20,14 +20,6 @@
                         {{ __('status_page.title') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')" class="relative">
-                        {{ __('notifications.title') }}
-                        @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
-                            <span
-                                class="absolute right-0 top-0 -translate-y-1/2 translate-x-3/4 transform rounded-full bg-red-500 px-2 py-1 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
-                        @endif
-                    </x-nav-link>
-
                     @if (Auth::user()->isAdmin())
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                             {{ __('admin.title') }}
@@ -37,6 +29,24 @@
             </div>
 
             <div class="hidden sm:ms-6 sm:flex sm:items-center sm:gap-3">
+                <a id="notifications-bell-desktop" href="{{ route('notifications.index') }}"
+                    aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"
+                    @class([
+                        'relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition focus:outline-hidden focus:ring-2 focus:ring-indigo-500',
+                        'border-purple-500 bg-purple-50 text-purple-700 dark:border-purple-400 dark:bg-purple-900/30 dark:text-purple-200' => request()->routeIs('notifications.*'),
+                        'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:border-gray-500 dark:hover:bg-gray-600' => ! request()->routeIs('notifications.*'),
+                    ])>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M14.857 17.082a2.75 2.75 0 0 1-5.714 0m11.104-2.108c-1.086-1.3-1.747-2.95-1.747-4.755V9.5a6.5 6.5 0 0 0-13 0v.719c0 1.805-.661 3.455-1.747 4.755A1.25 1.25 0 0 0 4.713 17h14.574a1.25 1.25 0 0 0 .96-2.026Z" />
+                    </svg>
+
+                    @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                        <span
+                            class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
+                    @endif
+                </a>
+
                 <x-language-switch id="language-switch-desktop" />
 
                 <x-dropdown align="right" width="48">
@@ -77,6 +87,24 @@
             </div>
 
             <div class="flex items-center gap-2 sm:hidden">
+                <a id="notifications-bell-mobile" href="{{ route('notifications.index') }}"
+                    aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"
+                    @class([
+                        'relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition focus:outline-hidden focus:ring-2 focus:ring-indigo-500',
+                        'border-purple-500 bg-purple-50 text-purple-700 dark:border-purple-400 dark:bg-purple-900/30 dark:text-purple-200' => request()->routeIs('notifications.*'),
+                        'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:border-gray-500 dark:hover:bg-gray-600' => ! request()->routeIs('notifications.*'),
+                    ])>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="M14.857 17.082a2.75 2.75 0 0 1-5.714 0m11.104-2.108c-1.086-1.3-1.747-2.95-1.747-4.755V9.5a6.5 6.5 0 0 0-13 0v.719c0 1.805-.661 3.455-1.747 4.755A1.25 1.25 0 0 0 4.713 17h14.574a1.25 1.25 0 0 0 .96-2.026Z" />
+                    </svg>
+
+                    @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                        <span
+                            class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
+                    @endif
+                </a>
+
                 <x-language-switch id="language-switch-mobile" />
 
                 <button @click="open = ! open"
@@ -101,14 +129,6 @@
 
             <x-responsive-nav-link :href="route('status-pages.index')" :active="request()->routeIs('status-pages.*')">
                 {{ __('status_page.title') }}
-            </x-responsive-nav-link>
-
-            <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
-                {{ __('notifications.title') }}
-                @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
-                    <span
-                        class="ms-2 inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-1 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
-                @endif
             </x-responsive-nav-link>
 
             @if (Auth::user()->isAdmin())
