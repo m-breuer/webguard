@@ -4,14 +4,24 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\IncidentUpdateStatus;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\StatusPage;
 use App\Models\User;
+use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
 class StatusPageManagementTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Date::setTestNow();
+
+        parent::tearDown();
+    }
+
     public function test_status_page_form_renders_available_monitorings_and_default_components(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
@@ -119,5 +129,83 @@ class StatusPageManagementTest extends TestCase
         $testResponse = $this->actingAs($otherUser)->get(route('status-pages.show', $statusPage));
 
         $testResponse->assertNotFound();
+    }
+
+    public function test_user_can_add_manual_incident_update_to_status_page_incident(): void
+    {
+        Date::setTestNow('2026-05-14 14:30:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $incident = Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subMinutes(20),
+            'up_at' => null,
+        ]);
+
+        $testResponse = $this->actingAs($user)->post(
+            route('status-pages.incident-updates.store', [$statusPage, $incident]),
+            [
+                'status' => IncidentUpdateStatus::IDENTIFIED->value,
+                'message' => 'We found a saturated database connection pool and are applying a fix.',
+            ]
+        );
+
+        $testResponse->assertRedirect(route('status-pages.show', $statusPage));
+        $this->assertDatabaseHas('incident_updates', [
+            'incident_id' => $incident->id,
+            'status' => IncidentUpdateStatus::IDENTIFIED->value,
+            'message' => 'We found a saturated database connection pool and are applying a fix.',
+        ]);
+
+        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+
+        $publicResponse->assertOk();
+        $publicResponse->assertSeeText(__('status_page.incident_updates.statuses.identified'));
+        $publicResponse->assertSeeText('We found a saturated database connection pool and are applying a fix.');
+    }
+
+    public function test_user_cannot_add_incident_update_for_incident_outside_status_page(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $includedMonitoring = Monitoring::factory()->for($user)->create();
+        $outsideMonitoring = Monitoring::factory()->for($user)->create();
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($includedMonitoring->id, ['position' => 0]);
+        $incident = Incident::query()->create([
+            'monitoring_id' => $outsideMonitoring->id,
+            'down_at' => now()->subMinutes(20),
+            'up_at' => null,
+        ]);
+
+        $testResponse = $this->actingAs($user)->post(
+            route('status-pages.incident-updates.store', [$statusPage, $incident]),
+            [
+                'status' => IncidentUpdateStatus::INVESTIGATING->value,
+                'message' => 'This should not be published here.',
+            ]
+        );
+
+        $testResponse->assertNotFound();
+        $this->assertDatabaseMissing('incident_updates', [
+            'incident_id' => $incident->id,
+            'message' => 'This should not be published here.',
+        ]);
     }
 }

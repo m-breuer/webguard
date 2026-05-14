@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StatusPages\StatusPageRequest;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\StatusPage;
+use App\Models\StatusPageComponent;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Date;
 use Illuminate\View\View;
 
 class StatusPageController extends Controller
@@ -67,6 +70,7 @@ class StatusPageController extends Controller
 
         return view('status-pages.show', [
             'statusPage' => $statusPage,
+            'incidents' => $this->recentIncidents($statusPage),
         ]);
     }
 
@@ -164,5 +168,28 @@ class StatusPageController extends Controller
             ['name' => 'Workers', 'description' => null, 'monitoring_ids' => []],
             ['name' => 'Database', 'description' => null, 'monitoring_ids' => []],
         ];
+    }
+
+    /**
+     * @return Collection<int, Incident>
+     */
+    private function recentIncidents(StatusPage $statusPage): Collection
+    {
+        $monitoringIds = $statusPage->components
+            ->flatMap(static fn (StatusPageComponent $statusPageComponent) => $statusPageComponent->monitorings->pluck('id'))
+            ->unique()
+            ->values();
+
+        if ($monitoringIds->isEmpty()) {
+            return new Collection();
+        }
+
+        return Incident::query()
+            ->with(['monitoring', 'updates'])
+            ->whereIn('monitoring_id', $monitoringIds)
+            ->whereBetween('down_at', [Date::now()->subDays(90)->startOfDay(), Date::now()->endOfDay()])
+            ->latest('down_at')
+            ->limit(10)
+            ->get();
     }
 }

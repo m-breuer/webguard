@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -43,6 +44,14 @@ class Incident extends Model
     public function monitoring(): BelongsTo
     {
         return $this->belongsTo(Monitoring::class);
+    }
+
+    /**
+     * @return HasMany<IncidentUpdate, $this>
+     */
+    public function updates(): HasMany
+    {
+        return $this->hasMany(IncidentUpdate::class)->latest();
     }
 
     /**

@@ -94,6 +94,25 @@
                                             {{ $incident->up_at->toDayDateTimeString() }}
                                         @endif
                                     </p>
+                                    @if ($incident->updates->isNotEmpty())
+                                        <div class="mt-4 space-y-3">
+                                            @foreach ($incident->updates as $incidentUpdate)
+                                                <div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                                        <x-badge :type="$incidentUpdate->status->badgeType()">
+                                                            {{ __('status_page.incident_updates.statuses.' . $incidentUpdate->status->value) }}
+                                                        </x-badge>
+                                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                                            {{ $incidentUpdate->created_at->toDayDateTimeString() }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
+                                                        {{ $incidentUpdate->message }}
+                                                    </p>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>

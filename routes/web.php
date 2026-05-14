@@ -19,6 +19,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
+use App\Http\Controllers\StatusPageIncidentUpdateController;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -95,6 +96,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::resource('status-pages', StatusPageController::class)
         ->parameters(['status-pages' => 'statusPage'])
         ->names('status-pages');
+    Route::post('/status-pages/{statusPage}/incidents/{incident}/updates', [StatusPageIncidentUpdateController::class, 'store'])
+        ->name('status-pages.incident-updates.store');
 
     Route::delete('/monitorings/{monitoring}/reset', [MonitoringController::class, 'destroyResults'])
         ->name('monitorings.destroyResults');

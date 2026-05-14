@@ -125,7 +125,10 @@ class PublicStatusPageController extends Controller
         }
 
         return Incident::query()
-            ->with(['monitoring' => fn ($query) => $query->withoutGlobalScope('user')])
+            ->with([
+                'monitoring' => fn ($query) => $query->withoutGlobalScope('user'),
+                'updates',
+            ])
             ->whereIn('monitoring_id', $monitoringIds)
             ->whereBetween('down_at', [Date::now()->subDays(90)->startOfDay(), Date::now()->endOfDay()])
             ->latest('down_at')

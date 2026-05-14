@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\IncidentUpdateStatus;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[Fillable([
+    'incident_id',
+    'status',
+    'message',
+])]
+class IncidentUpdate extends Model
+{
+    use HasFactory;
+    use HasUlids;
+
+    public $incrementing = false;
+
+    /**
+     * @return BelongsTo<Incident, $this>
+     */
+    public function incident(): BelongsTo
+    {
+        return $this->belongsTo(Incident::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => IncidentUpdateStatus::class,
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+}
