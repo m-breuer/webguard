@@ -119,6 +119,32 @@ class NotificationPaginationStateTest extends TestCase
         $afterMarkResponse->assertSee('Nothing to discover. Everything is up to date.');
     }
 
+    public function test_notifications_navigation_uses_bell_icon_before_language_switch(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('id="notifications-bell-desktop"');
+        $testResponse->assertSeeHtml('id="notifications-bell-mobile"');
+        $testResponse->assertSeeHtml('href="' . route('notifications.index') . '"');
+        $testResponse->assertSeeHtml('aria-label="' . __('notifications.title') . '"');
+        $testResponse->assertDontSeeHtml('>' . __('notifications.title') . '</a>');
+
+        $content = $testResponse->getContent() ?? '';
+
+        $this->assertLessThan(
+            mb_strpos($content, 'id="language-switch-desktop"'),
+            mb_strpos($content, 'id="notifications-bell-desktop"'),
+        );
+        $this->assertLessThan(
+            mb_strpos($content, 'id="language-switch-mobile"'),
+            mb_strpos($content, 'id="notifications-bell-mobile"'),
+        );
+    }
+
     public function test_navigation_badge_counts_only_unread_notifications(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
