@@ -7,14 +7,17 @@ namespace Tests\Feature;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
+use App\Mail\StatusPageSubscriptionConfirmationMail;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
+use App\Models\StatusPageSubscriber;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class PublicStatusPageTest extends TestCase
@@ -82,6 +85,160 @@ class PublicStatusPageTest extends TestCase
         $testResponse->assertSeeText('100.00%');
         $testResponse->assertSeeText(__('monitoring.detail.incidents.heading'));
         $testResponse->assertSeeText(__('monitoring.public_label.resolved'));
+        $testResponse->assertSeeText(__('monitoring.public_label.subscribe.heading'));
+    }
+
+    public function test_public_status_page_accepts_email_subscriptions_and_sends_confirmation(): void
+    {
+        Mail::fake();
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Primary API',
+            'public_label_enabled' => true,
+        ]);
+
+        $testResponse = $this->post(route('public-label.subscribers.store', $monitoring), [
+            'email' => 'Customer@Example.com',
+        ]);
+
+        $testResponse->assertRedirect(route('public-label', $monitoring));
+        $testResponse->assertSessionHas('status_page_subscription_success');
+
+        $statusPageSubscriber = StatusPageSubscriber::query()->firstOrFail();
+        $this->assertSame($monitoring->id, $statusPageSubscriber->monitoring_id);
+        $this->assertSame('customer@example.com', $statusPageSubscriber->email);
+        $this->assertNull($statusPageSubscriber->verified_at);
+        $this->assertNotNull($statusPageSubscriber->confirmation_token_hash);
+
+        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class, function (StatusPageSubscriptionConfirmationMail $statusPageSubscriptionConfirmationMail): bool {
+            return $statusPageSubscriptionConfirmationMail->hasTo('customer@example.com') && filled($statusPageSubscriptionConfirmationMail->token);
+        });
+    }
+
+    public function test_public_status_page_confirms_email_subscription(): void
+    {
+        Mail::fake();
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => true,
+        ]);
+
+        $this->post(route('public-label.subscribers.store', $monitoring), [
+            'email' => 'customer@example.com',
+        ]);
+
+        $confirmationToken = null;
+        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class, function (StatusPageSubscriptionConfirmationMail $statusPageSubscriptionConfirmationMail) use (&$confirmationToken): bool {
+            $confirmationToken = $statusPageSubscriptionConfirmationMail->token;
+
+            return true;
+        });
+
+        $testResponse = $this->get(route('public-label.subscribers.confirm', [
+            'monitoring' => $monitoring,
+            'token' => $confirmationToken,
+        ]));
+
+        $testResponse->assertRedirect(route('public-label', $monitoring));
+        $this->assertTrue(StatusPageSubscriber::query()->firstOrFail()->isVerified());
+        $this->assertNull(StatusPageSubscriber::query()->firstOrFail()->confirmation_token_hash);
+    }
+
+    public function test_public_status_page_does_not_reset_verified_subscription(): void
+    {
+        Mail::fake();
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => true,
+        ]);
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now()->subDay(),
+        ]);
+
+        $this->post(route('public-label.subscribers.store', $monitoring), [
+            'email' => 'customer@example.com',
+        ])->assertRedirect(route('public-label', $monitoring));
+
+        $statusPageSubscriber->refresh();
+        $this->assertTrue($statusPageSubscriber->isVerified());
+        $this->assertSame('unsubscribe-token', $statusPageSubscriber->unsubscribe_token);
+        Mail::assertNothingSent();
+    }
+
+    public function test_public_status_page_unsubscribes_email_subscriber(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => true,
+        ]);
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $this->get(route('public-label.subscribers.unsubscribe', [
+            'monitoring' => $monitoring,
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]))->assertOk();
+
+        $testResponse = $this->delete(route('public-label.subscribers.destroy', [
+            'monitoring' => $monitoring,
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]), [
+            'email' => $statusPageSubscriber->email,
+        ]);
+
+        $testResponse->assertRedirect(route('public-label', $monitoring));
+        $this->assertDatabaseMissing('status_page_subscribers', [
+            'id' => $statusPageSubscriber->id,
+        ]);
+    }
+
+    public function test_status_page_unsubscribe_link_works_after_public_page_is_disabled(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => false,
+        ]);
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $this->get(route('public-label.subscribers.unsubscribe', [
+            'monitoring' => $monitoring,
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]))->assertOk();
+
+        $testResponse = $this->delete(route('public-label.subscribers.destroy', [
+            'monitoring' => $monitoring,
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]), [
+            'email' => $statusPageSubscriber->email,
+        ]);
+
+        $testResponse->assertRedirect('/');
+        $this->assertDatabaseMissing('status_page_subscribers', [
+            'id' => $statusPageSubscriber->id,
+        ]);
     }
 
     public function test_public_status_page_shows_upcoming_maintenance_window(): void
