@@ -29,7 +29,7 @@ return [
                     'Kanalbasierte Benachrichtigungen für Incidents, Recovery, SSL- und Domain-Ablaufereignisse (z. B. E-Mail, Slack, Telegram, Discord, Custom Webhooks) einschließlich Testversand, Versandhistorie, Wochen-Digest und Erinnerungen an ungelesene Benachrichtigungen.',
                     'Tokenbasierter API-Zugriff für freigegebene Endpunkte sowie öffentliche Widget-Endpunkte für aktivierte Public Labels.',
                     'Anzeige von Monitoring-Standorten und Betrieb mehrerer Serverinstanzen zur Durchführung von Checks.',
-                    'Optionale Anmeldung über GitHub sowie Demo-/Gastzugang.',
+                    'Optionale Anmeldung über GitHub sowie Demo-Zugang.',
                 ],
             ],
             'obligations' => [

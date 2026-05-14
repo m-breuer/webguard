@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Models\User;
 use App\Support\HttpStatusCodeRanges;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -172,7 +173,7 @@ class MonitoringRequest extends FormRequest
             'notification_channels' => ['nullable', 'array'],
             'notification_channels.*' => [
                 'string',
-                Rule::in($this->user()?->enabledNotificationChannelKeys() ?? []),
+                Rule::in($this->notificationChannelUser()?->enabledNotificationChannelKeys() ?? []),
             ],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
             'maintenance_from' => ['nullable', 'date'],
@@ -184,6 +185,11 @@ class MonitoringRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    protected function notificationChannelUser(): ?User
+    {
+        return $this->user();
     }
 
     /**

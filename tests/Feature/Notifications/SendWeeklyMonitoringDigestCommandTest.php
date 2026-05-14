@@ -165,16 +165,16 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         $this->assertStringContainsString('overflow-wrap: anywhere;', $rendered);
     }
 
-    public function test_sends_weekly_digest_to_guest_users_when_profile_setting_is_enabled(): void
+    public function test_sends_weekly_digest_to_demo_users_when_profile_setting_is_enabled(): void
     {
         Date::setTestNow('2026-04-20 09:00:00');
         Package::factory()->create();
 
-        $guestUser = User::factory()->create([
-            'role' => UserRole::GUEST,
+        $demoUser = User::factory()->create([
+            'role' => UserRole::DEMO,
             'monitoring_digest_enabled' => true,
         ]);
-        Monitoring::factory()->for($guestUser)->create();
+        Monitoring::factory()->for($demoUser)->create();
 
         Mail::fake();
 
@@ -182,8 +182,8 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
             '--period-end' => '2026-04-19',
         ]);
 
-        Mail::assertSent(WeeklyMonitoringDigestMail::class, function (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail) use ($guestUser): bool {
-            return $weeklyMonitoringDigestMail->hasTo($guestUser->email)
+        Mail::assertSent(WeeklyMonitoringDigestMail::class, function (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail) use ($demoUser): bool {
+            return $weeklyMonitoringDigestMail->hasTo($demoUser->email)
                 && $weeklyMonitoringDigestMail->digest['overview']['monitorings_count'] === 1;
         });
     }

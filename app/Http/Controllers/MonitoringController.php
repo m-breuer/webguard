@@ -11,13 +11,12 @@ use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
 use App\Models\User;
-use App\Support\HttpStatusCodeRanges;
+use App\Support\MonitoringPayload;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -91,7 +90,7 @@ class MonitoringController extends Controller
             ? $currentUser->monitorings()->count()
             : $lengthAwarePaginator->total();
         $monitoringLimit = (int) $currentUser->package->monitoring_limit;
-        $canCreateMonitoring = ! $currentUser->isGuest() && $monitoringsTotal < $monitoringLimit;
+        $canCreateMonitoring = ! $currentUser->isDemo() && $monitoringsTotal < $monitoringLimit;
 
         if (! $hasActiveFilters && $monitoringsTotal === 0) {
             $request->attributes->set('unread_notifications_count', 0);
@@ -118,7 +117,7 @@ class MonitoringController extends Controller
      */
     public function create(): View|RedirectResponse
     {
-        abort_if(Auth::user()->isGuest(), 403);
+        abort_if(Auth::user()->isDemo(), 403);
 
         if (Auth::user()->monitorings()->count() >= Auth::user()->package->monitoring_limit) {
             return to_route('monitorings.index')
@@ -148,7 +147,7 @@ class MonitoringController extends Controller
      */
     public function store(MonitoringRequest $monitoringRequest): RedirectResponse
     {
-        abort_if(Auth::user()->isGuest(), 403);
+        abort_if(Auth::user()->isDemo(), 403);
 
         if (Auth::user()->monitorings()->count() >= Auth::user()->package->monitoring_limit) {
             return to_route('monitorings.index')
@@ -156,7 +155,7 @@ class MonitoringController extends Controller
         }
 
         $validated = $monitoringRequest->validated();
-        $validated = $this->prepareStorePayload($validated);
+        $validated = MonitoringPayload::prepareStore($validated);
 
         Auth::user()->monitorings()->create($validated);
 
@@ -186,7 +185,7 @@ class MonitoringController extends Controller
      */
     public function edit(Monitoring $monitoring): View
     {
-        abort_if(Auth::user()->isGuest(), 403);
+        abort_if(Auth::user()->isDemo(), 403);
 
         $types = MonitoringType::cases();
         $serverInstances = ServerInstance::query()
@@ -212,11 +211,11 @@ class MonitoringController extends Controller
      */
     public function update(MonitoringRequest $monitoringRequest, Monitoring $monitoring): RedirectResponse
     {
-        abort_if(Auth::user()->isGuest(), 403);
+        abort_if(Auth::user()->isDemo(), 403);
 
         $validated = $monitoringRequest->validated();
         unset($validated['target']);
-        $validated = $this->prepareUpdatePayload($validated, $monitoring);
+        $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 
         if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {
             $validated['public_label_enabled'] = false;
@@ -235,7 +234,7 @@ class MonitoringController extends Controller
      */
     public function destroy(Monitoring $monitoring): RedirectResponse
     {
-        abort_if(Auth::user()->isGuest(), 403);
+        abort_if(Auth::user()->isDemo(), 403);
 
         $monitoring->delete();
 
@@ -250,7 +249,7 @@ class MonitoringController extends Controller
      */
     public function destroyResults(Monitoring $monitoring): RedirectResponse
     {
-        abort_if(Auth::user()->isGuest(), 403);
+        abort_if(Auth::user()->isDemo(), 403);
 
         if (cache()->getStore() instanceof TaggableStore) {
             cache()->tags(['monitoring:' . $monitoring->id])->flush();
@@ -265,102 +264,5 @@ class MonitoringController extends Controller
         dispatch(new DeleteMonitoringResults($monitoring));
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.results_deleted'));
-    }
-
-    /**
-     * @param  array<string, mixed>  $validated
-     * @return array<string, mixed>
-     */
-    private function prepareStorePayload(array $validated): array
-    {
-        $type = MonitoringType::tryFrom((string) ($validated['type'] ?? ''));
-
-        if ($type === MonitoringType::DOMAIN_EXPIRATION) {
-            $validated['target'] = mb_strtolower(mb_trim((string) $validated['target']));
-            $validated['timeout'] = 5;
-            $validated['http_method'] = null;
-            $validated['expected_http_statuses'] = null;
-            $validated['http_headers'] = null;
-            $validated['http_body'] = null;
-            $validated['auth_username'] = null;
-            $validated['auth_password'] = null;
-            $validated['port'] = null;
-            $validated['keyword'] = null;
-        }
-
-        if (in_array($type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
-            $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
-
-            return $validated;
-        }
-
-        if ($type !== MonitoringType::HEARTBEAT) {
-            $validated['expected_http_statuses'] = null;
-
-            return $validated;
-        }
-
-        $heartbeatToken = (string) Str::ulid();
-
-        $validated['heartbeat_token'] = $heartbeatToken;
-        $validated['target'] = route('monitorings.heartbeat.ping', ['token' => $heartbeatToken]);
-        $validated['timeout'] = 5;
-        $validated['http_method'] = null;
-        $validated['expected_http_statuses'] = null;
-        $validated['http_headers'] = null;
-        $validated['http_body'] = null;
-        $validated['auth_username'] = null;
-        $validated['auth_password'] = null;
-        $validated['port'] = null;
-        $validated['keyword'] = null;
-
-        return $validated;
-    }
-
-    /**
-     * @param  array<string, mixed>  $validated
-     * @return array<string, mixed>
-     */
-    private function prepareUpdatePayload(array $validated, Monitoring $monitoring): array
-    {
-        if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION) {
-            $validated['target'] = $monitoring->target;
-            $validated['timeout'] = 5;
-            $validated['http_method'] = null;
-            $validated['expected_http_statuses'] = null;
-            $validated['http_headers'] = null;
-            $validated['http_body'] = null;
-            $validated['auth_username'] = null;
-            $validated['auth_password'] = null;
-            $validated['port'] = null;
-            $validated['keyword'] = null;
-
-            return $validated;
-        }
-
-        if (in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
-            $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
-
-            return $validated;
-        }
-
-        if (! $monitoring->isHeartbeat()) {
-            $validated['expected_http_statuses'] = null;
-
-            return $validated;
-        }
-
-        $validated['target'] = $monitoring->target;
-        $validated['timeout'] = 5;
-        $validated['http_method'] = null;
-        $validated['expected_http_statuses'] = null;
-        $validated['http_headers'] = null;
-        $validated['http_body'] = null;
-        $validated['auth_username'] = null;
-        $validated['auth_password'] = null;
-        $validated['port'] = null;
-        $validated['keyword'] = null;
-
-        return $validated;
     }
 }

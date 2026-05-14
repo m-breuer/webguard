@@ -49,7 +49,7 @@
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                             {{ __('button.login') }}
                         </x-primary-button>
-                        <x-secondary-button :href="route('login', ['guest' => 'true'])"
+                        <x-secondary-button :href="route('login', ['mode' => 'demo'])"
                             class="border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800">
                             {{ __('welcome.hero.secondary_cta') }}
                         </x-secondary-button>
@@ -257,7 +257,7 @@
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                             {{ __('welcome.final_cta.primary') }}
                         </x-primary-button>
-                        <x-secondary-button :href="route('login', ['guest' => 'true'])"
+                        <x-secondary-button :href="route('login', ['mode' => 'demo'])"
                             class="border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-950/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-900">
                             {{ __('welcome.final_cta.secondary') }}
                         </x-secondary-button>

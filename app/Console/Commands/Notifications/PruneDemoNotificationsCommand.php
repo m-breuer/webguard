@@ -9,21 +9,21 @@ use App\Models\MonitoringNotification;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Database\Query\Builder;
 
-class PruneGuestNotificationsCommand extends Command
+class PruneDemoNotificationsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'notifications:prune-guest';
+    protected $signature = 'notifications:prune-demo';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Delete all notifications for guest users older than one week';
+    protected $description = 'Delete all notifications for demo users older than one week';
 
     /**
      * Execute the console command.
@@ -32,12 +32,12 @@ class PruneGuestNotificationsCommand extends Command
     {
         $deleted = MonitoringNotification::query()
             ->whereHas('monitoring.user', function (Builder $builder) {
-                $builder->where('role', UserRole::GUEST);
+                $builder->where('role', UserRole::DEMO);
             })
             ->where('created_at', '<', now()->subWeek())
             ->delete();
 
-        $this->info("Deleted {$deleted} old guest notifications.");
+        $this->info("Deleted {$deleted} old demo user notifications.");
 
         return Command::SUCCESS;
     }

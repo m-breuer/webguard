@@ -28,11 +28,13 @@ class UserSeeder extends Seeder
             'role' => UserRole::ADMIN->value,
         ]);
 
-        User::factory()->create([
-            'name' => 'Guest User',
-            'email' => 'guest@example.com',
-            'password' => 'password',
-            'role' => UserRole::GUEST->value,
-        ]);
+        User::query()->updateOrCreate(
+            ['email' => 'demo@example.com'],
+            [
+                'name' => 'Demo User',
+                'password' => 'password',
+                'role' => UserRole::DEMO->value,
+            ]
+        );
     }
 }

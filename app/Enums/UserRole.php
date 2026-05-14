@@ -10,13 +10,13 @@ namespace App\Enums;
  * Defines available user roles within the application:
  * - ADMIN: Full administrative access to all features and settings.
  * - REGULAR: Standard user access to monitoring features.
- * - GUEST: Limited access, typically read-only or restricted functionality.
+ * - DEMO: Limited access, typically read-only or restricted functionality.
  */
 enum UserRole: string
 {
     case ADMIN = 'admin';
     case REGULAR = 'regular';
-    case GUEST = 'guest';
+    case DEMO = 'demo';
 
     /**
      * Get all enum values as a simple array of strings.

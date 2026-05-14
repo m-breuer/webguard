@@ -12,15 +12,15 @@ use Tests\TestCase;
 
 class MonitoringIndexEmptyStateTest extends TestCase
 {
-    public function test_guest_user_sees_empty_state_without_create_button(): void
+    public function test_demo_user_sees_empty_state_without_create_button(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
-        $guestUser = User::factory()->create([
+        $demoUser = User::factory()->create([
             'package_id' => $package->id,
-            'role' => UserRole::GUEST->value,
+            'role' => UserRole::DEMO->value,
         ]);
 
-        $testResponse = $this->actingAs($guestUser)->get(route('monitorings.index'));
+        $testResponse = $this->actingAs($demoUser)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
         $testResponse->assertSee(__('monitoring.no_monitoring.title'));
@@ -63,15 +63,15 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $this->assertSame(1, $monitoringCountQueries, $queries->implode(PHP_EOL));
     }
 
-    public function test_guest_user_cannot_access_monitoring_create_route(): void
+    public function test_demo_user_cannot_access_monitoring_create_route(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
-        $guestUser = User::factory()->create([
+        $demoUser = User::factory()->create([
             'package_id' => $package->id,
-            'role' => UserRole::GUEST->value,
+            'role' => UserRole::DEMO->value,
         ]);
 
-        $testResponse = $this->actingAs($guestUser)->get(route('monitorings.create'));
+        $testResponse = $this->actingAs($demoUser)->get(route('monitorings.create'));
 
         $testResponse->assertForbidden();
     }

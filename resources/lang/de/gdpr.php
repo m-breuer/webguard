@@ -99,7 +99,7 @@ return [
         ],
         'retention' => [
             'title' => '7. Speicherdauer',
-            'lead' => 'Personenbezogene Daten werden nur so lange gespeichert, wie dies für vertragliche, gesetzliche und betriebliche Zwecke erforderlich ist. In der aktuellen App-Konfiguration werden z. B. gelesene Benachrichtigungen regelmäßig nach rund einem Monat gelöscht und Gast-Benachrichtigungen nach rund einer Woche entfernt. Audit-Log-Einträge zu nutzergesteuerten Konto-, Profil-, API-Token- und Monitoring-Änderungen werden nach 30 Tagen gelöscht. Ältere Roh-Monitoringdaten werden regelmäßig in eine Archivtabelle überführt. Zustellhistorien und technische Fehlerdaten werden für Nachvollziehbarkeit und Fehleranalyse vorübergehend gespeichert. Bei Löschung von Konten oder Monitorings werden zugehörige Daten im Rahmen der technischen Löschprozesse entfernt.',
+            'lead' => 'Personenbezogene Daten werden nur so lange gespeichert, wie dies für vertragliche, gesetzliche und betriebliche Zwecke erforderlich ist. In der aktuellen App-Konfiguration werden z. B. gelesene Benachrichtigungen regelmäßig nach rund einem Monat gelöscht und Demo-Benutzer-Benachrichtigungen nach rund einer Woche entfernt. Audit-Log-Einträge zu nutzergesteuerten Konto-, Profil-, API-Token- und Monitoring-Änderungen werden nach 30 Tagen gelöscht. Ältere Roh-Monitoringdaten werden regelmäßig in eine Archivtabelle überführt. Zustellhistorien und technische Fehlerdaten werden für Nachvollziehbarkeit und Fehleranalyse vorübergehend gespeichert. Bei Löschung von Konten oder Monitorings werden zugehörige Daten im Rahmen der technischen Löschprozesse entfernt.',
         ],
         'security' => [
             'title' => '8. Sicherheitsmaßnahmen',
