@@ -64,14 +64,14 @@ class DnsRecordMonitoringTest extends TestCase
 
     public function test_it_rejects_invalid_dns_record_monitoring_targets_and_values(): void
     {
-        $urlResponse = $this->from(route('monitorings.create'))
+        $testResponse = $this->from(route('monitorings.create'))
             ->actingAs($this->user)
             ->post(route('monitorings.store'), $this->dnsPayload([
                 'target' => 'https://example.com',
             ]));
 
-        $urlResponse->assertRedirect(route('monitorings.create'));
-        $urlResponse->assertSessionHasErrors(['target']);
+        $testResponse->assertRedirect(route('monitorings.create'));
+        $testResponse->assertSessionHasErrors(['target']);
 
         $valueResponse = $this->from(route('monitorings.create'))
             ->actingAs($this->user)

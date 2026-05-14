@@ -37,9 +37,7 @@ final class DnsRecordExpectation
         $normalized = [];
 
         foreach ($items as $item) {
-            if (! is_scalar($item)) {
-                throw new InvalidArgumentException('DNS expected values must be scalar.');
-            }
+            throw_unless(is_scalar($item), InvalidArgumentException::class, 'DNS expected values must be scalar.');
 
             $value = self::normalizeValue((string) $item, $recordType);
 
@@ -67,9 +65,7 @@ final class DnsRecordExpectation
             return array_values($values);
         }
 
-        if (! is_string($values)) {
-            throw new InvalidArgumentException('DNS expected values must be provided as text or an array.');
-        }
+        throw_unless(is_string($values), InvalidArgumentException::class, 'DNS expected values must be provided as text or an array.');
 
         $trimmed = mb_trim($values);
 
@@ -84,9 +80,7 @@ final class DnsRecordExpectation
                 throw new InvalidArgumentException('DNS expected values must be valid JSON.', previous: $exception);
             }
 
-            if (! is_array($decoded)) {
-                throw new InvalidArgumentException('DNS expected values JSON must decode to an array.');
-            }
+            throw_unless(is_array($decoded), InvalidArgumentException::class, 'DNS expected values JSON must decode to an array.');
 
             return array_values($decoded);
         }
@@ -113,18 +107,14 @@ final class DnsRecordExpectation
 
     private static function normalizeIpv4(string $value): string
     {
-        if (! filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            throw new InvalidArgumentException('DNS A records must be IPv4 addresses.');
-        }
+        throw_unless(filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4), InvalidArgumentException::class, 'DNS A records must be IPv4 addresses.');
 
         return $value;
     }
 
     private static function normalizeIpv6(string $value): string
     {
-        if (! filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            throw new InvalidArgumentException('DNS AAAA records must be IPv6 addresses.');
-        }
+        throw_unless(filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6), InvalidArgumentException::class, 'DNS AAAA records must be IPv6 addresses.');
 
         return mb_strtolower($value);
     }
