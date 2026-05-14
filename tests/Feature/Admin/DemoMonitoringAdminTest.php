@@ -11,10 +11,22 @@ use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class DemoMonitoringAdminTest extends TestCase
 {
+    public function test_admin_demo_monitoring_management_exposes_crud_routes(): void
+    {
+        $this->assertTrue(Route::has('admin.demo-monitorings.index'));
+        $this->assertTrue(Route::has('admin.demo-monitorings.create'));
+        $this->assertTrue(Route::has('admin.demo-monitorings.store'));
+        $this->assertTrue(Route::has('admin.demo-monitorings.edit'));
+        $this->assertTrue(Route::has('admin.demo-monitorings.update'));
+        $this->assertTrue(Route::has('admin.demo-monitorings.destroy'));
+        $this->assertFalse(Route::has('admin.demo-monitorings.show'));
+    }
+
     public function test_admin_dashboard_links_to_demo_monitoring_management(): void
     {
         Package::factory()->create();

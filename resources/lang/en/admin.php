@@ -24,7 +24,7 @@ return [
         ],
         'demo_monitorings' => [
             'heading' => 'Manage Demo Monitorings',
-            'description' => 'View and add monitorings for the demo user.',
+            'description' => 'View, create, edit, and delete monitorings for the demo user.',
         ],
         'activity_logs' => [
             'heading' => 'Audit Logs',
