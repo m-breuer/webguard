@@ -208,6 +208,34 @@ class PublicStatusPageTest extends TestCase
         ]);
     }
 
+    public function test_public_status_page_unsubscribe_email_match_is_case_insensitive(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => true,
+        ]);
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $testResponse = $this->delete(route('public-label.subscribers.destroy', [
+            'monitoring' => $monitoring,
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]), [
+            'email' => 'Customer@Example.com',
+        ]);
+
+        $testResponse->assertRedirect(route('public-label', $monitoring));
+        $this->assertDatabaseMissing('status_page_subscribers', [
+            'id' => $statusPageSubscriber->id,
+        ]);
+    }
+
     public function test_status_page_unsubscribe_link_works_after_public_page_is_disabled(): void
     {
         Package::factory()->create();
