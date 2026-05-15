@@ -75,6 +75,27 @@ class MonitoringFactory extends Factory
         });
     }
 
+    public function serverHealth(): static
+    {
+        return $this->state(function (): array {
+            return [
+                'type' => MonitoringType::SERVER_HEALTH,
+                'target' => 'https://webguard.test/api/v1/server-health/example-token',
+                'server_health_token' => 'example-token',
+                'server_health_last_reported_at' => null,
+                'timeout' => 5,
+                'expected_http_statuses' => null,
+                'http_method' => null,
+                'http_headers' => null,
+                'http_body' => null,
+                'auth_username' => null,
+                'auth_password' => null,
+                'port' => null,
+                'keyword' => null,
+            ];
+        });
+    }
+
     public function domainExpiration(): static
     {
         return $this->state(fn (): array => [

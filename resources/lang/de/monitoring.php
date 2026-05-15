@@ -11,6 +11,7 @@ return [
         'keyword' => 'Schlüsselwort',
         'port' => 'Port',
         'heartbeat' => 'Heartbeat',
+        'server_health' => 'Server-Zustand',
         'domain_expiration' => 'Domain-Ablauf',
         'dns_record' => 'DNS-Eintrag',
     ],
@@ -133,6 +134,7 @@ return [
             'labels' => [
                 'status_code' => 'Statuscode',
                 'response_time' => 'Antwortzeit',
+                'server_health' => 'Server-Zustand',
                 'source' => 'Quelle',
                 'raw_status' => 'Rohstatus',
             ],
@@ -160,6 +162,12 @@ return [
             'cadence' => 'Erwartet alle :minutes Minute|Erwartet alle :minutes Minuten',
             'grace' => 'Kulanzzeit: :minutes Minute|Kulanzzeit: :minutes Minuten',
             'last_ping' => 'Letzter empfangener Ping',
+        ],
+        'server_health' => [
+            'heading' => 'Server-Zustand-Endpunkt',
+            'endpoint' => 'Report-URL',
+            'last_report' => 'Letzter empfangener Report',
+            'docs_link' => 'API-Dokumentation zum Server-Zustand öffnen',
         ],
         'domain' => [
             'heading' => 'Domain-Ablauf',
@@ -232,6 +240,10 @@ return [
         'maintenance' => 'Wartung',
         'heartbeat_help' => 'WebGuard erzeugt für diesen Monitor eine private Ping-URL. Diese URL muss von einem Cronjob oder Hintergrundprozess innerhalb des erwarteten Intervalls aufgerufen werden.',
         'heartbeat_ping_url_help' => 'Verwenden Sie diese private Ping-URL in Ihrem Cronjob oder Worker. Sie wird automatisch erzeugt und kann nicht manuell geändert werden.',
+        'server_health_target_generated' => 'Die Server-Zustand-Report-URL wird nach dem Speichern automatisch erzeugt.',
+        'server_health_help' => 'WebGuard erzeugt für diesen Monitor einen privaten API-Endpunkt. Senden Sie CPU-, RAM-, Speicher- und optionale Zustandswerte von Ihrem Server-Agent oder Cron-Skript.',
+        'server_health_docs_link' => 'API-Dokumentation zum Payload-Format öffnen',
+        'server_health_endpoint_help' => 'Verwenden Sie diesen privaten API-Endpunkt, um Server-Zustand-Reports zu senden. Er wird automatisch erzeugt und kann nicht manuell geändert werden.',
         'placeholders' => [
             'http_target' => 'z.B. https://example.com',
             'ping_target' => 'z.B. 8.8.8.8',

@@ -12,6 +12,7 @@ interface MonitoringDetailComponent {
         status: string;
         httpStatusCode: number | null;
         responseTime: number | null;
+        serverHealthMetrics: Record<string, any> | null;
         statusIdentifier: string;
         source: string;
     }>;
@@ -67,6 +68,7 @@ interface MonitoringDetailComponent {
     resolveCheckStatusClass(this: MonitoringDetailComponent, statusIdentifier: string): string;
     resolveCheckSourceLabel(this: MonitoringDetailComponent, source: string): string;
     formatResponseTime(this: MonitoringDetailComponent, responseTime: number | null): string;
+    formatServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): string;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -82,6 +84,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         status: string;
         httpStatusCode: number | null;
         responseTime: number | null;
+        serverHealthMetrics: Record<string, any> | null;
         statusIdentifier: string;
         source: string;
     }>,
@@ -240,6 +243,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                     status: string;
                     http_status_code: number | null;
                     response_time: number | null;
+                    server_health_metrics: Record<string, any> | null;
                     status_identifier: string;
                     source: string;
                 }>;
@@ -256,6 +260,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                 status: check.status,
                 httpStatusCode: check.http_status_code,
                 responseTime: check.response_time,
+                serverHealthMetrics: check.server_health_metrics,
                 statusIdentifier: check.status_identifier,
                 source: check.source,
             }));
@@ -596,6 +601,31 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }
 
         return `${Math.round(responseTime)} ms`;
+    },
+
+    formatServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): string {
+        if (!metrics) {
+            return '—';
+        }
+
+        const labels: Record<string, string> = {
+            cpu_usage_percent: 'CPU',
+            ram_usage_percent: 'RAM',
+            storage_usage_percent: 'Storage',
+            load_average: 'Load',
+            uptime_seconds: 'Uptime',
+        };
+
+        return Object.entries(metrics)
+            .filter(([key]) => key !== 'extra_metrics')
+            .map(([key, value]) => {
+                if (key.endsWith('_percent')) {
+                    return `${labels[key] ?? key}: ${Number(value).toFixed(1)}%`;
+                }
+
+                return `${labels[key] ?? key}: ${value}`;
+            })
+            .join(' | ') || '—';
     },
 
     chartLabels: chartLabels

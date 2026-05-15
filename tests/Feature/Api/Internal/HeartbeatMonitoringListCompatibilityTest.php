@@ -39,6 +39,13 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
             'target' => route('monitorings.heartbeat.ping', ['token' => 'heartbeat-token']),
         ]);
 
+        $serverHealthMonitoring = Monitoring::factory()->serverHealth()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'server_health_token' => 'server-health-token',
+            'target' => route('v1.server-health.store', ['token' => 'server-health-token']),
+        ]);
+
         $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
@@ -47,6 +54,7 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertJsonFragment(['id' => $httpMonitoring->id]);
         $testResponse->assertJsonMissing(['id' => $heartbeatMonitoring->id]);
+        $testResponse->assertJsonMissing(['id' => $serverHealthMonitoring->id]);
 
         $heartbeatResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
@@ -60,5 +68,16 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
         $heartbeatResponse->assertJsonFragment(['id' => $heartbeatMonitoring->id]);
         $heartbeatResponse->assertJsonFragment(['heartbeat_interval_minutes' => 60]);
         $heartbeatResponse->assertJsonFragment(['heartbeat_grace_minutes' => 10]);
+
+        $serverHealthResponse = $this->withHeaders([
+            'X-INSTANCE-CODE' => $serverInstance->code,
+            'X-API-KEY' => 'test-token-1234567890',
+        ])->getJson(route('v1.internal.monitorings.list', [
+            'location' => $serverInstance->code,
+            'type' => MonitoringType::SERVER_HEALTH->value,
+        ]));
+
+        $serverHealthResponse->assertOk();
+        $serverHealthResponse->assertJsonFragment(['id' => $serverHealthMonitoring->id]);
     }
 }

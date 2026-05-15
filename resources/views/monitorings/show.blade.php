@@ -232,6 +232,25 @@
                 </x-container>
             @endif
 
+            @if ($monitoring->type === MonitoringType::SERVER_HEALTH)
+                <x-container>
+                    <x-heading type="h2">{{ __('monitoring.detail.server_health.heading') }}</x-heading>
+                    <x-paragraph class="mt-2 text-sm text-gray-500">{{ __('monitoring.detail.server_health.endpoint') }}</x-paragraph>
+                    <x-paragraph class="break-all font-mono text-sm text-gray-800 dark:text-gray-100">{{ $monitoring->target }}</x-paragraph>
+                    @if ($monitoring->server_health_last_reported_at)
+                        <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                            {{ __('monitoring.detail.server_health.last_report') }} {{ $monitoring->server_health_last_reported_at->diffForHumans() }}
+                        </x-paragraph>
+                    @endif
+                    <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                        <a href="{{ url('/api/docs') }}" target="_blank" rel="noopener"
+                            class="text-purple-800 underline dark:text-purple-400">
+                            {{ __('monitoring.detail.server_health.docs_link') }}
+                        </a>
+                    </x-paragraph>
+                </x-container>
+            @endif
+
             <x-container>
                 <x-heading type="h2">{{ __('monitoring.detail.last_24_hours') }}</x-heading>
                 <div id="heatmap">
@@ -305,7 +324,7 @@
             </template>
         </div>
 
-        @if (! in_array($monitoring->type, [MonitoringType::PING, MonitoringType::HEARTBEAT, MonitoringType::DOMAIN_EXPIRATION], true))
+        @if (! in_array($monitoring->type, [MonitoringType::PING, MonitoringType::HEARTBEAT, MonitoringType::SERVER_HEALTH, MonitoringType::DOMAIN_EXPIRATION], true))
             <div class="mb-2 flex items-center justify-between">
                 <x-heading type="h2">{{ __('monitoring.detail.response_time.heading') }}</x-heading>
 
@@ -455,7 +474,7 @@
                                     x-text="resolveCheckStatusLabel(check.statusIdentifier)"></x-span>
                             </div>
 
-                            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+                            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5">
                                 <div>
                                     <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                         {{ __('monitoring.detail.checks.labels.status_code') }}
@@ -469,6 +488,13 @@
                                     </x-span>
                                     <x-span class="text-sm text-gray-800 dark:text-gray-200"
                                         x-text="formatResponseTime(check.responseTime)"></x-span>
+                                </div>
+                                <div>
+                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        {{ __('monitoring.detail.checks.labels.server_health') }}
+                                    </x-span>
+                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
+                                        x-text="formatServerHealthMetrics(check.serverHealthMetrics)"></x-span>
                                 </div>
                                 <div>
                                     <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">

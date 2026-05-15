@@ -60,6 +60,8 @@ use Spatie\Activitylog\Support\LogOptions;
     'heartbeat_interval_minutes',
     'heartbeat_grace_minutes',
     'heartbeat_last_ping_at',
+    'server_health_token',
+    'server_health_last_reported_at',
 ])]
 #[Table(name: 'monitorings', key: 'id', keyType: 'string')]
 class Monitoring extends Model
@@ -177,6 +179,7 @@ class Monitoring extends Model
             ->dontLogEmptyChanges()
             ->dontLogIfAttributesChangedOnly([
                 'heartbeat_last_ping_at',
+                'server_health_last_reported_at',
                 'updated_at',
             ])
             ->setDescriptionForEvent(fn (string $eventName): string => 'monitoring_' . $eventName);
@@ -235,6 +238,11 @@ class Monitoring extends Model
     public function isHeartbeat(): bool
     {
         return $this->type === MonitoringType::HEARTBEAT;
+    }
+
+    public function isServerHealth(): bool
+    {
+        return $this->type === MonitoringType::SERVER_HEALTH;
     }
 
     /**
@@ -320,6 +328,7 @@ class Monitoring extends Model
             'maintenance_from' => 'datetime',
             'maintenance_until' => 'datetime',
             'heartbeat_last_ping_at' => 'datetime',
+            'server_health_last_reported_at' => 'datetime',
         ];
     }
 }

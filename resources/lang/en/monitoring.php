@@ -11,6 +11,7 @@ return [
         'keyword' => 'Keyword',
         'port' => 'Port',
         'heartbeat' => 'Heartbeat',
+        'server_health' => 'Server Health',
         'domain_expiration' => 'Domain Expiration',
         'dns_record' => 'DNS Record',
     ],
@@ -133,6 +134,7 @@ return [
             'labels' => [
                 'status_code' => 'Status code',
                 'response_time' => 'Response time',
+                'server_health' => 'Server health',
                 'source' => 'Source',
                 'raw_status' => 'Raw status',
             ],
@@ -160,6 +162,12 @@ return [
             'cadence' => 'Expected every :minutes minute|Expected every :minutes minutes',
             'grace' => 'Grace period: :minutes minute|Grace period: :minutes minutes',
             'last_ping' => 'Last ping received',
+        ],
+        'server_health' => [
+            'heading' => 'Server Health Endpoint',
+            'endpoint' => 'Report URL',
+            'last_report' => 'Last report received',
+            'docs_link' => 'Open server health API documentation',
         ],
         'domain' => [
             'heading' => 'Domain Expiration',
@@ -232,6 +240,10 @@ return [
         'maintenance' => 'Maintenance',
         'heartbeat_help' => 'WebGuard creates a private ping URL for this monitor. Call it from a cron job or background process within the expected interval.',
         'heartbeat_ping_url_help' => 'Use this private ping URL in your cron job or worker. It is generated automatically and cannot be edited manually.',
+        'server_health_target_generated' => 'The server health report URL will be generated automatically after saving.',
+        'server_health_help' => 'WebGuard creates a private API endpoint for this monitor. Post CPU, RAM, storage, and optional health values from your server agent or cron script.',
+        'server_health_docs_link' => 'Open the API documentation for the payload format',
+        'server_health_endpoint_help' => 'Use this private API endpoint to post server health reports. It is generated automatically and cannot be edited manually.',
         'placeholders' => [
             'http_target' => 'e.g. https://example.com',
             'ping_target' => 'e.g. 8.8.8.8',

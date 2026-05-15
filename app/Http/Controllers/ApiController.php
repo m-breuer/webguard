@@ -696,7 +696,7 @@ class ApiController extends Controller
         ?Carbon $endDate
     ): QueryBuilder {
         $builder = DB::table($table)
-            ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, created_at")
+            ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, server_health_metrics, created_at")
             ->where('monitoring_id', $monitoringId);
 
         if ($startDate !== null && $endDate !== null) {
@@ -708,12 +708,18 @@ class ApiController extends Controller
 
     /**
      * @param  Collection<int, object>  $rows
-     * @return array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, status_identifier: string, status_key: string, source: string}>
+     * @return array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>
      */
     private function formatCheckRows(Collection $rows): array
     {
         return $rows->map(function (object $row): array {
             $httpStatusCode = $row->http_status_code !== null ? (int) $row->http_status_code : null;
+            $serverHealthMetrics = null;
+
+            if (isset($row->server_health_metrics)) {
+                $decodedMetrics = json_decode((string) $row->server_health_metrics, true);
+                $serverHealthMetrics = is_array($decodedMetrics) ? $decodedMetrics : null;
+            }
 
             return [
                 'id' => (string) $row->id,
@@ -721,6 +727,7 @@ class ApiController extends Controller
                 'status' => (string) $row->status,
                 'http_status_code' => $httpStatusCode,
                 'response_time' => $row->response_time !== null ? (float) $row->response_time : null,
+                'server_health_metrics' => $serverHealthMetrics,
                 'status_identifier' => MonitoringStatusMeta::statusIdentifier($httpStatusCode),
                 'status_key' => MonitoringStatusMeta::statusKey($httpStatusCode),
                 'source' => (string) $row->source,
@@ -730,7 +737,7 @@ class ApiController extends Controller
 
     /**
      * @param  Collection<int, object>  $rows
-     * @return array{data: array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, status_identifier: string, status_key: string, source: string}>, has_more: bool, next_offset: int|null}
+     * @return array{data: array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>, has_more: bool, next_offset: int|null}
      */
     private function paginateCheckRows(Collection $rows, int $limit, int $offset): array
     {

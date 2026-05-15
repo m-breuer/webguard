@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\ServerHealthReportController;
 use App\Http\Controllers\ApiController;
 use App\Http\Middleware\TrackApiUsage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/public/monitorings/{monitoring}/widget', [ApiController::class, 'widget'])
     ->name('public.monitorings.widget');
+
+Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
+    ->middleware('throttle:60,1')
+    ->name('v1.server-health.store');
 
 Route::group(['prefix' => 'v1', 'as' => 'v1.', 'middleware' => ['auth:sanctum', TrackApiUsage::class]], function (): void {
     require __DIR__ . '/api/external.php';
