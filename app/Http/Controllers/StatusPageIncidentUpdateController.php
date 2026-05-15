@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 class StatusPageIncidentUpdateController extends Controller
 {
     public function store(
-        StoreIncidentUpdateRequest $request,
+        StoreIncidentUpdateRequest $storeIncidentUpdateRequest,
         StatusPage $statusPage,
         Incident $incident
     ): RedirectResponse {
@@ -21,7 +21,7 @@ class StatusPageIncidentUpdateController extends Controller
         abort_unless($statusPage->user_id === Auth::id(), 404);
         abort_unless($this->incidentBelongsToStatusPage($statusPage, $incident), 404);
 
-        $incident->updates()->create($request->validated());
+        $incident->updates()->create($storeIncidentUpdateRequest->validated());
 
         return to_route('status-pages.show', $statusPage)
             ->with('success', __('status_page.incident_updates.messages.created'));
