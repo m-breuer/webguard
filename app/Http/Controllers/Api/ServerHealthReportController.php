@@ -123,11 +123,11 @@ class ServerHealthReportController extends Controller
 
         $metrics = [];
 
-        foreach ($metricKeys as $key) {
-            if (array_key_exists($key, $validated) && $validated[$key] !== null) {
-                $metrics[$key] = is_numeric($validated[$key])
-                    ? (float) $validated[$key]
-                    : $validated[$key];
+        foreach ($metricKeys as $metricKey) {
+            if (array_key_exists($metricKey, $validated) && $validated[$metricKey] !== null) {
+                $metrics[$metricKey] = is_numeric($validated[$metricKey])
+                    ? (float) $validated[$metricKey]
+                    : $validated[$metricKey];
             }
         }
 

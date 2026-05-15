@@ -98,12 +98,12 @@ class ServerHealthMonitoringTest extends TestCase
         $monitoring->refresh();
         $this->assertSame(Date::now()->toIso8601String(), $monitoring->server_health_last_reported_at?->toIso8601String());
 
-        $response = MonitoringResponse::query()->where('monitoring_id', $monitoring->id)->firstOrFail();
-        $this->assertSame(MonitoringStatus::UP, $response->status);
-        $this->assertSame(200, $response->http_status_code);
-        $this->assertSame(42.5, $response->server_health_metrics['cpu_usage_percent']);
-        $this->assertSame(68.2, $response->server_health_metrics['ram_usage_percent']);
-        $this->assertSame(74.1, $response->server_health_metrics['storage_usage_percent']);
+        $monitoringResponse = MonitoringResponse::query()->where('monitoring_id', $monitoring->id)->firstOrFail();
+        $this->assertSame(MonitoringStatus::UP, $monitoringResponse->status);
+        $this->assertSame(200, $monitoringResponse->http_status_code);
+        $this->assertSame(42.5, $monitoringResponse->server_health_metrics['cpu_usage_percent']);
+        $this->assertSame(68.2, $monitoringResponse->server_health_metrics['ram_usage_percent']);
+        $this->assertSame(74.1, $monitoringResponse->server_health_metrics['storage_usage_percent']);
     }
 
     public function test_server_health_endpoint_marks_report_down_when_usage_crosses_default_threshold(): void
