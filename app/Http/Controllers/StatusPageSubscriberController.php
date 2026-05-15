@@ -77,6 +77,10 @@ class StatusPageSubscriberController extends Controller
 
     public function destroy(Monitoring $monitoring, string $token, Request $request): RedirectResponse
     {
+        $request->merge([
+            'email' => Str::lower((string) $request->string('email')),
+        ]);
+
         $request->validate([
             'email' => [
                 'required',
@@ -89,7 +93,7 @@ class StatusPageSubscriberController extends Controller
         ]);
 
         $monitoring->statusPageSubscribers()
-            ->where('email', Str::lower((string) $request->string('email')))
+            ->where('email', $request->string('email'))
             ->where('unsubscribe_token', $token)
             ->delete();
 
