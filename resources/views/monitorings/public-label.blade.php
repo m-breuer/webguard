@@ -25,6 +25,12 @@
 
     <x-main>
         <div class="space-y-6">
+            @if (session('status_page_subscription_success'))
+                <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+                    {{ session('status_page_subscription_success') }}
+                </div>
+            @endif
+
             <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <x-container id="public-current-status">
                     <x-heading type="h2">{{ __('monitoring.public_label.current_status') }}</x-heading>
@@ -81,6 +87,35 @@
                             {{ __('monitoring.public_label.no_data') }}
                         </p>
                     @endif
+                </x-container>
+            </section>
+
+            <section id="public-status-subscription">
+                <x-container>
+                    <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <x-heading type="h2">{{ __('monitoring.public_label.subscribe.heading') }}</x-heading>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('monitoring.public_label.subscribe.description') }}
+                            </p>
+                        </div>
+
+                        <form method="POST" action="{{ route('public-label.subscribers.store', $monitoring) }}"
+                            class="w-full md:max-w-md">
+                            @csrf
+
+                            <x-input-label for="status-page-subscriber-email" :value="__('monitoring.public_label.subscribe.email')" />
+                            <div class="mt-2 flex flex-col gap-3 sm:flex-row">
+                                <x-text-input id="status-page-subscriber-email" type="email" name="email"
+                                    :value="old('email')" required autocomplete="email"
+                                    :placeholder="__('monitoring.public_label.subscribe.email_placeholder')" />
+                                <x-primary-button class="shrink-0 justify-center">
+                                    {{ __('monitoring.public_label.subscribe.button') }}
+                                </x-primary-button>
+                            </div>
+                            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+                        </form>
+                    </div>
                 </x-container>
             </section>
 
