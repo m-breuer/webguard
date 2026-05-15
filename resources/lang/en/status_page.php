@@ -41,6 +41,22 @@ return [
         'updated' => 'Status page updated successfully.',
         'deleted' => 'Status page deleted successfully.',
     ],
+    'incident_updates' => [
+        'heading' => 'Incident Updates',
+        'description' => 'Post manual updates so visitors can follow the incident timeline.',
+        'status' => 'Status',
+        'message' => 'Update message',
+        'add' => 'Add update',
+        'statuses' => [
+            'investigating' => 'Investigating',
+            'identified' => 'Identified',
+            'monitoring' => 'Monitoring',
+            'resolved' => 'Resolved',
+        ],
+        'messages' => [
+            'created' => 'Incident update added successfully.',
+        ],
+    ],
     'public' => [
         'title' => ':statusPage - Status',
         'overall_status' => 'Overall status',

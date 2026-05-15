@@ -41,6 +41,22 @@ return [
         'updated' => 'Statusseite erfolgreich aktualisiert.',
         'deleted' => 'Statusseite erfolgreich gelöscht.',
     ],
+    'incident_updates' => [
+        'heading' => 'Vorfall-Updates',
+        'description' => 'Veröffentlichen Sie manuelle Updates, damit Besucher den Vorfallsverlauf verfolgen können.',
+        'status' => 'Status',
+        'message' => 'Update-Nachricht',
+        'add' => 'Update hinzufügen',
+        'statuses' => [
+            'investigating' => 'Wird untersucht',
+            'identified' => 'Identifiziert',
+            'monitoring' => 'Unter Beobachtung',
+            'resolved' => 'Behoben',
+        ],
+        'messages' => [
+            'created' => 'Vorfall-Update erfolgreich hinzugefügt.',
+        ],
+    ],
     'public' => [
         'title' => ':statusPage - Status',
         'overall_status' => 'Gesamtstatus',
