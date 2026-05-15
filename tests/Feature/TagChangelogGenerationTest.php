@@ -83,7 +83,11 @@ class TagChangelogGenerationTest extends TestCase
 
         $this->assertArrayHasKey('workflow_dispatch', $workflow['on']);
         $this->assertSame(['main'], $workflow['on']['workflow_run']['branches']);
+        $this->assertSame(['completed'], $workflow['on']['workflow_run']['types']);
         $this->assertSame('Create Tag', $workflow['jobs']['create-tag']['name']);
+        $this->assertStringContainsString("github.event.workflow_run.conclusion == 'success'", $workflow['jobs']['create-tag']['if']);
+        $this->assertStringContainsString("github.event.workflow_run.event == 'push'", $workflow['jobs']['create-tag']['if']);
+        $this->assertStringContainsString("github.event.workflow_run.head_branch == 'main'", $workflow['jobs']['create-tag']['if']);
         $this->assertSame('${{ steps.tag_version.outputs.new_tag }}', $workflow['jobs']['create-tag']['outputs']['new_tag']);
 
         $createCheckout = collect($workflow['jobs']['create-tag']['steps'])->firstWhere('uses', 'actions/checkout@v6');
