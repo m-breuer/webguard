@@ -32,6 +32,15 @@ final class MonitoringPayload
             return $validated;
         }
 
+        if ($type === MonitoringType::SERVER_HEALTH) {
+            $serverHealthToken = (string) Str::ulid();
+
+            $validated['server_health_token'] = $serverHealthToken;
+            $validated['target'] = route('v1.server-health.store', ['token' => $serverHealthToken]);
+
+            return self::applyNonHttpDefaults($validated);
+        }
+
         if ($type !== MonitoringType::HEARTBEAT) {
             $validated['expected_http_statuses'] = null;
 
@@ -68,6 +77,12 @@ final class MonitoringPayload
             $validated['expected_http_statuses'] = HttpStatusCodeRanges::normalize($validated['expected_http_statuses'] ?? null);
 
             return $validated;
+        }
+
+        if ($monitoring->isServerHealth()) {
+            $validated['target'] = $monitoring->target;
+
+            return self::applyNonHttpDefaults($validated);
         }
 
         if (! $monitoring->isHeartbeat()) {

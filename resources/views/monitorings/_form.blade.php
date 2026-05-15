@@ -16,6 +16,7 @@
     }
 
     $heartbeatTypeValue = MonitoringType::HEARTBEAT->value;
+    $serverHealthTypeValue = MonitoringType::SERVER_HEALTH->value;
     $enabledNotificationChannels = $enabledNotificationChannels ?? [];
     $selectedNotificationChannels = old(
         'notification_channels',
@@ -41,7 +42,7 @@
                 this.target = 'https://';
             } else if (this.type === '{{ MonitoringType::PING->value }}' || this.type === '{{ MonitoringType::PORT->value }}' || this.type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' || this.type === '{{ MonitoringType::DNS_RECORD->value }}') {
                 this.target = '';
-            } else if (this.type === '{{ MonitoringType::HEARTBEAT->value }}') {
+            } else if (this.type === '{{ MonitoringType::HEARTBEAT->value }}' || this.type === '{{ MonitoringType::SERVER_HEALTH->value }}') {
                 this.target = '';
             }
         }
@@ -49,7 +50,7 @@
 }" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
         target = 'https://';
-    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' || value === '{{ MonitoringType::DNS_RECORD->value }}') {
+    } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::SERVER_HEALTH->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' || value === '{{ MonitoringType::DNS_RECORD->value }}') {
         target = '';
     }
 })">
@@ -89,12 +90,18 @@
             <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
                 class="cursor-not-allowed" />
             <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {{ $monitoring->type === MonitoringType::HEARTBEAT ? __('monitoring.form.heartbeat_ping_url_help') : __('monitoring.form.target_immutable_help') }}
+                @if ($monitoring->type === MonitoringType::HEARTBEAT)
+                    {{ __('monitoring.form.heartbeat_ping_url_help') }}
+                @elseif ($monitoring->type === MonitoringType::SERVER_HEALTH)
+                    {{ __('monitoring.form.server_health_endpoint_help') }}
+                @else
+                    {{ __('monitoring.form.target_immutable_help') }}
+                @endif
             </x-paragraph>
         @else
-            <div x-show="type !== '{{ $heartbeatTypeValue }}'">
+            <div x-show="type !== '{{ $heartbeatTypeValue }}' && type !== '{{ $serverHealthTypeValue }}'">
                 <x-text-input id="target" type="text" name="target" x-model="target"
-                    x-bind:required="type !== '{{ $heartbeatTypeValue }}'"
+                    x-bind:required="type !== '{{ $heartbeatTypeValue }}' && type !== '{{ $serverHealthTypeValue }}'"
                     x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
                     type === '{{ MonitoringType::PING->value }}' ?
                     '{{ __('monitoring.form.placeholders.ping_target') }}' :
@@ -110,6 +117,10 @@
             <div x-show="type === '{{ $heartbeatTypeValue }}'"
                 class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
                 {{ __('monitoring.form.heartbeat_target_generated') }}
+            </div>
+            <div x-show="type === '{{ $serverHealthTypeValue }}'"
+                class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
+                {{ __('monitoring.form.server_health_target_generated') }}
             </div>
             <x-input-error :messages="$errors->get('target')" />
         @endif
@@ -155,6 +166,16 @@
             <p class="text-sm text-gray-600 dark:text-gray-400 md:col-span-2">
                 {{ __('monitoring.form.heartbeat_help') }}
             </p>
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::SERVER_HEALTH->value }}'">
+        <div class="mt-4 rounded-md border border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
+            <p>{{ __('monitoring.form.server_health_help') }}</p>
+            <a href="{{ url('/api/docs') }}" target="_blank" rel="noopener"
+                class="mt-2 inline-block text-purple-800 underline dark:text-purple-400">
+                {{ __('monitoring.form.server_health_docs_link') }}
+            </a>
         </div>
     </template>
 

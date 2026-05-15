@@ -42,6 +42,8 @@ class MonitoringResource extends JsonResource
             'heartbeat_interval_minutes' => $this->heartbeat_interval_minutes,
             'heartbeat_grace_minutes' => $this->heartbeat_grace_minutes,
             'heartbeat_last_ping_at' => $this->heartbeat_last_ping_at,
+            'server_health_last_reported_at' => $this->server_health_last_reported_at,
+            'latest_server_health_metrics' => $this->whenLoaded('latestResponseResult', fn () => $this->latestResponseResult?->server_health_metrics),
             'domain_expires_at' => $this->whenLoaded('domainResult', fn () => $this->domainResult?->expires_at),
             'domain_registrar' => $this->whenLoaded('domainResult', fn () => $this->domainResult?->registrar),
             'latest_http_status_code' => $this->whenLoaded('latestResponseResult', fn () => $this->latestResponseResult?->http_status_code),

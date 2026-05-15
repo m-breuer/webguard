@@ -281,14 +281,18 @@ class MonitoringRequest extends FormRequest
     private function targetRules(): array
     {
         return [
-            Rule::requiredIf(fn (): bool => MonitoringType::tryFrom((string) $this->input('type')) !== MonitoringType::HEARTBEAT),
+            Rule::requiredIf(fn (): bool => ! in_array(
+                MonitoringType::tryFrom((string) $this->input('type')),
+                [MonitoringType::HEARTBEAT, MonitoringType::SERVER_HEALTH],
+                true
+            )),
             'nullable',
             'string',
             'max:255',
             function ($attribute, $value, $fail): void {
                 $type = $this->input('type');
 
-                if ($type === MonitoringType::HEARTBEAT->value) {
+                if (in_array($type, [MonitoringType::HEARTBEAT->value, MonitoringType::SERVER_HEALTH->value], true)) {
                     return;
                 }
 
