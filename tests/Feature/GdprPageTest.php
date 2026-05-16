@@ -30,7 +30,7 @@ class GdprPageTest extends TestCase
         $testResponse->assertDontSeeText('+49 1512 3456789');
         $testResponse->assertSeeHtml('data-email-payload=');
         $testResponse->assertSeeHtml('data-phone-payload=');
-        $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
+        $testResponse->assertSeeHtml('<meta name="robots" content="index, follow">');
     }
 
     public function test_gdpr_contact_section_uses_the_default_card_style(): void
@@ -88,12 +88,12 @@ class GdprPageTest extends TestCase
         $testResponse->assertRedirect(route('gdpr'));
     }
 
-    public function test_gdpr_page_is_excluded_from_sitemap_because_it_is_noindexed(): void
+    public function test_gdpr_page_is_included_in_sitemap(): void
     {
         $testResponse = $this->get(route('sitemap'));
 
         $testResponse->assertOk();
-        $testResponse->assertDontSeeHtml(route('gdpr'));
+        $testResponse->assertSeeHtml(route('gdpr'));
     }
 
     public function test_footer_contains_gdpr_link(): void
@@ -105,14 +105,14 @@ class GdprPageTest extends TestCase
         $testResponse->assertSeeHtml(route('gdpr'));
     }
 
-    public function test_robots_txt_blocks_gdpr_routes(): void
+    public function test_robots_txt_allows_gdpr_routes(): void
     {
         $robotsContent = file_get_contents(public_path('robots.txt'));
 
         $this->assertIsString($robotsContent);
-        $this->assertStringContainsString('Disallow: /gdpr', $robotsContent);
-        $this->assertStringContainsString('Disallow: /datenschutz', $robotsContent);
-        $this->assertStringContainsString('Disallow: /privacy-policy', $robotsContent);
+        $this->assertStringNotContainsString('Disallow: /gdpr', $robotsContent);
+        $this->assertStringNotContainsString('Disallow: /datenschutz', $robotsContent);
+        $this->assertStringNotContainsString('Disallow: /privacy-policy', $robotsContent);
     }
 
     public function test_accept_language_header_is_used_for_gdpr_page(): void
@@ -125,7 +125,7 @@ class GdprPageTest extends TestCase
         $testResponse->assertSeeText(__('gdpr.hero.title', [], 'de'));
     }
 
-    public function test_authenticated_user_locale_from_profile_has_priority_on_gdpr_page(): void
+    public function test_authenticated_gdpr_page_is_served_as_sessionless_public_page(): void
     {
         Package::factory()->create();
         $user = User::factory()->create([
@@ -137,8 +137,14 @@ class GdprPageTest extends TestCase
             ->get(route('gdpr'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml('lang="en"');
-        $testResponse->assertSeeText(__('gdpr.hero.title', [], 'en'));
+        $testResponse->assertSeeHtml('lang="de"');
+        $testResponse->assertSeeText(__('gdpr.hero.title', [], 'de'));
+        $testResponse->assertDontSeeHtml('name="csrf-token"');
+
+        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('public', $cacheControl);
+        $this->assertStringNotContainsString('private', $cacheControl);
     }
 
     private function configureImprint(): void

@@ -243,7 +243,7 @@
                         </x-paragraph>
                     @endif
                     <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
-                        <a href="{{ url('/api/docs') }}" target="_blank" rel="noopener"
+                        <a href="{{ route('scribe') }}" target="_blank" rel="noopener"
                             class="text-purple-800 underline dark:text-purple-400">
                             {{ __('monitoring.detail.server_health.docs_link') }}
                         </a>

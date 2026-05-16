@@ -52,7 +52,15 @@ class ServerHealthMonitoringTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSee(__('monitoring.types.server_health'));
         $testResponse->assertSee(__('monitoring.form.server_health_docs_link'));
-        $testResponse->assertSee(url('/api/docs'));
+        $testResponse->assertSee(route('scribe'));
+    }
+
+    public function test_api_reference_uses_the_renamed_documentation_path(): void
+    {
+        $this->assertSame('/api/reference', config('scribe.laravel.docs_url'));
+        $this->assertSame(url('/api/reference'), route('scribe'));
+
+        $this->get('/api/docs')->assertRedirect(url('/api/reference'));
     }
 
     public function test_it_creates_server_health_monitoring_with_generated_report_url(): void

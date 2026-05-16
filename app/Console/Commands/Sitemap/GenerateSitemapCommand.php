@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Sitemap;
 
+use App\Support\SitemapPages;
 use Illuminate\Console\Command;
-use Spatie\Sitemap\Sitemap;
-use Spatie\Sitemap\Tags\Url;
 
 class GenerateSitemapCommand extends Command
 {
@@ -29,10 +28,7 @@ class GenerateSitemapCommand extends Command
      */
     public function handle()
     {
-        Sitemap::create()
-            ->add(Url::create(route('welcome')))
-            ->add(Url::create(route('monitoring-locations')))
-            ->writeToFile(public_path('sitemap.xml'));
+        SitemapPages::sitemap()->writeToFile(public_path('sitemap.xml'));
 
         return Command::SUCCESS;
     }

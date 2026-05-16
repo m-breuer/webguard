@@ -167,7 +167,7 @@ return [
             'heading' => 'Server-Zustand-Endpunkt',
             'endpoint' => 'Report-URL',
             'last_report' => 'Letzter empfangener Report',
-            'docs_link' => 'API-Dokumentation zum Server-Zustand öffnen',
+            'docs_link' => 'Monitoring-API-Referenz öffnen',
         ],
         'domain' => [
             'heading' => 'Domain-Ablauf',
@@ -242,7 +242,7 @@ return [
         'heartbeat_ping_url_help' => 'Verwenden Sie diese private Ping-URL in Ihrem Cronjob oder Worker. Sie wird automatisch erzeugt und kann nicht manuell geändert werden.',
         'server_health_target_generated' => 'Die Server-Zustand-Report-URL wird nach dem Speichern automatisch erzeugt.',
         'server_health_help' => 'WebGuard erzeugt für diesen Monitor einen privaten API-Endpunkt. Senden Sie CPU-, RAM-, Speicher- und optionale Zustandswerte von Ihrem Server-Agent oder Cron-Skript.',
-        'server_health_docs_link' => 'API-Dokumentation zum Payload-Format öffnen',
+        'server_health_docs_link' => 'Monitoring-API-Referenz zum Payload-Format öffnen',
         'server_health_endpoint_help' => 'Verwenden Sie diesen privaten API-Endpunkt, um Server-Zustand-Reports zu senden. Er wird automatisch erzeugt und kann nicht manuell geändert werden.',
         'placeholders' => [
             'http_target' => 'z.B. https://example.com',
