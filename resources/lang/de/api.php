@@ -35,8 +35,8 @@ return [
         ],
     ],
     'docs' => [
-        'heading' => 'API-Dokumentation',
-        'description' => 'Alle verfügbaren Endpunkte, Authentifizierung und Nutzungsbeispiele.',
-        'link' => 'Entdecken Sie die neueste Dokumentation hier.',
+        'heading' => 'API-Referenz',
+        'description' => 'Prüfen Sie Monitoring-Endpunkte, Authentifizierung und Request-Beispiele für Ihre Integrationen.',
+        'link' => 'API-Referenz öffnen.',
     ],
 ];

@@ -23,7 +23,7 @@ class TermsOfUsePageTest extends TestCase
         $testResponse->assertDontSeeText('legal@example.test');
         $testResponse->assertSeeHtml('data-email-payload=');
         $testResponse->assertSeeHtml('data-phone-payload=');
-        $testResponse->assertSeeHtml('<meta name="robots" content="noindex, nofollow">');
+        $testResponse->assertSeeHtml('<meta name="robots" content="index, follow">');
     }
 
     public function test_terms_of_use_describe_current_monitoring_and_notification_features(): void
@@ -59,12 +59,12 @@ class TermsOfUsePageTest extends TestCase
         $testResponse->assertRedirect(route('terms-of-use'));
     }
 
-    public function test_terms_of_use_page_is_excluded_from_sitemap_because_it_is_noindexed(): void
+    public function test_terms_of_use_page_is_included_in_sitemap(): void
     {
         $testResponse = $this->get(route('sitemap'));
 
         $testResponse->assertOk();
-        $testResponse->assertDontSeeHtml(route('terms-of-use'));
+        $testResponse->assertSeeHtml(route('terms-of-use'));
     }
 
     public function test_footer_contains_terms_of_use_link(): void
@@ -76,13 +76,13 @@ class TermsOfUsePageTest extends TestCase
         $testResponse->assertSeeHtml(route('terms-of-use'));
     }
 
-    public function test_robots_txt_blocks_terms_of_use_routes(): void
+    public function test_robots_txt_allows_terms_of_use_routes(): void
     {
         $robotsContent = file_get_contents(public_path('robots.txt'));
 
         $this->assertIsString($robotsContent);
-        $this->assertStringContainsString('Disallow: /terms-of-use', $robotsContent);
-        $this->assertStringContainsString('Disallow: /agb', $robotsContent);
+        $this->assertStringNotContainsString('Disallow: /terms-of-use', $robotsContent);
+        $this->assertStringNotContainsString('Disallow: /agb', $robotsContent);
     }
 
     private function configureImprintContact(): void

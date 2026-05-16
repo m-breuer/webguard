@@ -21,12 +21,11 @@ use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
 use App\Http\Controllers\StatusPageSubscriberController;
+use App\Support\SitemapPages;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Spatie\Sitemap\Sitemap;
-use Spatie\Sitemap\Tags\Url;
 
 $sessionlessPublicRoutes = [
     PreventRequestForgery::class,
@@ -45,19 +44,26 @@ Route::get('/monitoring-locations', MonitoringLocationsController::class)
     ->withoutMiddleware($sessionlessPublicRoutes)
     ->middleware('public.cache')
     ->name('monitoring-locations');
-Route::get('/imprint', [LegalController::class, 'imprint'])->name('imprint');
-Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])->name('terms-of-use');
-Route::get('/gdpr', [LegalController::class, 'gdpr'])->name('gdpr');
+Route::get('/imprint', [LegalController::class, 'imprint'])
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('imprint');
+Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('terms-of-use');
+Route::get('/gdpr', [LegalController::class, 'gdpr'])
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('gdpr');
 
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 Route::match(['get', 'post'], '/heartbeat/{token}', HeartbeatPingController::class)->name('monitorings.heartbeat.ping');
+Route::permanentRedirect('/api/docs', '/api/reference')->name('api.docs.redirect');
 
 // Public sitemap.xml
 Route::get('/sitemap.xml', function () {
-    return Sitemap::create()
-        ->add(Url::create(route('welcome')))
-        ->add(Url::create(route('monitoring-locations')))
-        ->toResponse(request());
+    return SitemapPages::sitemap()->toResponse(request());
 })
     ->withoutMiddleware($sessionlessPublicRoutes)
     ->middleware('public.cache')

@@ -173,7 +173,7 @@
         <div class="mt-4 space-y-4">
             <div class="rounded-md border border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
                 <p>{{ __('monitoring.form.server_health_help') }}</p>
-                <a href="{{ url('/api/docs') }}" target="_blank" rel="noopener"
+                <a href="{{ route('scribe') }}" target="_blank" rel="noopener"
                     class="mt-2 inline-block text-purple-800 underline dark:text-purple-400">
                     {{ __('monitoring.form.server_health_docs_link') }}
                 </a>
