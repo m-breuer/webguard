@@ -41,6 +41,47 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         ];
     }
 
+    /**
+     * @return array<string, array{0: string, 1: list<string>}>
+     */
+    public static function featureTeaserCoverageProvider(): array
+    {
+        return [
+            'english' => [
+                'en',
+                [
+                    'DNS Record Monitoring',
+                    'Track expected A, AAAA, CNAME, MX, TXT, NS, SOA, and CAA records',
+                    'Slack, Telegram, Discord, Microsoft Teams, webhooks',
+                    'Public Status Pages',
+                    'component-based status pages with recent incidents, manual incident updates, subscriber emails',
+                    'Embeddable Status Widget',
+                    'lightweight JavaScript widget',
+                    'REST API and Integrations',
+                    'token-based API access and the API reference',
+                    'method, header, body, auth, and status-code validation',
+                    'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS Record',
+                ],
+            ],
+            'german' => [
+                'de',
+                [
+                    'DNS-Eintragsmonitoring',
+                    'A-, AAAA-, CNAME-, MX-, TXT-, NS-, SOA- und CAA-Einträge',
+                    'Slack, Telegram, Discord, Microsoft Teams, Webhooks',
+                    'Öffentliche Statusseiten',
+                    'komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos',
+                    'Einbettbares Status-Widget',
+                    'schlankes JavaScript-Widget',
+                    'REST API und Integrationen',
+                    'tokenbasierten API-Zugriff und die API-Referenz',
+                    'Methode, Headern, Body, Authentifizierung und Statuscode-Prüfung',
+                    'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS-Eintrag',
+                ],
+            ],
+        ];
+    }
+
     #[DataProvider('latestFeatureCopyProvider')]
     public function test_it_renders_latest_features_on_the_welcome_page(
         string $locale,
@@ -82,5 +123,17 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $this->assertStringContainsString('status changes, SSL expiry, and domain expiry', $features);
         $this->assertStringContainsString('Server health monitoring', $features);
         $this->assertStringContainsString('configurable per-monitor usage thresholds', $features);
+    }
+
+    #[DataProvider('featureTeaserCoverageProvider')]
+    public function test_it_teases_existing_product_surfaces_on_the_welcome_page(string $locale, array $expectedCopy): void
+    {
+        $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
+
+        $testResponse->assertOk();
+
+        foreach ($expectedCopy as $copy) {
+            $testResponse->assertSeeText($copy);
+        }
     }
 }

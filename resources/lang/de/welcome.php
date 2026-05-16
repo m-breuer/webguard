@@ -5,10 +5,10 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Integrationen, Widgets, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, Monitoring Widget, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
-        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
+        'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand- und DNS-Checks, klaren Benachrichtigungen und transparenten Statusseiten.',
     ],
 
     'nav' => [
@@ -53,7 +53,7 @@ return [
         'http' => [
             'badge' => 'Kernfunktion',
             'title' => 'HTTP Monitoring',
-            'text' => 'Überwachen Sie API- und Website-Endpunkte mit Latenz- und Statuscode-Prüfung.',
+            'text' => 'Überwachen Sie API- und Website-Endpunkte mit Latenz, Methode, Headern, Body, Authentifizierung und Statuscode-Prüfung.',
         ],
         'http_expectations' => [
             'badge' => 'Kontrolle',
@@ -85,10 +85,15 @@ return [
             'title' => 'Server-Zustand-Monitoring',
             'text' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als down gelten.',
         ],
+        'dns_record' => [
+            'badge' => 'DNS',
+            'title' => 'DNS-Eintragsmonitoring',
+            'text' => 'Überwachen Sie erwartete A-, AAAA-, CNAME-, MX-, TXT-, NS-, SOA- und CAA-Einträge und alarmieren Sie bei gemeldeten Abweichungen.',
+        ],
         'notifications' => [
             'badge' => 'Alerts',
             'title' => 'Incident- und Status-Benachrichtigungen',
-            'text' => 'Erhalten Sie Incident-, Recovery-, SSL- und Domain-Ablaufupdates über mehrere Kanäle, damit Reaktionen schnell und abgestimmt erfolgen.',
+            'text' => 'Erhalten Sie Incident-, Recovery-, SSL- und Domain-Ablaufupdates über Slack, Telegram, Discord, Microsoft Teams, Webhooks und In-App-Benachrichtigungen.',
         ],
         'weekly_digest' => [
             'badge' => 'Berichte',
@@ -115,6 +120,21 @@ return [
             'title' => 'Monitoring aus mehreren Regionen',
             'text' => 'Regionenübergreifende Checks helfen, lokale Ausfälle zu isolieren und Fehlalarme zu reduzieren.',
         ],
+        'public_status_pages' => [
+            'badge' => 'Transparenz',
+            'title' => 'Öffentliche Statusseiten',
+            'text' => 'Veröffentlichen Sie komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos und aktiven oder geplanten Wartungsfenstern.',
+        ],
+        'embeddable_widget' => [
+            'badge' => 'Embed',
+            'title' => 'Einbettbares Status-Widget',
+            'text' => 'Binden Sie ein schlankes JavaScript-Widget in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
+        ],
+        'rest_api' => [
+            'badge' => 'API',
+            'title' => 'REST API und Integrationen',
+            'text' => 'Nutzen Sie tokenbasierten API-Zugriff und die API-Referenz, um Monitoring-Daten mit externen Tools, Automationen und Reports zu verbinden.',
+        ],
     ],
 
     'visuals' => [
@@ -134,7 +154,7 @@ return [
             ],
             'public_status' => [
                 'title' => 'Öffentliche Status-Labels',
-                'text' => 'Teilen Sie Verfügbarkeits-Updates transparent in einem klaren, gebrandeten Format.',
+                'text' => 'Teilen Sie Verfügbarkeits-, Wartungs- und Incident-Updates transparent in einem klaren, gebrandeten Format.',
                 'alt' => 'Vorschau öffentlicher Status-Labels mit den Zuständen operational, degraded und incident',
             ],
         ],
@@ -147,15 +167,15 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Monitore erstellen',
-                'text' => 'Legen Sie HTTP-, Ping-, Keyword-, Port-, Heartbeat- oder Server-Zustand-Checks an und definieren Sie das Intervall.',
+                'text' => 'Legen Sie HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand- oder DNS-Eintragschecks an und definieren Sie das Intervall.',
             ],
             '2' => [
                 'title' => 'Alerts festlegen',
-                'text' => 'Wählen Sie Benachrichtigungskanäle und erhalten Sie Incident-Updates ohne Verzögerung.',
+                'text' => 'Wählen Sie Slack, Telegram, Discord, Microsoft Teams, Webhook- oder In-App-Kanäle und erhalten Sie Incident-Updates ohne Verzögerung.',
             ],
             '3' => [
                 'title' => 'Status teilen',
-                'text' => 'Nutzen Sie Status-Labels und Uptime-Historie, um Zuverlässigkeit transparent zu kommunizieren.',
+                'text' => 'Nutzen Sie Status-Labels, öffentliche Statusseiten, Widgets und Uptime-Historie, um Zuverlässigkeit transparent zu kommunizieren.',
             ],
         ],
     ],
@@ -184,7 +204,7 @@ return [
             ],
             '3' => [
                 'label' => 'Empfohlene Monitor-Typen',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS-Eintrag',
             ],
         ],
     ],

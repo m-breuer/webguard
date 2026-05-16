@@ -5,10 +5,10 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with configurable alerts, weekly digests, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with integrations, widgets, configurable alerts, weekly digests, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, embeddable monitoring widget, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
-        'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, and Heartbeat monitoring, clear notifications, and easy-to-read uptime reporting.',
+        'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, Heartbeat, Server Health, and DNS monitoring, clear notifications, and transparent status pages.',
     ],
 
     'nav' => [
@@ -53,7 +53,7 @@ return [
         'http' => [
             'badge' => 'Core',
             'title' => 'HTTP Monitoring',
-            'text' => 'Monitor API and website endpoints with latency and status-code validation.',
+            'text' => 'Monitor API and website endpoints with latency, method, header, body, auth, and status-code validation.',
         ],
         'http_expectations' => [
             'badge' => 'Control',
@@ -85,10 +85,15 @@ return [
             'title' => 'Server Health Monitoring',
             'text' => 'Accept pushed CPU, RAM, storage, load, and uptime reports with per-monitor thresholds before health reports are marked down.',
         ],
+        'dns_record' => [
+            'badge' => 'DNS',
+            'title' => 'DNS Record Monitoring',
+            'text' => 'Track expected A, AAAA, CNAME, MX, TXT, NS, SOA, and CAA records and alert when monitoring instances report mismatches.',
+        ],
         'notifications' => [
             'badge' => 'Alerts',
             'title' => 'Incident and Status Notifications',
-            'text' => 'Receive incident, recovery, SSL, and domain expiry updates through multiple channels so response stays fast and coordinated.',
+            'text' => 'Receive incident, recovery, SSL, and domain expiry updates through Slack, Telegram, Discord, Microsoft Teams, webhooks, and in-app notifications.',
         ],
         'weekly_digest' => [
             'badge' => 'Reports',
@@ -115,6 +120,21 @@ return [
             'title' => 'Monitoring from Multiple Locations',
             'text' => 'Cross-region checks help isolate local outages and reduce false positives.',
         ],
+        'public_status_pages' => [
+            'badge' => 'Transparency',
+            'title' => 'Public Status Pages',
+            'text' => 'Publish component-based status pages with recent incidents, manual incident updates, subscriber emails, and active or upcoming maintenance windows.',
+        ],
+        'embeddable_widget' => [
+            'badge' => 'Embed',
+            'title' => 'Embeddable Status Widget',
+            'text' => 'Add a lightweight JavaScript widget to external sites or dashboards so visitors can see live monitoring status where they already work.',
+        ],
+        'rest_api' => [
+            'badge' => 'API',
+            'title' => 'REST API and Integrations',
+            'text' => 'Use token-based API access and the API reference to connect monitoring data with external tools, automation, and reporting workflows.',
+        ],
     ],
 
     'visuals' => [
@@ -134,7 +154,7 @@ return [
             ],
             'public_status' => [
                 'title' => 'Public Status Labels',
-                'text' => 'Share transparent availability updates in a clear, branded format.',
+                'text' => 'Share transparent availability, maintenance, and incident updates in a clear, branded format.',
                 'alt' => 'Public status preview displaying operational, degraded, and incident labels',
             ],
         ],
@@ -147,15 +167,15 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Create monitors',
-                'text' => 'Add HTTP, Ping, Keyword, Port, Heartbeat, or Server Health checks and set your target interval.',
+                'text' => 'Add HTTP, Ping, Keyword, Port, Heartbeat, Server Health, or DNS Record checks and set your target interval.',
             ],
             '2' => [
                 'title' => 'Define alerts',
-                'text' => 'Choose notification channels and receive incident updates without delay.',
+                'text' => 'Choose Slack, Telegram, Discord, Microsoft Teams, webhook, or in-app channels and receive incident updates without delay.',
             ],
             '3' => [
                 'title' => 'Share status',
-                'text' => 'Use status labels and uptime history to communicate reliability with stakeholders.',
+                'text' => 'Use status labels, public status pages, widgets, and uptime history to communicate reliability with stakeholders.',
             ],
         ],
     ],
@@ -184,7 +204,7 @@ return [
             ],
             '3' => [
                 'label' => 'Recommended monitor types',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS Record',
             ],
         ],
     ],

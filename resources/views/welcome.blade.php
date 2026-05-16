@@ -89,7 +89,7 @@
                 <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.feature_section.subtitle') }}</x-paragraph>
 
                 <div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    @foreach (['http', 'http_expectations', 'ping', 'keyword', 'port', 'heartbeat', 'server_health', 'notifications', 'weekly_digest', 'ssl', 'domain_expiration', 'stats', 'multi_location'] as $feature)
+                    @foreach (['http', 'http_expectations', 'ping', 'keyword', 'port', 'heartbeat', 'server_health', 'dns_record', 'notifications', 'weekly_digest', 'ssl', 'domain_expiration', 'stats', 'multi_location', 'public_status_pages', 'embeddable_widget', 'rest_api'] as $feature)
                         <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-950/20">
                             <div class="flex items-center justify-between gap-4">
                                 <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">
@@ -122,6 +122,10 @@
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16V8a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 13h2l1-3 2 5 1-2h4" /></svg>
                                         @break
 
+                                        @case('dns_record')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M5 12h14M5 17h14" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v10m8-10v10" /></svg>
+                                        @break
+
                                         @case('notifications')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0" /></svg>
                                         @break
@@ -144,6 +148,18 @@
 
                                         @case('multi_location')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18z" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3c2.5 2.4 2.5 15.6 0 18" /></svg>
+                                        @break
+
+                                        @case('public_status_pages')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 10h5m-5 4h10m0-4h.01" /></svg>
+                                        @break
+
+                                        @case('embeddable_widget')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 8l-4 4 4 4m8-8l4 4-4 4" /><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l-2 14" /></svg>
+                                        @break
+
+                                        @case('rest_api')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M7 12h10M9 17h6" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" /></svg>
                                         @break
                                     @endswitch
                                 </div>
