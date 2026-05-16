@@ -38,7 +38,7 @@ final class MonitoringPayload
             $validated['server_health_token'] = $serverHealthToken;
             $validated['target'] = route('v1.server-health.store', ['token' => $serverHealthToken]);
 
-            return self::applyNonHttpDefaults($validated);
+            return self::applyServerHealthDefaults($validated);
         }
 
         if ($type !== MonitoringType::HEARTBEAT) {
@@ -82,7 +82,7 @@ final class MonitoringPayload
         if ($monitoring->isServerHealth()) {
             $validated['target'] = $monitoring->target;
 
-            return self::applyNonHttpDefaults($validated);
+            return self::applyServerHealthDefaults($validated);
         }
 
         if (! $monitoring->isHeartbeat()) {
@@ -145,5 +145,18 @@ final class MonitoringPayload
         }
 
         return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private static function applyServerHealthDefaults(array $validated): array
+    {
+        $validated['server_health_cpu_threshold_percent'] = (float) ($validated['server_health_cpu_threshold_percent'] ?? 90);
+        $validated['server_health_ram_threshold_percent'] = (float) ($validated['server_health_ram_threshold_percent'] ?? 90);
+        $validated['server_health_storage_threshold_percent'] = (float) ($validated['server_health_storage_threshold_percent'] ?? 90);
+
+        return self::applyNonHttpDefaults($validated);
     }
 }

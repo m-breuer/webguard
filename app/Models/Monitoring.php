@@ -62,6 +62,9 @@ use Spatie\Activitylog\Support\LogOptions;
     'heartbeat_last_ping_at',
     'server_health_token',
     'server_health_last_reported_at',
+    'server_health_cpu_threshold_percent',
+    'server_health_ram_threshold_percent',
+    'server_health_storage_threshold_percent',
 ])]
 #[Table(name: 'monitorings', key: 'id', keyType: 'string')]
 class Monitoring extends Model
@@ -329,6 +332,9 @@ class Monitoring extends Model
             'maintenance_until' => 'datetime',
             'heartbeat_last_ping_at' => 'datetime',
             'server_health_last_reported_at' => 'datetime',
+            'server_health_cpu_threshold_percent' => 'float',
+            'server_health_ram_threshold_percent' => 'float',
+            'server_health_storage_threshold_percent' => 'float',
         ];
     }
 }

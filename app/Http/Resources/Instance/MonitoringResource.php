@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Instance;
 
+use App\Enums\MonitoringType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -43,6 +44,9 @@ class MonitoringResource extends JsonResource
             'heartbeat_grace_minutes' => $this->heartbeat_grace_minutes,
             'heartbeat_last_ping_at' => $this->heartbeat_last_ping_at,
             'server_health_last_reported_at' => $this->server_health_last_reported_at,
+            'server_health_cpu_threshold_percent' => $this->when($this->type === MonitoringType::SERVER_HEALTH, $this->server_health_cpu_threshold_percent),
+            'server_health_ram_threshold_percent' => $this->when($this->type === MonitoringType::SERVER_HEALTH, $this->server_health_ram_threshold_percent),
+            'server_health_storage_threshold_percent' => $this->when($this->type === MonitoringType::SERVER_HEALTH, $this->server_health_storage_threshold_percent),
             'latest_server_health_metrics' => $this->whenLoaded('latestResponseResult', fn () => $this->latestResponseResult?->server_health_metrics),
             'domain_expires_at' => $this->whenLoaded('domainResult', fn () => $this->domainResult?->expires_at),
             'domain_registrar' => $this->whenLoaded('domainResult', fn () => $this->domainResult?->registrar),

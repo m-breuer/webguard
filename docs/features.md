@@ -6,6 +6,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 
 - **Uptime monitoring:** keep a close eye on website availability with asynchronous uptime checks.
 - **Heartbeat and cron monitoring:** detect stalled cron jobs, workers, and background tasks with private heartbeat ping URLs.
+- **Server health monitoring:** accept pushed CPU, RAM, storage, load, uptime, and custom metric reports with configurable per-monitor usage thresholds.
 - **Response time tracking:** monitor website performance by recording response times.
 - **Expected HTTP status ranges:** define accepted HTTP status codes or ranges per HTTP or keyword monitoring, such as `200-299, 301, 302`.
 - **DNS record monitoring:** track expected `A`, `AAAA`, `CNAME`, `MX`, `TXT`, `NS`, `SOA`, or `CAA` records and alert through the normal incident flow when a monitoring instance reports a mismatch.

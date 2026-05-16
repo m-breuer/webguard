@@ -242,6 +242,20 @@
                             {{ __('monitoring.detail.server_health.last_report') }} {{ $monitoring->server_health_last_reported_at->diffForHumans() }}
                         </x-paragraph>
                     @endif
+                    <div class="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                        <div>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.cpu_threshold') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_cpu_threshold_percent }}%</x-paragraph>
+                        </div>
+                        <div>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.ram_threshold') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_ram_threshold_percent }}%</x-paragraph>
+                        </div>
+                        <div>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.storage_threshold') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_storage_threshold_percent }}%</x-paragraph>
+                        </div>
+                    </div>
                     <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
                         <a href="{{ url('/api/docs') }}" target="_blank" rel="noopener"
                             class="text-purple-800 underline dark:text-purple-400">

@@ -44,6 +44,9 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
             'status' => MonitoringLifecycleStatus::ACTIVE,
             'server_health_token' => 'server-health-token',
             'target' => route('v1.server-health.store', ['token' => 'server-health-token']),
+            'server_health_cpu_threshold_percent' => 85,
+            'server_health_ram_threshold_percent' => 80,
+            'server_health_storage_threshold_percent' => 95,
         ]);
 
         $testResponse = $this->withHeaders([
@@ -79,5 +82,8 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
 
         $serverHealthResponse->assertOk();
         $serverHealthResponse->assertJsonFragment(['id' => $serverHealthMonitoring->id]);
+        $serverHealthResponse->assertJsonFragment(['server_health_cpu_threshold_percent' => 85]);
+        $serverHealthResponse->assertJsonFragment(['server_health_ram_threshold_percent' => 80]);
+        $serverHealthResponse->assertJsonFragment(['server_health_storage_threshold_percent' => 95]);
     }
 }

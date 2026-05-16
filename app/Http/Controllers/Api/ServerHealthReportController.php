@@ -21,7 +21,7 @@ class ServerHealthReportController extends Controller
      * Use the private endpoint generated for a Server Health monitoring. Send
      * CPU, RAM, and storage percentages from your server agent or cron script.
      * If no explicit status is supplied, WebGuard marks the report down when
-     * any percentage metric is at or above 90%.
+     * any percentage metric reaches that monitor's configured threshold.
      *
      * @group Server Health
      *
@@ -78,7 +78,7 @@ class ServerHealthReportController extends Controller
 
         $status = isset($validated['status'])
             ? MonitoringStatus::from($validated['status'])
-            : $this->statusFromMetrics($metrics);
+            : $this->statusFromMetrics($metrics, $monitoring);
 
         $timestamp = now();
 
@@ -104,6 +104,11 @@ class ServerHealthReportController extends Controller
             'message' => 'Server health report accepted.',
             'status' => $status->value,
             'metrics' => $metrics,
+            'thresholds' => [
+                'cpu_usage_percent' => $this->thresholdFor($monitoring, 'server_health_cpu_threshold_percent'),
+                'ram_usage_percent' => $this->thresholdFor($monitoring, 'server_health_ram_threshold_percent'),
+                'storage_usage_percent' => $this->thresholdFor($monitoring, 'server_health_storage_threshold_percent'),
+            ],
         ]);
     }
 
@@ -141,14 +146,27 @@ class ServerHealthReportController extends Controller
     /**
      * @param  array<string, mixed>  $metrics
      */
-    private function statusFromMetrics(array $metrics): MonitoringStatus
+    private function statusFromMetrics(array $metrics, Monitoring $monitoring): MonitoringStatus
     {
-        foreach (['cpu_usage_percent', 'ram_usage_percent', 'storage_usage_percent'] as $key) {
-            if (isset($metrics[$key]) && (float) $metrics[$key] >= 90.0) {
+        $thresholds = [
+            'cpu_usage_percent' => $this->thresholdFor($monitoring, 'server_health_cpu_threshold_percent'),
+            'ram_usage_percent' => $this->thresholdFor($monitoring, 'server_health_ram_threshold_percent'),
+            'storage_usage_percent' => $this->thresholdFor($monitoring, 'server_health_storage_threshold_percent'),
+        ];
+
+        foreach ($thresholds as $key => $threshold) {
+            if (isset($metrics[$key]) && (float) $metrics[$key] >= $threshold) {
                 return MonitoringStatus::DOWN;
             }
         }
 
         return MonitoringStatus::UP;
+    }
+
+    private function thresholdFor(Monitoring $monitoring, string $attribute): float
+    {
+        $threshold = $monitoring->getAttribute($attribute);
+
+        return is_numeric($threshold) ? (float) $threshold : 90.0;
     }
 }

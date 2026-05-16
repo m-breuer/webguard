@@ -62,6 +62,9 @@ class ServerHealthMonitoringTest extends TestCase
             'type' => MonitoringType::SERVER_HEALTH->value,
             'status' => MonitoringLifecycleStatus::ACTIVE->value,
             'preferred_location' => $this->serverInstance->code,
+            'server_health_cpu_threshold_percent' => 85,
+            'server_health_ram_threshold_percent' => 80,
+            'server_health_storage_threshold_percent' => 95,
         ]);
 
         $testResponse->assertRedirect(route('monitorings.index'));
@@ -74,6 +77,35 @@ class ServerHealthMonitoringTest extends TestCase
             route('v1.server-health.store', ['token' => $monitoring->server_health_token]),
             $monitoring->target
         );
+        $this->assertSame(85.0, $monitoring->server_health_cpu_threshold_percent);
+        $this->assertSame(80.0, $monitoring->server_health_ram_threshold_percent);
+        $this->assertSame(95.0, $monitoring->server_health_storage_threshold_percent);
+    }
+
+    public function test_it_updates_server_health_thresholds(): void
+    {
+        $monitoring = $this->createServerHealthMonitoring([
+            'server_health_cpu_threshold_percent' => 90,
+            'server_health_ram_threshold_percent' => 90,
+            'server_health_storage_threshold_percent' => 90,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), [
+            'name' => 'Production Server',
+            'type' => MonitoringType::SERVER_HEALTH->value,
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'preferred_location' => $this->serverInstance->code,
+            'server_health_cpu_threshold_percent' => 92.5,
+            'server_health_ram_threshold_percent' => 82.25,
+            'server_health_storage_threshold_percent' => 97,
+        ]);
+
+        $testResponse->assertRedirect(route('monitorings.show', $monitoring));
+
+        $monitoring->refresh();
+        $this->assertSame(92.5, $monitoring->server_health_cpu_threshold_percent);
+        $this->assertSame(82.25, $monitoring->server_health_ram_threshold_percent);
+        $this->assertSame(97.0, $monitoring->server_health_storage_threshold_percent);
     }
 
     public function test_server_health_endpoint_stores_metrics_and_updates_last_report_timestamp(): void
@@ -126,6 +158,57 @@ class ServerHealthMonitoringTest extends TestCase
         ]);
     }
 
+    public function test_server_health_endpoint_uses_custom_thresholds(): void
+    {
+        $monitoring = $this->createServerHealthMonitoring([
+            'server_health_cpu_threshold_percent' => 95,
+            'server_health_ram_threshold_percent' => 75,
+            'server_health_storage_threshold_percent' => 98,
+        ]);
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'cpu_usage_percent' => 91.0,
+            'ram_usage_percent' => 74.0,
+            'storage_usage_percent' => 97.0,
+        ])->assertOk()
+            ->assertJsonPath('status', MonitoringStatus::UP->value)
+            ->assertJsonPath('thresholds.cpu_usage_percent', 95)
+            ->assertJsonPath('thresholds.ram_usage_percent', 75)
+            ->assertJsonPath('thresholds.storage_usage_percent', 98);
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'ram_usage_percent' => 75.0,
+        ])->assertOk()
+            ->assertJsonPath('status', MonitoringStatus::DOWN->value);
+
+        $this->assertDatabaseHas('monitoring_response_results', [
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::DOWN->value,
+            'http_status_code' => 503,
+        ]);
+    }
+
+    public function test_server_health_thresholds_must_be_between_one_and_one_hundred(): void
+    {
+        $testResponse = $this->from(route('monitorings.create'))
+            ->actingAs($this->user)
+            ->post(route('monitorings.store'), [
+                'name' => 'Production Server',
+                'type' => MonitoringType::SERVER_HEALTH->value,
+                'status' => MonitoringLifecycleStatus::ACTIVE->value,
+                'preferred_location' => $this->serverInstance->code,
+                'server_health_cpu_threshold_percent' => 0,
+                'server_health_ram_threshold_percent' => 101,
+                'server_health_storage_threshold_percent' => 90,
+            ]);
+
+        $testResponse->assertRedirect(route('monitorings.create'));
+        $testResponse->assertSessionHasErrors([
+            'server_health_cpu_threshold_percent',
+            'server_health_ram_threshold_percent',
+        ]);
+    }
+
     public function test_server_health_endpoint_rejects_empty_reports(): void
     {
         $monitoring = $this->createServerHealthMonitoring();
@@ -135,18 +218,21 @@ class ServerHealthMonitoringTest extends TestCase
             ->assertJsonValidationErrors(['metrics']);
     }
 
-    private function createServerHealthMonitoring(): Monitoring
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function createServerHealthMonitoring(array $overrides = []): Monitoring
     {
         $token = (string) fake()->unique()->uuid();
 
         return Monitoring::factory()
             ->serverHealth()
             ->for($this->user)
-            ->create([
+            ->create(array_merge([
                 'preferred_location' => $this->serverInstance->code,
                 'status' => MonitoringLifecycleStatus::ACTIVE,
                 'server_health_token' => $token,
                 'target' => route('v1.server-health.store', ['token' => $token]),
-            ]);
+            ], $overrides));
     }
 }
