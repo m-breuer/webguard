@@ -6,12 +6,20 @@ namespace Tests\Feature;
 
 use App\Models\Package;
 use App\Models\User;
+use App\Support\SitemapPages;
 use PHPUnit\Framework\Attributes\DataProvider;
 use SimpleXMLElement;
 use Tests\TestCase;
 
 class PublicIndexingTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->configureImprint();
+    }
+
     /**
      * @return array<string, array{0: string}>
      */
@@ -88,7 +96,7 @@ class PublicIndexingTest extends TestCase
         $testResponse->assertDontSeeHtml('name="csrf-token"');
     }
 
-    public function test_sitemap_does_not_list_robots_blocked_legal_pages(): void
+    public function test_sitemap_lists_all_crawlable_public_pages(): void
     {
         $testResponse = $this->get(route('sitemap'));
 
@@ -96,10 +104,6 @@ class PublicIndexingTest extends TestCase
         foreach (self::expectedIndexablePageRouteNames() as $routeName) {
             $testResponse->assertSeeHtml(route($routeName));
         }
-
-        $testResponse->assertDontSeeHtml(route('imprint'));
-        $testResponse->assertDontSeeHtml(route('terms-of-use'));
-        $testResponse->assertDontSeeHtml(route('gdpr'));
     }
 
     public function test_dynamic_sitemap_lists_exactly_the_indexable_public_pages(): void
@@ -114,7 +118,7 @@ class PublicIndexingTest extends TestCase
         );
     }
 
-    public function test_generated_sitemap_does_not_list_robots_blocked_legal_pages(): void
+    public function test_generated_sitemap_lists_all_crawlable_public_pages(): void
     {
         $sitemapPath = public_path('sitemap.xml');
 
@@ -131,11 +135,18 @@ class PublicIndexingTest extends TestCase
             $this->assertStringContainsString(route($routeName), $sitemapContent);
         }
 
-        $this->assertStringNotContainsString(route('imprint'), $sitemapContent);
-        $this->assertStringNotContainsString(route('terms-of-use'), $sitemapContent);
-        $this->assertStringNotContainsString(route('gdpr'), $sitemapContent);
-
         unlink($sitemapPath);
+    }
+
+    public function test_robots_txt_allows_all_pages_to_be_crawled(): void
+    {
+        $robotsContent = file_get_contents(public_path('robots.txt'));
+
+        $this->assertIsString($robotsContent);
+        $this->assertStringContainsString('User-agent: *', $robotsContent);
+        $this->assertStringContainsString('Allow: /', $robotsContent);
+        $this->assertStringContainsString('Sitemap: https://webguard.m-breuer.dev/sitemap.xml', $robotsContent);
+        $this->assertStringNotContainsString('Disallow:', $robotsContent);
     }
 
     public function test_generated_sitemap_lists_exactly_the_indexable_public_pages(): void
@@ -164,10 +175,7 @@ class PublicIndexingTest extends TestCase
      */
     private static function expectedIndexablePageRouteNames(): array
     {
-        return [
-            'welcome',
-            'monitoring-locations',
-        ];
+        return SitemapPages::routeNames();
     }
 
     /**
@@ -216,5 +224,16 @@ class PublicIndexingTest extends TestCase
         sort($locations);
 
         return $locations;
+    }
+
+    private function configureImprint(): void
+    {
+        config()->set('imprint.operator_name', 'Max Mustermann');
+        config()->set('imprint.street', 'Musterstrasse 1');
+        config()->set('imprint.postal_code', '10115');
+        config()->set('imprint.city', 'Berlin');
+        config()->set('imprint.country', 'Germany');
+        config()->set('imprint.email', 'max@example.test');
+        config()->set('imprint.phone', '+49 1512 3456789');
     }
 }

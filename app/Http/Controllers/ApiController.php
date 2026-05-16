@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 /**
- * @group Public API
+ * @group Monitoring API
  *
  * This controller is responsible for handling all API requests related to monitoring data.
  * It provides endpoints for retrieving uptime/downtime, response times, incidents, and other monitoring statistics.

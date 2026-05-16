@@ -13,7 +13,6 @@
     <x-slot:keywords>{{ __('gdpr.seo.keywords') }}</x-slot:keywords>
     <x-slot:ogTitle>{{ __('gdpr.seo.og_title') }}</x-slot:ogTitle>
     <x-slot:ogDescription>{{ __('gdpr.seo.og_description') }}</x-slot:ogDescription>
-    <x-slot:robots>noindex, nofollow</x-slot:robots>
     <x-slot:canonical>{{ route('gdpr') }}</x-slot:canonical>
 
     <main class="py-14 lg:py-20">

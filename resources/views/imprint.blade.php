@@ -4,7 +4,6 @@
     <x-slot:keywords>{{ __('imprint.seo.keywords') }}</x-slot:keywords>
     <x-slot:ogTitle>{{ __('imprint.seo.og_title') }}</x-slot:ogTitle>
     <x-slot:ogDescription>{{ __('imprint.seo.og_description') }}</x-slot:ogDescription>
-    <x-slot:robots>noindex, nofollow</x-slot:robots>
     <x-slot:canonical>{{ route('imprint') }}</x-slot:canonical>
 
     <main class="py-14 lg:py-20">

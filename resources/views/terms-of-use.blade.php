@@ -4,7 +4,6 @@
     <x-slot:keywords>{{ __('legal.terms_of_use.seo.keywords') }}</x-slot:keywords>
     <x-slot:ogTitle>{{ __('legal.terms_of_use.seo.og_title') }}</x-slot:ogTitle>
     <x-slot:ogDescription>{{ __('legal.terms_of_use.seo.og_description') }}</x-slot:ogDescription>
-    <x-slot:robots>noindex, nofollow</x-slot:robots>
     <x-slot:canonical>{{ route('terms-of-use') }}</x-slot:canonical>
 
     <main class="py-14 lg:py-20">

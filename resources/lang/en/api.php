@@ -35,8 +35,8 @@ return [
         ],
     ],
     'docs' => [
-        'heading' => 'API Documentation',
-        'description' => 'All available endpoints, authentication, and usage examples.',
-        'link' => 'Explore the latest documentation here.',
+        'heading' => 'API Reference',
+        'description' => 'Review the monitoring endpoints, authentication flow, and request examples for your integrations.',
+        'link' => 'Open the API reference.',
     ],
 ];

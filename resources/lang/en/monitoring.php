@@ -167,7 +167,7 @@ return [
             'heading' => 'Server Health Endpoint',
             'endpoint' => 'Report URL',
             'last_report' => 'Last report received',
-            'docs_link' => 'Open server health API documentation',
+            'docs_link' => 'Open the monitoring API reference',
         ],
         'domain' => [
             'heading' => 'Domain Expiration',
@@ -242,7 +242,7 @@ return [
         'heartbeat_ping_url_help' => 'Use this private ping URL in your cron job or worker. It is generated automatically and cannot be edited manually.',
         'server_health_target_generated' => 'The server health report URL will be generated automatically after saving.',
         'server_health_help' => 'WebGuard creates a private API endpoint for this monitor. Post CPU, RAM, storage, and optional health values from your server agent or cron script.',
-        'server_health_docs_link' => 'Open the API documentation for the payload format',
+        'server_health_docs_link' => 'Open the monitoring API reference for the payload format',
         'server_health_endpoint_help' => 'Use this private API endpoint to post server health reports. It is generated automatically and cannot be edited manually.',
         'placeholders' => [
             'http_target' => 'e.g. https://example.com',

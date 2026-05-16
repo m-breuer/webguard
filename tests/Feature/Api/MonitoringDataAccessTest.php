@@ -29,14 +29,14 @@ class MonitoringDataAccessTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create([
-            'name' => 'Public API',
+            'name' => 'Public Monitoring',
             'public_label_enabled' => true,
         ]);
 
         $testResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertOk()
-            ->assertJsonPath('monitoring.name', 'Public API');
+            ->assertJsonPath('monitoring.name', 'Public Monitoring');
     }
 
     public function test_shared_monitoring_data_endpoint_allows_private_monitoring_for_owner(): void
