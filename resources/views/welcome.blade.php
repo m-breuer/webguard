@@ -89,7 +89,7 @@
                 <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.feature_section.subtitle') }}</x-paragraph>
 
                 <div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    @foreach (['http', 'http_expectations', 'ping', 'keyword', 'port', 'heartbeat', 'notifications', 'weekly_digest', 'ssl', 'domain_expiration', 'stats', 'multi_location'] as $feature)
+                    @foreach (['http', 'http_expectations', 'ping', 'keyword', 'port', 'heartbeat', 'server_health', 'notifications', 'weekly_digest', 'ssl', 'domain_expiration', 'stats', 'multi_location'] as $feature)
                         <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-950/20">
                             <div class="flex items-center justify-between gap-4">
                                 <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">
@@ -116,6 +116,10 @@
 
                                         @case('heartbeat')
                                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h3l2-5 4 10 2-5h5" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v2m0 12v2m8-8h-2M6 12H4" /></svg>
+                                        @break
+
+                                        @case('server_health')
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16V8a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 13h2l1-3 2 5 1-2h4" /></svg>
                                         @break
 
                                         @case('notifications')

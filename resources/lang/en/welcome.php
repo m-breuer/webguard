@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, DNS record, SSL, and domain expiry checks with configurable alerts, weekly digests, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with configurable alerts, weekly digests, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
         'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, and Heartbeat monitoring, clear notifications, and easy-to-read uptime reporting.',
     ],
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Coverage',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, DNS, SSL, and domains',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, and domains',
             ],
             '3' => [
                 'label' => 'Operation',
@@ -79,6 +79,11 @@ return [
             'badge' => 'Cronjobs',
             'title' => 'Heartbeat Monitoring',
             'text' => 'Monitor cronjobs, workers, and background processes through private ping URLs and expected intervals.',
+        ],
+        'server_health' => [
+            'badge' => 'Servers',
+            'title' => 'Server Health Monitoring',
+            'text' => 'Accept pushed CPU, RAM, storage, load, and uptime reports with per-monitor thresholds before health reports are marked down.',
         ],
         'notifications' => [
             'badge' => 'Alerts',
@@ -142,7 +147,7 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Create monitors',
-                'text' => 'Add HTTP, Ping, Keyword, Port, or Heartbeat checks and set your target interval.',
+                'text' => 'Add HTTP, Ping, Keyword, Port, Heartbeat, or Server Health checks and set your target interval.',
             ],
             '2' => [
                 'title' => 'Define alerts',
@@ -179,7 +184,7 @@ return [
             ],
             '3' => [
                 'label' => 'Recommended monitor types',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health',
             ],
         ],
     ],

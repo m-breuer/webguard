@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
         'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port- und Heartbeat-Checks, klaren Benachrichtigungen und nachvollziehbaren Uptime-Reports.',
     ],
@@ -34,7 +34,7 @@ return [
             ],
             '2' => [
                 'label' => 'Abdeckung',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, DNS, SSL und Domains',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL und Domains',
             ],
             '3' => [
                 'label' => 'Betrieb',
@@ -79,6 +79,11 @@ return [
             'badge' => 'Cronjobs',
             'title' => 'Heartbeat Monitoring',
             'text' => 'Überwachen Sie Cronjobs, Worker und Hintergrundprozesse über private Ping-URLs und erwartete Intervalle.',
+        ],
+        'server_health' => [
+            'badge' => 'Server',
+            'title' => 'Server-Zustand-Monitoring',
+            'text' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als down gelten.',
         ],
         'notifications' => [
             'badge' => 'Alerts',
@@ -142,7 +147,7 @@ return [
         'steps' => [
             '1' => [
                 'title' => 'Monitore erstellen',
-                'text' => 'Legen Sie HTTP-, Ping-, Keyword-, Port- oder Heartbeat-Checks an und definieren Sie das Intervall.',
+                'text' => 'Legen Sie HTTP-, Ping-, Keyword-, Port-, Heartbeat- oder Server-Zustand-Checks an und definieren Sie das Intervall.',
             ],
             '2' => [
                 'title' => 'Alerts festlegen',
@@ -179,7 +184,7 @@ return [
             ],
             '3' => [
                 'label' => 'Empfohlene Monitor-Typen',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand',
             ],
         ],
     ],
