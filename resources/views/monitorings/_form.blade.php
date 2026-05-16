@@ -170,12 +170,42 @@
     </template>
 
     <template x-if="type === '{{ MonitoringType::SERVER_HEALTH->value }}'">
-        <div class="mt-4 rounded-md border border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
-            <p>{{ __('monitoring.form.server_health_help') }}</p>
-            <a href="{{ route('scribe') }}" target="_blank" rel="noopener"
-                class="mt-2 inline-block text-purple-800 underline dark:text-purple-400">
-                {{ __('monitoring.form.server_health_docs_link') }}
-            </a>
+        <div class="mt-4 space-y-4">
+            <div class="rounded-md border border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                <p>{{ __('monitoring.form.server_health_help') }}</p>
+                <a href="{{ route('scribe') }}" target="_blank" rel="noopener"
+                    class="mt-2 inline-block text-purple-800 underline dark:text-purple-400">
+                    {{ __('monitoring.form.server_health_docs_link') }}
+                </a>
+            </div>
+
+            <div>
+                <x-heading type="h3" class="text-base">{{ __('monitoring.form.server_health_thresholds') }}</x-heading>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('monitoring.form.server_health_thresholds_help') }}
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                    <x-input-label for="server_health_cpu_threshold_percent" :value="__('monitoring.form.server_health_cpu_threshold_percent')" />
+                    <x-text-input id="server_health_cpu_threshold_percent" type="number" min="1" max="100"
+                        step="0.01" name="server_health_cpu_threshold_percent" :value="old('server_health_cpu_threshold_percent', $monitoring->server_health_cpu_threshold_percent ?? 90)" />
+                    <x-input-error :messages="$errors->get('server_health_cpu_threshold_percent')" />
+                </div>
+                <div>
+                    <x-input-label for="server_health_ram_threshold_percent" :value="__('monitoring.form.server_health_ram_threshold_percent')" />
+                    <x-text-input id="server_health_ram_threshold_percent" type="number" min="1" max="100"
+                        step="0.01" name="server_health_ram_threshold_percent" :value="old('server_health_ram_threshold_percent', $monitoring->server_health_ram_threshold_percent ?? 90)" />
+                    <x-input-error :messages="$errors->get('server_health_ram_threshold_percent')" />
+                </div>
+                <div>
+                    <x-input-label for="server_health_storage_threshold_percent" :value="__('monitoring.form.server_health_storage_threshold_percent')" />
+                    <x-text-input id="server_health_storage_threshold_percent" type="number" min="1" max="100"
+                        step="0.01" name="server_health_storage_threshold_percent" :value="old('server_health_storage_threshold_percent', $monitoring->server_health_storage_threshold_percent ?? 90)" />
+                    <x-input-error :messages="$errors->get('server_health_storage_threshold_percent')" />
+                </div>
+            </div>
         </div>
     </template>
 

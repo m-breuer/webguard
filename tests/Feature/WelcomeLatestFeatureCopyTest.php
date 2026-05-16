@@ -11,7 +11,7 @@ use Tests\TestCase;
 class WelcomeLatestFeatureCopyTest extends TestCase
 {
     /**
-     * @return array<string, array{0: string, 1: string, 2: string, 3: string, 4: string, 5: string, 6: string}>
+     * @return array<string, array{0: string, 1: string, 2: string, 3: string, 4: string, 5: string, 6: string, 7: string, 8: string}>
      */
     public static function latestFeatureCopyProvider(): array
     {
@@ -24,6 +24,8 @@ class WelcomeLatestFeatureCopyTest extends TestCase
                 'weekly email summaries with uptime, incidents, longest downtime',
                 'Domain Expiration Checks',
                 'send proactive renewal warnings',
+                'Server Health Monitoring',
+                'per-monitor thresholds before health reports are marked down',
             ],
             'german' => [
                 'de',
@@ -33,6 +35,49 @@ class WelcomeLatestFeatureCopyTest extends TestCase
                 'wöchentliche E-Mail-Zusammenfassungen mit Uptime, Incidents, längster Downtime',
                 'Domain-Ablaufprüfungen',
                 'proaktive Verlängerungswarnungen',
+                'Server-Zustand-Monitoring',
+                'pro Monitor eigene Schwellen',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: list<string>}>
+     */
+    public static function featureTeaserCoverageProvider(): array
+    {
+        return [
+            'english' => [
+                'en',
+                [
+                    'DNS Record Monitoring',
+                    'Track expected A, AAAA, CNAME, MX, TXT, NS, SOA, and CAA records',
+                    'Slack, Telegram, Discord, Microsoft Teams, webhooks',
+                    'Public Status Pages',
+                    'component-based status pages with recent incidents, manual incident updates, subscriber emails',
+                    'Embeddable Status Widget',
+                    'lightweight JavaScript widget',
+                    'REST API and Integrations',
+                    'token-based API access and the API reference',
+                    'method, header, body, auth, and status-code validation',
+                    'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS Record',
+                ],
+            ],
+            'german' => [
+                'de',
+                [
+                    'DNS-Eintragsmonitoring',
+                    'A-, AAAA-, CNAME-, MX-, TXT-, NS-, SOA- und CAA-Einträge',
+                    'Slack, Telegram, Discord, Microsoft Teams, Webhooks',
+                    'Öffentliche Statusseiten',
+                    'komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos',
+                    'Einbettbares Status-Widget',
+                    'schlankes JavaScript-Widget',
+                    'REST API und Integrationen',
+                    'tokenbasierten API-Zugriff und die API-Referenz',
+                    'Methode, Headern, Body, Authentifizierung und Statuscode-Prüfung',
+                    'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS-Eintrag',
+                ],
             ],
         ];
     }
@@ -45,7 +90,9 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         string $expectedDigestTitle,
         string $expectedDigestText,
         string $expectedDomainTitle,
-        string $expectedDomainText
+        string $expectedDomainText,
+        string $expectedServerHealthTitle,
+        string $expectedServerHealthText
     ): void {
         $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
 
@@ -56,6 +103,8 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $testResponse->assertSeeText($expectedDigestText);
         $testResponse->assertSeeText($expectedDomainTitle);
         $testResponse->assertSeeText($expectedDomainText);
+        $testResponse->assertSeeText($expectedServerHealthTitle);
+        $testResponse->assertSeeText($expectedServerHealthText);
     }
 
     public function test_documentation_covers_latest_features(): void
@@ -72,5 +121,19 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $this->assertStringContainsString('weekly uptime, incident, downtime, SSL, and domain expiry summaries', $features);
         $this->assertStringContainsString('receive proactive renewal warnings', $features);
         $this->assertStringContainsString('status changes, SSL expiry, and domain expiry', $features);
+        $this->assertStringContainsString('Server health monitoring', $features);
+        $this->assertStringContainsString('configurable per-monitor usage thresholds', $features);
+    }
+
+    #[DataProvider('featureTeaserCoverageProvider')]
+    public function test_it_teases_existing_product_surfaces_on_the_welcome_page(string $locale, array $expectedCopy): void
+    {
+        $testResponse = $this->withCookie(SupportedLanguage::cookieName(), $locale)->get('/');
+
+        $testResponse->assertOk();
+
+        foreach ($expectedCopy as $copy) {
+            $testResponse->assertSeeText($copy);
+        }
     }
 }

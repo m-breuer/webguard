@@ -92,6 +92,9 @@ class MonitoringRequest extends FormRequest
             'status' => ['required', Rule::enum(MonitoringLifecycleStatus::class)],
             'heartbeat_interval_minutes' => ['nullable', 'required_if:type,heartbeat', 'integer', 'min:1', 'max:10080'],
             'heartbeat_grace_minutes' => ['nullable', 'required_if:type,heartbeat', 'integer', 'min:0', 'max:1440'],
+            'server_health_cpu_threshold_percent' => $this->serverHealthThresholdRules(),
+            'server_health_ram_threshold_percent' => $this->serverHealthThresholdRules(),
+            'server_health_storage_threshold_percent' => $this->serverHealthThresholdRules(),
             'timeout' => [
                 function ($attribute, $value, $fail): void {
                     $user = $this->user();
@@ -243,7 +246,7 @@ class MonitoringRequest extends FormRequest
         $dnsRecordType = DnsRecordExpectation::normalizeRecordType($this->input('dns_record_type'));
         $dnsExpectedValues = $this->normalizeDnsExpectedValues($type, $dnsRecordType);
 
-        $this->merge([
+        $prepared = [
             'type' => $type,
             'http_headers' => $httpHeaders,
             'dns_record_type' => $dnsRecordType,
@@ -253,7 +256,15 @@ class MonitoringRequest extends FormRequest
             'notification_channels' => $this->normalizeNotificationChannels(),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
-        ]);
+        ];
+
+        if ($type === MonitoringType::SERVER_HEALTH->value) {
+            $prepared['server_health_cpu_threshold_percent'] = $this->input('server_health_cpu_threshold_percent', 90);
+            $prepared['server_health_ram_threshold_percent'] = $this->input('server_health_ram_threshold_percent', 90);
+            $prepared['server_health_storage_threshold_percent'] = $this->input('server_health_storage_threshold_percent', 90);
+        }
+
+        $this->merge($prepared);
     }
 
     /**
@@ -311,6 +322,37 @@ class MonitoringRequest extends FormRequest
                 if (in_array($type, [MonitoringType::DOMAIN_EXPIRATION->value, MonitoringType::DNS_RECORD->value], true)
                     && ! $this->isValidDomainTarget((string) $value)) {
                     $fail(__('monitoring.validation.target_invalid_domain', ['attribute' => $attribute, 'type' => $type]));
+                }
+            },
+        ];
+    }
+
+    /**
+     * @return array<int, ValidationRule|callable|string>
+     */
+    private function serverHealthThresholdRules(): array
+    {
+        return [
+            'nullable',
+            function ($attribute, $value, $fail): void {
+                $type = MonitoringType::tryFrom((string) $this->input('type'));
+
+                if ($type !== MonitoringType::SERVER_HEALTH) {
+                    if ($this->has($attribute)) {
+                        $fail(__('monitoring.validation.server_health_threshold_invalid_config'));
+                    }
+
+                    return;
+                }
+
+                if ($value === null || $value === '') {
+                    $fail(__('monitoring.validation.server_health_threshold_required'));
+
+                    return;
+                }
+
+                if (! is_numeric($value) || (float) $value < 1 || (float) $value > 100) {
+                    $fail(__('monitoring.validation.server_health_threshold_range'));
                 }
             },
         ];
