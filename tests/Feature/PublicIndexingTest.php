@@ -96,6 +96,34 @@ class PublicIndexingTest extends TestCase
         $testResponse->assertDontSeeHtml('name="csrf-token"');
     }
 
+    public function test_indexable_marketing_pages_emit_search_metadata(): void
+    {
+        foreach (self::expectedIndexablePageRouteNames() as $routeName) {
+            $testResponse = $this->get(route($routeName));
+
+            $testResponse->assertOk();
+            $testResponse->assertSeeHtml('<meta name="robots" content="index, follow">');
+            $testResponse->assertSeeHtml('<meta name="description"');
+            $testResponse->assertSeeHtml('<meta property="og:title"');
+            $testResponse->assertSeeHtml('<meta property="og:description"');
+            $testResponse->assertSeeHtml('<meta name="twitter:card" content="summary_large_image">');
+            $testResponse->assertSeeHtml(sprintf('<link rel="canonical" href="%s">', route($routeName)));
+        }
+    }
+
+    public function test_welcome_landing_page_exposes_structured_seo_data(): void
+    {
+        $testResponse = $this->get(route('welcome'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('<script type="application/ld+json">');
+        $testResponse->assertSee('"@type":"SoftwareApplication"', false);
+        $testResponse->assertSee('"applicationCategory":"BusinessApplication"', false);
+        $testResponse->assertSee('"url":"' . route('welcome') . '"', false);
+        $testResponse->assertSee('"price":"0"', false);
+        $testResponse->assertSee('"priceCurrency":"EUR"', false);
+    }
+
     public function test_sitemap_lists_all_crawlable_public_pages(): void
     {
         $testResponse = $this->get(route('sitemap'));
