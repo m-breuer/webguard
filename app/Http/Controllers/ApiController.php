@@ -4,18 +4,26 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Data\MonitoringAvailabilityPayload;
+use App\Data\MonitoringResponseTimesPayload;
+use App\Http\Requests\Api\MonitoringChecksRequest;
+use App\Http\Requests\Api\MonitoringDashboardRequest;
+use App\Http\Requests\Api\MonitoringDaysRequest;
+use App\Http\Requests\Api\MonitoringUptimeCalendarRequest;
+use App\Http\Requests\Api\MonitoringUptimeSummaryRequest;
 use App\Models\Monitoring;
-use App\Services\MonitoringResultService;
-use App\Support\MonitoringStatusMeta;
-use Carbon\Carbon;
-use DateTimeInterface;
-use Illuminate\Database\Query\Builder as QueryBuilder;
+use App\Services\MonitoringAvailabilityService;
+use App\Services\MonitoringCheckHistoryService;
+use App\Services\MonitoringDashboardPayloadService;
+use App\Services\MonitoringHeatmapService;
+use App\Services\MonitoringIncidentService;
+use App\Services\MonitoringResponseTimeService;
+use App\Services\MonitoringStatsCache;
+use App\Services\MonitoringStatusPayloadService;
+use App\Services\MonitoringUptimeCalendarService;
+use App\Services\MonitoringWidgetPayloadService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @group Monitoring API
@@ -26,6 +34,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ApiController extends Controller
 {
+    public function __construct(
+        private readonly MonitoringStatsCache $monitoringStatsCache
+    ) {}
+
     /**
      * Retrieves all data for a given monitoring instance.
      *
@@ -80,20 +92,28 @@ class ApiController extends Controller
      *  }
      * }
      */
-    public function all(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function all(
+        Monitoring $monitoring,
+        MonitoringDashboardRequest $request,
+        MonitoringDashboardPayloadService $monitoringDashboardPayloadService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $data = [
-            'status_since' => $this->statusSince($monitoring)->getData(),
-            'status_now' => $this->statusNow($monitoring)->getData(),
-            'uptime_downtime' => $this->uptimeDowntime($monitoring, $request)->getData(),
-            'response_times' => $this->responseTimes($monitoring, $request)->getData(),
-            'incidents' => $this->incidents($monitoring, $request)->getData(),
-            'heatmap' => $this->uptimeHeatmap($monitoring)->getData(),
-            'ssl' => $this->sslStatus($monitoring)->getData(),
-            'uptime_calendar' => $this->uptimeCalendar($monitoring, $request)->getData(),
-        ];
+        $days = $request->days();
+        $calendarStartDate = $request->calendarStartDate();
+        $calendarEndDate = $request->calendarEndDate();
+        $range = $request->dateRange();
+
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->dashboardKey($monitoring, $days, $range, $calendarStartDate, $calendarEndDate),
+            fn (): array => $monitoringDashboardPayloadService->getPayload(
+                $monitoring,
+                $days,
+                $calendarStartDate,
+                $calendarEndDate
+            )->toArray()
+        );
 
         return response()->json($data);
     }
@@ -111,34 +131,26 @@ class ApiController extends Controller
      * }
      * ]
      */
-    public function uptimeDowntime(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function uptimeDowntime(
+        Monitoring $monitoring,
+        MonitoringDaysRequest $request,
+        MonitoringAvailabilityService $monitoringAvailabilityService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $validated = $request->validate([
-            'days' => ['nullable', 'integer'],
-        ]);
+        $days = $request->days();
+        $range = $request->dateRange();
 
-        $days = (int) ($validated['days'] ?? 30);
-        $startDate = now()->subDays($days)->startOfDay();
-        $endDate = now()->endOfDay();
-        $isIntradayRange = $days <= 1;
-
-        $loadAggregatedData = ! $isIntradayRange;
-
-        if ($monitoring->created_at->diffInDays(now()) < 1) {
-            $loadAggregatedData = false;
-        }
-
-        $includeIntradayRawData = $isIntradayRange;
-
-        $cacheKey = sprintf('monitoring:%s:uptime:%s:%s:%s', $monitoring->id, $days, $startDate->format('Ymd'), $endDate->format('Ymd'));
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): Collection => MonitoringResultService::getUptimeDowntime($monitoring, $startDate, $endDate, $loadAggregatedData, $includeIntradayRawData),
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->uptimeKey($monitoring, $days, $range),
+            fn (): MonitoringAvailabilityPayload => $monitoringAvailabilityService->getUptimeDowntime(
+                $monitoring,
+                $range->startDate,
+                $range->endDate,
+                $range->shouldUseUptimeAggregates($monitoring),
+                $range->shouldIncludeIntradayRawData()
+            )
         );
 
         return response()->json($data);
@@ -160,35 +172,21 @@ class ApiController extends Controller
      *   }
      * }
      */
-    public function uptimeDowntimeSummary(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function uptimeDowntimeSummary(
+        Monitoring $monitoring,
+        MonitoringUptimeSummaryRequest $request,
+        MonitoringAvailabilityService $monitoringAvailabilityService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $validated = $request->validate([
-            'days' => ['required', 'array', 'min:1', 'max:10'],
-            'days.*' => ['required', 'integer', 'min:1', 'max:3650'],
-        ]);
-
-        /** @var Collection<int, int> $days */
-        $days = collect($validated['days'])
-            ->map(static fn (mixed $day): int => (int) $day)
-            ->unique()
-            ->sort()
-            ->values();
+        $days = $request->days();
 
         $endDate = now()->endOfDay();
-        $cacheKey = sprintf(
-            'monitoring:%s:uptime-summary:%s:%s',
-            $monitoring->id,
-            $days->implode('-'),
-            $endDate->format('Ymd')
-        );
 
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): array => MonitoringResultService::getUptimeDowntimesForRanges($monitoring, $days->all()),
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->uptimeSummaryKey($monitoring, $days, $endDate),
+            fn (): array => $monitoringAvailabilityService->getUptimeDowntimesForRanges($monitoring, $days->all())
         );
 
         return response()->json([
@@ -208,27 +206,25 @@ class ApiController extends Controller
      * }
      * ]
      */
-    public function responseTimes(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function responseTimes(
+        Monitoring $monitoring,
+        MonitoringDaysRequest $request,
+        MonitoringResponseTimeService $monitoringResponseTimeService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $validated = $request->validate([
-            'days' => ['nullable', 'integer'],
-        ]);
+        $days = $request->days();
+        $range = $request->dateRange();
 
-        $days = (int) ($validated['days'] ?? 30);
-        $startDate = now()->subDays($days)->startOfDay();
-        $endDate = now()->endOfDay();
-
-        $loadAggregatedData = ($days > 1);
-
-        $cacheKey = sprintf('monitoring:%s:response:%s:%s:%s', $monitoring->id, $days, $startDate->format('Ymd'), $endDate->format('Ymd'));
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): Collection => MonitoringResultService::getResponseTimes($monitoring, $startDate, $endDate, $loadAggregatedData),
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->responseTimesKey($monitoring, $days, $range),
+            fn (): MonitoringResponseTimesPayload => $monitoringResponseTimeService->getResponseTimes(
+                $monitoring,
+                $range->startDate,
+                $range->endDate,
+                $range->shouldUseResponseTimeAggregates()
+            )
         );
 
         return response()->json($data);
@@ -264,85 +260,23 @@ class ApiController extends Controller
      *   }
      * }
      */
-    public function checks(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function checks(
+        Monitoring $monitoring,
+        MonitoringChecksRequest $request,
+        MonitoringCheckHistoryService $monitoringCheckHistoryService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $validated = $request->validate([
-            'days' => ['nullable', 'integer', 'min:1', 'max:3650'],
-            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
-            'offset' => ['nullable', 'integer', 'min:0', 'max:100000'],
-        ]);
+        $days = $request->days();
+        $limit = $request->limit();
+        $offset = $request->offset();
+        $startDate = $request->startDate();
+        $endDate = $request->endDate();
 
-        $days = isset($validated['days']) ? (int) $validated['days'] : null;
-        $limit = (int) ($validated['limit'] ?? 100);
-        $offset = (int) ($validated['offset'] ?? 0);
-        $pageSize = $limit + 1;
-        $startDate = $days !== null ? now()->subDays($days)->startOfDay() : null;
-        $endDate = now()->endOfDay();
-
-        $cacheKey = sprintf(
-            'monitoring:%s:checks:%s:%s:%s',
-            $monitoring->id,
-            $days ?? 'all',
-            $limit,
-            $offset
-        );
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            function () use ($monitoring, $startDate, $endDate, $offset, $pageSize, $limit): array {
-                $archiveCutoffDate = Date::now()->subWeek()->startOfDay();
-
-                if ($startDate !== null && $startDate->gte($archiveCutoffDate)) {
-                    $rows = $this->buildChecksSourceQuery(
-                        'monitoring_response_results',
-                        'live',
-                        $monitoring->id,
-                        $startDate,
-                        $endDate,
-                        $offset,
-                        $pageSize
-                    )->get();
-
-                    return $this->paginateCheckRows($rows, $limit, $offset);
-                }
-
-                if ($startDate === null) {
-                    $liveRows = $this->buildChecksSourceQuery(
-                        'monitoring_response_results',
-                        'live',
-                        $monitoring->id,
-                        null,
-                        null,
-                        $offset,
-                        $pageSize
-                    )->get();
-
-                    $oldestLiveCheckedAt = $liveRows->last()?->created_at;
-
-                    if (
-                        $liveRows->count() === $pageSize
-                        && $oldestLiveCheckedAt !== null
-                        && Date::parse((string) $oldestLiveCheckedAt)->gte($archiveCutoffDate)
-                    ) {
-                        return $this->paginateCheckRows($liveRows, $limit, $offset);
-                    }
-                }
-
-                $rows = $this->buildChecksUnionQuery(
-                    $monitoring->id,
-                    $startDate,
-                    $startDate !== null ? $endDate : null
-                )
-                    ->offset($offset)
-                    ->limit($pageSize)
-                    ->get();
-
-                return $this->paginateCheckRows($rows, $limit, $offset);
-            },
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->checksKey($monitoring, $days, $limit, $offset),
+            fn (): array => $monitoringCheckHistoryService->getHistory($monitoring, $startDate, $endDate, $limit, $offset)
         );
 
         return response()->json([
@@ -368,20 +302,20 @@ class ApiController extends Controller
      * }
      * ]
      */
-    public function uptimeHeatmap(Monitoring $monitoring): JsonResponse
-    {
+    public function uptimeHeatmap(
+        Monitoring $monitoring,
+        MonitoringHeatmapService $monitoringHeatmapService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
         $start_date = now()->subHours(23);
         $end_date = now();
 
-        $cacheKey = sprintf('monitoring:%s:heatmap', $monitoring->id);
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): Collection => MonitoringResultService::getHeatmap($monitoring, $start_date, $end_date),
-            now()->addMinutes(5),
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->heatmapKey($monitoring),
+            fn (): Collection => $monitoringHeatmapService->getHeatmap($monitoring, $start_date, $end_date),
+            $this->monitoringStatsCache->heatmapExpiresAt()
         );
 
         return response()->json($data);
@@ -398,27 +332,13 @@ class ApiController extends Controller
      * "interval": 300
      * }
      */
-    public function status(Monitoring $monitoring): JsonResponse
-    {
+    public function status(
+        Monitoring $monitoring,
+        MonitoringStatusPayloadService $monitoringStatusPayloadService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $statusSince = MonitoringResultService::getStatusSince($monitoring);
-        $statusNow = MonitoringResultService::getStatusNow($monitoring);
-        $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
-
-        $data = array_merge($statusSince, $statusNow, [
-            'status_code' => $latestStatusCode,
-            'status_changed_at' => $statusSince['since'] ?? null,
-            'status_identifier' => MonitoringStatusMeta::statusIdentifier($latestStatusCode, $monitoring->isUnderMaintenance()),
-            'status_key' => MonitoringStatusMeta::statusKey($latestStatusCode, $monitoring->isUnderMaintenance()),
-            'monitoring' => [
-                'name' => $monitoring->name,
-                'target' => $monitoring->target,
-                'type' => $monitoring->type->value,
-            ],
-        ]);
-
-        return response()->json($data);
+        return response()->json($monitoringStatusPayloadService->getPayload($monitoring)->toArray());
     }
 
     /**
@@ -441,42 +361,16 @@ class ApiController extends Controller
      *   "public_url": "https://example.com/label/01H..."
      * }
      */
-    public function widget(Monitoring $monitoring): JsonResponse
-    {
+    public function widget(
+        Monitoring $monitoring,
+        MonitoringWidgetPayloadService $monitoringWidgetPayloadService
+    ): JsonResponse {
         abort_unless($monitoring->public_label_enabled, 404);
 
-        $cacheKey = sprintf('monitoring:%s:widget', $monitoring->id);
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            function () use ($monitoring): array {
-                $statusSince = MonitoringResultService::getStatusSince($monitoring);
-                $statusNow = MonitoringResultService::getStatusNow($monitoring);
-                $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
-                $status = (string) ($statusSince['status'] ?? 'unknown');
-                $checkedAt = $statusNow['checked_at'] ?? null;
-
-                $uptimePercentages = $this->resolveWidgetUptimePercentages($monitoring, [7, 30, 365]);
-
-                return [
-                    'name' => $monitoring->name,
-                    'status' => $status,
-                    'status_label' => mb_strtoupper($status),
-                    'status_code' => $latestStatusCode,
-                    'status_identifier' => MonitoringStatusMeta::statusIdentifier($latestStatusCode, $monitoring->isUnderMaintenance()),
-                    'status_key' => MonitoringStatusMeta::statusKey($latestStatusCode, $monitoring->isUnderMaintenance()),
-                    'checked_at' => $checkedAt,
-                    'checked_at_human' => $checkedAt ? Date::parse((string) $checkedAt)->diffForHumans() : null,
-                    'uptime' => [
-                        '7_days' => $uptimePercentages[7] ?? null,
-                        '30_days' => $uptimePercentages[30] ?? null,
-                        '365_days' => $uptimePercentages[365] ?? null,
-                    ],
-                    'public_url' => route('public-label', $monitoring),
-                ];
-            },
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->widgetKey($monitoring),
+            fn (): array => $monitoringWidgetPayloadService->getPayload($monitoring)->toArray()
         );
 
         return response()->json($data);
@@ -496,25 +390,20 @@ class ApiController extends Controller
      * }
      * ]
      */
-    public function incidents(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function incidents(
+        Monitoring $monitoring,
+        MonitoringDaysRequest $request,
+        MonitoringIncidentService $monitoringIncidentService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $validated = $request->validate([
-            'days' => ['nullable', 'integer'],
-        ]);
+        $days = $request->days();
+        $range = $request->dateRange();
 
-        $days = (int) ($validated['days'] ?? 30);
-        $startDate = now()->subDays($days)->startOfDay();
-        $endDate = now()->endOfDay();
-
-        $cacheKey = sprintf('monitoring:%s:incidents:%s:%s:%s', $monitoring->id, $days, $startDate->format('Ymd'), $endDate->format('Ymd'));
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): Collection => MonitoringResultService::getIncidents($monitoring, $startDate, $endDate),
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->incidentsKey($monitoring, $days, $range),
+            fn (): Collection => $monitoringIncidentService->getIncidents($monitoring, $range->startDate, $range->endDate),
         );
 
         return response()->json($data);
@@ -530,22 +419,16 @@ class ApiController extends Controller
      * "issue_date": "2021-10-01T00:00:00.000000Z"
      * }
      */
-    public function sslStatus(Monitoring $monitoring): JsonResponse
-    {
+    public function sslStatus(
+        Monitoring $monitoring,
+        MonitoringDashboardPayloadService $monitoringDashboardPayloadService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $cacheKey = sprintf('monitoring:%s:ssl-status', $monitoring->id);
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): array => [
-                'valid' => $monitoring->sslResult?->is_valid,
-                'expiration' => optional($monitoring->sslResult?->expires_at)?->toIso8601String(),
-                'issuer' => $monitoring->sslResult?->issuer,
-                'issue_date' => optional($monitoring->sslResult?->issued_at)?->toIso8601String(),
-            ],
-            (int) config('monitoring.interval', 5) * 60,
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->sslStatusKey($monitoring),
+            fn (): array => $monitoringDashboardPayloadService->getSslPayload($monitoring)->toArray()
         );
 
         return response()->json($data);
@@ -566,49 +449,24 @@ class ApiController extends Controller
      * ]
      * }
      */
-    public function uptimeCalendar(Monitoring $monitoring, Request $request): JsonResponse
-    {
+    public function uptimeCalendar(
+        Monitoring $monitoring,
+        MonitoringUptimeCalendarRequest $request,
+        MonitoringUptimeCalendarService $monitoringUptimeCalendarService
+    ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $validated = $request->validate([
-            'start_date' => ['required', 'date'],
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-        ]);
+        $startDate = $request->startDate();
+        $endDate = $request->endDate();
 
-        $startDate = Date::parse($validated['start_date'])->startOfDay();
-        $endDate = Date::parse($validated['end_date'])->endOfDay();
-
-        $cacheKey = 'monitoring_daily_uptime_calendar_' . $monitoring->id . '_' . $startDate->toDateString() . '_' . $endDate->toDateString();
-
-        $data = $this->cacheAndReturn(
-            $cacheKey,
-            fn (): array => MonitoringResultService::getUpTimeGroupByDateAndMonth($monitoring, $startDate, $endDate),
-            3600, // Cache for 1 hour
-            'monitoring:' . $monitoring->id
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->uptimeCalendarKey($monitoring, $startDate, $endDate),
+            fn (): array => $monitoringUptimeCalendarService->getGroupedByDateAndMonth($monitoring, $startDate, $endDate)->toArray(),
+            $this->monitoringStatsCache->calendarTtlSeconds()
         );
 
         return response()->json($data);
-    }
-
-    /**
-     * Caches the result of a callback function and returns it.
-     *
-     * This method provides a convenient way to cache data with tags.
-     * Caching is only enabled in the production environment.
-     *
-     * @param  string  $cacheKey  The cache key to use for storing the data.
-     * @param  callable  $callback  The callback function that generates the data to be cached.
-     * @param  int|DateTimeInterface  $ttl  The time-to-live for the cache entry.
-     * @param  string|array  $tags  The cache tags to apply to the entry.
-     * @return mixed The result of the callback function, either from the cache or freshly generated.
-     */
-    protected function cacheAndReturn(string $cacheKey, callable $callback, int|DateTimeInterface $ttl, string|array $tags): mixed
-    {
-        if (env('APP_ENV') === 'production') {
-            return Cache::tags($tags)->remember($cacheKey, $ttl, $callback);
-        }
-
-        return $callback();
     }
 
     private function authorizeMonitoringDataAccess(Monitoring $monitoring): void
@@ -620,134 +478,5 @@ class ApiController extends Controller
         }
 
         abort_unless($monitoring->public_label_enabled, 404);
-    }
-
-    /**
-     * @param  array<int, int>  $days
-     * @return array<int, float|null>
-     */
-    private function resolveWidgetUptimePercentages(Monitoring $monitoring, array $days): array
-    {
-        if ($monitoring->created_at->diffInDays(Date::now()) < 1) {
-            return collect($days)
-                ->mapWithKeys(fn (int $day): array => [
-                    $day => data_get(MonitoringResultService::getUptimeDowntime(
-                        $monitoring,
-                        Date::now()->subDays($day)->startOfDay(),
-                        Date::now()->endOfDay(),
-                        false,
-                        false
-                    ), 'uptime.percentage'),
-                ])
-                ->all();
-        }
-
-        $statsByRange = MonitoringResultService::getUptimeDowntimesForRanges($monitoring, $days);
-
-        return collect($days)
-            ->mapWithKeys(fn (int $day): array => [
-                $day => data_get($statsByRange, $day . '.uptime.percentage'),
-            ])
-            ->all();
-    }
-
-    private function buildChecksSourceQuery(
-        string $table,
-        string $source,
-        string $monitoringId,
-        ?Carbon $startDate,
-        ?Carbon $endDate,
-        int $offset,
-        int $limit
-    ): QueryBuilder {
-        return $this->buildChecksSourceSubquery($table, $source, $monitoringId, $startDate, $endDate)->latest()
-            ->orderByDesc('id')
-            ->offset($offset)
-            ->limit($limit);
-    }
-
-    private function buildChecksUnionQuery(string $monitoringId, ?Carbon $startDate, ?Carbon $endDate): QueryBuilder
-    {
-        $builder = $this->buildChecksSourceSubquery(
-            'monitoring_response_results',
-            'live',
-            $monitoringId,
-            $startDate,
-            $endDate
-        );
-        $archivedQuery = $this->buildChecksSourceSubquery(
-            'monitoring_response_archived',
-            'archived',
-            $monitoringId,
-            $startDate,
-            $endDate
-        );
-
-        return DB::query()
-            ->fromSub($builder->unionAll($archivedQuery), 'monitoring_results')->latest()
-            ->orderByDesc('id');
-    }
-
-    private function buildChecksSourceSubquery(
-        string $table,
-        string $source,
-        string $monitoringId,
-        ?Carbon $startDate,
-        ?Carbon $endDate
-    ): QueryBuilder {
-        $builder = DB::table($table)
-            ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, server_health_metrics, created_at")
-            ->where('monitoring_id', $monitoringId);
-
-        if ($startDate !== null && $endDate !== null) {
-            $builder->whereBetween('created_at', [$startDate, $endDate]);
-        }
-
-        return $builder;
-    }
-
-    /**
-     * @param  Collection<int, object>  $rows
-     * @return array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>
-     */
-    private function formatCheckRows(Collection $rows): array
-    {
-        return $rows->map(function (object $row): array {
-            $httpStatusCode = $row->http_status_code !== null ? (int) $row->http_status_code : null;
-            $serverHealthMetrics = null;
-
-            if (isset($row->server_health_metrics)) {
-                $decodedMetrics = json_decode((string) $row->server_health_metrics, true);
-                $serverHealthMetrics = is_array($decodedMetrics) ? $decodedMetrics : null;
-            }
-
-            return [
-                'id' => (string) $row->id,
-                'checked_at' => Date::parse((string) $row->created_at)->toIso8601String(),
-                'status' => (string) $row->status,
-                'http_status_code' => $httpStatusCode,
-                'response_time' => $row->response_time !== null ? (float) $row->response_time : null,
-                'server_health_metrics' => $serverHealthMetrics,
-                'status_identifier' => MonitoringStatusMeta::statusIdentifier($httpStatusCode),
-                'status_key' => MonitoringStatusMeta::statusKey($httpStatusCode),
-                'source' => (string) $row->source,
-            ];
-        })->all();
-    }
-
-    /**
-     * @param  Collection<int, object>  $rows
-     * @return array{data: array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>, has_more: bool, next_offset: int|null}
-     */
-    private function paginateCheckRows(Collection $rows, int $limit, int $offset): array
-    {
-        $hasMore = $rows->count() > $limit;
-        $pageRows = $rows->take($limit);
-
-        return [
-            'data' => $this->formatCheckRows($pageRows),
-            'has_more' => $hasMore,
-            'next_offset' => $hasMore ? $offset + $pageRows->count() : null,
-        ];
     }
 }

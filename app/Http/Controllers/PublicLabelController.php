@@ -7,7 +7,9 @@ namespace App\Http\Controllers;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
-use App\Services\MonitoringResultService;
+use App\Services\MonitoringAvailabilityService;
+use App\Services\MonitoringIncidentService;
+use App\Services\MonitoringStatusService;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -21,17 +23,11 @@ use Illuminate\View\View;
  */
 class PublicLabelController extends Controller
 {
-    protected ApiController $apiController;
-
-    /**
-     * Create a new controller instance.
-     *
-     * @param  ApiController  $apiController  The internal API controller instance.
-     */
-    public function __construct(ApiController $apiController)
-    {
-        $this->apiController = $apiController;
-    }
+    public function __construct(
+        private readonly MonitoringStatusService $monitoringStatusService,
+        private readonly MonitoringAvailabilityService $monitoringAvailabilityService,
+        private readonly MonitoringIncidentService $monitoringIncidentService
+    ) {}
 
     /**
      * Handle the incoming request to display a public monitoring label.
@@ -51,11 +47,11 @@ class PublicLabelController extends Controller
             'sslResult',
         ]);
 
-        $statusSince = MonitoringResultService::getStatusSince($monitoring);
-        $statusNow = MonitoringResultService::getStatusNow($monitoring);
+        $statusSince = $this->monitoringStatusService->getStatusSince($monitoring);
+        $statusNow = $this->monitoringStatusService->getStatusNow($monitoring);
         $status = $this->normalizeStatus($statusSince['status'] ?? $statusNow['status'] ?? MonitoringStatus::UNKNOWN->value);
-        $rangeSummaries = MonitoringResultService::getUptimeDowntimesForRanges($monitoring, [7, 30, 90]);
-        $incidents = MonitoringResultService::getIncidents(
+        $rangeSummaries = $this->monitoringAvailabilityService->getUptimeDowntimesForRanges($monitoring, [7, 30, 90]);
+        $incidents = $this->monitoringIncidentService->getIncidents(
             $monitoring,
             Date::now()->subDays(90),
             Date::now()

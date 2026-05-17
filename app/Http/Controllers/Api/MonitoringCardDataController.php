@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Monitoring;
-use App\Services\MonitoringResultService;
-use App\Support\MonitoringStatusMeta;
+use App\Services\MonitoringHeatmapService;
+use App\Services\MonitoringStatusPayloadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringCardDataController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
-    {
+    public function __invoke(
+        Request $request,
+        MonitoringStatusPayloadService $monitoringStatusPayloadService,
+        MonitoringHeatmapService $monitoringHeatmapService
+    ): JsonResponse {
         if (! $request->user()) {
             return response()->json([
                 'message' => 'Unauthenticated.',
@@ -54,13 +57,13 @@ class MonitoringCardDataController extends Controller
             ->get()
             ->keyBy('id');
 
-        $heatmaps = MonitoringResultService::getHeatmapsForMonitorings(
+        $heatmaps = $monitoringHeatmapService->getHeatmapsForMonitorings(
             $monitorings->values(),
             Date::now()->subHours(23)->startOfHour(),
             Date::now()->endOfHour()
         );
 
-        $data = $requestedIds->mapWithKeys(function (string $monitoringId) use ($monitorings, $heatmaps): array {
+        $data = $requestedIds->mapWithKeys(function (string $monitoringId) use ($monitorings, $heatmaps, $monitoringStatusPayloadService): array {
             /** @var Monitoring|null $monitoring */
             $monitoring = $monitorings->get($monitoringId);
 
@@ -68,19 +71,11 @@ class MonitoringCardDataController extends Controller
                 return [];
             }
 
-            $statusSince = MonitoringResultService::getStatusSince($monitoring);
-            $statusNow = MonitoringResultService::getStatusNow($monitoring);
-            $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
-            $maintenanceActive = $monitoring->isUnderMaintenance();
-
             return [
-                $monitoringId => array_merge($statusSince, $statusNow, [
-                    'status_code' => $latestStatusCode,
-                    'status_changed_at' => $statusSince['since'] ?? null,
-                    'status_identifier' => MonitoringStatusMeta::statusIdentifier($latestStatusCode, $maintenanceActive),
-                    'status_key' => MonitoringStatusMeta::statusKey($latestStatusCode, $maintenanceActive),
-                    'heatmap' => $heatmaps[$monitoringId] ?? [],
-                ]),
+                $monitoringId => array_merge(
+                    $monitoringStatusPayloadService->getPayload($monitoring, includeMonitoring: false)->toArray(),
+                    ['heatmap' => $heatmaps[$monitoringId] ?? []]
+                ),
             ];
         });
 
