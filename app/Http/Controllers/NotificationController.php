@@ -191,7 +191,8 @@ class NotificationController extends Controller
         $deliveries = NotificationChannelDelivery::query()
             ->where('user_id', auth()->id())
             ->with(['monitoringNotification.monitoring:id,name,target'])
-            ->latest()
+            ->latest('created_at')
+            ->latest('id')
             ->offset($offset)
             ->limit($limit + 1)
             ->get();
@@ -220,7 +221,9 @@ class NotificationController extends Controller
 
         $notifications = $builder
             ->with(['monitoring:id,name'])
-            ->orderBy('read')->latest()
+            ->orderBy('read')
+            ->latest('created_at')
+            ->latest('id')
             ->offset($offset)
             ->limit($limit + 1)
             ->get();
