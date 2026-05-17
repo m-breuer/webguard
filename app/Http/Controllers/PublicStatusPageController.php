@@ -9,13 +9,17 @@ use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
-use App\Services\MonitoringResultService;
+use App\Services\MonitoringStatusService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\View\View;
 
 class PublicStatusPageController extends Controller
 {
+    public function __construct(
+        private readonly MonitoringStatusService $monitoringStatusService
+    ) {}
+
     public function __invoke(StatusPage $statusPage): View
     {
         abort_unless($statusPage->is_public, 404);
@@ -64,8 +68,8 @@ class PublicStatusPageController extends Controller
 
     private function monitoringStatus(Monitoring $monitoring): string
     {
-        $statusSince = MonitoringResultService::getStatusSince($monitoring);
-        $statusNow = MonitoringResultService::getStatusNow($monitoring);
+        $statusSince = $this->monitoringStatusService->getStatusSince($monitoring);
+        $statusNow = $this->monitoringStatusService->getStatusNow($monitoring);
 
         return $this->normalizeStatus($statusSince['status'] ?? $statusNow['status'] ?? MonitoringStatus::UNKNOWN->value);
     }

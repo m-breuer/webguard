@@ -6,6 +6,7 @@ namespace Tests\Feature\Api;
 
 use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
+use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
@@ -53,6 +54,107 @@ class ApiControllerTest extends TestCase
         $testResponse->assertJsonPath('status_key', 'notifications.status.server_error');
         $testResponse->assertJsonPath('monitoring.name', $monitoring->name);
         $testResponse->assertJsonPath('monitoring.target', $monitoring->target);
+    }
+
+    public function test_all_endpoint_returns_combined_monitoring_payload_without_nested_controller_responses(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-10 00:00:00'),
+        ]);
+
+        MonitoringResponse::query()->forceCreate([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 150.0,
+            'created_at' => Date::parse('2026-04-12 11:00:00'),
+            'updated_at' => Date::parse('2026-04-12 11:00:00'),
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '?' . http_build_query([
+            'days' => 1,
+            'start_date' => '2026-04-10',
+            'end_date' => '2026-04-12',
+        ]));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('status_since.status', MonitoringStatus::UP->value);
+        $testResponse->assertJsonPath('status_now.status', MonitoringStatus::UP->value);
+        $testResponse->assertJsonPath('ssl.valid', null);
+        $testResponse->assertJsonCount(24, 'heatmap');
+        $testResponse->assertJsonStructure([
+            'status_since',
+            'status_now',
+            'uptime_downtime' => ['uptime', 'downtime', 'unknown'],
+            'response_times' => ['data', 'aggregated'],
+            'incidents',
+            'heatmap',
+            'ssl',
+            'uptime_calendar',
+        ]);
+    }
+
+    public function test_all_endpoint_validates_calendar_dates_through_request_object(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id);
+
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['start_date', 'end_date']);
+    }
+
+    public function test_uptime_calendar_endpoint_returns_stable_month_payload_contract(): void
+    {
+        Date::setTestNow('2026-04-20 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-01 00:00:00'),
+        ]);
+
+        MonitoringDailyResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'date' => '2026-04-10',
+            'uptime_total' => 1,
+            'downtime_total' => 1,
+            'unknown_total' => 0,
+            'uptime_percentage' => 75.0,
+            'downtime_percentage' => 25.0,
+            'unknown_percentage' => 0.0,
+            'uptime_minutes' => 90,
+            'downtime_minutes' => 30,
+            'unknown_minutes' => 0,
+            'avg_response_time' => 100.0,
+            'min_response_time' => 100,
+            'max_response_time' => 100,
+            'incidents_count' => 0,
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-calendar?' . http_build_query([
+            'start_date' => '2026-04-01',
+            'end_date' => '2026-04-30',
+        ]));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonStructure([
+            '2026-04' => [
+                'days' => [
+                    '*' => ['date', 'uptime_percentage'],
+                ],
+                'monthly_average_uptime',
+            ],
+        ]);
+        $testResponse->assertJsonCount(30, '2026-04.days');
+        $testResponse->assertJsonPath('2026-04.days.9.uptime_percentage', 75);
+        $testResponse->assertJsonPath('2026-04.monthly_average_uptime', 75);
     }
 
     public function test_results_endpoint_exposes_http_status_code_for_historical_entries(): void
@@ -225,6 +327,18 @@ class ApiControllerTest extends TestCase
         $secondPageResponse->assertJsonPath('meta.has_more', false);
         $secondPageResponse->assertJsonPath('meta.next_offset', null);
         $this->assertSame(106.0, (float) $secondPageResponse->json('data.0.response_time'));
+    }
+
+    public function test_results_endpoint_validates_pagination_bounds_through_request_object(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?limit=1001&offset=-1');
+
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['limit', 'offset']);
     }
 
     public function test_history_response_tables_have_indexes_for_timeline_pagination(): void
