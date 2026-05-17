@@ -30,7 +30,7 @@ jobs:
       uses: actions/cache@v5
       id: composer-cache
       with:
-        path: vendor
+        path: ~/.cache/composer/files
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-composer-
@@ -70,7 +70,7 @@ jobs:
     - name: Cache Composer dependencies
       uses: actions/cache@v5
       with:
-        path: vendor
+        path: ~/.cache/composer/files
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-composer-

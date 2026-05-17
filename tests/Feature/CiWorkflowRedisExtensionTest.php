@@ -23,4 +23,29 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertIsString($setupPhpStep['with']['extensions'] ?? null);
         $this->assertStringContainsString('redis', $setupPhpStep['with']['extensions']);
     }
+
+    public function test_ci_jobs_cache_composer_downloads_instead_of_vendor_directory(): void
+    {
+        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+
+        foreach (['auto-fixes', 'test'] as $jobName) {
+            $cacheStep = collect($workflowConfig['jobs'][$jobName]['steps'] ?? [])
+                ->firstWhere('name', 'Cache Composer dependencies');
+
+            $this->assertIsArray($cacheStep, "Missing Composer cache step for {$jobName}.");
+            $this->assertSame('~/.cache/composer/files', $cacheStep['with']['path'] ?? null);
+            $this->assertNotSame('vendor', $cacheStep['with']['path'] ?? null);
+        }
+    }
+
+    public function test_weekly_dependency_update_caches_composer_downloads_instead_of_vendor_directory(): void
+    {
+        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/weekly-dependency-update.yml'));
+        $cacheStep = collect($workflowConfig['jobs']['update-dependencies']['steps'] ?? [])
+            ->firstWhere('name', 'Cache Composer dependencies');
+
+        $this->assertIsArray($cacheStep);
+        $this->assertSame('~/.cache/composer/files', $cacheStep['with']['path'] ?? null);
+        $this->assertNotSame('vendor', $cacheStep['with']['path'] ?? null);
+    }
 }
