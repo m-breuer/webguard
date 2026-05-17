@@ -38,6 +38,23 @@ class CiWorkflowRedisExtensionTest extends TestCase
         }
     }
 
+    public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
+    {
+        $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
+        $composerLock = json_decode((string) file_get_contents(base_path('composer.lock')), true, 512, JSON_THROW_ON_ERROR);
+        $packages = collect($composerLock['packages'] ?? [])->keyBy('name');
+
+        $this->assertSame('^3.11', $composerConfig['require']['intervention/image'] ?? null);
+        $this->assertTrue($packages->has('intervention/image'));
+        $interventionImageVersion = mb_ltrim((string) $packages->get('intervention/image')['version'], 'v');
+
+        $this->assertTrue(
+            version_compare($interventionImageVersion, '4.0.0', '<'),
+            'mews/captcha currently calls Intervention Image v3 APIs such as ImageManager::create().'
+        );
+        $this->assertTrue($packages->has('mews/captcha'));
+    }
+
     public function test_weekly_dependency_update_caches_composer_downloads_instead_of_vendor_directory(): void
     {
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/weekly-dependency-update.yml'));
