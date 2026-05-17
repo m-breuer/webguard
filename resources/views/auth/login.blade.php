@@ -21,7 +21,7 @@
         <x-auth-session-status class="mb-4" :status="session('status')" />
 
         <div class="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">
-            <aside class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+            <aside class="order-2 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900 lg:order-1">
                 <x-heading type="h3" class="mb-1">{{ __('auth.auth_switch.title') }}</x-heading>
                 <x-paragraph class="text-sm text-gray-600 dark:text-gray-400">
                     {{ __('auth.auth_switch.description') }}
@@ -54,7 +54,7 @@
                 </div>
             </aside>
 
-            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800">
+            <div class="order-1 rounded-xl border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800 lg:order-2">
                 <div x-show="mode === 'login' || mode === 'demo'">
                     <div class="text-center">
                         <x-heading class="flex items-center justify-center">

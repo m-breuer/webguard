@@ -63,7 +63,7 @@ return [
     'github_login' => 'Sign in with GitHub',
     'auth_switch' => [
         'title' => 'Choose your access',
-        'description' => 'Select what you want to do. The form updates on the right.',
+        'description' => 'Select what you want to do. The form updates directly.',
         'login' => 'Login',
         'register' => 'Register',
         'demo' => 'Demo access',
