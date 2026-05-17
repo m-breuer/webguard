@@ -60,7 +60,9 @@ class ServerHealthMonitoringTest extends TestCase
         $this->assertSame('/api/reference', config('scribe.laravel.docs_url'));
         $this->assertSame(url('/api/reference'), route('scribe'));
 
-        $this->get('/api/docs')->assertRedirect(url('/api/reference'));
+        $this->get('/api/docs')
+            ->assertMovedPermanently()
+            ->assertRedirect(url('/api/reference'));
     }
 
     public function test_it_creates_server_health_monitoring_with_generated_report_url(): void
