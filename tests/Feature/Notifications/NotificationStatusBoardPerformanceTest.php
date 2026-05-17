@@ -22,7 +22,7 @@ class NotificationStatusBoardPerformanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_status_board_entries_load_in_a_single_select_query(): void
+    public function test_status_board_entries_load_with_scoped_latest_relation_queries(): void
     {
         Date::setTestNow('2026-04-19 10:00:00');
 
@@ -42,17 +42,20 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $selectQueries = collect(DB::getQueryLog())
             ->filter(fn (array $query): bool => str_starts_with(mb_strtolower($query['query']), 'select'))
             ->values();
-        $statusBoardQuery = $selectQueries->sole();
-        $normalizedStatusBoardSql = str_replace(['"', '`'], '', $statusBoardQuery['query']);
+        $normalizedSql = $selectQueries
+            ->pluck('query')
+            ->map(static fn (string $query): string => str_replace(['"', '`'], '', $query))
+            ->implode("\n");
 
-        $this->assertCount(1, $selectQueries);
-        $this->assertStringContainsString('status_change_monitorings.user_id = ?', $normalizedStatusBoardSql);
-        $this->assertStringContainsString('status_change_monitorings.deleted_at is null', $normalizedStatusBoardSql);
-        $this->assertContains($user->id, $statusBoardQuery['bindings']);
+        $this->assertCount(3, $selectQueries);
+        $this->assertStringContainsString('from monitorings where user_id = ?', $normalizedSql);
+        $this->assertStringContainsString('monitoring_notifications.monitoring_id in', $normalizedSql);
+        $this->assertStringNotContainsString('latest_status_change_timestamps', $normalizedSql);
+        $this->assertStringNotContainsString('status_change_monitorings', $normalizedSql);
         $this->assertSame([$secondMonitoring->id, $firstMonitoring->id], $entries->pluck('monitoring_id')->all());
     }
 
-    public function test_status_board_aggregate_is_scoped_to_the_authenticated_users_active_monitorings(): void
+    public function test_status_board_latest_notification_query_is_scoped_to_the_authenticated_users_active_monitorings(): void
     {
         Date::setTestNow('2026-04-19 10:00:00');
 
@@ -61,7 +64,7 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         $otherUser = User::factory()->for($package)->create();
 
         $monitoring = $this->createStatusBoardMonitoring($user, 204, Date::now()->copy()->subMinutes(3));
-        $this->createStatusBoardMonitoring($otherUser, 503, Date::now()->copy()->subMinutes(2));
+        $otherUserMonitoring = $this->createStatusBoardMonitoring($otherUser, 503, Date::now()->copy()->subMinutes(2));
         $deletedMonitoring = $this->createStatusBoardMonitoring($user, 503, Date::now()->copy()->subMinute());
         $deletedMonitoring->delete();
 
@@ -72,16 +75,26 @@ class NotificationStatusBoardPerformanceTest extends TestCase
 
         $entries = resolve(NotificationBoardService::class)->getStatusBoardEntries(showRead: true, limit: 5);
 
-        $selectQuery = collect(DB::getQueryLog())
-            ->first(fn (array $query): bool => str_starts_with(mb_strtolower($query['query']), 'select'));
+        $selectQueries = collect(DB::getQueryLog())
+            ->filter(fn (array $query): bool => str_starts_with(mb_strtolower($query['query']), 'select'))
+            ->values();
+        $monitoringQuery = $selectQueries->first();
+        $notificationQuery = $selectQueries->first(
+            fn (array $query): bool => str_contains($query['query'], 'monitoring_notifications')
+        );
 
-        $normalizedSql = str_replace(['"', '`'], '', $selectQuery['query']);
+        $normalizedMonitoringSql = str_replace(['"', '`'], '', $monitoringQuery['query']);
+        $normalizedNotificationSql = str_replace(['"', '`'], '', $notificationQuery['query']);
 
         $this->assertSame([$monitoring->id], $entries->pluck('monitoring_id')->all());
-        $this->assertStringContainsString('status_change_monitorings.user_id', $normalizedSql);
-        $this->assertStringContainsString('status_change_monitorings.deleted_at is null', $normalizedSql);
-        $this->assertContains($user->id, $selectQuery['bindings']);
-        $this->assertNotContains($otherUser->id, $selectQuery['bindings']);
+        $this->assertStringContainsString('from monitorings where user_id = ?', $normalizedMonitoringSql);
+        $this->assertStringContainsString('monitorings.deleted_at is null', $normalizedMonitoringSql);
+        $this->assertStringContainsString('monitoring_notifications.monitoring_id in', $normalizedNotificationSql);
+        $this->assertContains($user->id, $monitoringQuery['bindings']);
+        $this->assertContains($monitoring->id, $notificationQuery['bindings']);
+        $this->assertNotContains($otherUser->id, $monitoringQuery['bindings']);
+        $this->assertNotContains($otherUserMonitoring->id, $notificationQuery['bindings']);
+        $this->assertNotContains($deletedMonitoring->id, $notificationQuery['bindings']);
     }
 
     public function test_status_board_orders_entries_by_notification_id_when_status_change_timestamps_match(): void

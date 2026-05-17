@@ -9,8 +9,6 @@ use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
 use App\Models\MonitoringResponse;
 use App\Support\MonitoringStatusMeta;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 
@@ -35,131 +33,79 @@ class NotificationBoardService
      */
     public function getStatusBoardEntries(bool $showRead, int $offset = 0, int $limit = 5): Collection
     {
-        $latestStatusChangeTimestamps = MonitoringNotification::query()
-            ->withoutGlobalScopes()
-            ->selectRaw('monitoring_notifications.monitoring_id, max(monitoring_notifications.created_at) as latest_created_at')
-            ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
-            ->when(auth()->check(), function (Builder $builder): Builder {
-                return $builder
-                    ->join('monitorings as status_change_monitorings', 'monitoring_notifications.monitoring_id', '=', 'status_change_monitorings.id')
-                    ->where('status_change_monitorings.user_id', auth()->id())
-                    ->whereNull('status_change_monitorings.deleted_at');
-            })
-            ->when(! $showRead, fn (Builder $builder): Builder => $builder->where('monitoring_notifications.read', false))
-            ->groupBy('monitoring_notifications.monitoring_id');
+        $notificationRelation = $showRead
+            ? 'latestStatusChangeNotification'
+            : 'latestUnreadStatusChangeNotification';
 
         $monitorings = Monitoring::query()
             ->select([
-                'monitorings.id',
-                'monitorings.name',
-                'monitorings.target',
-                'monitorings.type',
-                'monitorings.maintenance_from',
-                'monitorings.maintenance_until',
+                'id',
+                'name',
+                'target',
+                'type',
+                'maintenance_from',
+                'maintenance_until',
             ])
-            ->joinSub(
-                MonitoringNotification::query()
-                    ->withoutGlobalScopes()
-                    ->from('monitoring_notifications as status_notifications')
-                    ->select([
-                        'status_notifications.id',
-                        'status_notifications.monitoring_id',
-                        'status_notifications.message',
-                        'status_notifications.read',
-                        'status_notifications.created_at',
-                    ])
-                    ->joinSub($latestStatusChangeTimestamps, 'latest_status_change_timestamps', function (JoinClause $joinClause): void {
-                        $joinClause->on(
-                            'latest_status_change_timestamps.monitoring_id',
-                            '=',
-                            'status_notifications.monitoring_id'
-                        )->on(
-                            'latest_status_change_timestamps.latest_created_at',
-                            '=',
-                            'status_notifications.created_at'
-                        );
-                    })
-                    ->where('status_notifications.type', NotificationType::STATUS_CHANGE->value)
-                    ->unless($showRead, fn (Builder $builder): Builder => $builder->where('status_notifications.read', false))
-                    ->leftJoin('monitoring_notifications as newer_status_notifications', function (JoinClause $joinClause) use ($showRead): void {
-                        $joinClause->on(
-                            'newer_status_notifications.monitoring_id',
-                            '=',
-                            'status_notifications.monitoring_id'
-                        )->on(
-                            'newer_status_notifications.created_at',
-                            '=',
-                            'status_notifications.created_at'
-                        )->whereColumn(
-                            'newer_status_notifications.id',
-                            '>',
-                            'status_notifications.id'
-                        )->where(
-                            'newer_status_notifications.type',
-                            NotificationType::STATUS_CHANGE->value
-                        );
+            ->where('user_id', auth()->id())
+            ->with([
+                $notificationRelation => fn ($builder) => $builder->select([
+                    'monitoring_notifications.id',
+                    'monitoring_notifications.monitoring_id',
+                    'monitoring_notifications.message',
+                    'monitoring_notifications.read',
+                    'monitoring_notifications.created_at',
+                ]),
+                'latestResponseResult' => fn ($builder) => $builder->select([
+                    'monitoring_response_results.id',
+                    'monitoring_response_results.monitoring_id',
+                    'monitoring_response_results.http_status_code',
+                    'monitoring_response_results.created_at',
+                ]),
+            ])
+            ->get()
+            ->filter(fn (Monitoring $monitoring): bool => $monitoring->getRelation($notificationRelation) !== null)
+            ->sort(function (Monitoring $left, Monitoring $right) use ($notificationRelation): int {
+                /** @var MonitoringNotification $leftNotification */
+                $leftNotification = $left->getRelation($notificationRelation);
+                /** @var MonitoringNotification $rightNotification */
+                $rightNotification = $right->getRelation($notificationRelation);
 
-                        if (! $showRead) {
-                            $joinClause->where('newer_status_notifications.read', false);
-                        }
-                    })
-                    ->whereNull('newer_status_notifications.id'),
-                'latest_status_notifications',
-                fn (JoinClause $joinClause): JoinClause => $joinClause->on(
-                    'latest_status_notifications.monitoring_id',
-                    '=',
-                    'monitorings.id'
-                )
-            )
-            ->selectSub(
-                MonitoringResponse::query()
-                    ->select('http_status_code')
-                    ->whereColumn('monitoring_response_results.monitoring_id', 'monitorings.id')
-                    ->latest('created_at')
-                    ->latest('id')
-                    ->limit(1),
-                'latest_status_code'
-            )
-            ->selectSub(
-                MonitoringResponse::query()
-                    ->select('created_at')
-                    ->whereColumn('monitoring_response_results.monitoring_id', 'monitorings.id')
-                    ->latest('created_at')
-                    ->latest('id')
-                    ->limit(1),
-                'latest_checked_at'
-            )
-            ->selectRaw('latest_status_notifications.id as notification_id')
-            ->selectRaw('latest_status_notifications.message as status_change_message')
-            ->selectRaw('latest_status_notifications.read as notification_read')
-            ->selectRaw('latest_status_notifications.created_at as latest_status_change_at')
-            ->latest('latest_status_notifications.created_at')
-            ->orderByDesc('latest_status_notifications.id')
-            ->offset($offset)
-            ->limit($limit + 1)
-            ->get();
+                return [
+                    $rightNotification->created_at?->getTimestamp() ?? 0,
+                    $rightNotification->id,
+                ] <=> [
+                    $leftNotification->created_at?->getTimestamp() ?? 0,
+                    $leftNotification->id,
+                ];
+            })
+            ->slice($offset, $limit + 1)
+            ->values();
 
-        return $monitorings->map(function (Monitoring $monitoring): array {
-            $latestStatusCode = $monitoring->getAttribute('latest_status_code');
+        return $monitorings->map(function (Monitoring $monitoring) use ($notificationRelation): array {
+            /** @var MonitoringNotification $latestStatusNotification */
+            $latestStatusNotification = $monitoring->getRelation($notificationRelation);
+            /** @var MonitoringResponse|null $latestResponse */
+            $latestResponse = $monitoring->getRelation('latestResponseResult');
+            $latestStatusCode = $latestResponse?->http_status_code;
             $maintenanceActive = $monitoring->isUnderMaintenance();
 
             $statusIdentifier = MonitoringStatusMeta::identifier($latestStatusCode !== null ? (int) $latestStatusCode : null, $maintenanceActive);
-            $statusChangeMessage = (string) $monitoring->getAttribute('status_change_message');
-            $latestCheckedAt = $monitoring->getAttribute('latest_checked_at');
-            $latestStatusChangeAt = $monitoring->getAttribute('latest_status_change_at');
+            $statusChangeMessage = $latestStatusNotification->message;
+            $latestCheckedAt = $latestResponse?->created_at;
+            $latestStatusChangeAt = $latestStatusNotification->created_at;
             $statusChangeIdentifier = $maintenanceActive
                 ? 'maintenance'
                 : MonitoringNotification::extractStatusChangeIdentifierFromMessage($statusChangeMessage);
 
             return [
-                'notification_id' => (string) $monitoring->getAttribute('notification_id'),
+                'notification_id' => $latestStatusNotification->id,
                 'monitoring_id' => $monitoring->id,
                 'monitor_name' => $monitoring->name,
                 'target' => $monitoring->target,
                 'type' => $monitoring->type->value,
                 'latest_status_code' => $latestStatusCode !== null ? (int) $latestStatusCode : null,
-                'latest_checked_at' => $latestCheckedAt ? Date::parse((string) $latestCheckedAt)->toIso8601String() : null,
-                'latest_status_change_at' => $latestStatusChangeAt ? Date::parse((string) $latestStatusChangeAt)->toIso8601String() : null,
+                'latest_checked_at' => $latestCheckedAt ? Date::parse($latestCheckedAt)->toIso8601String() : null,
+                'latest_status_change_at' => $latestStatusChangeAt ? Date::parse($latestStatusChangeAt)->toIso8601String() : null,
                 'status_identifier' => MonitoringStatusMeta::statusIdentifier(
                     $latestStatusCode !== null ? (int) $latestStatusCode : null,
                     $maintenanceActive
@@ -170,7 +116,7 @@ class NotificationBoardService
                 ),
                 'status_change_key' => 'notifications.status_change.' . $statusChangeIdentifier,
                 'badge_type' => MonitoringStatusMeta::badgeType($statusIdentifier),
-                'read' => (bool) $monitoring->getAttribute('notification_read'),
+                'read' => $latestStatusNotification->read,
             ];
         });
     }
