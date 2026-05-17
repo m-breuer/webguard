@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.5",
         "ext-redis": "*",
+        "intervention/image": "^3.11",
         "knuckleswtf/scribe": "^5.5",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.1",

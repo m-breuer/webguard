@@ -8,7 +8,7 @@ use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\Package;
 use App\Models\User;
-use App\Services\MonitoringResultService;
+use App\Services\MonitoringUptimeCalendarService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -53,11 +53,11 @@ class UptimeCalendarAggregationPerformanceTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $result = MonitoringResultService::getUpTimeGroupByDateAndMonth(
+        $result = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
             $monitoring,
             Date::parse('2025-03-01')->startOfDay(),
             Date::parse('2026-02-28')->endOfDay()
-        );
+        )->toArray();
 
         $selectCount = collect(DB::getQueryLog())
             ->filter(fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
