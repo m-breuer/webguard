@@ -63,7 +63,7 @@ return [
     'github_login' => 'Mit GitHub anmelden',
     'auth_switch' => [
         'title' => 'Zugang wählen',
-        'description' => 'Wählen Sie links den gewünschten Modus. Das Formular rechts passt sich direkt an.',
+        'description' => 'Wählen Sie den gewünschten Modus. Das Formular passt sich direkt an.',
         'login' => 'Anmelden',
         'register' => 'Registrieren',
         'demo' => 'Demo-Zugang',
