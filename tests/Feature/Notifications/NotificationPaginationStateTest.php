@@ -17,7 +17,7 @@ class NotificationPaginationStateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_notifications_index_uses_default_limit_of_five_when_no_query_parameter_is_present(): void
+    public function test_notifications_async_section_uses_default_limit_of_five_when_no_limit_is_present(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
 
@@ -29,20 +29,26 @@ class NotificationPaginationStateTest extends TestCase
         $visibleNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 0, 5));
         $hiddenNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 5));
 
-        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+        ]);
 
         $testResponse->assertOk();
+        $testResponse->assertJsonPath('count', 5);
+        $testResponse->assertJsonPath('hasMore', true);
+        $html = (string) $testResponse->json('html');
 
         foreach ($visibleNotificationIds as $visibleNotificationId) {
-            $testResponse->assertSeeHtml('id="' . $visibleNotificationId . '"');
+            $this->assertStringContainsString('id="' . $visibleNotificationId . '"', $html);
         }
 
         foreach ($hiddenNotificationIds as $hiddenNotificationId) {
-            $testResponse->assertDontSeeHtml('id="' . $hiddenNotificationId . '"');
+            $this->assertStringNotContainsString('id="' . $hiddenNotificationId . '"', $html);
         }
     }
 
-    public function test_notifications_index_uses_limit_query_parameter_for_initial_render_count(): void
+    public function test_notifications_index_passes_limit_query_parameter_to_initial_async_load(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
 
@@ -58,17 +64,29 @@ class NotificationPaginationStateTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSee('currentLimit: 6');
+        $testResponse->assertSee('payload.limit = this.currentLimit');
+
+        $sectionResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+            'limit' => 6,
+        ]);
+
+        $sectionResponse->assertOk();
+        $sectionResponse->assertJsonPath('count', 6);
+        $sectionResponse->assertJsonPath('hasMore', true);
+        $html = (string) $sectionResponse->json('html');
 
         foreach ($visibleNotificationIds as $visibleNotificationId) {
-            $testResponse->assertSeeHtml('id="' . $visibleNotificationId . '"');
+            $this->assertStringContainsString('id="' . $visibleNotificationId . '"', $html);
         }
 
         foreach ($hiddenNotificationIds as $hiddenNotificationId) {
-            $testResponse->assertDontSeeHtml('id="' . $hiddenNotificationId . '"');
+            $this->assertStringNotContainsString('id="' . $hiddenNotificationId . '"', $html);
         }
     }
 
-    public function test_notifications_index_falls_back_to_default_limit_when_limit_query_parameter_is_invalid(): void
+    public function test_notifications_index_falls_back_to_default_async_limit_when_limit_query_parameter_is_invalid(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
 
@@ -85,12 +103,23 @@ class NotificationPaginationStateTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSee('currentLimit: 5');
 
+        $sectionResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+            'limit' => 5,
+        ]);
+
+        $sectionResponse->assertOk();
+        $sectionResponse->assertJsonPath('count', 5);
+        $sectionResponse->assertJsonPath('hasMore', true);
+        $html = (string) $sectionResponse->json('html');
+
         foreach ($visibleNotificationIds as $visibleNotificationId) {
-            $testResponse->assertSeeHtml('id="' . $visibleNotificationId . '"');
+            $this->assertStringContainsString('id="' . $visibleNotificationId . '"', $html);
         }
 
         foreach ($hiddenNotificationIds as $hiddenNotificationId) {
-            $testResponse->assertDontSeeHtml('id="' . $hiddenNotificationId . '"');
+            $this->assertStringNotContainsString('id="' . $hiddenNotificationId . '"', $html);
         }
     }
 
@@ -117,6 +146,14 @@ class NotificationPaginationStateTest extends TestCase
         $afterMarkResponse = $this->actingAs($user)->get(route('notifications.index'));
         $afterMarkResponse->assertOk();
         $afterMarkResponse->assertSee('Nothing to discover. Everything is up to date.');
+
+        $sectionResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+        ]);
+
+        $sectionResponse->assertOk();
+        $sectionResponse->assertJsonPath('count', 0);
     }
 
     public function test_notifications_navigation_uses_bell_icon_before_language_switch(): void

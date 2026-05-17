@@ -19,7 +19,7 @@ class NotificationStatusBoardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_status_board_shows_only_latest_status_change_per_monitoring(): void
+    public function test_async_status_board_shows_only_latest_status_change_per_monitoring(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
 
@@ -60,8 +60,19 @@ class NotificationStatusBoardTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('notifications.status_change_notifications'));
-        $testResponse->assertSeeHtml('id="' . $latestNotification->id . '"');
-        $testResponse->assertDontSeeHtml('id="' . $monitoringNotification->id . '"');
+        $testResponse->assertDontSeeHtml('id="' . $latestNotification->id . '"');
+
+        $sectionResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::STATUS_CHANGE->value,
+            'offset' => 0,
+            'show_read' => true,
+        ]);
+
+        $sectionResponse->assertOk();
+        $html = (string) $sectionResponse->json('html');
+
+        $this->assertStringContainsString('id="' . $latestNotification->id . '"', $html);
+        $this->assertStringNotContainsString('id="' . $monitoringNotification->id . '"', $html);
     }
 
     public function test_status_board_api_returns_status_category_keys_and_badges(): void
@@ -114,12 +125,18 @@ class NotificationStatusBoardTest extends TestCase
         $user = User::factory()->create(['locale' => 'de']);
         $monitoring = $this->createStatusBoardMonitoring($user, 503);
 
-        $testResponse = $this->actingAs($user)->get(route('notifications.index', ['show_read' => true]));
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::STATUS_CHANGE->value,
+            'offset' => 0,
+            'show_read' => true,
+        ]);
 
         $testResponse->assertOk();
-        $testResponse->assertSee('Server-Fehler');
-        $testResponse->assertSee('Letzte Prüfung');
-        $testResponse->assertSee($monitoring->name);
+        $html = (string) $testResponse->json('html');
+
+        $this->assertStringContainsString('Server-Fehler', $html);
+        $this->assertStringContainsString('Letzte Prüfung', $html);
+        $this->assertStringContainsString($monitoring->name, $html);
     }
 
     private function createStatusBoardMonitoring(User $user, ?int $statusCode, bool $maintenance = false): Monitoring

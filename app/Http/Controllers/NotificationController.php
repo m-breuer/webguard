@@ -22,31 +22,12 @@ class NotificationController extends Controller
 
     private const int MAX_NOTIFICATION_LIMIT = 100;
 
-    public function index(Request $request, NotificationBoardService $notificationBoardService): View
+    public function index(Request $request): View
     {
         $showRead = $request->boolean('show_read', false);
         $limit = $this->resolveRequestedLimit($request);
 
-        [$statusBoardEntries, $statusChangeHasMore] = $this->loadStatusBoardEntries(
-            $notificationBoardService,
-            $showRead,
-            0,
-            $limit
-        );
-
-        [$sslExpiryNotifications, $sslExpiryHasMore] = $this->loadSslExpiryNotifications($showRead, 0, $limit);
-        [$domainExpiryNotifications, $domainExpiryHasMore] = $this->loadDomainExpiryNotifications($showRead, 0, $limit);
-        [$deliveryHistory, $deliveryHistoryHasMore] = $this->loadDeliveryHistory(0, $limit);
-
         return view('notifications.index', compact(
-            'statusBoardEntries',
-            'statusChangeHasMore',
-            'sslExpiryNotifications',
-            'sslExpiryHasMore',
-            'domainExpiryNotifications',
-            'domainExpiryHasMore',
-            'deliveryHistory',
-            'deliveryHistoryHasMore',
             'showRead',
             'limit'
         ));
@@ -89,12 +70,13 @@ class NotificationController extends Controller
         $validated = $request->validate([
             'type' => ['required', 'string', Rule::in($this->loadMoreTypes())],
             'offset' => ['nullable', 'integer', 'min:0'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:' . self::MAX_NOTIFICATION_LIMIT],
             'show_read' => ['nullable', 'boolean'],
         ]);
 
         $type = (string) $validated['type'];
         $offset = (int) ($validated['offset'] ?? 0);
-        $limit = self::DEFAULT_NOTIFICATION_LIMIT;
+        $limit = (int) ($validated['limit'] ?? self::DEFAULT_NOTIFICATION_LIMIT);
         $showRead = (bool) ($validated['show_read'] ?? false);
 
         if ($type === NotificationType::STATUS_CHANGE->value) {

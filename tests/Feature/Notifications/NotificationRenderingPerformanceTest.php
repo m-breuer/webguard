@@ -14,6 +14,7 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -21,7 +22,7 @@ class NotificationRenderingPerformanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_notifications_index_renders_without_lazy_loading_for_status_change_messages(): void
+    public function test_notifications_index_defers_status_change_messages_to_async_sections(): void
     {
         $package = Package::factory()->create();
         $user = User::factory()->for($package)->create();
@@ -38,7 +39,52 @@ class NotificationRenderingPerformanceTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('notifications.index'));
 
         $testResponse->assertOk();
-        $testResponse->assertSee($monitoring->name);
+        $testResponse->assertSee('loadInitialNotifications()');
+        $testResponse->assertSeeHtml('id="status-change-notifications"');
+        $testResponse->assertDontSee($monitoring->name);
+    }
+
+    public function test_notifications_index_does_not_load_section_queries_on_initial_render(): void
+    {
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::SSL_EXPIRY,
+            'message' => 'SSL_EXPIRING',
+            'read' => false,
+            'sent' => true,
+        ]);
+
+        NotificationChannelDelivery::query()->forceCreate([
+            'user_id' => $user->id,
+            'monitoring_notification_id' => null,
+            'channel' => 'webhook',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+
+        $testResponse->assertOk();
+
+        $selectQueries = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->map(static fn (string $query): string => mb_strtolower($query))
+            ->filter(static fn (string $query): bool => str_starts_with($query, 'select'))
+            ->values();
+
+        $this->assertFalse($selectQueries->contains(
+            fn (string $query): bool => str_contains($query, 'notification_channel_deliveries')
+        ));
+        $this->assertFalse($selectQueries->contains(
+            fn (string $query): bool => str_contains($query, 'latest_status_notifications')
+        ));
     }
 
     public function test_notification_board_tables_have_indexes_for_initial_page_pagination(): void
@@ -92,13 +138,16 @@ class NotificationRenderingPerformanceTest extends TestCase
             'updated_at' => $createdAt,
         ]);
 
-        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+        ]);
 
         $testResponse->assertOk();
         $this->assertAppearsBefore(
             'Higher id certificate',
             'Lower id certificate',
-            $testResponse->getContent() ?: ''
+            (string) $testResponse->json('html')
         );
     }
 
@@ -144,13 +193,16 @@ class NotificationRenderingPerformanceTest extends TestCase
             'updated_at' => $createdAt,
         ]);
 
-        $testResponse = $this->actingAs($user)->get(route('notifications.index'));
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => 'delivery_history',
+            'offset' => 0,
+        ]);
 
         $testResponse->assertOk();
         $this->assertAppearsBefore(
             'Higher id delivery',
             'Lower id delivery',
-            $testResponse->getContent() ?: ''
+            (string) $testResponse->json('html')
         );
     }
 
