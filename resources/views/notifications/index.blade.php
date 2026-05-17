@@ -29,12 +29,39 @@
     </x-slot>
 
     <x-main x-data="{
-        statusChangeOffset: {{ $statusBoardEntries->count() }},
-        sslExpiryOffset: {{ $sslExpiryNotifications->count() }},
-        domainExpiryOffset: {{ $domainExpiryNotifications->count() }},
-        deliveryHistoryOffset: {{ $deliveryHistory->count() }},
+        statusChangeOffset: 0,
+        sslExpiryOffset: 0,
+        domainExpiryOffset: 0,
+        deliveryHistoryOffset: 0,
         currentLimit: {{ $limit }},
-        isEmpty: {{ $sslExpiryNotifications->isEmpty() && $domainExpiryNotifications->isEmpty() && $statusBoardEntries->isEmpty() && $deliveryHistory->isEmpty() ? 'true' : 'false' }},
+        isEmpty: false,
+        isLoading: true,
+        sections: [
+            {
+                type: 'ssl_expiry',
+                sectionId: 'ssl-expiry-section',
+                containerId: 'ssl-expiry-notifications',
+                loadMoreContainerId: 'ssl-expiry-load-more-container',
+            },
+            {
+                type: 'domain_expiry',
+                sectionId: 'domain-expiry-section',
+                containerId: 'domain-expiry-notifications',
+                loadMoreContainerId: 'domain-expiry-load-more-container',
+            },
+            {
+                type: 'status_change',
+                sectionId: 'status-change-section',
+                containerId: 'status-change-notifications',
+                loadMoreContainerId: 'status-change-load-more-container',
+            },
+            {
+                type: 'delivery_history',
+                sectionId: 'delivery-history-section',
+                containerId: 'delivery-history-notifications',
+                loadMoreContainerId: 'delivery-history-load-more-container',
+            },
+        ],
         getOffsetForType(type) {
             if (type === 'status_change') {
                 return this.statusChangeOffset;
@@ -50,6 +77,17 @@
 
             return this.sslExpiryOffset;
         },
+        setOffsetForType(type, offset) {
+            if (type === 'status_change') {
+                this.statusChangeOffset = offset;
+            } else if (type === 'domain_expiry') {
+                this.domainExpiryOffset = offset;
+            } else if (type === 'delivery_history') {
+                this.deliveryHistoryOffset = offset;
+            } else {
+                this.sslExpiryOffset = offset;
+            }
+        },
         syncLimitWithUrl(limit) {
             const parsedLimit = Number.parseInt(limit, 10);
             const nextLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
@@ -61,33 +99,61 @@
         updateEmptyState() {
             this.isEmpty = this.$root.querySelectorAll('.notification-entry').length === 0;
         },
-        loadMoreNotifications(type) {
-            const offset = this.getOffsetForType(type);
-            axios.post('{{ route('notifications.loadMore') }}', {
-                    type: type,
-                    offset: offset,
-                    show_read: {{ $showRead ? 'true' : 'false' }}
-                })
-                .then(response => {
-                    document.getElementById(type.replace('_', '-') + '-notifications').insertAdjacentHTML('beforeend', response.data.html);
-                    if (type === 'status_change') {
-                        this.statusChangeOffset += response.data.count;
-                        if (!response.data.hasMore) document.getElementById('status-change-load-more-container').style.display = 'none';
-                    } else if (type === 'domain_expiry') {
-                        this.domainExpiryOffset += response.data.count;
-                        if (!response.data.hasMore) document.getElementById('domain-expiry-load-more-container').style.display = 'none';
-                    } else if (type === 'delivery_history') {
-                        this.deliveryHistoryOffset += response.data.count;
-                        if (!response.data.hasMore) document.getElementById('delivery-history-load-more-container').style.display = 'none';
-                    } else {
-                        this.sslExpiryOffset += response.data.count;
-                        if (!response.data.hasMore) document.getElementById('ssl-expiry-load-more-container').style.display = 'none';
-                    }
-                    const updatedOffset = this.getOffsetForType(type);
-                    this.currentLimit = Math.max(this.currentLimit, updatedOffset);
-                    this.syncLimitWithUrl(this.currentLimit);
+        sectionForType(type) {
+            return this.sections.find((section) => section.type === type);
+        },
+        loadInitialNotifications() {
+            this.isLoading = true;
+
+            Promise.all(this.sections.map((section) => this.loadNotificationSection(section.type, true)))
+                .finally(() => {
+                    this.isLoading = false;
                     this.updateEmptyState();
                 });
+        },
+        loadNotificationSection(type, initial = false) {
+            const section = this.sectionForType(type);
+            const offset = initial ? 0 : this.getOffsetForType(type);
+            const payload = {
+                type: type,
+                offset: offset,
+                show_read: {{ $showRead ? 'true' : 'false' }},
+            };
+
+            if (initial) {
+                payload.limit = this.currentLimit;
+            }
+
+            return axios.post('{{ route('notifications.loadMore') }}', payload)
+                .then(response => {
+                    const sectionElement = document.getElementById(section.sectionId);
+                    const container = document.getElementById(section.containerId);
+                    const loadMoreContainer = document.getElementById(section.loadMoreContainerId);
+
+                    if (initial) {
+                        container.innerHTML = '';
+                    }
+
+                    container.insertAdjacentHTML('beforeend', response.data.html);
+
+                    const nextOffset = initial
+                        ? response.data.count
+                        : this.getOffsetForType(type) + response.data.count;
+                    this.setOffsetForType(type, nextOffset);
+
+                    sectionElement.style.display = response.data.count > 0 ? '' : 'none';
+                    loadMoreContainer.style.display = response.data.hasMore ? '' : 'none';
+
+                    if (!initial) {
+                        this.currentLimit = Math.max(this.currentLimit, nextOffset);
+                        this.syncLimitWithUrl(this.currentLimit);
+                    }
+
+                    this.updateEmptyState();
+                });
+        },
+        loadMoreNotifications(type) {
+            this.loadNotificationSection(type);
         },
         markAsRead(event, notificationId, route, type) {
             event.preventDefault();
@@ -99,91 +165,56 @@
                     }
 
                     entry.remove();
-                    if (type === 'status_change') {
-                        this.statusChangeOffset = Math.max(0, this.statusChangeOffset - 1);
-                    } else if (type === 'domain_expiry') {
-                        this.domainExpiryOffset = Math.max(0, this.domainExpiryOffset - 1);
-                    } else {
-                        this.sslExpiryOffset = Math.max(0, this.sslExpiryOffset - 1);
-                    }
+                    this.setOffsetForType(type, Math.max(0, this.getOffsetForType(type) - 1));
                     this.updateEmptyState();
+
+                    const section = this.sectionForType(type);
+                    if (section && document.getElementById(section.containerId).querySelectorAll('.notification-entry').length === 0) {
+                        document.getElementById(section.sectionId).style.display = 'none';
+                    }
                 });
         }
-    }" x-init="syncLimitWithUrl(currentLimit)">
-        <x-container id="notifications-empty-state" x-cloak x-show="isEmpty">
+    }" x-init="syncLimitWithUrl(currentLimit); loadInitialNotifications()">
+        <x-container id="notifications-loading-state" x-cloak x-show="isLoading">
+            <x-loading-indicator />
+        </x-container>
+
+        <x-container id="notifications-empty-state" x-cloak x-show="!isLoading && isEmpty">
             <x-paragraph>{{ __('notifications.no_notifications') }}</x-paragraph>
         </x-container>
 
-        <div x-cloak x-show="!isEmpty">
-            @if ($sslExpiryNotifications->isNotEmpty())
-                <div class="mb-8">
-                    <x-heading type="h2" space=true>{{ __('notifications.ssl_expiry_notifications') }}</x-heading>
-                    <div id="ssl-expiry-notifications">
-                        @include('notifications.partials.notification_list', [
-                            'notifications' => $sslExpiryNotifications,
-                            'type' => 'ssl_expiry',
-                        ])
-                    </div>
-                    @if ($sslExpiryHasMore)
-                        <div class="mt-4 text-center" id="ssl-expiry-load-more-container">
-                            <x-primary-button
-                                @click="loadMoreNotifications('ssl_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
-                        </div>
-                    @endif
+        <div x-cloak x-show="!isLoading && !isEmpty">
+            <div class="mb-8" id="ssl-expiry-section" style="display: none;">
+                <x-heading type="h2" space=true>{{ __('notifications.ssl_expiry_notifications') }}</x-heading>
+                <div id="ssl-expiry-notifications"></div>
+                <div class="mt-4 text-center" id="ssl-expiry-load-more-container" style="display: none;">
+                    <x-primary-button @click="loadMoreNotifications('ssl_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
                 </div>
-            @endif
+            </div>
 
-            @if ($domainExpiryNotifications->isNotEmpty())
-                <div class="mb-8">
-                    <x-heading type="h2" space=true>{{ __('notifications.domain_expiry_notifications') }}</x-heading>
-                    <div id="domain-expiry-notifications">
-                        @include('notifications.partials.notification_list', [
-                            'notifications' => $domainExpiryNotifications,
-                            'type' => 'domain_expiry',
-                        ])
-                    </div>
-                    @if ($domainExpiryHasMore)
-                        <div class="mt-4 text-center" id="domain-expiry-load-more-container">
-                            <x-primary-button
-                                @click="loadMoreNotifications('domain_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
-                        </div>
-                    @endif
+            <div class="mb-8" id="domain-expiry-section" style="display: none;">
+                <x-heading type="h2" space=true>{{ __('notifications.domain_expiry_notifications') }}</x-heading>
+                <div id="domain-expiry-notifications"></div>
+                <div class="mt-4 text-center" id="domain-expiry-load-more-container" style="display: none;">
+                    <x-primary-button @click="loadMoreNotifications('domain_expiry')">{{ __('notifications.load_more') }}</x-primary-button>
                 </div>
-            @endif
+            </div>
 
-            @if ($statusBoardEntries->isNotEmpty())
-                <div class="mb-8">
-                    <x-heading type="h2" space=true>{{ __('notifications.status_change_notifications') }}</x-heading>
-                    <div id="status-change-notifications">
-                        @include('notifications.partials.status_board_list', [
-                            'entries' => $statusBoardEntries,
-                        ])
-                    </div>
-                    @if ($statusChangeHasMore)
-                        <div class="mt-4 text-center" id="status-change-load-more-container">
-                            <x-primary-button
-                                @click="loadMoreNotifications('status_change')">{{ __('notifications.load_more') }}</x-primary-button>
-                        </div>
-                    @endif
+            <div class="mb-8" id="status-change-section" style="display: none;">
+                <x-heading type="h2" space=true>{{ __('notifications.status_change_notifications') }}</x-heading>
+                <div id="status-change-notifications"></div>
+                <div class="mt-4 text-center" id="status-change-load-more-container" style="display: none;">
+                    <x-primary-button @click="loadMoreNotifications('status_change')">{{ __('notifications.load_more') }}</x-primary-button>
                 </div>
-            @endif
+            </div>
 
-            @if ($deliveryHistory->isNotEmpty())
-                <div class="mb-8">
-                    <x-heading type="h2" space=true>{{ __('notifications.delivery_history.heading') }}</x-heading>
-                    <div id="delivery-history-notifications">
-                        @include('notifications.partials.delivery_history_list', [
-                            'deliveries' => $deliveryHistory,
-                        ])
-                    </div>
-                    @if ($deliveryHistoryHasMore)
-                        <div class="mt-4 text-center" id="delivery-history-load-more-container">
-                            <x-primary-button
-                                @click="loadMoreNotifications('delivery_history')">{{ __('notifications.load_more') }}</x-primary-button>
-                        </div>
-                    @endif
+            <div class="mb-8" id="delivery-history-section" style="display: none;">
+                <x-heading type="h2" space=true>{{ __('notifications.delivery_history.heading') }}</x-heading>
+                <div id="delivery-history-notifications"></div>
+                <div class="mt-4 text-center" id="delivery-history-load-more-container" style="display: none;">
+                    <x-primary-button @click="loadMoreNotifications('delivery_history')">{{ __('notifications.load_more') }}</x-primary-button>
                 </div>
-            @endif
+            </div>
         </div>
     </x-main>
 </x-app-layout>

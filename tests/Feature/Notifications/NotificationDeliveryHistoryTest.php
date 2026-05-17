@@ -20,7 +20,7 @@ class NotificationDeliveryHistoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_notifications_index_shows_delivery_history_for_authenticated_user_only(): void
+    public function test_notifications_async_delivery_history_shows_authenticated_user_entries_only(): void
     {
         Date::setTestNow('2026-04-06 10:00:00');
 
@@ -98,15 +98,26 @@ class NotificationDeliveryHistoryTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('notifications.delivery_history.heading'));
-        $testResponse->assertSeeHtml('id="' . $notificationChannelDelivery->id . '"');
-        $testResponse->assertSeeHtml('id="' . $payloadOnlyDelivery->id . '"');
-        $testResponse->assertDontSeeHtml('id="' . $hiddenDelivery->id . '"');
-        $testResponse->assertSeeText('Primary API');
-        $testResponse->assertSeeText('Worker API');
-        $testResponse->assertSeeText(__('notifications.channels.slack'));
-        $testResponse->assertSeeText(__('notifications.events.incident'));
-        $testResponse->assertSeeText(__('notifications.delivery_status.failed'));
-        $testResponse->assertSeeText('Webhook responded with HTTP 500.');
+        $testResponse->assertDontSeeText('Primary API');
+        $testResponse->assertSee('loadInitialNotifications()');
+
+        $sectionResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => 'delivery_history',
+            'offset' => 0,
+        ]);
+
+        $sectionResponse->assertOk();
+        $html = (string) $sectionResponse->json('html');
+
+        $this->assertStringContainsString('id="' . $notificationChannelDelivery->id . '"', $html);
+        $this->assertStringContainsString('id="' . $payloadOnlyDelivery->id . '"', $html);
+        $this->assertStringNotContainsString('id="' . $hiddenDelivery->id . '"', $html);
+        $this->assertStringContainsString('Primary API', $html);
+        $this->assertStringContainsString('Worker API', $html);
+        $this->assertStringContainsString(__('notifications.channels.slack'), $html);
+        $this->assertStringContainsString(__('notifications.events.incident'), $html);
+        $this->assertStringContainsString(__('notifications.delivery_status.failed'), $html);
+        $this->assertStringContainsString('Webhook responded with HTTP 500.', $html);
     }
 
     public function test_notifications_load_more_returns_additional_delivery_history_entries(): void
@@ -173,6 +184,7 @@ class NotificationDeliveryHistoryTest extends TestCase
         $testResponse->assertSeeHtml('getOffsetForType(type)');
         $testResponse->assertSeeHtml("if (type === 'delivery_history') {");
         $testResponse->assertSeeHtml('return this.deliveryHistoryOffset;');
-        $testResponse->assertSeeHtml('const offset = this.getOffsetForType(type);');
+        $testResponse->assertSeeHtml('const offset = initial ? 0 : this.getOffsetForType(type);');
+        $testResponse->assertSeeHtml("loadMoreNotifications('delivery_history')");
     }
 }
