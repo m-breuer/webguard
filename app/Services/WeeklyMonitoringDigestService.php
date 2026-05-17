@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Date;
 
 class WeeklyMonitoringDigestService
 {
+    public function __construct(
+        private readonly MonitoringAvailabilityService $monitoringAvailabilityService
+    ) {}
+
     /**
      * @return array{
      *     period_start: Carbon,
@@ -55,7 +59,7 @@ class WeeklyMonitoringDigestService
             ->endOfDay();
 
         foreach ($monitorings as $monitoring) {
-            $uptimeDowntime = MonitoringResultService::getUptimeDowntime(
+            $uptimeDowntime = $this->monitoringAvailabilityService->getUptimeDowntime(
                 $monitoring,
                 $periodStart,
                 $periodEnd,
@@ -69,9 +73,9 @@ class WeeklyMonitoringDigestService
             $incidentsCount = count($incidentDurations);
             $monitoringLongestDowntimeMinutes = empty($incidentDurations) ? 0 : max($incidentDurations);
 
-            $uptimeMinutes = (int) ($uptimeDowntime['uptime']['minutes'] ?? 0);
-            $downtimeMinutes = (int) ($uptimeDowntime['downtime']['minutes'] ?? 0);
-            $unknownMinutes = (int) ($uptimeDowntime['unknown']['minutes'] ?? 0);
+            $uptimeMinutes = $uptimeDowntime->uptime->minutes;
+            $downtimeMinutes = $uptimeDowntime->downtime->minutes;
+            $unknownMinutes = $uptimeDowntime->unknown->minutes;
             $this->removeMaintenanceMinutes($maintenanceMinutes, $uptimeMinutes, $downtimeMinutes, $unknownMinutes);
             $monitoringTrackedMinutes = $uptimeMinutes + $downtimeMinutes + $unknownMinutes;
 

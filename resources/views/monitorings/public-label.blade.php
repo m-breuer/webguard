@@ -161,7 +161,7 @@
                     @php
                         $summary = data_get($rangeSummaries, (string) $days);
                         $uptime = data_get($summary, 'uptime.percentage');
-                        $incidentsCount = (int) data_get($summary, 'downtime.incidents_count', 0);
+                        $incidentsCount = (int) data_get($summary, 'downtime.incidentsCount', 0);
                     @endphp
                     <x-container id="public-uptime-card-{{ $days }}">
                         <x-heading type="h2">
@@ -208,8 +208,8 @@
                         <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($incidents as $incident)
                                 @php
-                                    $downAt = \Illuminate\Support\Facades\Date::parse($incident['down_at']);
-                                    $upAt = $incident['up_at'] ? \Illuminate\Support\Facades\Date::parse($incident['up_at']) : null;
+                                    $downAt = \Illuminate\Support\Facades\Date::parse($incident->downAt);
+                                    $upAt = $incident->upAt ? \Illuminate\Support\Facades\Date::parse($incident->upAt) : null;
                                     $duration = $downAt->diffForHumans($upAt ?? now(), true);
                                 @endphp
                                 <div class="py-3">
