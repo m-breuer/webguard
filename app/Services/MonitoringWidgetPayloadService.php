@@ -54,13 +54,13 @@ class MonitoringWidgetPayloadService
         if ($monitoring->created_at->diffInDays(Date::now()) < 1) {
             return collect($days)
                 ->mapWithKeys(function (int $day) use ($monitoring): array {
-                    $range = MonitoringDateRange::pastDays($day);
+                    $monitoringDateRange = MonitoringDateRange::pastDays($day);
 
                     return [
                         $day => data_get($this->monitoringAvailabilityService->getUptimeDowntime(
                             $monitoring,
-                            $range->startDate,
-                            $range->endDate,
+                            $monitoringDateRange->startDate,
+                            $monitoringDateRange->endDate,
                             false,
                             false
                         ), 'uptime.percentage'),

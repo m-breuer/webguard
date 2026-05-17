@@ -27,7 +27,7 @@ final readonly class MonitoringResponseTimesPayload implements JsonSerializable
     {
         return [
             'data' => $this->data->map(
-                static fn (MonitoringResponseTimePointPayload $point): array => $point->toArray()
+                static fn (MonitoringResponseTimePointPayload $monitoringResponseTimePointPayload): array => $monitoringResponseTimePointPayload->toArray()
             ),
             'aggregated' => $this->aggregated->toArray(),
         ];

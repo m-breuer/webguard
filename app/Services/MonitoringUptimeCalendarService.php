@@ -43,9 +43,9 @@ class MonitoringUptimeCalendarService
 
         $dailyUptimeData = [];
         $monthlyMinutes = [];
-        $calendarPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
+        $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
-        foreach ($calendarPeriod as $monthDate) {
+        foreach ($carbonPeriod as $monthDate) {
             $monthYear = $monthDate->format('Y-m');
             $monthDays = [];
             $monthlyMinutes[$monthYear] = [

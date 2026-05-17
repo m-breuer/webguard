@@ -37,7 +37,7 @@ final readonly class MonitoringDashboardPayload implements JsonSerializable
             'uptime_downtime' => $this->uptimeDowntime->toArray(),
             'response_times' => $this->responseTimes->toArray(),
             'incidents' => $this->incidents
-                ->map(static fn (MonitoringIncidentPayload $incident): array => $incident->toArray())
+                ->map(static fn (MonitoringIncidentPayload $monitoringIncidentPayload): array => $monitoringIncidentPayload->toArray())
                 ->values(),
             'heatmap' => $this->heatmap->values(),
             'ssl' => $this->ssl->toArray(),

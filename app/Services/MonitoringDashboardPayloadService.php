@@ -24,7 +24,7 @@ class MonitoringDashboardPayloadService
 
     public function getPayload(Monitoring $monitoring, int $days, Carbon $calendarStartDate, Carbon $calendarEndDate): MonitoringDashboardPayload
     {
-        $range = MonitoringDateRange::pastDays($days);
+        $monitoringDateRange = MonitoringDateRange::pastDays($days);
         $heatmapStartDate = Date::now()->subHours(23);
         $heatmapEndDate = Date::now();
 
@@ -33,18 +33,18 @@ class MonitoringDashboardPayloadService
             statusNow: $this->monitoringStatusService->getStatusNow($monitoring),
             uptimeDowntime: $this->monitoringAvailabilityService->getUptimeDowntime(
                 $monitoring,
-                $range->startDate,
-                $range->endDate,
-                $range->shouldUseUptimeAggregates($monitoring),
-                $range->shouldIncludeIntradayRawData()
+                $monitoringDateRange->startDate,
+                $monitoringDateRange->endDate,
+                $monitoringDateRange->shouldUseUptimeAggregates($monitoring),
+                $monitoringDateRange->shouldIncludeIntradayRawData()
             ),
             responseTimes: $this->monitoringResponseTimeService->getResponseTimes(
                 $monitoring,
-                $range->startDate,
-                $range->endDate,
-                $range->shouldUseResponseTimeAggregates()
+                $monitoringDateRange->startDate,
+                $monitoringDateRange->endDate,
+                $monitoringDateRange->shouldUseResponseTimeAggregates()
             ),
-            incidents: $this->monitoringIncidentService->getIncidents($monitoring, $range->startDate, $range->endDate),
+            incidents: $this->monitoringIncidentService->getIncidents($monitoring, $monitoringDateRange->startDate, $monitoringDateRange->endDate),
             heatmap: $this->monitoringHeatmapService->getHeatmap($monitoring, $heatmapStartDate, $heatmapEndDate),
             ssl: $this->getSslPayload($monitoring),
             uptimeCalendar: $this->monitoringUptimeCalendarService->getGroupedByDateAndMonth(

@@ -48,7 +48,7 @@ class MonitoringAvailabilityService
     public function getUptimeDowntimesForRanges(Monitoring $monitoring, array $days): array
     {
         $normalizedDays = collect($days)
-            ->map(static fn (mixed $day): ?int => is_numeric($day) ? (int) $day : null)
+            ->map(static fn (mixed $day): ?int => is_numeric($day) ? $day : null)
             ->filter(static fn (?int $day): bool => $day !== null && $day > 0)
             ->unique()
             ->sort()
@@ -112,7 +112,7 @@ class MonitoringAvailabilityService
                 ->all();
         }
 
-        $maxRangeDays = (int) $normalizedDays->last();
+        $maxRangeDays = $normalizedDays->last();
         $globalStartDate = $now->copy()->subDays($maxRangeDays)->startOfDay();
 
         $dailyResults = $monitoring->dailyResults()
@@ -135,8 +135,8 @@ class MonitoringAvailabilityService
                 $endDateString = $endDate->toDateString();
 
                 $rangeRows = $dailyResults->filter(
-                    static fn (MonitoringDailyResult $dailyResult): bool => $dailyResult->date >= $startDateString
-                        && $dailyResult->date <= $endDateString
+                    static fn (MonitoringDailyResult $monitoringDailyResult): bool => $monitoringDailyResult->date >= $startDateString
+                        && $monitoringDailyResult->date <= $endDateString
                 );
 
                 return [

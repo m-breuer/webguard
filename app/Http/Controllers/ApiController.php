@@ -94,19 +94,19 @@ class ApiController extends Controller
      */
     public function all(
         Monitoring $monitoring,
-        MonitoringDashboardRequest $request,
+        MonitoringDashboardRequest $monitoringDashboardRequest,
         MonitoringDashboardPayloadService $monitoringDashboardPayloadService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $days = $request->days();
-        $calendarStartDate = $request->calendarStartDate();
-        $calendarEndDate = $request->calendarEndDate();
-        $range = $request->dateRange();
+        $days = $monitoringDashboardRequest->days();
+        $calendarStartDate = $monitoringDashboardRequest->calendarStartDate();
+        $calendarEndDate = $monitoringDashboardRequest->calendarEndDate();
+        $monitoringDateRange = $monitoringDashboardRequest->dateRange();
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
-            $this->monitoringStatsCache->dashboardKey($monitoring, $days, $range, $calendarStartDate, $calendarEndDate),
+            $this->monitoringStatsCache->dashboardKey($monitoring, $days, $monitoringDateRange, $calendarStartDate, $calendarEndDate),
             fn (): array => $monitoringDashboardPayloadService->getPayload(
                 $monitoring,
                 $days,
@@ -133,23 +133,23 @@ class ApiController extends Controller
      */
     public function uptimeDowntime(
         Monitoring $monitoring,
-        MonitoringDaysRequest $request,
+        MonitoringDaysRequest $monitoringDaysRequest,
         MonitoringAvailabilityService $monitoringAvailabilityService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $days = $request->days();
-        $range = $request->dateRange();
+        $days = $monitoringDaysRequest->days();
+        $monitoringDateRange = $monitoringDaysRequest->dateRange();
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
-            $this->monitoringStatsCache->uptimeKey($monitoring, $days, $range),
+            $this->monitoringStatsCache->uptimeKey($monitoring, $days, $monitoringDateRange),
             fn (): MonitoringAvailabilityPayload => $monitoringAvailabilityService->getUptimeDowntime(
                 $monitoring,
-                $range->startDate,
-                $range->endDate,
-                $range->shouldUseUptimeAggregates($monitoring),
-                $range->shouldIncludeIntradayRawData()
+                $monitoringDateRange->startDate,
+                $monitoringDateRange->endDate,
+                $monitoringDateRange->shouldUseUptimeAggregates($monitoring),
+                $monitoringDateRange->shouldIncludeIntradayRawData()
             )
         );
 
@@ -174,12 +174,12 @@ class ApiController extends Controller
      */
     public function uptimeDowntimeSummary(
         Monitoring $monitoring,
-        MonitoringUptimeSummaryRequest $request,
+        MonitoringUptimeSummaryRequest $monitoringUptimeSummaryRequest,
         MonitoringAvailabilityService $monitoringAvailabilityService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $days = $request->days();
+        $days = $monitoringUptimeSummaryRequest->days();
 
         $endDate = now()->endOfDay();
 
@@ -208,22 +208,22 @@ class ApiController extends Controller
      */
     public function responseTimes(
         Monitoring $monitoring,
-        MonitoringDaysRequest $request,
+        MonitoringDaysRequest $monitoringDaysRequest,
         MonitoringResponseTimeService $monitoringResponseTimeService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $days = $request->days();
-        $range = $request->dateRange();
+        $days = $monitoringDaysRequest->days();
+        $monitoringDateRange = $monitoringDaysRequest->dateRange();
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
-            $this->monitoringStatsCache->responseTimesKey($monitoring, $days, $range),
+            $this->monitoringStatsCache->responseTimesKey($monitoring, $days, $monitoringDateRange),
             fn (): MonitoringResponseTimesPayload => $monitoringResponseTimeService->getResponseTimes(
                 $monitoring,
-                $range->startDate,
-                $range->endDate,
-                $range->shouldUseResponseTimeAggregates()
+                $monitoringDateRange->startDate,
+                $monitoringDateRange->endDate,
+                $monitoringDateRange->shouldUseResponseTimeAggregates()
             )
         );
 
@@ -262,16 +262,16 @@ class ApiController extends Controller
      */
     public function checks(
         Monitoring $monitoring,
-        MonitoringChecksRequest $request,
+        MonitoringChecksRequest $monitoringChecksRequest,
         MonitoringCheckHistoryService $monitoringCheckHistoryService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $days = $request->days();
-        $limit = $request->limit();
-        $offset = $request->offset();
-        $startDate = $request->startDate();
-        $endDate = $request->endDate();
+        $days = $monitoringChecksRequest->days();
+        $limit = $monitoringChecksRequest->limit();
+        $offset = $monitoringChecksRequest->offset();
+        $startDate = $monitoringChecksRequest->startDate();
+        $endDate = $monitoringChecksRequest->endDate();
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
@@ -392,18 +392,18 @@ class ApiController extends Controller
      */
     public function incidents(
         Monitoring $monitoring,
-        MonitoringDaysRequest $request,
+        MonitoringDaysRequest $monitoringDaysRequest,
         MonitoringIncidentService $monitoringIncidentService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $days = $request->days();
-        $range = $request->dateRange();
+        $days = $monitoringDaysRequest->days();
+        $monitoringDateRange = $monitoringDaysRequest->dateRange();
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
-            $this->monitoringStatsCache->incidentsKey($monitoring, $days, $range),
-            fn (): Collection => $monitoringIncidentService->getIncidents($monitoring, $range->startDate, $range->endDate),
+            $this->monitoringStatsCache->incidentsKey($monitoring, $days, $monitoringDateRange),
+            fn (): Collection => $monitoringIncidentService->getIncidents($monitoring, $monitoringDateRange->startDate, $monitoringDateRange->endDate),
         );
 
         return response()->json($data);
@@ -451,13 +451,13 @@ class ApiController extends Controller
      */
     public function uptimeCalendar(
         Monitoring $monitoring,
-        MonitoringUptimeCalendarRequest $request,
+        MonitoringUptimeCalendarRequest $monitoringUptimeCalendarRequest,
         MonitoringUptimeCalendarService $monitoringUptimeCalendarService
     ): JsonResponse {
         $this->authorizeMonitoringDataAccess($monitoring);
 
-        $startDate = $request->startDate();
-        $endDate = $request->endDate();
+        $startDate = $monitoringUptimeCalendarRequest->startDate();
+        $endDate = $monitoringUptimeCalendarRequest->endDate();
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,

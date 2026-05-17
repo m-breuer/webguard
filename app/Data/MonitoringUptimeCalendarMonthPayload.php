@@ -24,7 +24,7 @@ final readonly class MonitoringUptimeCalendarMonthPayload implements JsonSeriali
     {
         return [
             'days' => $this->days
-                ->map(static fn (MonitoringUptimeCalendarDayPayload $day): array => $day->toArray())
+                ->map(static fn (MonitoringUptimeCalendarDayPayload $monitoringUptimeCalendarDayPayload): array => $monitoringUptimeCalendarDayPayload->toArray())
                 ->values()
                 ->all(),
             'monthly_average_uptime' => $this->monthlyAverageUptime,

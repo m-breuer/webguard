@@ -35,7 +35,7 @@ class MonitoringStatusServiceTest extends TestCase
             'up_at' => null,
         ]);
 
-        $statusSince = app(MonitoringStatusService::class)->getStatusSince($monitoring->fresh());
+        $statusSince = resolve(MonitoringStatusService::class)->getStatusSince($monitoring->fresh());
 
         $this->assertSame(MonitoringStatus::DOWN->value, $statusSince['status']);
         $this->assertSame('2026-04-12T10:00:00+02:00', $statusSince['since']);
@@ -49,7 +49,7 @@ class MonitoringStatusServiceTest extends TestCase
             'created_at' => Date::parse('2026-04-12 09:00:00'),
         ]);
 
-        $unknownStatus = app(MonitoringStatusService::class)->getStatusSince($monitoring->fresh());
+        $unknownStatus = resolve(MonitoringStatusService::class)->getStatusSince($monitoring->fresh());
 
         $this->assertSame(MonitoringStatus::UNKNOWN->value, $unknownStatus['status']);
         $this->assertNull($unknownStatus['since']);
@@ -63,7 +63,7 @@ class MonitoringStatusServiceTest extends TestCase
             'updated_at' => Date::parse('2026-04-12 11:00:00'),
         ]);
 
-        $upStatus = app(MonitoringStatusService::class)->getStatusSince($monitoring->fresh());
+        $upStatus = resolve(MonitoringStatusService::class)->getStatusSince($monitoring->fresh());
 
         $this->assertSame(MonitoringStatus::UP->value, $upStatus['status']);
         $this->assertSame('2026-04-12T09:00:00+02:00', $upStatus['since']);
@@ -84,7 +84,7 @@ class MonitoringStatusServiceTest extends TestCase
             'updated_at' => Date::parse('2026-04-12 11:55:00'),
         ]);
 
-        $statusNow = app(MonitoringStatusService::class)->getStatusNow($monitoring->fresh(), 120);
+        $statusNow = resolve(MonitoringStatusService::class)->getStatusNow($monitoring->fresh(), 120);
 
         $this->assertSame(MonitoringStatus::UP, $statusNow['status']);
         $this->assertSame('2026-04-12T11:55:00+02:00', $statusNow['checked_at']);
@@ -99,7 +99,7 @@ class MonitoringStatusServiceTest extends TestCase
             'heartbeat_last_ping_at' => Date::parse('2026-04-12 11:50:00'),
         ])->save();
 
-        $heartbeatStatus = app(MonitoringStatusService::class)->getStatusNow($heartbeat->fresh());
+        $heartbeatStatus = resolve(MonitoringStatusService::class)->getStatusNow($heartbeat->fresh());
 
         $this->assertSame(MonitoringStatus::UNKNOWN->value, $heartbeatStatus['status']);
         $this->assertSame('2026-04-12T11:50:00+02:00', $heartbeatStatus['checked_at']);

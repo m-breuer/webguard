@@ -32,7 +32,7 @@ class MonitoringIncidentServiceTest extends TestCase
         $this->createIncident($monitoring, '2026-04-11 10:00:00', null);
         $this->createIncident($monitoring, '2026-04-01 10:00:00', '2026-04-01 10:05:00');
 
-        $incidents = app(MonitoringIncidentService::class)->getIncidents(
+        $incidents = resolve(MonitoringIncidentService::class)->getIncidents(
             $monitoring,
             Date::parse('2026-04-10'),
             Date::parse('2026-04-11')

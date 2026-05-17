@@ -45,20 +45,20 @@ class MonitoringAvailabilityServiceTest extends TestCase
             'up_at' => Date::parse('2026-04-12 10:30:00'),
         ]);
 
-        $stats = app(MonitoringAvailabilityService::class)->getUptimeDowntime(
+        $monitoringAvailabilityPayload = resolve(MonitoringAvailabilityService::class)->getUptimeDowntime(
             $monitoring,
             Date::parse('2026-04-12 08:00:00'),
             Date::parse('2026-04-12 11:00:00')
         );
 
-        $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $stats);
-        $this->assertTrue($stats->hasData);
-        $this->assertSame(90, $stats->uptime->minutes);
-        $this->assertSame(90, $stats->downtime->minutes);
-        $this->assertSame(0, $stats->unknown->minutes);
-        $this->assertSame(1, $stats->downtime->incidentsCount);
-        $this->assertEqualsWithDelta(50.0, (float) $stats->uptime->percentage, 0.0001);
-        $this->assertEqualsWithDelta(50.0, (float) $stats->downtime->percentage, 0.0001);
+        $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $monitoringAvailabilityPayload);
+        $this->assertTrue($monitoringAvailabilityPayload->hasData);
+        $this->assertSame(90, $monitoringAvailabilityPayload->uptime->minutes);
+        $this->assertSame(90, $monitoringAvailabilityPayload->downtime->minutes);
+        $this->assertSame(0, $monitoringAvailabilityPayload->unknown->minutes);
+        $this->assertSame(1, $monitoringAvailabilityPayload->downtime->incidentsCount);
+        $this->assertEqualsWithDelta(50.0, (float) $monitoringAvailabilityPayload->uptime->percentage, 0.0001);
+        $this->assertEqualsWithDelta(50.0, (float) $monitoringAvailabilityPayload->downtime->percentage, 0.0001);
     }
 
     public function test_multi_range_summary_uses_daily_aggregates_in_one_pass(): void
@@ -75,7 +75,7 @@ class MonitoringAvailabilityServiceTest extends TestCase
             $this->createDailyResult($monitoring, Date::now()->subDays($daysAgo)->toDateString());
         }
 
-        $statsByRange = app(MonitoringAvailabilityService::class)->getUptimeDowntimesForRanges($monitoring, [7, 10]);
+        $statsByRange = resolve(MonitoringAvailabilityService::class)->getUptimeDowntimesForRanges($monitoring, [7, 10]);
 
         $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $statsByRange['7']);
         $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $statsByRange['10']);
@@ -87,12 +87,12 @@ class MonitoringAvailabilityServiceTest extends TestCase
         $this->assertSame(10, $statsByRange['10']->downtime->incidentsCount);
     }
 
-    private function createResponse(Monitoring $monitoring, MonitoringStatus $status, string $checkedAt): void
+    private function createResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus, string $checkedAt): void
     {
         MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
-            'status' => $status,
-            'http_status_code' => $status === MonitoringStatus::UP ? 200 : 503,
+            'status' => $monitoringStatus,
+            'http_status_code' => $monitoringStatus === MonitoringStatus::UP ? 200 : 503,
             'response_time' => 100.0,
             'created_at' => Date::parse($checkedAt),
             'updated_at' => Date::parse($checkedAt),

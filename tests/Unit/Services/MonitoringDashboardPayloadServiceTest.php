@@ -42,17 +42,17 @@ class MonitoringDashboardPayloadServiceTest extends TestCase
             'updated_at' => Date::parse('2026-04-12 11:00:00'),
         ]);
 
-        $dashboardPayload = app(MonitoringDashboardPayloadService::class)->getPayload(
+        $monitoringDashboardPayload = resolve(MonitoringDashboardPayloadService::class)->getPayload(
             $monitoring->fresh(),
             1,
             Date::parse('2026-04-10'),
             Date::parse('2026-04-12')
         );
-        $payload = $dashboardPayload->toArray();
+        $payload = $monitoringDashboardPayload->toArray();
 
-        $this->assertInstanceOf(MonitoringDashboardPayload::class, $dashboardPayload);
-        $this->assertInstanceOf(MonitoringSslPayload::class, $dashboardPayload->ssl);
-        $this->assertInstanceOf(MonitoringUptimeCalendarPayload::class, $dashboardPayload->uptimeCalendar);
+        $this->assertInstanceOf(MonitoringDashboardPayload::class, $monitoringDashboardPayload);
+        $this->assertInstanceOf(MonitoringSslPayload::class, $monitoringDashboardPayload->ssl);
+        $this->assertInstanceOf(MonitoringUptimeCalendarPayload::class, $monitoringDashboardPayload->uptimeCalendar);
         $this->assertSame([
             'status_since',
             'status_now',

@@ -35,14 +35,14 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
         $this->createDailyResult($monitoring, '2026-04-10', 75.0, 90, 30);
         $this->createDailyResult($monitoring, '2026-04-11', 50.0, 60, 60);
 
-        $calendarPayload = app(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
+        $monitoringUptimeCalendarPayload = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
             $monitoring,
             Date::parse('2026-04-01')->startOfDay(),
             Date::parse('2026-04-30')->endOfDay()
         );
-        $calendar = $calendarPayload->toArray();
+        $calendar = $monitoringUptimeCalendarPayload->toArray();
 
-        $this->assertInstanceOf(MonitoringUptimeCalendarPayload::class, $calendarPayload);
+        $this->assertInstanceOf(MonitoringUptimeCalendarPayload::class, $monitoringUptimeCalendarPayload);
         $this->assertArrayHasKey('2026-04', $calendar);
         $this->assertCount(30, $calendar['2026-04']['days']);
         $this->assertEqualsWithDelta(62.5, (float) $calendar['2026-04']['monthly_average_uptime'], 0.0001);

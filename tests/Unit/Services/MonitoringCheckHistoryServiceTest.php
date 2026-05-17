@@ -48,7 +48,7 @@ class MonitoringCheckHistoryServiceTest extends TestCase
         $archivedCheckedAt = Date::now()->subDays(10);
         $this->insertArchivedResponse($monitoring, $archivedCheckedAt);
 
-        $history = app(MonitoringCheckHistoryService::class)->getHistory(
+        $history = resolve(MonitoringCheckHistoryService::class)->getHistory(
             $monitoring,
             null,
             Date::now()->endOfDay(),
@@ -87,7 +87,7 @@ class MonitoringCheckHistoryServiceTest extends TestCase
             ]);
         }
 
-        $history = app(MonitoringCheckHistoryService::class)->getHistory(
+        $history = resolve(MonitoringCheckHistoryService::class)->getHistory(
             $monitoring,
             Date::now()->subDay()->startOfDay(),
             Date::now()->endOfDay(),

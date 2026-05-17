@@ -117,11 +117,11 @@ class PublicIndexingTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('<script type="application/ld+json">');
-        $testResponse->assertSee('"@type":"SoftwareApplication"', false);
-        $testResponse->assertSee('"applicationCategory":"BusinessApplication"', false);
-        $testResponse->assertSee('"url":"' . route('welcome') . '"', false);
-        $testResponse->assertSee('"price":"0"', false);
-        $testResponse->assertSee('"priceCurrency":"EUR"', false);
+        $testResponse->assertSeeHtml('"@type":"SoftwareApplication"');
+        $testResponse->assertSeeHtml('"applicationCategory":"BusinessApplication"');
+        $testResponse->assertSeeHtml('"url":"' . route('welcome') . '"');
+        $testResponse->assertSeeHtml('"price":"0"');
+        $testResponse->assertSeeHtml('"priceCurrency":"EUR"');
     }
 
     public function test_sitemap_lists_all_crawlable_public_pages(): void

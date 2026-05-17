@@ -43,10 +43,10 @@ class MonitoringStatusPayloadServiceTest extends TestCase
         ]);
 
         $freshMonitoring = $monitoring->fresh();
-        $statusPayload = app(MonitoringStatusPayloadService::class)->getPayload($freshMonitoring);
-        $payload = $statusPayload->toArray();
+        $monitoringStatusPayload = resolve(MonitoringStatusPayloadService::class)->getPayload($freshMonitoring);
+        $payload = $monitoringStatusPayload->toArray();
 
-        $this->assertInstanceOf(MonitoringStatusPayload::class, $statusPayload);
+        $this->assertInstanceOf(MonitoringStatusPayload::class, $monitoringStatusPayload);
         $this->assertSame(MonitoringStatus::DOWN, $payload['status']);
         $this->assertSame(503, $payload['status_code']);
         $this->assertSame('status.server_error', $payload['status_identifier']);
@@ -62,10 +62,10 @@ class MonitoringStatusPayloadServiceTest extends TestCase
 
         $monitoring = $this->createMonitoring();
 
-        $statusPayload = app(MonitoringStatusPayloadService::class)->getPayload($monitoring, includeMonitoring: false);
-        $payload = $statusPayload->toArray();
+        $monitoringStatusPayload = resolve(MonitoringStatusPayloadService::class)->getPayload($monitoring, includeMonitoring: false);
+        $payload = $monitoringStatusPayload->toArray();
 
-        $this->assertInstanceOf(MonitoringStatusPayload::class, $statusPayload);
+        $this->assertInstanceOf(MonitoringStatusPayload::class, $monitoringStatusPayload);
         $this->assertArrayNotHasKey('monitoring', $payload);
         $this->assertSame(MonitoringStatus::UNKNOWN->value, $payload['status']);
         $this->assertSame('status.unknown', $payload['status_identifier']);

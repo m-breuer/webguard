@@ -53,7 +53,7 @@ class UptimeCalendarAggregationPerformanceTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $result = app(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
+        $result = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
             $monitoring,
             Date::parse('2025-03-01')->startOfDay(),
             Date::parse('2026-02-28')->endOfDay()

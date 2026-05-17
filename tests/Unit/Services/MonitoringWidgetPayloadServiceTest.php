@@ -49,10 +49,10 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
 
         $this->createDailyResult($monitoring, Date::now()->subDays(2)->toDateString());
 
-        $widgetPayload = app(MonitoringWidgetPayloadService::class)->getPayload($monitoring->fresh());
-        $payload = $widgetPayload->toArray();
+        $monitoringWidgetPayload = resolve(MonitoringWidgetPayloadService::class)->getPayload($monitoring->fresh());
+        $payload = $monitoringWidgetPayload->toArray();
 
-        $this->assertInstanceOf(MonitoringWidgetPayload::class, $widgetPayload);
+        $this->assertInstanceOf(MonitoringWidgetPayload::class, $monitoringWidgetPayload);
         $this->assertSame('Primary API', $payload['name']);
         $this->assertSame(MonitoringStatus::UP->value, $payload['status']);
         $this->assertSame('UP', $payload['status_label']);
@@ -74,10 +74,10 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
             'created_at' => Date::now()->subMinutes(30),
         ]);
 
-        $widgetPayload = app(MonitoringWidgetPayloadService::class)->getPayload($monitoring);
-        $payload = $widgetPayload->toArray();
+        $monitoringWidgetPayload = resolve(MonitoringWidgetPayloadService::class)->getPayload($monitoring);
+        $payload = $monitoringWidgetPayload->toArray();
 
-        $this->assertInstanceOf(MonitoringWidgetPayload::class, $widgetPayload);
+        $this->assertInstanceOf(MonitoringWidgetPayload::class, $monitoringWidgetPayload);
         $this->assertSame('Fresh API', $payload['name']);
         $this->assertSame(MonitoringStatus::UNKNOWN->value, $payload['status']);
         $this->assertSame('UNKNOWN', $payload['status_label']);

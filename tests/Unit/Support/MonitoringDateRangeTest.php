@@ -22,12 +22,12 @@ class MonitoringDateRangeTest extends TestCase
     {
         Date::setTestNow('2026-04-12 12:34:56');
 
-        $range = MonitoringDateRange::pastDays(7);
+        $monitoringDateRange = MonitoringDateRange::pastDays(7);
 
-        $this->assertSame(7, $range->days);
-        $this->assertSame('2026-04-05 00:00:00', $range->startDate->toDateTimeString());
-        $this->assertSame('2026-04-12 23:59:59', $range->endDate->toDateTimeString());
-        $this->assertSame('20260405:20260412', $range->cacheDateSegment());
+        $this->assertSame(7, $monitoringDateRange->days);
+        $this->assertSame('2026-04-05 00:00:00', $monitoringDateRange->startDate->toDateTimeString());
+        $this->assertSame('2026-04-12 23:59:59', $monitoringDateRange->endDate->toDateTimeString());
+        $this->assertSame('20260405:20260412', $monitoringDateRange->cacheDateSegment());
     }
 
     public function test_intraday_ranges_use_raw_uptime_data(): void
@@ -37,12 +37,12 @@ class MonitoringDateRangeTest extends TestCase
         $monitoring = new Monitoring();
         $monitoring->created_at = Date::now()->subDays(30);
 
-        $range = MonitoringDateRange::pastDays(1);
+        $monitoringDateRange = MonitoringDateRange::pastDays(1);
 
-        $this->assertTrue($range->isIntraday());
-        $this->assertFalse($range->shouldUseUptimeAggregates($monitoring));
-        $this->assertTrue($range->shouldIncludeIntradayRawData());
-        $this->assertFalse($range->shouldUseResponseTimeAggregates());
+        $this->assertTrue($monitoringDateRange->isIntraday());
+        $this->assertFalse($monitoringDateRange->shouldUseUptimeAggregates($monitoring));
+        $this->assertTrue($monitoringDateRange->shouldIncludeIntradayRawData());
+        $this->assertFalse($monitoringDateRange->shouldUseResponseTimeAggregates());
     }
 
     public function test_multi_day_ranges_skip_uptime_aggregates_until_monitoring_has_a_full_day_of_history(): void
@@ -55,12 +55,12 @@ class MonitoringDateRangeTest extends TestCase
         $olderMonitoring = new Monitoring();
         $olderMonitoring->created_at = Date::now()->subDays(2);
 
-        $range = MonitoringDateRange::pastDays(7);
+        $monitoringDateRange = MonitoringDateRange::pastDays(7);
 
-        $this->assertFalse($range->isIntraday());
-        $this->assertFalse($range->shouldUseUptimeAggregates($newMonitoring));
-        $this->assertTrue($range->shouldUseUptimeAggregates($olderMonitoring));
-        $this->assertFalse($range->shouldIncludeIntradayRawData());
-        $this->assertTrue($range->shouldUseResponseTimeAggregates());
+        $this->assertFalse($monitoringDateRange->isIntraday());
+        $this->assertFalse($monitoringDateRange->shouldUseUptimeAggregates($newMonitoring));
+        $this->assertTrue($monitoringDateRange->shouldUseUptimeAggregates($olderMonitoring));
+        $this->assertFalse($monitoringDateRange->shouldIncludeIntradayRawData());
+        $this->assertTrue($monitoringDateRange->shouldUseResponseTimeAggregates());
     }
 }

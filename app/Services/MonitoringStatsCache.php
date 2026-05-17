@@ -59,7 +59,7 @@ class MonitoringStatsCache
     public function dashboardKey(
         Monitoring $monitoring,
         int $days,
-        MonitoringDateRange $range,
+        MonitoringDateRange $monitoringDateRange,
         Carbon $calendarStartDate,
         Carbon $calendarEndDate
     ): string {
@@ -67,15 +67,15 @@ class MonitoringStatsCache
             'monitoring:%s:all:%s:%s:%s:%s',
             $monitoring->id,
             $days,
-            $range->cacheDateSegment(),
+            $monitoringDateRange->cacheDateSegment(),
             $calendarStartDate->toDateString(),
             $calendarEndDate->toDateString()
         );
     }
 
-    public function uptimeKey(Monitoring $monitoring, int $days, MonitoringDateRange $range): string
+    public function uptimeKey(Monitoring $monitoring, int $days, MonitoringDateRange $monitoringDateRange): string
     {
-        return sprintf('monitoring:%s:uptime:%s:%s', $monitoring->id, $days, $range->cacheDateSegment());
+        return sprintf('monitoring:%s:uptime:%s:%s', $monitoring->id, $days, $monitoringDateRange->cacheDateSegment());
     }
 
     /**
@@ -91,9 +91,9 @@ class MonitoringStatsCache
         );
     }
 
-    public function responseTimesKey(Monitoring $monitoring, int $days, MonitoringDateRange $range): string
+    public function responseTimesKey(Monitoring $monitoring, int $days, MonitoringDateRange $monitoringDateRange): string
     {
-        return sprintf('monitoring:%s:response:%s:%s', $monitoring->id, $days, $range->cacheDateSegment());
+        return sprintf('monitoring:%s:response:%s:%s', $monitoring->id, $days, $monitoringDateRange->cacheDateSegment());
     }
 
     public function checksKey(Monitoring $monitoring, ?int $days, int $limit, int $offset): string
@@ -117,9 +117,9 @@ class MonitoringStatsCache
         return sprintf('monitoring:%s:widget', $monitoring->id);
     }
 
-    public function incidentsKey(Monitoring $monitoring, int $days, MonitoringDateRange $range): string
+    public function incidentsKey(Monitoring $monitoring, int $days, MonitoringDateRange $monitoringDateRange): string
     {
-        return sprintf('monitoring:%s:incidents:%s:%s', $monitoring->id, $days, $range->cacheDateSegment());
+        return sprintf('monitoring:%s:incidents:%s:%s', $monitoring->id, $days, $monitoringDateRange->cacheDateSegment());
     }
 
     public function sslStatusKey(Monitoring $monitoring): string

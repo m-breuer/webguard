@@ -22,7 +22,7 @@ final readonly class MonitoringUptimeCalendarPayload implements JsonSerializable
     public function toArray(): array
     {
         return $this->months
-            ->map(static fn (MonitoringUptimeCalendarMonthPayload $month): array => $month->toArray())
+            ->map(static fn (MonitoringUptimeCalendarMonthPayload $monitoringUptimeCalendarMonthPayload): array => $monitoringUptimeCalendarMonthPayload->toArray())
             ->all();
     }
 

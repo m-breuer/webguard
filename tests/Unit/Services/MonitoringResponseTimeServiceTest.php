@@ -37,21 +37,21 @@ class MonitoringResponseTimeServiceTest extends TestCase
         $this->createResponse($monitoring, '2026-04-12 11:05:00', 300.0);
         $this->createResponse($monitoring, '2026-04-12 11:10:00', null);
 
-        $responseTimes = app(MonitoringResponseTimeService::class)->getResponseTimes(
+        $monitoringResponseTimesPayload = resolve(MonitoringResponseTimeService::class)->getResponseTimes(
             $monitoring,
             Date::parse('2026-04-12 00:00:00'),
             Date::parse('2026-04-12 23:59:59')
         );
 
-        $this->assertInstanceOf(MonitoringResponseTimesPayload::class, $responseTimes);
-        $this->assertCount(2, $responseTimes->data);
-        $this->assertSame('2026-04-12T10:00:00+02:00', $responseTimes->data[0]->date);
-        $this->assertEqualsWithDelta(150.0, (float) $responseTimes->data[0]->avg, 0.0001);
-        $this->assertEqualsWithDelta(100.0, (float) $responseTimes->data[0]->min, 0.0001);
-        $this->assertEqualsWithDelta(200.0, (float) $responseTimes->data[0]->max, 0.0001);
-        $this->assertEqualsWithDelta(225.0, (float) $responseTimes->aggregated->avg, 0.0001);
-        $this->assertEqualsWithDelta(100.0, (float) $responseTimes->aggregated->min, 0.0001);
-        $this->assertEqualsWithDelta(300.0, (float) $responseTimes->aggregated->max, 0.0001);
+        $this->assertInstanceOf(MonitoringResponseTimesPayload::class, $monitoringResponseTimesPayload);
+        $this->assertCount(2, $monitoringResponseTimesPayload->data);
+        $this->assertSame('2026-04-12T10:00:00+02:00', $monitoringResponseTimesPayload->data[0]->date);
+        $this->assertEqualsWithDelta(150.0, (float) $monitoringResponseTimesPayload->data[0]->avg, 0.0001);
+        $this->assertEqualsWithDelta(100.0, (float) $monitoringResponseTimesPayload->data[0]->min, 0.0001);
+        $this->assertEqualsWithDelta(200.0, (float) $monitoringResponseTimesPayload->data[0]->max, 0.0001);
+        $this->assertEqualsWithDelta(225.0, (float) $monitoringResponseTimesPayload->aggregated->avg, 0.0001);
+        $this->assertEqualsWithDelta(100.0, (float) $monitoringResponseTimesPayload->aggregated->min, 0.0001);
+        $this->assertEqualsWithDelta(300.0, (float) $monitoringResponseTimesPayload->aggregated->max, 0.0001);
     }
 
     public function test_aggregated_response_times_are_loaded_from_daily_results(): void
@@ -65,18 +65,18 @@ class MonitoringResponseTimeServiceTest extends TestCase
         $this->createDailyResult($monitoring, '2026-04-10', 100.0, 80, 120);
         $this->createDailyResult($monitoring, '2026-04-11', 300.0, 250, 350);
 
-        $responseTimes = app(MonitoringResponseTimeService::class)->getResponseTimes(
+        $monitoringResponseTimesPayload = resolve(MonitoringResponseTimeService::class)->getResponseTimes(
             $monitoring,
             Date::parse('2026-04-10'),
             Date::parse('2026-04-12'),
             true
         );
 
-        $this->assertInstanceOf(MonitoringResponseTimesPayload::class, $responseTimes);
-        $this->assertCount(2, $responseTimes->data);
-        $this->assertEqualsWithDelta(200.0, (float) $responseTimes->aggregated->avg, 0.0001);
-        $this->assertEqualsWithDelta(80.0, (float) $responseTimes->aggregated->min, 0.0001);
-        $this->assertEqualsWithDelta(350.0, (float) $responseTimes->aggregated->max, 0.0001);
+        $this->assertInstanceOf(MonitoringResponseTimesPayload::class, $monitoringResponseTimesPayload);
+        $this->assertCount(2, $monitoringResponseTimesPayload->data);
+        $this->assertEqualsWithDelta(200.0, (float) $monitoringResponseTimesPayload->aggregated->avg, 0.0001);
+        $this->assertEqualsWithDelta(80.0, (float) $monitoringResponseTimesPayload->aggregated->min, 0.0001);
+        $this->assertEqualsWithDelta(350.0, (float) $monitoringResponseTimesPayload->aggregated->max, 0.0001);
     }
 
     private function createResponse(Monitoring $monitoring, string $checkedAt, ?float $responseTime): void

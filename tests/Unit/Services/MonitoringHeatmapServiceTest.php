@@ -33,7 +33,7 @@ class MonitoringHeatmapServiceTest extends TestCase
         $this->createResponse($monitoring, MonitoringStatus::DOWN, '2026-04-12 11:05:00');
         $this->createResponse($monitoring, MonitoringStatus::UNKNOWN, '2026-04-12 12:05:00');
 
-        $heatmap = app(MonitoringHeatmapService::class)->getHeatmap(
+        $heatmap = resolve(MonitoringHeatmapService::class)->getHeatmap(
             $monitoring,
             Date::parse('2026-01-01'),
             Date::parse('2026-01-02')
@@ -61,7 +61,7 @@ class MonitoringHeatmapServiceTest extends TestCase
         $this->createResponse($firstMonitoring, MonitoringStatus::UP, '2026-04-12 12:05:00');
         $this->createResponse($secondMonitoring, MonitoringStatus::DOWN, '2026-04-12 12:10:00');
 
-        $heatmaps = app(MonitoringHeatmapService::class)->getHeatmapsForMonitorings(
+        $heatmaps = resolve(MonitoringHeatmapService::class)->getHeatmapsForMonitorings(
             collect([$firstMonitoring, $secondMonitoring]),
             Date::parse('2026-01-01'),
             Date::parse('2026-01-02')
@@ -83,13 +83,13 @@ class MonitoringHeatmapServiceTest extends TestCase
         return Monitoring::factory()->for($user)->create();
     }
 
-    private function createResponse(Monitoring $monitoring, MonitoringStatus $status, string $checkedAt): void
+    private function createResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus, string $checkedAt): void
     {
         MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
-            'status' => $status,
-            'http_status_code' => $status === MonitoringStatus::DOWN ? 503 : 200,
-            'response_time' => $status === MonitoringStatus::UP ? 120.0 : null,
+            'status' => $monitoringStatus,
+            'http_status_code' => $monitoringStatus === MonitoringStatus::DOWN ? 503 : 200,
+            'response_time' => $monitoringStatus === MonitoringStatus::UP ? 120.0 : null,
             'created_at' => Date::parse($checkedAt),
             'updated_at' => Date::parse($checkedAt),
         ]);
