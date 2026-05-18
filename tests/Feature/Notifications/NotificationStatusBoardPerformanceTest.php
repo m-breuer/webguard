@@ -129,6 +129,34 @@ class NotificationStatusBoardPerformanceTest extends TestCase
         ], $entries->pluck('notification_id')->all());
     }
 
+    public function test_status_board_applies_offset_after_filtering_and_sorting_status_notifications(): void
+    {
+        Date::setTestNow('2026-04-19 10:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->for($package)->create();
+
+        $oldestMonitoring = $this->createStatusBoardMonitoring($user, 503, Date::now()->copy()->subMinutes(8));
+        $secondNewestMonitoring = $this->createStatusBoardMonitoring($user, 204, Date::now()->copy()->subMinutes(4));
+        Monitoring::factory()->for($user)->create();
+        $newestMonitoring = $this->createStatusBoardMonitoring($user, 503, Date::now()->copy()->subMinute());
+        $thirdNewestMonitoring = $this->createStatusBoardMonitoring($user, 204, Date::now()->copy()->subMinutes(6));
+
+        $this->actingAs($user);
+
+        $entries = resolve(NotificationBoardService::class)->getStatusBoardEntries(
+            showRead: true,
+            offset: 1,
+            limit: 2
+        );
+
+        $this->assertSame(
+            [$secondNewestMonitoring->id, $thirdNewestMonitoring->id, $oldestMonitoring->id],
+            $entries->pluck('monitoring_id')->all()
+        );
+        $this->assertNotContains($newestMonitoring->id, $entries->pluck('monitoring_id')->all());
+    }
+
     public function test_unread_status_board_keeps_latest_unread_status_change_when_newer_read_entry_exists(): void
     {
         Date::setTestNow('2026-04-19 10:00:00');
