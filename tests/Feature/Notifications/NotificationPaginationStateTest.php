@@ -123,6 +123,21 @@ class NotificationPaginationStateTest extends TestCase
         }
     }
 
+    public function test_notifications_async_section_rejects_limits_above_maximum(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+            'limit' => 101,
+        ]);
+
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors('limit');
+    }
+
     public function test_notifications_page_contains_expected_empty_state_container_and_message(): void
     {
         Package::factory()->create();
