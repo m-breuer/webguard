@@ -13,6 +13,14 @@ class NotificationBoardController extends Controller
 {
     public function __invoke(Request $request, NotificationBoardService $notificationBoardService): JsonResponse
     {
+        if ($request->has('show_read') && is_string($request->input('show_read'))) {
+            $showRead = mb_strtolower($request->input('show_read'));
+
+            if (in_array($showRead, ['true', 'false'], true)) {
+                $request->merge(['show_read' => $showRead === 'true']);
+            }
+        }
+
         $validated = $request->validate([
             'offset' => ['nullable', 'integer', 'min:0'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -21,7 +29,7 @@ class NotificationBoardController extends Controller
 
         $offset = (int) ($validated['offset'] ?? 0);
         $limit = (int) ($validated['limit'] ?? 10);
-        $showRead = (bool) ($validated['show_read'] ?? false);
+        $showRead = $request->boolean('show_read');
 
         $entries = $notificationBoardService->getStatusBoardEntries($showRead, $offset, $limit);
         $hasMore = $entries->count() > $limit;
