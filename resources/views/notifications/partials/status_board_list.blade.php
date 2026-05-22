@@ -21,13 +21,7 @@
         <span class="notification-card-accent absolute inset-y-0 left-0 w-1 bg-emerald-500" aria-hidden="true"></span>
 
         <div class="flex flex-col gap-5 pl-2 lg:flex-row lg:items-start lg:justify-between">
-            <div class="flex min-w-0 items-start gap-4">
-                <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-300/10 dark:text-emerald-300 dark:ring-emerald-300/20">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h4l3-6 4 12 2-6h3" />
-                    </svg>
-                </span>
-
+            <div class="flex min-w-0 items-start">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
                         <x-heading type="h3" class="{{ $isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-950 dark:text-white' }} truncate text-lg font-semibold">

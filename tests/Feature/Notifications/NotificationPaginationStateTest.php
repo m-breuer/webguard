@@ -65,6 +65,8 @@ class NotificationPaginationStateTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSee('currentLimit: 6');
         $testResponse->assertSee('payload.limit = this.currentLimit');
+        $testResponse->assertDontSee('window.history.replaceState', false);
+        $testResponse->assertDontSee('syncLimitWithUrl', false);
 
         $sectionResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
             'type' => NotificationType::SSL_EXPIRY->value,

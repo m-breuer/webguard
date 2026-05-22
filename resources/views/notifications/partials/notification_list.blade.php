@@ -6,11 +6,8 @@
             'status_change' => 'bg-emerald-500',
             default => 'bg-amber-500',
         };
-        $iconClasses = match ($type) {
-            'domain_expiry' => 'bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-300/10 dark:text-sky-300 dark:ring-sky-300/20',
-            'status_change' => 'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-300/10 dark:text-emerald-300 dark:ring-emerald-300/20',
-            default => 'bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-300/10 dark:text-amber-300 dark:ring-amber-300/20',
-        };
+        $showCardIcon = $type === 'domain_expiry';
+        $iconClasses = 'bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-300/10 dark:text-sky-300 dark:ring-sky-300/20';
     @endphp
 
     <x-container space="true"
@@ -20,20 +17,15 @@
         <span class="{{ $accentClasses }} notification-card-accent absolute inset-y-0 left-0 w-1" aria-hidden="true"></span>
 
         <div class="flex flex-col gap-4 pl-2 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex min-w-0 items-start gap-4">
-                <span class="{{ $iconClasses }} inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1">
-                    @if ($type === 'domain_expiry')
+            <div class="flex min-w-0 items-start {{ $showCardIcon ? 'gap-4' : '' }}">
+                @if ($showCardIcon)
+                    <span class="{{ $iconClasses }} inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3c2.5 2.4 2.5 15.6 0 18" />
                         </svg>
-                    @else
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 1 1 8 0v3" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 11h10v9H7z" />
-                        </svg>
-                    @endif
-                </span>
+                    </span>
+                @endif
 
                 <div class="min-w-0">
                     <x-paragraph bold=true class="{{ $isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-950 dark:text-white' }} leading-6">

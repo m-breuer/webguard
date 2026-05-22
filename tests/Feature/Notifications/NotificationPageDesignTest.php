@@ -32,6 +32,7 @@ class NotificationPageDesignTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('id="notification-command-center"');
         $testResponse->assertSeeHtml('id="notification-action-panel"');
+        $testResponse->assertDontSeeHtml('M15 17h5');
         $testResponse->assertSeeText(__('notifications.overview.eyebrow'));
         $testResponse->assertSeeText(__('notifications.overview.description'));
         $testResponse->assertSeeText(__('notifications.filters.heading'));
@@ -77,6 +78,7 @@ class NotificationPageDesignTest extends TestCase
 
         $this->assertStringContainsString('data-notification-card="ssl_expiry"', $html);
         $this->assertStringContainsString('notification-card-accent', $html);
+        $this->assertStringNotContainsString('inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1', $html);
         $this->assertStringContainsString('aria-label="' . __('notifications.mark_as_read') . '"', $html);
         $this->assertStringContainsString('!bg-emerald-500', $html);
         $this->assertStringContainsString('dark:!text-slate-950', $html);
@@ -142,6 +144,7 @@ class NotificationPageDesignTest extends TestCase
 
         $this->assertStringContainsString('data-notification-card="status_change"', $statusHtml);
         $this->assertStringContainsString('notification-card-accent', $statusHtml);
+        $this->assertStringNotContainsString('inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', $statusHtml);
         $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $statusHtml);
 
         $this->assertStringContainsString('data-notification-card="delivery_history"', $deliveryHtml);
