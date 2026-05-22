@@ -33,6 +33,10 @@ class NotificationPageDesignTest extends TestCase
         $testResponse->assertSeeHtml('id="notification-command-center"');
         $testResponse->assertSeeText(__('notifications.overview.eyebrow'));
         $testResponse->assertSeeText(__('notifications.overview.description'));
+        $testResponse->assertSeeTextInOrder([
+            __('notifications.mark_all_as_read'),
+            __('notifications.show_read_notifications'),
+        ]);
         $testResponse->assertSeeText(__('notifications.loading.title'));
         $testResponse->assertSeeText(__('notifications.empty_state.description'));
         $testResponse->assertSeeHtml('data-notification-section="ssl_expiry"');
