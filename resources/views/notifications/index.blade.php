@@ -76,11 +76,11 @@
                         </x-paragraph>
                         <nav class="mt-2 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm font-semibold dark:bg-slate-800" aria-label="{{ __('notifications.filters.heading') }}">
                             <a href="{{ route('notifications.index', $showReadDisabledQuery) }}"
-                                class="{{ ! $showRead ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
+                                class="{{ ! $showRead ? 'bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/20 dark:bg-emerald-400 dark:text-slate-950 dark:ring-emerald-300/30' : 'text-slate-600 hover:bg-white/70 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-emerald-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
                                 {{ __('notifications.filters.unread') }}
                             </a>
                             <a href="{{ route('notifications.index', $showReadEnabledQuery) }}"
-                                class="{{ $showRead ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
+                                class="{{ $showRead ? 'bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/20 dark:bg-emerald-400 dark:text-slate-950 dark:ring-emerald-300/30' : 'text-slate-600 hover:bg-white/70 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-emerald-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
                                 {{ __('notifications.filters.all') }}
                             </a>
                         </nav>
@@ -88,7 +88,7 @@
 
                     <form method="POST" action="{{ route('notifications.markAllAsRead') }}" class="sm:pb-1">
                         @csrf
-                        <x-secondary-button type="submit" class="!w-full justify-center !border-slate-300 px-3 py-2 text-sm !normal-case !tracking-normal !text-slate-700 hover:!border-emerald-500 hover:!bg-emerald-50 hover:!text-emerald-700 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-slate-100 dark:hover:!border-emerald-400 dark:hover:!bg-emerald-300/10 dark:hover:!text-emerald-300 sm:!w-auto">
+                        <x-secondary-button type="submit" class="!w-full justify-center !border-emerald-500 !bg-emerald-500 px-3 py-2 text-sm !normal-case !tracking-normal !text-white hover:!border-emerald-600 hover:!bg-emerald-600 focus:!bg-emerald-600 focus:!ring-emerald-500 dark:!border-emerald-400 dark:!bg-emerald-400 dark:!text-slate-950 dark:hover:!border-emerald-300 dark:hover:!bg-emerald-300 dark:focus:!ring-emerald-300 sm:!w-auto">
                             <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6" />
                             </svg>
@@ -339,7 +339,7 @@
                     <div id="{{ $section['containerId'] }}" class="space-y-3"></div>
 
                     <div class="mt-4 text-center" id="{{ $section['loadMoreContainerId'] }}" style="display: none;">
-                        <x-primary-button @click="loadMoreNotifications('{{ $section['type'] }}')" class="!w-full justify-center !bg-emerald-600 px-4 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400 sm:!w-auto">
+                        <x-primary-button @click="loadMoreNotifications('{{ $section['type'] }}')" class="!w-full justify-center !bg-emerald-500 px-4 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-600 focus:!bg-emerald-600 focus:!ring-emerald-500 dark:!bg-emerald-400 dark:!text-slate-950 dark:hover:!bg-emerald-300 dark:focus:!ring-emerald-300 sm:!w-auto">
                             {{ __('notifications.load_more') }}
                         </x-primary-button>
                     </div>
