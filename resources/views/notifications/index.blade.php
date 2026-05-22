@@ -152,6 +152,14 @@
                 this.sslExpiryOffset = offset;
             }
         },
+        syncLimitWithUrl(limit) {
+            const parsedLimit = Number.parseInt(limit, 10);
+            const nextLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
+            const url = new URL(window.location.href);
+            url.searchParams.set('limit', String(nextLimit));
+            const query = url.searchParams.toString();
+            window.history.replaceState({}, '', query ? `${url.pathname}?${query}` : url.pathname);
+        },
         updateEmptyState() {
             this.isEmpty = this.$root.querySelectorAll('.notification-entry').length === 0;
         },
@@ -200,6 +208,11 @@
                     sectionElement.style.display = response.data.count > 0 ? '' : 'none';
                     loadMoreContainer.style.display = response.data.hasMore ? '' : 'none';
 
+                    if (!initial) {
+                        this.currentLimit = Math.max(this.currentLimit, nextOffset);
+                        this.syncLimitWithUrl(this.currentLimit);
+                    }
+
                     this.updateEmptyState();
                 });
         },
@@ -225,7 +238,7 @@
                     }
                 });
         }
-    }" x-init="loadInitialNotifications()" class="space-y-6">
+    }" x-init="syncLimitWithUrl(currentLimit); loadInitialNotifications()" class="space-y-6">
         <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3" aria-label="{{ __('notifications.overview.workflow_label') }}">
             @foreach (['triage', 'expiry', 'audit'] as $workflowItem)
                 <div class="rounded-lg border border-slate-200 bg-white/75 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/50 sm:p-4">
