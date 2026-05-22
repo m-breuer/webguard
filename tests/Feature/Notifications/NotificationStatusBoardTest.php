@@ -118,6 +118,52 @@ class NotificationStatusBoardTest extends TestCase
         $this->assertSame('neutral', $dataByMonitoring[$entries['maintenance']]['badge_type']);
     }
 
+    public function test_status_board_api_treats_false_show_read_query_string_as_unread_only(): void
+    {
+        Date::setTestNow('2026-03-24 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::DOWN,
+            'http_status_code' => 503,
+            'response_time' => 250.0,
+            'created_at' => Date::now()->subMinutes(3),
+            'updated_at' => Date::now()->subMinutes(3),
+        ]);
+
+        $monitoringNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => false,
+            'created_at' => Date::now()->subMinutes(2),
+            'updated_at' => Date::now()->subMinutes(2),
+        ]);
+
+        $readNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => true,
+            'sent' => false,
+            'created_at' => Date::now()->subMinute(),
+            'updated_at' => Date::now()->subMinute(),
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/notifications/status-board?show_read=false');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('meta.count', 1);
+        $testResponse->assertJsonPath('data.0.notification_id', $monitoringNotification->id);
+        $testResponse->assertJsonPath('data.0.read', false);
+        $this->assertNotSame($readNotification->id, $testResponse->json('data.0.notification_id'));
+    }
+
     public function test_status_board_api_reports_has_more_without_returning_the_extra_entry(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
