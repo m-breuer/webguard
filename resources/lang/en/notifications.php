@@ -13,6 +13,49 @@ return [
     'delivery_history' => [
         'heading' => 'Delivery History',
     ],
+    'overview' => [
+        'eyebrow' => 'Operations inbox',
+        'description' => 'Review monitor incidents, expiry risks, and channel deliveries from one focused command center.',
+        'workflow_label' => 'Notification workflow overview',
+        'workflow' => [
+            'triage' => [
+                'label' => 'Triage',
+                'title' => 'Status changes',
+                'description' => 'Group recoveries and incidents by monitor so the latest state is easy to act on.',
+            ],
+            'expiry' => [
+                'label' => 'Risk',
+                'title' => 'Certificate and domain expiry',
+                'description' => 'Keep security and ownership deadlines visible before they become outages.',
+            ],
+            'audit' => [
+                'label' => 'Audit',
+                'title' => 'Channel delivery',
+                'description' => 'Inspect whether Slack, Telegram, Discord, and webhook notifications reached their target.',
+            ],
+        ],
+    ],
+    'sections' => [
+        'ssl_expiry' => [
+            'description' => 'Certificate warnings that need renewal planning or verification.',
+        ],
+        'domain_expiry' => [
+            'description' => 'Domain ownership deadlines and expiry alerts for monitored targets.',
+        ],
+        'status_change' => [
+            'description' => 'Current incident and recovery state per monitor, consolidated for faster triage.',
+        ],
+        'delivery_history' => [
+            'description' => 'Recent delivery attempts across configured outbound notification channels.',
+        ],
+    ],
+    'loading' => [
+        'title' => 'Loading notification board',
+        'description' => 'Fetching the latest monitor updates and delivery attempts.',
+    ],
+    'empty_state' => [
+        'description' => 'Unread alerts, expiry warnings, and delivery events will appear here as soon as they need attention.',
+    ],
     'load_more' => 'Load More',
     'mark_as_read' => 'Mark as Read',
     'mark_all_as_read' => 'Mark all as read',

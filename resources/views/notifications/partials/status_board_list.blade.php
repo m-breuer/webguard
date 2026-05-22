@@ -12,39 +12,60 @@
         $latestStatusChangeAt = $entry['latest_status_change_at']
             ? Carbon::parse($entry['latest_status_change_at'])->locale(app()->getLocale())->isoFormat('L LT')
             : __('notifications.labels.not_available');
+        $isRead = (bool) $entry['read'];
     @endphp
     <x-container space="true"
-        class="{{ $entry['read'] ? ' !text-gray-500 dark:!text-gray-500' : '' }} notification-board-entry notification-entry mb-3"
+        data-notification-card="status_change"
+        class="{{ $isRead ? 'opacity-70' : '' }} notification-board-entry notification-entry relative overflow-hidden border border-slate-200 bg-white/95 shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
         id="{{ $entry['notification_id'] }}">
-        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div class="min-w-0 space-y-2">
-                <x-heading type="h3" class="truncate text-lg">
-                    {{ $entry['monitor_name'] }}
-                </x-heading>
-                <div class="grid grid-cols-1 gap-1 text-sm text-gray-600 dark:text-gray-300">
-                    <x-paragraph class="break-all">
-                        <x-span class="font-semibold">{{ __('notifications.labels.host') }}:</x-span>
-                        <x-span>{{ $entry['target'] }}</x-span>
+        <span class="notification-card-accent absolute inset-y-0 left-0 w-1 bg-emerald-500" aria-hidden="true"></span>
+
+        <div class="flex flex-col gap-5 pl-2 lg:flex-row lg:items-start lg:justify-between">
+            <div class="flex min-w-0 items-start gap-4">
+                <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-300/10 dark:text-emerald-300 dark:ring-emerald-300/20">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h4l3-6 4 12 2-6h3" />
+                    </svg>
+                </span>
+
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-heading type="h3" class="{{ $isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-950 dark:text-white' }} truncate text-lg font-semibold">
+                            {{ $entry['monitor_name'] }}
+                        </x-heading>
+                        @if ($isRead)
+                            <x-badge type="info" class="bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                {{ __('notifications.read') }}
+                            </x-badge>
+                        @endif
+                    </div>
+
+                    <x-paragraph class="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {{ __($entry['status_change_key']) }}
                     </x-paragraph>
-                    <x-paragraph>
-                        <x-span class="font-semibold">{{ __('notifications.labels.monitor') }}:</x-span>
-                        <x-span>{{ strtoupper($entry['type']) }}</x-span>
-                    </x-paragraph>
-                    <x-paragraph>
-                        <x-span class="font-semibold">{{ __('notifications.labels.timestamp') }}:</x-span>
-                        <x-span>{{ $latestCheckedAt }}</x-span>
-                    </x-paragraph>
-                    <x-paragraph>
-                        <x-span class="font-semibold">{{ __('notifications.labels.latest_status_change') }}:</x-span>
-                        <x-span>{{ $latestStatusChangeAt }}</x-span>
-                    </x-paragraph>
+
+                    <dl class="mt-4 grid grid-cols-1 gap-3 text-sm text-slate-600 dark:text-slate-300 md:grid-cols-2">
+                        <div class="min-w-0 rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.host') }}</dt>
+                            <dd class="mt-1 break-all text-slate-800 dark:text-slate-100">{{ $entry['target'] }}</dd>
+                        </div>
+                        <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.monitor') }}</dt>
+                            <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ strtoupper($entry['type']) }}</dd>
+                        </div>
+                        <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.timestamp') }}</dt>
+                            <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ $latestCheckedAt }}</dd>
+                        </div>
+                        <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.latest_status_change') }}</dt>
+                            <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ $latestStatusChangeAt }}</dd>
+                        </div>
+                    </dl>
                 </div>
-                <x-paragraph class="text-sm font-medium text-gray-700 dark:text-gray-100">
-                    {{ __($entry['status_change_key']) }}
-                </x-paragraph>
             </div>
 
-            <div class="flex flex-col items-start gap-2 md:items-end">
+            <div class="flex shrink-0 flex-wrap items-center gap-2 lg:flex-col lg:items-end">
                 <x-badge type="{{ $entry['badge_type'] }}"
                     title="{{ __('notifications.tooltips.latest_status', ['status' => $statusWithCode]) }}"
                     class="border border-black/10 px-3 py-1 text-sm dark:border-white/20">
@@ -59,13 +80,19 @@
                     class="border border-black/10 px-3 py-1 text-sm dark:border-white/20">
                     {{ $statusLabel }}
                 </x-badge>
-                @if (!$entry['read'])
-                    <x-primary-button class="mark-as-read-button text-xs"
-                        @click="markAsRead(event, '{{ $entry['notification_id'] }}', '{{ route('notifications.markAsRead', $entry['notification_id']) }}', 'status_change')">{{ __('notifications.mark_as_read') }}</x-primary-button>
+                @if (! $isRead)
+                    <x-primary-button class="mark-as-read-button !bg-emerald-600 px-3 py-2 text-xs !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400"
+                        aria-label="{{ __('notifications.mark_as_read') }}"
+                        @click="markAsRead(event, '{{ $entry['notification_id'] }}', '{{ route('notifications.markAsRead', $entry['notification_id']) }}', 'status_change')">
+                        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6" />
+                        </svg>
+                        {{ __('notifications.mark_as_read') }}
+                    </x-primary-button>
                 @endif
             </div>
         </div>
     </x-container>
 @empty
-    <p>{{ __('notifications.no_notifications_of_this_type') }}</p>
+    <p class="rounded-lg border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">{{ __('notifications.no_notifications_of_this_type') }}</p>
 @endforelse
