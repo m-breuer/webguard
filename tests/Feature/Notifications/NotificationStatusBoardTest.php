@@ -11,6 +11,7 @@ use App\Models\MonitoringNotification;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
@@ -163,6 +164,33 @@ class NotificationStatusBoardTest extends TestCase
         $this->assertNotSame($readNotification->id, $testResponse->json('data.0.notification_id'));
     }
 
+    public function test_status_board_api_reports_has_more_without_returning_the_extra_entry(): void
+    {
+        Date::setTestNow('2026-03-24 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+
+        $oldestMonitoring = $this->createStatusBoardMonitoring($user, 503, notificationTime: Date::now()->subMinutes(10));
+        $secondMonitoring = $this->createStatusBoardMonitoring($user, 204, notificationTime: Date::now()->subMinutes(5));
+        $newestMonitoring = $this->createStatusBoardMonitoring($user, 200, notificationTime: Date::now()->subMinute());
+
+        $testResponse = $this->actingAs($user)->getJson('/api/notifications/status-board?show_read=1&limit=2');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('meta.has_more', true);
+        $testResponse->assertJsonPath('meta.count', 2);
+
+        $this->assertSame(
+            [$newestMonitoring->id, $secondMonitoring->id],
+            collect($testResponse->json('data'))->pluck('monitoring_id')->all()
+        );
+        $this->assertNotContains(
+            $oldestMonitoring->id,
+            collect($testResponse->json('data'))->pluck('monitoring_id')->all()
+        );
+    }
+
     public function test_status_board_respects_active_locale_for_labels_and_status_texts(): void
     {
         Date::setTestNow('2026-03-24 12:00:00');
@@ -185,8 +213,14 @@ class NotificationStatusBoardTest extends TestCase
         $this->assertStringContainsString($monitoring->name, $html);
     }
 
-    private function createStatusBoardMonitoring(User $user, ?int $statusCode, bool $maintenance = false): Monitoring
-    {
+    private function createStatusBoardMonitoring(
+        User $user,
+        ?int $statusCode,
+        bool $maintenance = false,
+        ?CarbonInterface $notificationTime = null
+    ): Monitoring {
+        $notificationTime ??= Date::now()->subMinute();
+
         $monitoring = Monitoring::factory()->for($user)->create([
             'maintenance_from' => $maintenance ? Date::now()->subHour() : null,
             'maintenance_until' => $maintenance ? Date::now()->addHour() : null,
@@ -197,8 +231,8 @@ class NotificationStatusBoardTest extends TestCase
             'status' => MonitoringStatus::DOWN,
             'http_status_code' => $statusCode,
             'response_time' => 250.0,
-            'created_at' => Date::now()->subMinutes(2),
-            'updated_at' => Date::now()->subMinutes(2),
+            'created_at' => $notificationTime->copy()->subMinute(),
+            'updated_at' => $notificationTime->copy()->subMinute(),
         ]);
 
         MonitoringNotification::query()->create([
@@ -207,8 +241,8 @@ class NotificationStatusBoardTest extends TestCase
             'message' => 'DOWN',
             'read' => false,
             'sent' => false,
-            'created_at' => Date::now()->subMinute(),
-            'updated_at' => Date::now()->subMinute(),
+            'created_at' => $notificationTime,
+            'updated_at' => $notificationTime,
         ]);
 
         return $monitoring;

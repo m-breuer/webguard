@@ -138,6 +138,36 @@ class NotificationPaginationStateTest extends TestCase
         $testResponse->assertJsonValidationErrors('limit');
     }
 
+    public function test_notifications_async_section_accepts_maximum_limit_for_initial_load(): void
+    {
+        Date::setTestNow('2026-03-24 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $notifications = $this->createSslExpiryNotifications($user, 101);
+
+        $sortedByNewest = array_reverse($notifications);
+        $visibleNotificationIds = array_map(fn (MonitoringNotification $monitoringNotification): string => $monitoringNotification->id, array_slice($sortedByNewest, 0, 100));
+        $hiddenNotification = $sortedByNewest[100];
+
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::SSL_EXPIRY->value,
+            'offset' => 0,
+            'limit' => 100,
+        ]);
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('count', 100);
+        $testResponse->assertJsonPath('hasMore', true);
+        $html = (string) $testResponse->json('html');
+
+        foreach ($visibleNotificationIds as $visibleNotificationId) {
+            $this->assertStringContainsString('id="' . $visibleNotificationId . '"', $html);
+        }
+
+        $this->assertStringNotContainsString('id="' . $hiddenNotification->id . '"', $html);
+    }
+
     public function test_notifications_page_contains_expected_empty_state_container_and_message(): void
     {
         Package::factory()->create();
