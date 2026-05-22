@@ -13,6 +13,49 @@ return [
     'delivery_history' => [
         'heading' => 'Zustellverlauf',
     ],
+    'overview' => [
+        'eyebrow' => 'Operations Inbox',
+        'description' => 'Prüfen Sie Monitor-Vorfälle, Ablauf-Risiken und Kanalzustellungen in einer fokussierten Kommandozentrale.',
+        'workflow_label' => 'Übersicht des Benachrichtigungs-Workflows',
+        'workflow' => [
+            'triage' => [
+                'label' => 'Triage',
+                'title' => 'Statusänderungen',
+                'description' => 'Wiederherstellungen und Vorfälle pro Monitor bündeln, damit der aktuelle Zustand sofort handlungsfähig ist.',
+            ],
+            'expiry' => [
+                'label' => 'Risiko',
+                'title' => 'Zertifikat- und Domain-Ablauf',
+                'description' => 'Sicherheits- und Besitzfristen sichtbar halten, bevor daraus Ausfälle entstehen.',
+            ],
+            'audit' => [
+                'label' => 'Audit',
+                'title' => 'Kanalzustellung',
+                'description' => 'Nachvollziehen, ob Slack-, Telegram-, Discord- und Webhook-Benachrichtigungen ihr Ziel erreicht haben.',
+            ],
+        ],
+    ],
+    'sections' => [
+        'ssl_expiry' => [
+            'description' => 'Zertifikatswarnungen, die Erneuerung oder Prüfung benötigen.',
+        ],
+        'domain_expiry' => [
+            'description' => 'Domain-Fristen und Ablaufwarnungen für überwachte Ziele.',
+        ],
+        'status_change' => [
+            'description' => 'Aktueller Vorfall- und Wiederherstellungsstatus pro Monitor, konsolidiert für schnellere Triage.',
+        ],
+        'delivery_history' => [
+            'description' => 'Aktuelle Zustellversuche über konfigurierte ausgehende Benachrichtigungskanäle.',
+        ],
+    ],
+    'loading' => [
+        'title' => 'Benachrichtigungsboard wird geladen',
+        'description' => 'Aktuelle Monitor-Updates und Zustellversuche werden abgerufen.',
+    ],
+    'empty_state' => [
+        'description' => 'Ungelesene Meldungen, Ablaufwarnungen und Zustellereignisse erscheinen hier, sobald sie Aufmerksamkeit benötigen.',
+    ],
     'load_more' => 'Mehr laden',
     'mark_as_read' => 'Als gelesen markieren',
     'mark_all_as_read' => 'Alle als gelesen markieren',
