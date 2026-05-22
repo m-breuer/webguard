@@ -56,6 +56,11 @@ return [
     'empty_state' => [
         'description' => 'Ungelesene Meldungen, Ablaufwarnungen und Zustellereignisse erscheinen hier, sobald sie Aufmerksamkeit benötigen.',
     ],
+    'filters' => [
+        'heading' => 'Ansicht',
+        'unread' => 'Offen',
+        'all' => 'Alle',
+    ],
     'load_more' => 'Mehr laden',
     'mark_as_read' => 'Als gelesen markieren',
     'mark_all_as_read' => 'Alle als gelesen markieren',
