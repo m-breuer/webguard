@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="flex shrink-0 flex-wrap items-center gap-2 lg:flex-col lg:items-end">
+            <div class="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:flex-col lg:items-end">
                 <x-badge type="{{ $entry['badge_type'] }}"
                     title="{{ __('notifications.tooltips.latest_status', ['status' => $statusWithCode]) }}"
                     class="border border-black/10 px-3 py-1 text-sm dark:border-white/20">
@@ -81,7 +81,7 @@
                     {{ $statusLabel }}
                 </x-badge>
                 @if (! $isRead)
-                    <x-primary-button class="mark-as-read-button !bg-emerald-600 px-3 py-2 text-xs !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400"
+                    <x-primary-button class="mark-as-read-button !w-full justify-center !bg-emerald-600 px-3 py-2 text-xs !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400 sm:!w-auto"
                         aria-label="{{ __('notifications.mark_as_read') }}"
                         @click="markAsRead(event, '{{ $entry['notification_id'] }}', '{{ route('notifications.markAsRead', $entry['notification_id']) }}', 'status_change')">
                         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">

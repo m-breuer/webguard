@@ -56,6 +56,11 @@ return [
     'empty_state' => [
         'description' => 'Unread alerts, expiry warnings, and delivery events will appear here as soon as they need attention.',
     ],
+    'filters' => [
+        'heading' => 'View',
+        'unread' => 'Open',
+        'all' => 'All',
+    ],
     'load_more' => 'Load More',
     'mark_as_read' => 'Mark as Read',
     'mark_all_as_read' => 'Mark all as read',

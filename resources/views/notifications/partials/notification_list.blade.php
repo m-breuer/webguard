@@ -51,7 +51,7 @@
             </div>
 
             @if (! $isRead)
-                <x-primary-button class="mark-as-read-button shrink-0 !bg-emerald-600 px-3 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400"
+                <x-primary-button class="mark-as-read-button shrink-0 !w-full justify-center !bg-emerald-600 px-3 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400 sm:!w-auto"
                     aria-label="{{ __('notifications.mark_as_read') }}"
                     @click="markAsRead(event, '{{ $notification->id }}', '{{ route('notifications.markAsRead', $notification) }}', '{{ $type }}')">
                     <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
