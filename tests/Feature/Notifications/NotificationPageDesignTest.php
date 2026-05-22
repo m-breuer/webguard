@@ -171,7 +171,7 @@ class NotificationPageDesignTest extends TestCase
             'response_time' => 180.0,
         ]);
 
-        $domainNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::DOMAIN_EXPIRY,
             'message' => 'DOMAIN_EXPIRING',
@@ -191,7 +191,7 @@ class NotificationPageDesignTest extends TestCase
             'updated_at' => Date::now()->subMinute(),
         ]);
 
-        $domainResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
             'type' => NotificationType::DOMAIN_EXPIRY->value,
             'offset' => 0,
             'show_read' => true,
@@ -202,13 +202,13 @@ class NotificationPageDesignTest extends TestCase
             'show_read' => true,
         ]);
 
-        $domainResponse->assertOk();
+        $testResponse->assertOk();
         $statusResponse->assertOk();
 
-        $domainHtml = (string) $domainResponse->json('html');
+        $domainHtml = (string) $testResponse->json('html');
         $statusHtml = (string) $statusResponse->json('html');
 
-        $this->assertStringContainsString('id="' . $domainNotification->id . '"', $domainHtml);
+        $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $domainHtml);
         $this->assertStringContainsString('opacity-70', $domainHtml);
         $this->assertStringContainsString(__('notifications.read'), $domainHtml);
         $this->assertStringNotContainsString('mark-as-read-button', $domainHtml);
