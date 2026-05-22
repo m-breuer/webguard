@@ -68,16 +68,8 @@
                 </div>
             </div>
 
-            <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/60 sm:flex-row sm:items-center">
-                <label for="show_read" class="inline-flex items-center gap-3 rounded-md px-2 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    <input type="checkbox" id="show_read" name="show_read" value="1"
-                        class="shadow-xs focus:ring-3 rounded-sm border-slate-300 text-emerald-600 focus:border-emerald-400 focus:ring-emerald-200 focus:ring-opacity-70 dark:border-slate-600 dark:bg-slate-800"
-                        onchange="window.location.href = this.checked ? '{{ route('notifications.index', $showReadEnabledQuery) }}' : '{{ route('notifications.index', $showReadDisabledQuery) }}'"
-                        {{ $showRead ? 'checked' : '' }}>
-                    <span>{{ __('notifications.show_read_notifications') }}</span>
-                </label>
-
-                <form method="POST" action="{{ route('notifications.markAllAsRead') }}">
+            <div class="flex w-full flex-col gap-3 rounded-lg border border-slate-200 bg-white/80 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/60 sm:w-[30rem]">
+                <form method="POST" action="{{ route('notifications.markAllAsRead') }}" class="flex justify-end">
                     @csrf
                     <x-secondary-button type="submit" class="justify-center !border-slate-300 px-3 py-2 text-xs !normal-case !tracking-normal !text-slate-700 hover:!border-emerald-500 hover:!bg-emerald-50 hover:!text-emerald-700 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-slate-100 dark:hover:!border-emerald-400 dark:hover:!bg-emerald-300/10 dark:hover:!text-emerald-300">
                         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -86,6 +78,14 @@
                         {{ __('notifications.mark_all_as_read') }}
                     </x-secondary-button>
                 </form>
+
+                <label for="show_read" class="inline-flex items-center gap-3 border-t border-slate-200 px-2 pt-3 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200">
+                    <input type="checkbox" id="show_read" name="show_read" value="1"
+                        class="shadow-xs focus:ring-3 rounded-sm border-slate-300 text-emerald-600 focus:border-emerald-400 focus:ring-emerald-200 focus:ring-opacity-70 dark:border-slate-600 dark:bg-slate-800"
+                        onchange="window.location.href = this.checked ? '{{ route('notifications.index', $showReadEnabledQuery) }}' : '{{ route('notifications.index', $showReadDisabledQuery) }}'"
+                        {{ $showRead ? 'checked' : '' }}>
+                    <span>{{ __('notifications.show_read_notifications') }}</span>
+                </label>
             </div>
         </div>
     </x-slot>
