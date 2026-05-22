@@ -135,7 +135,7 @@ class NotificationStatusBoardTest extends TestCase
             'updated_at' => Date::now()->subMinutes(3),
         ]);
 
-        $unreadNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -159,7 +159,7 @@ class NotificationStatusBoardTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('meta.count', 1);
-        $testResponse->assertJsonPath('data.0.notification_id', $unreadNotification->id);
+        $testResponse->assertJsonPath('data.0.notification_id', $monitoringNotification->id);
         $testResponse->assertJsonPath('data.0.read', false);
         $this->assertNotSame($readNotification->id, $testResponse->json('data.0.notification_id'));
     }
