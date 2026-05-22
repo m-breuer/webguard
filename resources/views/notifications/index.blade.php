@@ -48,24 +48,16 @@
 
     <x-slot name="header">
         <div id="notification-command-center" class="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-center">
-            <div class="flex min-w-0 items-start gap-4">
-                <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-300/10 dark:text-emerald-300 dark:ring-emerald-300/20">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17a3 3 0 1 1-6 0" />
-                    </svg>
-                </span>
-                <div class="min-w-0">
-                    <x-paragraph class="text-sm font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">
-                        {{ __('notifications.overview.eyebrow') }}
-                    </x-paragraph>
-                    <x-heading type="h1" class="mt-1 text-slate-950 dark:text-white">
-                        {{ __('notifications.title') }}
-                    </x-heading>
-                    <x-paragraph class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
-                        {{ __('notifications.overview.description') }}
-                    </x-paragraph>
-                </div>
+            <div class="min-w-0">
+                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">
+                    {{ __('notifications.overview.eyebrow') }}
+                </x-paragraph>
+                <x-heading type="h1" class="mt-1 text-slate-950 dark:text-white">
+                    {{ __('notifications.title') }}
+                </x-heading>
+                <x-paragraph class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+                    {{ __('notifications.overview.description') }}
+                </x-paragraph>
             </div>
 
             <div id="notification-action-panel" class="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
@@ -76,11 +68,11 @@
                         </x-paragraph>
                         <nav class="mt-2 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm font-semibold dark:bg-slate-800" aria-label="{{ __('notifications.filters.heading') }}">
                             <a href="{{ route('notifications.index', $showReadDisabledQuery) }}"
-                                class="{{ ! $showRead ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
+                                class="{{ ! $showRead ? 'bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/20 dark:bg-emerald-400 dark:text-slate-950 dark:ring-emerald-300/30' : 'text-slate-600 hover:bg-white/70 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-emerald-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
                                 {{ __('notifications.filters.unread') }}
                             </a>
                             <a href="{{ route('notifications.index', $showReadEnabledQuery) }}"
-                                class="{{ $showRead ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-emerald-300 dark:ring-slate-700' : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
+                                class="{{ $showRead ? 'bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/20 dark:bg-emerald-400 dark:text-slate-950 dark:ring-emerald-300/30' : 'text-slate-600 hover:bg-white/70 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-emerald-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
                                 {{ __('notifications.filters.all') }}
                             </a>
                         </nav>
@@ -88,7 +80,7 @@
 
                     <form method="POST" action="{{ route('notifications.markAllAsRead') }}" class="sm:pb-1">
                         @csrf
-                        <x-secondary-button type="submit" class="!w-full justify-center !border-slate-300 px-3 py-2 text-sm !normal-case !tracking-normal !text-slate-700 hover:!border-emerald-500 hover:!bg-emerald-50 hover:!text-emerald-700 dark:!border-slate-600 dark:!bg-slate-800 dark:!text-slate-100 dark:hover:!border-emerald-400 dark:hover:!bg-emerald-300/10 dark:hover:!text-emerald-300 sm:!w-auto">
+                        <x-secondary-button type="submit" class="!w-full justify-center !border-emerald-500 !bg-emerald-500 px-3 py-2 text-sm !normal-case !tracking-normal !text-white hover:!border-emerald-600 hover:!bg-emerald-600 focus:!bg-emerald-600 focus:!ring-emerald-500 dark:!border-emerald-400 dark:!bg-emerald-400 dark:!text-slate-950 dark:hover:!border-emerald-300 dark:hover:!bg-emerald-300 dark:focus:!ring-emerald-300 sm:!w-auto">
                             <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6" />
                             </svg>
@@ -160,14 +152,6 @@
                 this.sslExpiryOffset = offset;
             }
         },
-        syncLimitWithUrl(limit) {
-            const parsedLimit = Number.parseInt(limit, 10);
-            const nextLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : 5;
-            const url = new URL(window.location.href);
-            url.searchParams.set('limit', String(nextLimit));
-            const query = url.searchParams.toString();
-            window.history.replaceState({}, '', query ? `${url.pathname}?${query}` : url.pathname);
-        },
         updateEmptyState() {
             this.isEmpty = this.$root.querySelectorAll('.notification-entry').length === 0;
         },
@@ -216,11 +200,6 @@
                     sectionElement.style.display = response.data.count > 0 ? '' : 'none';
                     loadMoreContainer.style.display = response.data.hasMore ? '' : 'none';
 
-                    if (!initial) {
-                        this.currentLimit = Math.max(this.currentLimit, nextOffset);
-                        this.syncLimitWithUrl(this.currentLimit);
-                    }
-
                     this.updateEmptyState();
                 });
         },
@@ -246,7 +225,7 @@
                     }
                 });
         }
-    }" x-init="syncLimitWithUrl(currentLimit); loadInitialNotifications()" class="space-y-6">
+    }" x-init="loadInitialNotifications()" class="space-y-6">
         <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3" aria-label="{{ __('notifications.overview.workflow_label') }}">
             @foreach (['triage', 'expiry', 'audit'] as $workflowItem)
                 <div class="rounded-lg border border-slate-200 bg-white/75 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/50 sm:p-4">
@@ -339,7 +318,7 @@
                     <div id="{{ $section['containerId'] }}" class="space-y-3"></div>
 
                     <div class="mt-4 text-center" id="{{ $section['loadMoreContainerId'] }}" style="display: none;">
-                        <x-primary-button @click="loadMoreNotifications('{{ $section['type'] }}')" class="!w-full justify-center !bg-emerald-600 px-4 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400 sm:!w-auto">
+                        <x-primary-button @click="loadMoreNotifications('{{ $section['type'] }}')" class="!w-full justify-center !bg-emerald-500 px-4 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-600 focus:!bg-emerald-600 focus:!ring-emerald-500 dark:!bg-emerald-400 dark:!text-slate-950 dark:hover:!bg-emerald-300 dark:focus:!ring-emerald-300 sm:!w-auto">
                             {{ __('notifications.load_more') }}
                         </x-primary-button>
                     </div>

@@ -21,13 +21,7 @@
         <span class="notification-card-accent absolute inset-y-0 left-0 w-1 bg-emerald-500" aria-hidden="true"></span>
 
         <div class="flex flex-col gap-5 pl-2 lg:flex-row lg:items-start lg:justify-between">
-            <div class="flex min-w-0 items-start gap-4">
-                <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-300/10 dark:text-emerald-300 dark:ring-emerald-300/20">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h4l3-6 4 12 2-6h3" />
-                    </svg>
-                </span>
-
+            <div class="flex min-w-0 items-start">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
                         <x-heading type="h3" class="{{ $isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-950 dark:text-white' }} truncate text-lg font-semibold">
@@ -81,7 +75,7 @@
                     {{ $statusLabel }}
                 </x-badge>
                 @if (! $isRead)
-                    <x-primary-button class="mark-as-read-button !w-full justify-center !bg-emerald-600 px-3 py-2 text-xs !normal-case !tracking-normal hover:!bg-emerald-700 focus:!bg-emerald-700 focus:!ring-emerald-500 dark:!bg-emerald-500 dark:hover:!bg-emerald-400 sm:!w-auto"
+                    <x-primary-button class="mark-as-read-button !w-full justify-center !bg-emerald-500 px-3 py-2 text-xs !normal-case !tracking-normal hover:!bg-emerald-600 focus:!bg-emerald-600 focus:!ring-emerald-500 dark:!bg-emerald-400 dark:!text-slate-950 dark:hover:!bg-emerald-300 dark:focus:!ring-emerald-300 sm:!w-auto"
                         aria-label="{{ __('notifications.mark_as_read') }}"
                         @click="markAsRead(event, '{{ $entry['notification_id'] }}', '{{ route('notifications.markAsRead', $entry['notification_id']) }}', 'status_change')">
                         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
