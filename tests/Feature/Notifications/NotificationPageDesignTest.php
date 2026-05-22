@@ -49,7 +49,7 @@ class NotificationPageDesignTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
 
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::SSL_EXPIRY,
             'message' => 'SSL_EXPIRING',
@@ -68,7 +68,7 @@ class NotificationPageDesignTest extends TestCase
         $this->assertStringContainsString('data-notification-card="ssl_expiry"', $html);
         $this->assertStringContainsString('notification-card-accent', $html);
         $this->assertStringContainsString('aria-label="' . __('notifications.mark_as_read') . '"', $html);
-        $this->assertStringContainsString('id="' . $notification->id . '"', $html);
+        $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $html);
         $this->assertStringContainsString('Checkout API', $html);
     }
 
@@ -90,7 +90,7 @@ class NotificationPageDesignTest extends TestCase
             'response_time' => 1200.0,
         ]);
 
-        $statusNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'DOWN',
@@ -98,9 +98,9 @@ class NotificationPageDesignTest extends TestCase
             'sent' => false,
         ]);
 
-        $delivery = NotificationChannelDelivery::query()->forceCreate([
+        $notificationChannelDelivery = NotificationChannelDelivery::query()->forceCreate([
             'user_id' => $user->id,
-            'monitoring_notification_id' => $statusNotification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'channel' => 'slack',
             'event_type' => NotificationEventType::INCIDENT->value,
             'status' => NotificationDeliveryStatus::FAILED->value,
@@ -113,7 +113,7 @@ class NotificationPageDesignTest extends TestCase
             'error_message' => 'Webhook responded with HTTP 500.',
         ]);
 
-        $statusResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
             'type' => NotificationType::STATUS_CHANGE->value,
             'offset' => 0,
         ]);
@@ -122,19 +122,19 @@ class NotificationPageDesignTest extends TestCase
             'offset' => 0,
         ]);
 
-        $statusResponse->assertOk();
+        $testResponse->assertOk();
         $deliveryResponse->assertOk();
 
-        $statusHtml = (string) $statusResponse->json('html');
+        $statusHtml = (string) $testResponse->json('html');
         $deliveryHtml = (string) $deliveryResponse->json('html');
 
         $this->assertStringContainsString('data-notification-card="status_change"', $statusHtml);
         $this->assertStringContainsString('notification-card-accent', $statusHtml);
-        $this->assertStringContainsString('id="' . $statusNotification->id . '"', $statusHtml);
+        $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $statusHtml);
 
         $this->assertStringContainsString('data-notification-card="delivery_history"', $deliveryHtml);
         $this->assertStringContainsString('notification-card-accent', $deliveryHtml);
-        $this->assertStringContainsString('id="' . $delivery->id . '"', $deliveryHtml);
+        $this->assertStringContainsString('id="' . $notificationChannelDelivery->id . '"', $deliveryHtml);
         $this->assertStringContainsString('Webhook responded with HTTP 500.', $deliveryHtml);
     }
 }
