@@ -208,14 +208,18 @@ class NotificationPageDesignTest extends TestCase
         $domainHtml = (string) $testResponse->json('html');
         $statusHtml = (string) $statusResponse->json('html');
 
+        $this->assertStringContainsString('data-notification-card="domain_expiry"', $domainHtml);
         $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $domainHtml);
         $this->assertStringContainsString('opacity-70', $domainHtml);
         $this->assertStringContainsString(__('notifications.read'), $domainHtml);
         $this->assertStringNotContainsString('mark-as-read-button', $domainHtml);
+        $this->assertStringNotContainsString('aria-label="' . __('notifications.mark_as_read') . '"', $domainHtml);
 
+        $this->assertStringContainsString('data-notification-card="status_change"', $statusHtml);
         $this->assertStringContainsString('id="' . $statusNotification->id . '"', $statusHtml);
         $this->assertStringContainsString('opacity-70', $statusHtml);
         $this->assertStringContainsString(__('notifications.read'), $statusHtml);
         $this->assertStringNotContainsString('mark-as-read-button', $statusHtml);
+        $this->assertStringNotContainsString('aria-label="' . __('notifications.mark_as_read') . '"', $statusHtml);
     }
 }
