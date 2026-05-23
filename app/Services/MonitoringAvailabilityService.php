@@ -8,7 +8,6 @@ use App\Data\MonitoringAvailabilityPayload;
 use App\Data\MonitoringAvailabilitySegmentPayload;
 use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
-use App\Models\MonitoringDailyResult;
 use App\Support\MonitoringResponseHistory;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -117,6 +116,7 @@ class MonitoringAvailabilityService
 
         $dailyResults = $monitoring->dailyResults()
             ->whereBetween('date', [$globalStartDate->toDateString(), $endDate->toDateString()])
+            ->orderByDesc('date')
             ->get([
                 'date',
                 'uptime_minutes',
@@ -128,29 +128,54 @@ class MonitoringAvailabilityService
                 'incidents_count',
             ]);
 
+        $rollingTotals = [
+            'uptime_minutes' => 0,
+            'downtime_minutes' => 0,
+            'unknown_minutes' => 0,
+            'uptime_total' => 0,
+            'downtime_total' => 0,
+            'unknown_total' => 0,
+            'incidents_count' => 0,
+        ];
+        $dailyResultIndex = 0;
+        $dailyResultCount = $dailyResults->count();
+
         return $normalizedDays
-            ->mapWithKeys(function (int $day) use ($dailyResults, $endDate, $now, $trackingStartedAt): array {
+            ->mapWithKeys(function (int $day) use ($dailyResults, $dailyResultCount, &$dailyResultIndex, &$rollingTotals, $endDate, $now, $trackingStartedAt): array {
                 $startDate = $now->copy()->subDays($day)->startOfDay();
                 $startDateString = $startDate->toDateString();
-                $endDateString = $endDate->toDateString();
 
-                $rangeRows = $dailyResults->filter(
-                    static fn (MonitoringDailyResult $monitoringDailyResult): bool => $monitoringDailyResult->date >= $startDateString
-                        && $monitoringDailyResult->date <= $endDateString
-                );
+                while ($dailyResultIndex < $dailyResultCount) {
+                    $dailyResult = $dailyResults[$dailyResultIndex];
+                    $dailyResultDate = $dailyResult->date->toDateString();
+
+                    if ($dailyResultDate < $startDateString) {
+                        break;
+                    }
+
+                    $rollingTotals['uptime_minutes'] += (int) $dailyResult->uptime_minutes;
+                    $rollingTotals['downtime_minutes'] += (int) $dailyResult->downtime_minutes;
+                    $rollingTotals['unknown_minutes'] += (int) $dailyResult->unknown_minutes;
+                    $rollingTotals['uptime_total'] += (int) $dailyResult->uptime_total;
+                    $rollingTotals['downtime_total'] += (int) $dailyResult->downtime_total;
+                    $rollingTotals['unknown_total'] += (int) $dailyResult->unknown_total;
+                    $rollingTotals['incidents_count'] += (int) $dailyResult->incidents_count;
+
+                    $dailyResultIndex++;
+                }
 
                 return [
                     (string) $day => $this->buildStats(
                         $startDate,
                         $endDate,
                         $trackingStartedAt,
-                        (int) $rangeRows->sum('uptime_minutes'),
-                        (int) $rangeRows->sum('downtime_minutes'),
-                        (int) $rangeRows->sum('unknown_minutes'),
-                        (int) $rangeRows->sum('uptime_total'),
-                        (int) $rangeRows->sum('downtime_total'),
-                        (int) $rangeRows->sum('unknown_total'),
-                        (int) $rangeRows->sum('incidents_count')
+                        $rollingTotals['uptime_minutes'],
+                        $rollingTotals['downtime_minutes'],
+                        $rollingTotals['unknown_minutes'],
+                        $rollingTotals['uptime_total'],
+                        $rollingTotals['downtime_total'],
+                        $rollingTotals['unknown_total'],
+                        $rollingTotals['incidents_count']
                     ),
                 ];
             })
