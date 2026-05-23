@@ -152,4 +152,70 @@ class NotificationPageDesignTest extends TestCase
         $this->assertStringContainsString('id="' . $notificationChannelDelivery->id . '"', $deliveryHtml);
         $this->assertStringContainsString('Webhook responded with HTTP 500.', $deliveryHtml);
     }
+
+    public function test_read_notification_cards_show_read_state_without_read_actions(): void
+    {
+        Date::setTestNow('2026-05-22 10:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Billing API',
+            'target' => 'https://billing.example.test',
+        ]);
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 180.0,
+        ]);
+
+        $monitoringNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::DOMAIN_EXPIRY,
+            'message' => 'DOMAIN_EXPIRING',
+            'read' => true,
+            'sent' => false,
+            'created_at' => Date::now()->subMinutes(2),
+            'updated_at' => Date::now()->subMinutes(2),
+        ]);
+
+        $statusNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'UP',
+            'read' => true,
+            'sent' => false,
+            'created_at' => Date::now()->subMinute(),
+            'updated_at' => Date::now()->subMinute(),
+        ]);
+
+        $testResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::DOMAIN_EXPIRY->value,
+            'offset' => 0,
+            'show_read' => true,
+        ]);
+        $statusResponse = $this->actingAs($user)->postJson(route('notifications.loadMore'), [
+            'type' => NotificationType::STATUS_CHANGE->value,
+            'offset' => 0,
+            'show_read' => true,
+        ]);
+
+        $testResponse->assertOk();
+        $statusResponse->assertOk();
+
+        $domainHtml = (string) $testResponse->json('html');
+        $statusHtml = (string) $statusResponse->json('html');
+
+        $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $domainHtml);
+        $this->assertStringContainsString('opacity-70', $domainHtml);
+        $this->assertStringContainsString(__('notifications.read'), $domainHtml);
+        $this->assertStringNotContainsString('mark-as-read-button', $domainHtml);
+
+        $this->assertStringContainsString('id="' . $statusNotification->id . '"', $statusHtml);
+        $this->assertStringContainsString('opacity-70', $statusHtml);
+        $this->assertStringContainsString(__('notifications.read'), $statusHtml);
+        $this->assertStringNotContainsString('mark-as-read-button', $statusHtml);
+    }
 }
