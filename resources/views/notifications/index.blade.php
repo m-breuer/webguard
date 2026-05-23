@@ -67,11 +67,11 @@
                             {{ __('notifications.filters.heading') }}
                         </x-paragraph>
                         <nav class="mt-2 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm font-semibold dark:bg-slate-800" aria-label="{{ __('notifications.filters.heading') }}">
-                            <a href="{{ route('notifications.index', $showReadDisabledQuery) }}"
+                            <a href="{{ route('notifications.index', $showReadDisabledQuery) }}" data-notification-filter-link
                                 class="{{ ! $showRead ? 'bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/20 dark:bg-emerald-400 dark:text-slate-950 dark:ring-emerald-300/30' : 'text-slate-600 hover:bg-white/70 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-emerald-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
                                 {{ __('notifications.filters.unread') }}
                             </a>
-                            <a href="{{ route('notifications.index', $showReadEnabledQuery) }}"
+                            <a href="{{ route('notifications.index', $showReadEnabledQuery) }}" data-notification-filter-link
                                 class="{{ $showRead ? 'bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/20 dark:bg-emerald-400 dark:text-slate-950 dark:ring-emerald-300/30' : 'text-slate-600 hover:bg-white/70 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-emerald-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
                                 {{ __('notifications.filters.all') }}
                             </a>
@@ -159,6 +159,11 @@
             url.searchParams.set('limit', String(nextLimit));
             const query = url.searchParams.toString();
             window.history.replaceState({}, '', query ? `${url.pathname}?${query}` : url.pathname);
+            document.querySelectorAll('[data-notification-filter-link]').forEach((link) => {
+                const linkUrl = new URL(link.href);
+                linkUrl.searchParams.set('limit', String(nextLimit));
+                link.href = linkUrl.toString();
+            });
         },
         updateEmptyState() {
             this.isEmpty = this.$root.querySelectorAll('.notification-entry').length === 0;
