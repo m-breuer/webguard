@@ -107,6 +107,29 @@ class MonitoringFailureConfirmationThresholdTest extends TestCase
         ]);
     }
 
+    public function test_unknown_check_resets_consecutive_failure_confirmation(): void
+    {
+        Date::setTestNow('2026-05-24 09:00:00');
+
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'failure_confirmation_threshold' => 2,
+        ]);
+
+        foreach ([MonitoringStatus::DOWN, MonitoringStatus::UNKNOWN, MonitoringStatus::DOWN] as $status) {
+            $this->recordResponse($monitoring, $status);
+            Date::setTestNow(Date::now()->addMinute());
+        }
+
+        $this->assertSame(0, Incident::query()->where('monitoring_id', $monitoring->id)->count());
+
+        $this->recordResponse($monitoring, MonitoringStatus::DOWN);
+
+        $this->assertDatabaseHas('incidents', [
+            'monitoring_id' => $monitoring->id,
+            'up_at' => null,
+        ]);
+    }
+
     public function test_successful_check_closes_confirmed_incident(): void
     {
         Date::setTestNow('2026-05-24 09:00:00');
@@ -148,6 +171,37 @@ class MonitoringFailureConfirmationThresholdTest extends TestCase
             'user_id' => $this->user->id,
             'name' => 'Noisy API',
             'failure_confirmation_threshold' => 3,
+        ]);
+    }
+
+    public function test_monitoring_form_updates_failure_confirmation_threshold(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Noisy API',
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com/health',
+            'status' => MonitoringLifecycleStatus::ACTIVE,
+            'timeout' => 5,
+            'expected_http_statuses' => '200-299',
+            'preferred_location' => $this->serverInstance->code,
+            'failure_confirmation_threshold' => 1,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), [
+            'name' => 'Noisy API',
+            'type' => MonitoringType::HTTP->value,
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'expected_http_statuses' => '200-299',
+            'preferred_location' => $this->serverInstance->code,
+            'failure_confirmation_threshold' => 4,
+        ]);
+
+        $testResponse->assertRedirect(route('monitorings.show', $monitoring));
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'failure_confirmation_threshold' => 4,
         ]);
     }
 
