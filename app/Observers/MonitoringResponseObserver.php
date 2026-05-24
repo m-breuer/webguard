@@ -17,34 +17,50 @@ class MonitoringResponseObserver
     {
         $monitoring = $monitoringResponse->monitoring;
 
-        // Get the last two responses to check for a status change
-        $responses = $monitoring->responseResults()->latest()->take(2)->get();
+        $threshold = max(1, (int) ($monitoring->failure_confirmation_threshold ?? 1));
+        $responses = $monitoring->responseResults()->latest()
+            ->orderByDesc('id')
+            ->take(max(2, $threshold))
+            ->get();
 
-        if ($responses->count() < 2) {
-            // Not enough data to determine a change, but if the first status is DOWN, create an incident
-            if ($monitoringResponse->status === MonitoringStatus::DOWN) {
-                Incident::query()->firstOrCreate(['monitoring_id' => $monitoring->id, 'up_at' => null], ['down_at' => now()]);
+        $latestResponse = $responses->first();
+
+        if ($latestResponse?->status === MonitoringStatus::DOWN) {
+            if ($this->hasConfirmedFailure($monitoringResponse)) {
+                $this->openIncident($monitoringResponse);
             }
 
             return;
         }
 
-        $latestResponse = $responses->first();
-        $previousResponse = $responses->last();
-
-        $statusChanged = $latestResponse->status !== $previousResponse->status;
-
-        if ($statusChanged) {
-            if ($latestResponse->status === MonitoringStatus::DOWN) {
-                // Status changed to DOWN, create a new incident
-                Incident::query()->firstOrCreate(['monitoring_id' => $monitoring->id, 'up_at' => null], ['down_at' => now()]);
-            } elseif ($latestResponse->status === MonitoringStatus::UP) {
-                // Status changed to UP, close the open incident
-                $incident = $monitoring->incidents()->whereNull('up_at')->first();
-                if ($incident) {
-                    $incident->update(['up_at' => now()]);
-                }
+        if ($latestResponse?->status === MonitoringStatus::UP) {
+            // Status changed to UP, close the open incident
+            $incident = $monitoring->incidents()->whereNull('up_at')->first();
+            if ($incident) {
+                $incident->update(['up_at' => now()]);
             }
         }
+    }
+
+    private function hasConfirmedFailure(MonitoringResponse $monitoringResponse): bool
+    {
+        $monitoring = $monitoringResponse->monitoring;
+        $threshold = max(1, (int) ($monitoring->failure_confirmation_threshold ?? 1));
+
+        $responses = $monitoring->responseResults()->latest()
+            ->orderByDesc('id')
+            ->take($threshold)
+            ->get();
+
+        return $responses->count() >= $threshold
+            && $responses->every(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status === MonitoringStatus::DOWN);
+    }
+
+    private function openIncident(MonitoringResponse $monitoringResponse): void
+    {
+        Incident::query()->firstOrCreate(
+            ['monitoring_id' => $monitoringResponse->monitoring_id, 'up_at' => null],
+            ['down_at' => now()]
+        );
     }
 }

@@ -13,6 +13,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **SSL certificate monitoring:** receive warnings before certificates expire.
 - **Domain expiration monitoring:** track domain registration expiry and receive proactive renewal warnings before critical domains lapse.
 - **Customizable checks:** configure HTTP method, body, and headers for monitoring checks.
+- **Consecutive failure confirmation:** require multiple failed checks in a row before an incident opens, reducing noise from transient outages.
 
 ## Product Surface
 

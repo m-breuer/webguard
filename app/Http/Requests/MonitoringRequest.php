@@ -217,6 +217,7 @@ class MonitoringRequest extends FormRequest
                 'string',
                 Rule::in($this->notificationChannelUser()?->enabledNotificationChannelKeys() ?? []),
             ],
+            'failure_confirmation_threshold' => ['required', 'integer', 'min:1', 'max:10'],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
             'maintenance_from' => ['nullable', 'date'],
             'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
@@ -254,6 +255,7 @@ class MonitoringRequest extends FormRequest
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
+            'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 1),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
         ];
