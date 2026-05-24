@@ -14,6 +14,7 @@ use App\Models\Package;
 use App\Models\User;
 use App\Services\MonitoringAvailabilityService;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MonitoringAvailabilityServiceTest extends TestCase
@@ -71,20 +72,27 @@ class MonitoringAvailabilityServiceTest extends TestCase
             'created_at' => Date::now()->subDays(30),
         ]);
 
-        foreach (range(1, 10) as $daysAgo) {
+        foreach (range(1, 30) as $daysAgo) {
             $this->createDailyResult($monitoring, Date::now()->subDays($daysAgo)->toDateString());
         }
 
-        $statsByRange = resolve(MonitoringAvailabilityService::class)->getUptimeDowntimesForRanges($monitoring, [7, 10]);
+        DB::enableQueryLog();
+
+        $statsByRange = resolve(MonitoringAvailabilityService::class)->getUptimeDowntimesForRanges($monitoring, [7, 10, 30]);
 
         $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $statsByRange['7']);
         $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $statsByRange['10']);
+        $this->assertInstanceOf(MonitoringAvailabilityPayload::class, $statsByRange['30']);
         $this->assertSame(700, $statsByRange['7']->uptime->minutes);
         $this->assertSame(70, $statsByRange['7']->downtime->minutes);
         $this->assertSame(7, $statsByRange['7']->downtime->incidentsCount);
         $this->assertSame(1_000, $statsByRange['10']->uptime->minutes);
         $this->assertSame(100, $statsByRange['10']->downtime->minutes);
         $this->assertSame(10, $statsByRange['10']->downtime->incidentsCount);
+        $this->assertSame(3_000, $statsByRange['30']->uptime->minutes);
+        $this->assertSame(300, $statsByRange['30']->downtime->minutes);
+        $this->assertSame(30, $statsByRange['30']->downtime->incidentsCount);
+        $this->assertCount(2, DB::getQueryLog());
     }
 
     private function createResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus, string $checkedAt): void
