@@ -231,6 +231,8 @@ return [
         'public_label_url' => 'URL des öffentlichen Labels',
         'notification_on_failure' => 'Benachrichtigungen',
         'notification_on_failure_enabled' => 'Incident-, Wiederherstellungs-, SSL- und Domain-Ablaufbenachrichtigungen für diese Überwachung senden',
+        'failure_confirmation_threshold' => 'Aufeinanderfolgende Fehler bis zum Vorfall',
+        'failure_confirmation_threshold_help' => 'Öffnet einen Vorfall erst nach dieser Anzahl fehlgeschlagener Prüfungen in Folge. Mit 1 wird beim ersten Fehler alarmiert.',
         'notification_channels' => 'Benachrichtigungskanäle',
         'notification_channels_help' => 'Wählen Sie die aktivierten Profil-Kanäle aus, über die diese Überwachung Benachrichtigungen sendet.',
         'notification_channels_empty' => 'Aktivieren Sie zuerst mindestens einen Benachrichtigungskanal in Ihrem Profil.',

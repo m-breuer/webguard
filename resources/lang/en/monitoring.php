@@ -231,6 +231,8 @@ return [
         'public_label_url' => 'Public Label URL',
         'notification_on_failure' => 'Notifications',
         'notification_on_failure_enabled' => 'Send incident, recovery, SSL, and domain expiry notifications for this monitoring',
+        'failure_confirmation_threshold' => 'Consecutive failures before incident',
+        'failure_confirmation_threshold_help' => 'Open an incident only after this many failed checks in a row. Use 1 to alert on the first failure.',
         'notification_channels' => 'Notification channels',
         'notification_channels_help' => 'Choose the enabled profile channels this monitoring should use for notifications.',
         'notification_channels_empty' => 'Enable at least one notification channel in your profile first.',

@@ -363,6 +363,16 @@
     </div>
 
     <div class="mt-4">
+        <x-input-label for="failure_confirmation_threshold" :value="__('monitoring.form.failure_confirmation_threshold')" />
+        <x-text-input id="failure_confirmation_threshold" type="number" min="1" max="10"
+            name="failure_confirmation_threshold" :value="old('failure_confirmation_threshold', $monitoring->failure_confirmation_threshold ?? 1)" />
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.failure_confirmation_threshold_help') }}
+        </p>
+        <x-input-error :messages="$errors->get('failure_confirmation_threshold')" />
+    </div>
+
+    <div class="mt-4">
         <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
         @if (count($enabledNotificationChannels) > 0)
             <select id="notification_channels" name="notification_channels[]" multiple size="{{ min(4, count($enabledNotificationChannels)) }}"
