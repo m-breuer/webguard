@@ -170,17 +170,17 @@ class MonitoringFailureConfirmationThresholdTest extends TestCase
         $testResponse->assertSessionHasErrors(['failure_confirmation_threshold']);
     }
 
-    private function recordResponse(Monitoring $monitoring, MonitoringStatus $status): void
+    private function recordResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus): void
     {
         MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
-            'status' => $status,
-            'http_status_code' => match ($status) {
+            'status' => $monitoringStatus,
+            'http_status_code' => match ($monitoringStatus) {
                 MonitoringStatus::UP => 200,
                 MonitoringStatus::DOWN => 503,
                 MonitoringStatus::UNKNOWN => null,
             },
-            'response_time' => $status === MonitoringStatus::UP ? 120.0 : null,
+            'response_time' => $monitoringStatus === MonitoringStatus::UP ? 120.0 : null,
         ]);
     }
 }

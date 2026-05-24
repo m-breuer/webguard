@@ -18,8 +18,7 @@ class MonitoringResponseObserver
         $monitoring = $monitoringResponse->monitoring;
 
         $threshold = max(1, (int) ($monitoring->failure_confirmation_threshold ?? 1));
-        $responses = $monitoring->responseResults()
-            ->orderByDesc('created_at')
+        $responses = $monitoring->responseResults()->latest()
             ->orderByDesc('id')
             ->take(max(2, $threshold))
             ->get();
@@ -48,14 +47,13 @@ class MonitoringResponseObserver
         $monitoring = $monitoringResponse->monitoring;
         $threshold = max(1, (int) ($monitoring->failure_confirmation_threshold ?? 1));
 
-        $responses = $monitoring->responseResults()
-            ->orderByDesc('created_at')
+        $responses = $monitoring->responseResults()->latest()
             ->orderByDesc('id')
             ->take($threshold)
             ->get();
 
         return $responses->count() >= $threshold
-            && $responses->every(static fn (MonitoringResponse $response): bool => $response->status === MonitoringStatus::DOWN);
+            && $responses->every(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status === MonitoringStatus::DOWN);
     }
 
     private function openIncident(MonitoringResponse $monitoringResponse): void
