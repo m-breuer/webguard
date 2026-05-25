@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\PublicFeatureController;
 use App\Models\Package;
 use App\Models\User;
 use App\Support\SitemapPages;
@@ -31,6 +32,16 @@ class PublicIndexingTest extends TestCase
             ->all();
     }
 
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function indexablePublicFeatureProvider(): array
+    {
+        return collect(PublicFeatureController::slugs())
+            ->mapWithKeys(fn (string $slug): array => [$slug => [$slug]])
+            ->all();
+    }
+
     #[DataProvider('indexablePublicRouteProvider')]
     public function test_indexable_public_routes_are_publicly_cacheable_for_guests(string $routeName): void
     {
@@ -45,6 +56,21 @@ class PublicIndexingTest extends TestCase
         $this->assertStringContainsString('s-maxage=3600', $cacheControl);
         $this->assertStringNotContainsString('private', $cacheControl);
         $this->assertStringNotContainsString('no-cache', $cacheControl);
+    }
+
+    #[DataProvider('indexablePublicFeatureProvider')]
+    public function test_indexable_public_feature_pages_are_publicly_cacheable_for_guests(string $slug): void
+    {
+        $testResponse = $this->get(route('public-features.show', $slug));
+
+        $testResponse->assertOk();
+
+        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('public', $cacheControl);
+        $this->assertStringContainsString('max-age=300', $cacheControl);
+        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
+        $this->assertStringNotContainsString('private', $cacheControl);
     }
 
     public function test_indexable_public_routes_do_not_start_sessions_or_queue_cookies(): void
@@ -211,10 +237,7 @@ class PublicIndexingTest extends TestCase
      */
     private function expectedIndexablePageUrls(): array
     {
-        $urls = array_map(
-            fn (string $routeName): string => route($routeName),
-            self::expectedIndexablePageRouteNames()
-        );
+        $urls = SitemapPages::urls();
 
         sort($urls);
 

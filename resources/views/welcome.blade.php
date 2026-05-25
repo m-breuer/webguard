@@ -1,3 +1,17 @@
+@php
+    $features = \App\Http\Controllers\PublicFeatureController::features();
+    $monitoringInterval = (int) config('monitoring.interval', 5);
+    $monitoringIntervalCopy = trans_choice('welcome.case_study.metrics.2.value', $monitoringInterval, ['count' => $monitoringInterval]);
+    $primaryFeatureSlugs = [
+        'http-monitoring',
+        'ping-monitoring',
+        'heartbeat-monitoring',
+        'server-health-monitoring',
+        'dns-record-monitoring',
+        'public-labels',
+    ];
+@endphp
+
 <x-marketing-layout>
     <x-slot:title>{{ __('welcome.seo.title') }}</x-slot:title>
     <x-slot:description>{{ __('welcome.seo.description') }}</x-slot:description>
@@ -31,13 +45,13 @@
     </x-slot:head>
 
     <main>
-        <header class="relative border-b border-slate-200/80 dark:border-slate-800/70">
-            <x-main class="grid w-full gap-12 pb-16 pt-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:pb-24 lg:pt-20">
+        <header class="border-b border-slate-200/80 dark:border-slate-800/70">
+            <x-main class="grid w-full gap-12 py-14 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:py-20">
                 <div>
                     <x-paragraph class="inline-flex items-center rounded-full border border-emerald-400/50 bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-300/10 dark:text-emerald-300">
                         {{ __('welcome.hero.eyebrow') }}
                     </x-paragraph>
-                    <x-heading type="h1" class="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
+                    <x-heading type="h1" class="mt-6 max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
                         {{ __('welcome.hero.title') }}
                     </x-heading>
                     <x-paragraph class="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl">
@@ -45,235 +59,148 @@
                     </x-paragraph>
 
                     <div class="mt-9 flex flex-wrap items-center gap-3">
-                        <x-primary-button :href="route('login')"
+                        <x-primary-button :href="route('register')"
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
-                            {{ __('button.login') }}
+                            {{ __('welcome.hero.primary_cta') }}
                         </x-primary-button>
                         <x-secondary-button :href="route('login', ['mode' => 'demo'])"
                             class="border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800">
                             {{ __('welcome.hero.secondary_cta') }}
                         </x-secondary-button>
                     </div>
-
-                    <dl class="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        @foreach ([1, 2, 3] as $metric)
-                            <div class="rounded-xl border border-slate-200 bg-white/90 p-4 dark:border-slate-800 dark:bg-slate-900/70">
-                                <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('welcome.hero.metrics.' . $metric . '.label') }}</dt>
-                                <dd class="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ __('welcome.hero.metrics.' . $metric . '.value') }}</dd>
-                            </div>
-                        @endforeach
-                    </dl>
                 </div>
 
-                <div class="relative">
-                    <div class="absolute -left-4 -top-4 h-28 w-28 rounded-full bg-sky-400/20 blur-2xl dark:bg-sky-300/20"></div>
-                    <div class="absolute -bottom-6 right-0 h-36 w-36 rounded-full bg-emerald-400/20 blur-2xl dark:bg-emerald-300/20"></div>
-                    <figure class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white/90 p-2 shadow-2xl shadow-slate-300/30 dark:border-slate-700/70 dark:bg-slate-900/80 dark:shadow-slate-950/60">
-                        <img src="{{ Vite::asset('resources/images/landing-dashboard.svg') }}"
-                            alt="{{ __('welcome.visuals.previews.dashboard.alt') }}"
-                            width="1280"
-                            height="780"
-                            loading="eager"
-                            fetchpriority="high"
-                            decoding="async"
-                            class="h-auto w-full rounded-xl">
-                    </figure>
-                </div>
+                <figure class="overflow-hidden rounded-2xl border border-slate-200 bg-white/90 p-2 shadow-2xl shadow-slate-300/30 dark:border-slate-700/70 dark:bg-slate-900/80 dark:shadow-slate-950/60">
+                    <img src="{{ Vite::asset('resources/images/landing-dashboard.svg') }}"
+                        alt="{{ __('welcome.visuals.previews.dashboard.alt') }}"
+                        width="1280"
+                        height="780"
+                        loading="eager"
+                        fetchpriority="high"
+                        decoding="async"
+                        class="h-auto w-full rounded-xl">
+                </figure>
             </x-main>
         </header>
 
+        <section class="border-b border-slate-200/80 bg-white/70 py-8 dark:border-slate-800/70 dark:bg-slate-950/30">
+            <x-main>
+                <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    @foreach ([1, 2, 3] as $metric)
+                        @php
+                            $metricValue = __('welcome.hero.metrics.' . $metric . '.value', ['interval' => $monitoringIntervalCopy]);
+                        @endphp
+                        <div class="rounded-xl border border-slate-200 bg-white/90 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('welcome.hero.metrics.' . $metric . '.label') }}</dt>
+                            <dd class="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $metricValue }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </x-main>
+        </section>
+
         <section id="features" class="py-16 lg:py-20">
             <x-main>
-                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">{{ __('welcome.feature_section.eyebrow') }}</x-paragraph>
-                <x-heading type="h2" class="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.feature_section.title') }}</x-heading>
-                <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.feature_section.subtitle') }}</x-paragraph>
+                <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">{{ __('welcome.feature_section.eyebrow') }}</x-paragraph>
+                        <x-heading type="h2" class="mt-4 max-w-3xl text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.feature_section.title') }}</x-heading>
+                        <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.feature_section.subtitle') }}</x-paragraph>
+                    </div>
+                    <x-secondary-button :href="route('public-features.index')"
+                        class="border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800">
+                        {{ __('welcome.feature_section.all_features_cta') }}
+                    </x-secondary-button>
+                </div>
 
-                <div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    @foreach (['http', 'http_expectations', 'ping', 'keyword', 'port', 'heartbeat', 'server_health', 'dns_record', 'notifications', 'weekly_digest', 'ssl', 'domain_expiration', 'stats', 'multi_location', 'public_status_pages', 'embeddable_widget', 'rest_api'] as $feature)
-                        <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-slate-950/20">
+                <div class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($primaryFeatureSlugs as $slug)
+                        @php
+                            $feature = $features[$slug];
+                        @endphp
+                        <a href="{{ route('public-features.show', $slug) }}"
+                            class="group rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg hover:shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-emerald-400/50 dark:hover:shadow-slate-950/20">
                             <div class="flex items-center justify-between gap-4">
-                                <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">
-                                    @switch($feature)
-                                        @case('http')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h18M3 12h18M3 19h18" /></svg>
-                                        @break
-
-                                        @case('ping')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 13h4l3-6 4 12 2-6h3" /></svg>
-                                        @break
-
-                                        @case('http_expectations')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M7 12h4m4 0h2M7 17h10" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" /></svg>
-                                        @break
-
-                                        @case('keyword')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6h10M4 12h16M8 18h12" /></svg>
-                                        @break
-
-                                        @case('port')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10v8H7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 8V6m6 2V6m-6 10v2m6-2v2" /></svg>
-                                        @break
-
-                                        @case('heartbeat')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h3l2-5 4 10 2-5h5" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v2m0 12v2m8-8h-2M6 12H4" /></svg>
-                                        @break
-
-                                        @case('server_health')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16V8a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 13h2l1-3 2 5 1-2h4" /></svg>
-                                        @break
-
-                                        @case('dns_record')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M5 12h14M5 17h14" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v10m8-10v10" /></svg>
-                                        @break
-
-                                        @case('notifications')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0" /></svg>
-                                        @break
-
-                                        @case('weekly_digest')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 9h10M7 13h5m3 0h2M7 17h7" /></svg>
-                                        @break
-
-                                        @case('ssl')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V8a4 4 0 118 0v3m-9 0h10v9H7z" /></svg>
-                                        @break
-
-                                        @case('domain_expiration')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18z" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M8 4.5c2.2 4.8 2.2 10.2 0 15M16 4.5c-2.2 4.8-2.2 10.2 0 15" /></svg>
-                                        @break
-
-                                        @case('stats')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5v14h14M9 15l3-3 2 2 4-5" /></svg>
-                                        @break
-
-                                        @case('multi_location')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18z" /><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3c2.5 2.4 2.5 15.6 0 18" /></svg>
-                                        @break
-
-                                        @case('public_status_pages')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 10h5m-5 4h10m0-4h.01" /></svg>
-                                        @break
-
-                                        @case('embeddable_widget')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 8l-4 4 4 4m8-8l4 4-4 4" /><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l-2 14" /></svg>
-                                        @break
-
-                                        @case('rest_api')
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M7 12h10M9 17h6" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" /></svg>
-                                        @break
-                                    @endswitch
-                                </div>
-
-                                <x-badge type="success" class="border border-emerald-400/50 bg-emerald-100 px-3 py-1 text-xs uppercase tracking-[0.08em] text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-300/10 dark:text-emerald-300">
-                                    {{ __('welcome.features.' . $feature . '.badge') }}
-                                </x-badge>
+                                <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-300/15 dark:text-emerald-300">
+                                    @include('features.partials.icon', ['featureKey' => $feature['key']])
+                                </span>
+                                <span class="rounded-full border border-emerald-300/70 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-300/10 dark:text-emerald-300">
+                                    {{ __('public_features.features.' . $feature['key'] . '.badge') }}
+                                </span>
                             </div>
-
-                            <x-heading type="h3" class="mt-5 text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.features.' . $feature . '.title') }}</x-heading>
-                            <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.features.' . $feature . '.text') }}</x-paragraph>
-                        </article>
+                            <x-heading type="h3" class="mt-5 text-xl font-semibold text-slate-900 dark:text-white">{{ __('public_features.features.' . $feature['key'] . '.title') }}</x-heading>
+                            <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('public_features.features.' . $feature['key'] . '.teaser') }}</x-paragraph>
+                            <span class="mt-5 inline-flex items-center text-sm font-semibold text-emerald-700 transition group-hover:text-emerald-800 dark:text-emerald-300 dark:group-hover:text-emerald-200">
+                                {{ __('public_features.common.learn_more') }}
+                                <span class="ml-2" aria-hidden="true">-&gt;</span>
+                            </span>
+                        </a>
                     @endforeach
+                </div>
+
+                <div class="mt-10 rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-900/70">
+                    <x-heading type="h3" class="text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.feature_section.full_stack_title') }}</x-heading>
+                    <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                        @foreach ($features as $slug => $feature)
+                            <a href="{{ route('public-features.show', $slug) }}" class="rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-950/50 dark:hover:border-emerald-400/50">
+                                <x-heading type="h4" class="text-base font-semibold text-slate-900 dark:text-white">{{ __('public_features.features.' . $feature['key'] . '.title') }}</x-heading>
+                                <x-paragraph class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ __('public_features.features.' . $feature['key'] . '.teaser') }}</x-paragraph>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
             </x-main>
         </section>
 
-        <section class="border-y border-slate-200/80 bg-slate-100/70 dark:border-slate-800/70 dark:bg-slate-900/40">
-            <x-main class="py-16 lg:py-20">
-                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-sky-700 dark:text-sky-300">{{ __('welcome.visuals.eyebrow') }}</x-paragraph>
-                <x-heading type="h2" class="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.visuals.title') }}</x-heading>
-                <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.visuals.subtitle') }}</x-paragraph>
-
-                <div class="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    @foreach ([
-                        'dashboard' => 'resources/images/landing-dashboard.svg',
-                        'detail' => 'resources/images/landing-monitoring-detail.svg',
-                        'public_status' => 'resources/images/landing-public-status.svg',
-                    ] as $preview => $asset)
-                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-900/70">
-                            <img src="{{ Vite::asset($asset) }}"
-                                alt="{{ __('welcome.visuals.previews.' . $preview . '.alt') }}"
-                                width="1280"
-                                height="780"
-                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
-                                decoding="async"
-                                class="h-auto w-full border-b border-slate-200 dark:border-slate-800">
-                            <div class="p-5">
-                                <x-heading type="h3" class="text-lg font-semibold text-slate-900 dark:text-white">{{ __('welcome.visuals.previews.' . $preview . '.title') }}</x-heading>
-                                <x-paragraph class="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.visuals.previews.' . $preview . '.text') }}</x-paragraph>
-                            </div>
-                        </article>
-                    @endforeach
-                </div>
-            </x-main>
-        </section>
-
-        <section class="py-16 lg:py-20">
+        <section class="border-y border-slate-200/80 bg-slate-100/70 py-16 dark:border-slate-800/70 dark:bg-slate-900/40 lg:py-20">
             <x-main>
-                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">{{ __('welcome.workflow.eyebrow') }}</x-paragraph>
-                <x-heading type="h2" class="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.workflow.title') }}</x-heading>
-                <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.workflow.subtitle') }}</x-paragraph>
+                <div class="max-w-3xl">
+                    <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-sky-700 dark:text-sky-300">{{ __('welcome.platform.eyebrow') }}</x-paragraph>
+                    <x-heading type="h2" class="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.platform.title') }}</x-heading>
+                    <x-paragraph class="mt-4 text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.platform.subtitle') }}</x-paragraph>
+                </div>
 
-                <ol class="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-                    @foreach ([1, 2, 3] as $step)
-                        <li class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-900/70">
-                            <x-span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-300/15 dark:text-emerald-300">{{ $step }}</x-span>
-                            <x-heading type="h3" class="mt-4 text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.workflow.steps.' . $step . '.title') }}</x-heading>
-                            <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.workflow.steps.' . $step . '.text') }}</x-paragraph>
-                        </li>
+                <div class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    @foreach (['public_status_pages', 'embeddable_widget', 'notifications', 'rest_api'] as $featureKey)
+                        @php
+                            $slug = collect($features)->search(fn (array $feature): bool => $feature['key'] === $featureKey);
+                        @endphp
+                        <a href="{{ route('public-features.show', $slug) }}"
+                            class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm transition hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-emerald-400/50">
+                            <x-heading type="h3" class="text-lg font-semibold text-slate-900 dark:text-white">{{ __('public_features.features.' . $featureKey . '.title') }}</x-heading>
+                            <x-paragraph class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{{ __('public_features.features.' . $featureKey . '.teaser') }}</x-paragraph>
+                        </a>
                     @endforeach
-                </ol>
+                </div>
             </x-main>
         </section>
 
-        <section id="proof" class="border-y border-slate-200/80 bg-slate-100/70 dark:border-slate-800/70 dark:bg-slate-900/40">
-            <x-main class="py-16 lg:py-20">
-                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-sky-700 dark:text-sky-300">{{ __('welcome.trust.eyebrow') }}</x-paragraph>
-                <x-heading type="h2" class="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.trust.title') }}</x-heading>
-                <x-paragraph class="mt-4 max-w-3xl text-lg text-slate-600 dark:text-slate-300">{{ __('welcome.trust.subtitle') }}</x-paragraph>
-
-                <div class="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <blockquote class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-950/70 lg:col-span-1">
-                        <x-paragraph class="text-lg leading-8 text-slate-800 dark:text-slate-100">“{{ __('welcome.testimonial.quote') }}”</x-paragraph>
-                    </blockquote>
-
-                    <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-950/70 lg:col-span-2">
-                        <x-heading type="h3" class="text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.case_study.title') }}</x-heading>
-                        <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.case_study.text') }}</x-paragraph>
-                        <dl class="mt-5 space-y-3 text-sm">
-                            @foreach ([1, 2, 3] as $metric)
-                                <div class="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/80">
-                                    <dt><x-span class="text-slate-600 dark:text-slate-300">{{ __('welcome.case_study.metrics.' . $metric . '.label') }}</x-span></dt>
-                                    <dd>
-                                        <x-span class="font-semibold text-emerald-700 dark:text-emerald-300">
-                                            {{ $metric === 2
-                                                ? trans_choice('welcome.case_study.metrics.2.value', config('monitoring.interval', 5), ['count' => config('monitoring.interval', 5)])
-                                                : __('welcome.case_study.metrics.' . $metric . '.value') }}
-                                        </x-span>
-                                    </dd>
-                                </div>
-                            @endforeach
-                        </dl>
+        <section id="proof" class="py-16 lg:py-20">
+            <x-main>
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-900/70">
+                        <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.workflow.steps.1.title') }}</x-heading>
+                        <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.workflow.steps.1.text') }}</x-paragraph>
+                    </article>
+                    <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-900/70">
+                        <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.workflow.steps.2.title') }}</x-heading>
+                        <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.workflow.steps.2.text') }}</x-paragraph>
+                    </article>
+                    <article class="rounded-2xl border border-slate-200 bg-white/90 p-6 dark:border-slate-800 dark:bg-slate-900/70">
+                        <x-heading type="h2" class="text-xl font-semibold text-slate-900 dark:text-white">{{ __('welcome.workflow.steps.3.title') }}</x-heading>
+                        <x-paragraph class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.workflow.steps.3.text') }}</x-paragraph>
                     </article>
                 </div>
-
-                <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    @foreach (['uptime', 'transparent'] as $badge)
-                        <article class="rounded-xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-                            <x-heading type="h3" class="text-sm font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">{{ __('welcome.badges.' . $badge . '.title') }}</x-heading>
-                            <x-paragraph class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{{ __('welcome.badges.' . $badge . '.text') }}</x-paragraph>
-                        </article>
-                    @endforeach
-                </div>
             </x-main>
         </section>
 
-        <section id="pricing-cta" class="py-16 lg:py-20">
+        <section id="pricing-cta" class="pb-16 lg:pb-20">
             <x-main>
                 <div class="rounded-3xl border border-emerald-400/40 bg-emerald-100/80 p-8 sm:p-10 lg:p-12 dark:border-emerald-300/30 dark:bg-emerald-300/10">
                     <x-heading type="h2" class="max-w-3xl text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">{{ __('welcome.final_cta.title') }}</x-heading>
                     <x-paragraph class="mt-4 max-w-2xl text-lg text-slate-700 dark:text-slate-200">{{ __('welcome.final_cta.text') }}</x-paragraph>
                     <div class="mt-8 flex flex-wrap gap-3">
-                        <x-primary-button :href="route('login')"
+                        <x-primary-button :href="route('register')"
                             class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
                             {{ __('welcome.final_cta.primary') }}
                         </x-primary-button>

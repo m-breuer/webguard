@@ -15,8 +15,11 @@ return [
         'aria' => 'Primäre Navigation',
         'logo_alt' => 'WebGuard Logo',
         'features' => 'Funktionen',
+        'feature_pages' => 'Feature-Seiten',
+        'api_docs' => 'API-Doku',
         'proof' => 'Einordnung',
-        'get_started' => 'Kostenfrei nutzen',
+        'get_started' => 'Jetzt starten',
+        'demo_access' => 'Demo-Zugang',
         'login' => 'Anmelden',
         'dashboard' => 'Dashboard',
     ],
@@ -24,9 +27,10 @@ return [
     'hero' => [
         'eyebrow' => 'Kostenfrei nutzbare Monitoring-Software',
         'title' => 'WebGuard bietet professionelles Monitoring für Teams und Einzelprojekte.',
-        'subtitle' => 'Die Plattform unterstützt die zuverlässige Überwachung von Services und Infrastruktur und kann ohne Lizenzkosten genutzt werden.',
-        'primary_cta' => 'Kostenfrei starten',
-        'secondary_cta' => 'Demo-Zugang nutzen',
+        'subtitle' => 'Überwachen Sie Websites, APIs, Jobs, Server, Zertifikate, Domains und kundenrelevanten Status aus einem klaren SaaS-Arbeitsbereich.',
+        'primary_cta' => 'Jetzt starten',
+        'secondary_cta' => 'Demo-Zugang',
+        'api_cta' => 'API-Doku lesen',
         'metrics' => [
             '1' => [
                 'label' => 'Lizenz',
@@ -34,11 +38,11 @@ return [
             ],
             '2' => [
                 'label' => 'Abdeckung',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL und Domains',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS-Eintrag, SSL und Domains',
             ],
             '3' => [
                 'label' => 'Betrieb',
-                'value' => '24/7 Checks mit flexiblen Intervallen',
+                'value' => '24/7 Checks alle :interval',
             ],
         ],
     ],
@@ -46,7 +50,15 @@ return [
     'feature_section' => [
         'eyebrow' => 'Umfassende Abdeckung',
         'title' => 'Alles, was Sie für zuverlässiges Monitoring brauchen',
-        'subtitle' => 'WebGuard bündelt Checks, Benachrichtigungen und Verlaufsdaten in einem klaren, alltagstauglichen Workflow.',
+        'subtitle' => 'Die Hauptseite zeigt die Grundlagen. Jede Funktion hat zusätzlich eine öffentliche Detailseite zur Bewertung vor dem Login.',
+        'all_features_cta' => 'Alle Funktionen ansehen',
+        'full_stack_title' => 'Alle WebGuard-Funktionen',
+    ],
+
+    'platform' => [
+        'eyebrow' => 'Öffentliches Vertrauen und Integrationen',
+        'title' => 'Statuskommunikation und API-Zugriff sind sichtbare öffentliche Flächen',
+        'subtitle' => 'Public Labels, Badges, Statusseiten, Benachrichtigungen und die generierte Scribe-API-Referenz sind direkt von der Marketing-Seite verlinkt.',
     ],
 
     'features' => [
@@ -187,7 +199,7 @@ return [
     ],
 
     'testimonial' => [
-        'quote' => 'Die Kombination aus Regionen, flexiblen Intervallen und klaren Alerts hilft dabei, Störungen schneller zu erkennen und sauber einzuordnen.',
+        'quote' => 'Die Kombination aus Regionen, 5-Minuten-Intervall und klaren Alerts hilft dabei, Störungen schneller zu erkennen und sauber einzuordnen.',
     ],
 
     'case_study' => [
@@ -223,7 +235,7 @@ return [
     'final_cta' => [
         'title' => 'WebGuard kostenfrei nutzen',
         'text' => 'Die Software steht ohne Kaufmodell zur Verfügung. Login oder Demo-Zugang reichen aus, um die zentralen Funktionen auszuprobieren.',
-        'primary' => 'Zum Login',
+        'primary' => 'Jetzt starten',
         'secondary' => 'Demo-Zugang öffnen',
     ],
 

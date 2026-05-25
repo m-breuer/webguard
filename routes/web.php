@@ -16,6 +16,7 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicFeatureController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
@@ -44,6 +45,14 @@ Route::get('/monitoring-locations', MonitoringLocationsController::class)
     ->withoutMiddleware($sessionlessPublicRoutes)
     ->middleware('public.cache')
     ->name('monitoring-locations');
+Route::get('/features', [PublicFeatureController::class, 'index'])
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('public-features.index');
+Route::get('/features/{feature}', [PublicFeatureController::class, 'show'])
+    ->withoutMiddleware($sessionlessPublicRoutes)
+    ->middleware('public.cache')
+    ->name('public-features.show');
 Route::get('/imprint', [LegalController::class, 'imprint'])
     ->withoutMiddleware($sessionlessPublicRoutes)
     ->middleware('public.cache')

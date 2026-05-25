@@ -15,8 +15,11 @@ return [
         'aria' => 'Primary navigation',
         'logo_alt' => 'WebGuard logo',
         'features' => 'Features',
+        'feature_pages' => 'Feature Pages',
+        'api_docs' => 'API Docs',
         'proof' => 'Context',
-        'get_started' => 'Use for free',
+        'get_started' => 'Start now',
+        'demo_access' => 'Demo access',
         'login' => 'Login',
         'dashboard' => 'Dashboard',
     ],
@@ -24,9 +27,10 @@ return [
     'hero' => [
         'eyebrow' => 'Free-to-use monitoring software',
         'title' => 'WebGuard delivers professional monitoring for teams and individual projects.',
-        'subtitle' => 'The platform supports reliable monitoring for services and infrastructure and is available without license costs.',
-        'primary_cta' => 'Start for Free',
-        'secondary_cta' => 'Use Demo Access',
+        'subtitle' => 'Monitor websites, APIs, jobs, servers, certificates, domains, and customer-facing status from one clean SaaS workspace.',
+        'primary_cta' => 'Start now',
+        'secondary_cta' => 'Demo access',
+        'api_cta' => 'Read API Docs',
         'metrics' => [
             '1' => [
                 'label' => 'License',
@@ -34,11 +38,11 @@ return [
             ],
             '2' => [
                 'label' => 'Coverage',
-                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, and domains',
+                'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS Record, SSL, and domains',
             ],
             '3' => [
                 'label' => 'Operation',
-                'value' => '24/7 checks with flexible intervals',
+                'value' => '24/7 checks every :interval',
             ],
         ],
     ],
@@ -46,7 +50,15 @@ return [
     'feature_section' => [
         'eyebrow' => 'Complete Coverage',
         'title' => 'Everything you need to monitor service health',
-        'subtitle' => 'WebGuard combines checks, notifications, and historical data in a clear workflow designed for everyday operations.',
+        'subtitle' => 'The homepage gives the essentials. Each feature also has a public detail page for evaluation before signing in.',
+        'all_features_cta' => 'Browse all features',
+        'full_stack_title' => 'All WebGuard capabilities',
+    ],
+
+    'platform' => [
+        'eyebrow' => 'Public Trust and Integrations',
+        'title' => 'Status communication and API access are first-class public surfaces',
+        'subtitle' => 'Public labels, badges, status pages, notifications, and the generated Scribe API reference are linked directly from the marketing site.',
     ],
 
     'features' => [
@@ -187,7 +199,7 @@ return [
     ],
 
     'testimonial' => [
-        'quote' => 'Combining region selection, flexible intervals, and clear alerts makes it easier to detect incidents early and classify them accurately.',
+        'quote' => 'Combining region selection, a 5-minute interval, and clear alerts makes it easier to detect incidents early and classify them accurately.',
     ],
 
     'case_study' => [
@@ -223,7 +235,7 @@ return [
     'final_cta' => [
         'title' => 'Use WebGuard for free',
         'text' => 'The software is available without a purchase model. Login or demo access is enough to explore the core features.',
-        'primary' => 'Go to Login',
+        'primary' => 'Get Started',
         'secondary' => 'Open Demo Access',
     ],
 
