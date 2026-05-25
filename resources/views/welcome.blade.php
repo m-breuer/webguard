@@ -97,6 +97,7 @@
                     @endforeach
                 </dl>
                 <span class="sr-only">{{ __('welcome.hero.legacy_coverage') }}</span>
+                <span class="sr-only">{{ __('welcome.hero.legacy_badge_copy') }}</span>
             </x-main>
         </section>
 

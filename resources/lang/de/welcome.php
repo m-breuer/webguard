@@ -32,6 +32,7 @@ return [
         'secondary_cta' => 'Demo-Zugang',
         'api_cta' => 'API-Doku lesen',
         'legacy_coverage' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL und Domains',
+        'legacy_badge_copy' => 'kompaktes SLA-Badge',
         'metrics' => [
             '1' => [
                 'label' => 'Lizenz',
