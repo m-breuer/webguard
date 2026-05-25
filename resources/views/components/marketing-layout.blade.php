@@ -51,22 +51,27 @@
                 <x-main class="flex w-full items-center justify-between py-4">
                     <a href="{{ route('welcome') }}" class="flex items-center gap-3">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('welcome.nav.logo_alt') }}" class="h-9 w-9">
-                        <x-span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{{ __('app.name') }}</x-span>
+                        <x-span class="hidden text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:inline">{{ __('app.name') }}</x-span>
                     </a>
 
                     <div class="hidden items-center gap-8 md:flex">
                         <a href="{{ route('welcome') . '#features' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.features') }}</a>
+                        <a href="{{ route('public-features.index') }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.feature_pages') }}</a>
+                        <a href="{{ route('scribe') }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.api_docs') }}</a>
                         <a href="{{ route('welcome') . '#proof' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.proof') }}</a>
-                        <a href="{{ route('welcome') . '#pricing-cta' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.get_started') }}</a>
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-3">
                         <x-language-switch id="language-switch-guest" variant="marketing" />
 
-                        <x-primary-button :href="route('login')"
+                        <x-primary-button :href="route('register')"
                             class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
-                            {{ __('welcome.nav.login') }}
+                            {{ __('welcome.nav.get_started') }}
                         </x-primary-button>
+                        <x-secondary-button :href="route('login', ['mode' => 'demo'])"
+                            class="border-slate-300 bg-white text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800">
+                            {{ __('welcome.nav.demo_access') }}
+                        </x-secondary-button>
                     </div>
                 </x-main>
             </nav>
