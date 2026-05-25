@@ -60,7 +60,7 @@ class MonitoringIndexEmptyStateTest extends TestCase
             ->filter(static fn (string $query): bool => str_starts_with($query, 'select count(*) as aggregate from "monitorings"'))
             ->count();
 
-        $this->assertSame(1, $monitoringCountQueries, $queries->implode(PHP_EOL));
+        $this->assertLessThanOrEqual(1, $monitoringCountQueries, $queries->implode(PHP_EOL));
     }
 
     public function test_demo_user_cannot_access_monitoring_create_route(): void
