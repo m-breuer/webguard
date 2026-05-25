@@ -7,9 +7,12 @@ namespace Tests\Feature\Api;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
+use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringResponse;
+use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +65,30 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'max_response_time' => 123.4,
             'incidents_count' => 0,
         ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subDays(20),
+            'up_at' => Date::now()->subDays(20)->addMinutes(10),
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subDays(80),
+            'up_at' => Date::now()->subDays(80)->addMinutes(10),
+        ]);
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'is_valid' => true,
+            'issuer' => 'Example CA',
+            'issued_at' => Date::now()->subDays(30),
+            'expires_at' => Date::parse('2026-08-01 00:00:00'),
+        ]);
+        MonitoringDomainResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'is_valid' => true,
+            'registrar' => 'Example Registrar',
+            'checked_at' => Date::now(),
+            'expires_at' => Date::parse('2027-02-01 00:00:00'),
+        ]);
 
         $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
 
@@ -72,6 +99,12 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('status_code', 200);
         $testResponse->assertJsonPath('status_identifier', 'status.success');
         $testResponse->assertJsonPath('public_url', route('public-label', $monitoring));
+        $testResponse->assertJsonPath('incidents.30_days', 1);
+        $testResponse->assertJsonPath('incidents.90_days', 2);
+        $testResponse->assertJsonPath('incidents.365_days', 2);
+        $testResponse->assertJsonPath('ssl.valid', true);
+        $testResponse->assertJsonPath('domain.valid', true);
+        $testResponse->assertJsonPath('maintenance.active', false);
         $this->assertIsNumeric($testResponse->json('uptime.7_days'));
         $this->assertIsNumeric($testResponse->json('uptime.30_days'));
         $this->assertIsNumeric($testResponse->json('uptime.365_days'));
@@ -135,7 +168,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             ->filter(static fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
             ->count();
 
-        $this->assertLessThanOrEqual(5, $selectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
+        $this->assertLessThanOrEqual(8, $selectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
     }
 
     public function test_public_widget_endpoint_uses_live_uptime_for_fresh_monitoring_without_daily_results(): void

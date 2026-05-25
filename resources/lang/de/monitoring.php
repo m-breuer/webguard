@@ -156,6 +156,11 @@ return [
             'description' => 'Betten Sie ein Live-Überwachungs-Widget auf Ihrer Website oder Ihrem Dashboard ein.',
             'copy_button' => 'Snippet kopieren',
         ],
+        'sla_badge' => [
+            'heading' => 'SLA-Badge einbetten',
+            'description' => 'Zeigen Sie ein kompaktes öffentliches Vertrauens-Badge mit Live-Status, Uptime, Incident-Anzahl und Link zum öffentlichen Monitoring-Label.',
+            'snippet_help' => 'Platzieren Sie dieses Snippet auf Ihrer Website, im Footer, im Kundenportal oder in einer Statusübersicht. Das Badge ist nur öffentlich, solange das Public Label aktiviert ist.',
+        ],
         'heartbeat' => [
             'heading' => 'Heartbeat-Konfiguration',
             'ping_url' => 'Ping-URL',

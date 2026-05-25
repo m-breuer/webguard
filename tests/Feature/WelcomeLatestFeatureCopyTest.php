@@ -57,6 +57,7 @@ class WelcomeLatestFeatureCopyTest extends TestCase
                     'component-based status pages with recent incidents, manual incident updates, subscriber emails',
                     'Embeddable Status Widget',
                     'lightweight JavaScript widget',
+                    'compact SLA badge',
                     'REST API and Integrations',
                     'token-based API access and the API reference',
                     'method, header, body, auth, and status-code validation',
@@ -73,6 +74,7 @@ class WelcomeLatestFeatureCopyTest extends TestCase
                     'komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos',
                     'Einbettbares Status-Widget',
                     'schlankes JavaScript-Widget',
+                    'kompaktes SLA-Badge',
                     'REST API und Integrationen',
                     'tokenbasierten API-Zugriff und die API-Referenz',
                     'Methode, Headern, Body, Authentifizierung und Statuscode-Prüfung',
@@ -123,6 +125,8 @@ class WelcomeLatestFeatureCopyTest extends TestCase
         $this->assertStringContainsString('status changes, SSL expiry, and domain expiry', $features);
         $this->assertStringContainsString('Server health monitoring', $features);
         $this->assertStringContainsString('configurable per-monitor usage thresholds', $features);
+        $this->assertStringContainsString('SLA badge', $features);
+        $this->assertStringContainsString('live status, uptime proof, and public trust context', $features);
     }
 
     #[DataProvider('featureTeaserCoverageProvider')]

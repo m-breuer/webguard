@@ -127,8 +127,8 @@ return [
         ],
         'embeddable_widget' => [
             'badge' => 'Embed',
-            'title' => 'Embeddable Status Widget',
-            'text' => 'Add a lightweight JavaScript widget to external sites or dashboards so visitors can see live monitoring status where they already work.',
+            'title' => 'Embeddable Status Widget and SLA Badge',
+            'text' => 'Add a lightweight JavaScript widget or compact SLA badge to external sites, dashboards, footers, and customer portals so visitors can see live status and uptime proof where they already work.',
         ],
         'rest_api' => [
             'badge' => 'API',
