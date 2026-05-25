@@ -92,6 +92,10 @@ Route::get('/widget.js', function () {
     return response(file_get_contents(public_path('js/widget.js')))->header('Content-Type', 'application/javascript');
 })->name('widget.js');
 
+Route::get('/badge.js', function () {
+    return response(file_get_contents(public_path('js/badge.js')))->header('Content-Type', 'application/javascript');
+})->name('badge.js');
+
 Route::middleware(['auth', 'role:member,admin'])
     ->prefix('profile')
     ->as('profile.')

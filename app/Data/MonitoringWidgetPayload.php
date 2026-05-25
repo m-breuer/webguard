@@ -18,7 +18,15 @@ final readonly class MonitoringWidgetPayload implements JsonSerializable
         public ?string $checkedAt,
         public ?string $checkedAtHuman,
         public MonitoringWidgetUptimePayload $uptime,
-        public string $publicUrl
+        public string $publicUrl,
+        /** @var array{30_days: int, 90_days: int, 365_days: int} */
+        public array $incidents,
+        /** @var array{valid: bool|null, expires_at: string|null} */
+        public array $ssl,
+        /** @var array{valid: bool|null, expires_at: string|null} */
+        public array $domain,
+        /** @var array{active: bool, starts_at: string|null, ends_at: string|null} */
+        public array $maintenance
     ) {}
 
     /**
@@ -37,6 +45,10 @@ final readonly class MonitoringWidgetPayload implements JsonSerializable
             'checked_at_human' => $this->checkedAtHuman,
             'uptime' => $this->uptime->toArray(),
             'public_url' => $this->publicUrl,
+            'incidents' => $this->incidents,
+            'ssl' => $this->ssl,
+            'domain' => $this->domain,
+            'maintenance' => $this->maintenance,
         ];
     }
 

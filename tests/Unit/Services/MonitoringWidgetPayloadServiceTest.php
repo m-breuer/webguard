@@ -8,9 +8,12 @@ use App\Data\MonitoringWidgetPayload;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
+use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringResponse;
+use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\MonitoringWidgetPayloadService;
@@ -47,6 +50,35 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
             'updated_at' => Date::now()->subMinutes(5),
         ]);
 
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subDays(20),
+            'up_at' => Date::now()->subDays(20)->addMinutes(12),
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subDays(80),
+            'up_at' => Date::now()->subDays(80)->addMinutes(12),
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subDays(200),
+            'up_at' => Date::now()->subDays(200)->addMinutes(12),
+        ]);
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'is_valid' => true,
+            'issuer' => 'Example CA',
+            'issued_at' => Date::now()->subDays(30),
+            'expires_at' => Date::parse('2026-08-01 00:00:00'),
+        ]);
+        MonitoringDomainResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'is_valid' => true,
+            'registrar' => 'Example Registrar',
+            'checked_at' => Date::now(),
+            'expires_at' => Date::parse('2027-02-01 00:00:00'),
+        ]);
         $this->createDailyResult($monitoring, Date::now()->subDays(2)->toDateString());
 
         $monitoringWidgetPayload = resolve(MonitoringWidgetPayloadService::class)->getPayload($monitoring->fresh());
@@ -62,6 +94,14 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         $this->assertEquals(100.0, $payload['uptime']['7_days']);
         $this->assertEquals(100.0, $payload['uptime']['30_days']);
         $this->assertEquals(100.0, $payload['uptime']['365_days']);
+        $this->assertSame(1, $payload['incidents']['30_days']);
+        $this->assertSame(2, $payload['incidents']['90_days']);
+        $this->assertSame(3, $payload['incidents']['365_days']);
+        $this->assertTrue($payload['ssl']['valid']);
+        $this->assertSame(Date::parse('2026-08-01 00:00:00')->toIso8601String(), $payload['ssl']['expires_at']);
+        $this->assertTrue($payload['domain']['valid']);
+        $this->assertSame(Date::parse('2027-02-01 00:00:00')->toIso8601String(), $payload['domain']['expires_at']);
+        $this->assertFalse($payload['maintenance']['active']);
     }
 
     public function test_widget_payload_returns_unknown_without_results(): void

@@ -127,8 +127,8 @@ return [
         ],
         'embeddable_widget' => [
             'badge' => 'Embed',
-            'title' => 'Einbettbares Status-Widget',
-            'text' => 'Binden Sie ein schlankes JavaScript-Widget in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
+            'title' => 'Einbettbares Status-Widget und SLA-Badge',
+            'text' => 'Binden Sie ein schlankes JavaScript-Widget oder kompaktes SLA-Badge in externe Websites, Dashboards, Footer und Kundenportale ein, damit Besucher Live-Status und Uptime-Nachweis dort sehen, wo sie arbeiten.',
         ],
         'rest_api' => [
             'badge' => 'API',

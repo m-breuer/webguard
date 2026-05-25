@@ -26,6 +26,7 @@ class MonitoringWidgetPayloadService
         $status = (string) ($statusSince['status'] ?? 'unknown');
         $checkedAt = $statusNow['checked_at'] ?? null;
         $uptimePercentages = $this->resolveUptimePercentages($monitoring, [7, 30, 365]);
+        $incidentCounts = $this->resolveIncidentCounts($monitoring, [30, 90, 365]);
 
         return new MonitoringWidgetPayload(
             name: $monitoring->name,
@@ -41,7 +42,25 @@ class MonitoringWidgetPayloadService
                 thirtyDays: $uptimePercentages[30] ?? null,
                 year: $uptimePercentages[365] ?? null
             ),
-            publicUrl: route('public-label', $monitoring)
+            publicUrl: route('public-label', $monitoring),
+            incidents: [
+                '30_days' => $incidentCounts[30] ?? 0,
+                '90_days' => $incidentCounts[90] ?? 0,
+                '365_days' => $incidentCounts[365] ?? 0,
+            ],
+            ssl: [
+                'valid' => $monitoring->sslResult?->is_valid,
+                'expires_at' => $monitoring->sslResult?->expires_at?->toIso8601String(),
+            ],
+            domain: [
+                'valid' => $monitoring->domainResult?->is_valid,
+                'expires_at' => $monitoring->domainResult?->expires_at?->toIso8601String(),
+            ],
+            maintenance: [
+                'active' => $monitoring->isUnderMaintenance(),
+                'starts_at' => $monitoring->maintenance_from?->toIso8601String(),
+                'ends_at' => $monitoring->maintenance_until?->toIso8601String(),
+            ]
         );
     }
 
@@ -74,6 +93,26 @@ class MonitoringWidgetPayloadService
         return collect($days)
             ->mapWithKeys(fn (int $day): array => [
                 $day => data_get($statsByRange, $day . '.uptime.percentage'),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $days
+     * @return array<int, int>
+     */
+    private function resolveIncidentCounts(Monitoring $monitoring, array $days): array
+    {
+        $oldestRange = max($days);
+        $incidents = $monitoring->incidents()
+            ->where('down_at', '>=', Date::now()->subDays($oldestRange))
+            ->get(['down_at']);
+
+        return collect($days)
+            ->mapWithKeys(fn (int $day): array => [
+                $day => $incidents
+                    ->filter(fn ($incident): bool => $incident->down_at->greaterThanOrEqualTo(Date::now()->subDays($day)))
+                    ->count(),
             ])
             ->all();
     }

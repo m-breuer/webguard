@@ -156,6 +156,11 @@ return [
             'description' => 'Embed a live monitoring widget on your website or dashboard.',
             'copy_button' => 'Copy Snippet',
         ],
+        'sla_badge' => [
+            'heading' => 'Embed SLA Badge',
+            'description' => 'Show a compact public trust badge with live status, uptime, incident count, and a link to the public monitoring label.',
+            'snippet_help' => 'Place this snippet on your website, footer, customer portal, or status overview. The badge is public only while the public label is enabled.',
+        ],
         'heartbeat' => [
             'heading' => 'Heartbeat Configuration',
             'ping_url' => 'Ping URL',

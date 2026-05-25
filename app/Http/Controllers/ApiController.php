@@ -358,7 +358,25 @@ class ApiController extends Controller
      *     "30_days": 99.9,
      *     "365_days": 99.1
      *   },
-     *   "public_url": "https://example.com/label/01H..."
+     *   "public_url": "https://example.com/label/01H...",
+     *   "incidents": {
+     *     "30_days": 0,
+     *     "90_days": 1,
+     *     "365_days": 2
+     *   },
+     *   "ssl": {
+     *     "valid": true,
+     *     "expires_at": "2026-08-01T00:00:00+00:00"
+     *   },
+     *   "domain": {
+     *     "valid": true,
+     *     "expires_at": "2027-02-01T00:00:00+00:00"
+     *   },
+     *   "maintenance": {
+     *     "active": false,
+     *     "starts_at": null,
+     *     "ends_at": null
+     *   }
      * }
      */
     public function widget(
