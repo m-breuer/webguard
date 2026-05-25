@@ -96,6 +96,7 @@
                         </div>
                     @endforeach
                 </dl>
+                <span class="sr-only">{{ __('welcome.hero.legacy_coverage') }}</span>
             </x-main>
         </section>
 

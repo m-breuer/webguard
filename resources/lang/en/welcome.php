@@ -31,6 +31,7 @@ return [
         'primary_cta' => 'Start now',
         'secondary_cta' => 'Demo access',
         'api_cta' => 'Read API Docs',
+        'legacy_coverage' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, and domains',
         'metrics' => [
             '1' => [
                 'label' => 'License',
