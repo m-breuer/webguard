@@ -6,25 +6,15 @@ namespace App\Console\Commands\Notifications;
 
 use App\Enums\UserRole;
 use App\Models\MonitoringNotification;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Database\Query\Builder;
 
+#[Description('Delete all notifications for demo users older than one week')]
+#[Signature('notifications:prune-demo')]
 class PruneDemoNotificationsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'notifications:prune-demo';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Delete all notifications for demo users older than one week';
-
     /**
      * Execute the console command.
      */

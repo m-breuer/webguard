@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,16 +22,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'updated_at',
 ])]
 #[Table(name: 'monitoring_response_archived', key: 'id', keyType: 'string')]
+#[WithoutIncrementing]
 class MonitoringResponseArchived extends Model
 {
     use HasFactory;
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
 
     /**
      * Get the monitoring that owns the archived response.

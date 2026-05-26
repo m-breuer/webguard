@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,17 +38,11 @@ use Illuminate\Support\Carbon;
     'issued_at',
 ])]
 #[Table(name: 'monitoring_ssl_results', key: 'id', keyType: 'string')]
+#[WithoutIncrementing]
 class MonitoringSslResult extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    /**
-     * Indicates whether IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
 
     /**
      * Get the monitoring instance that this result belongs to.

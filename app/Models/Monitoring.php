@@ -10,6 +10,7 @@ use App\Enums\MonitoringType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -68,19 +69,13 @@ use Spatie\Activitylog\Support\LogOptions;
     'server_health_storage_threshold_percent',
 ])]
 #[Table(name: 'monitorings', key: 'id', keyType: 'string')]
+#[WithoutIncrementing]
 class Monitoring extends Model
 {
     use HasFactory;
     use HasUlids;
     use LogsActivity;
     use SoftDeletes;
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
 
     /**
      * Get the user that owns the monitoring.

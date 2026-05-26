@@ -5,24 +5,14 @@ declare(strict_types=1);
 namespace App\Console\Commands\Notifications;
 
 use App\Models\MonitoringNotification;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
+#[Description('Delete read notifications that are older than one month.')]
+#[Signature('notifications:prune-read')]
 class PruneReadNotificationsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'notifications:prune-read';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Delete read notifications that are older than one month.';
-
     /**
      * Execute the console command.
      */
