@@ -107,6 +107,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('maintenance.active', false);
         $this->assertIsNumeric($testResponse->json('uptime.7_days'));
         $this->assertIsNumeric($testResponse->json('uptime.30_days'));
+        $this->assertIsNumeric($testResponse->json('uptime.90_days'));
         $this->assertIsNumeric($testResponse->json('uptime.365_days'));
     }
 
@@ -124,7 +125,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'created_at' => Date::now()->subDays(400),
         ]);
 
-        foreach ([7, 30, 365] as $days) {
+        foreach ([7, 30, 90, 365] as $days) {
             MonitoringDailyResult::query()->create([
                 'monitoring_id' => $monitoring->id,
                 'date' => Date::now()->subDays($days)->toDateString(),
@@ -162,6 +163,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertJsonPath('uptime.7_days', 100);
         $testResponse->assertJsonPath('uptime.30_days', 100);
+        $testResponse->assertJsonPath('uptime.90_days', 100);
         $testResponse->assertJsonPath('uptime.365_days', 100);
 
         $selectCount = collect(DB::getQueryLog())
@@ -204,6 +206,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('status', MonitoringStatus::UP->value);
         $testResponse->assertJsonPath('uptime.7_days', 100);
         $testResponse->assertJsonPath('uptime.30_days', 100);
+        $testResponse->assertJsonPath('uptime.90_days', 100);
         $testResponse->assertJsonPath('uptime.365_days', 100);
     }
 
@@ -247,6 +250,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('checked_at_human', null);
         $testResponse->assertJsonPath('uptime.7_days', null);
         $testResponse->assertJsonPath('uptime.30_days', null);
+        $testResponse->assertJsonPath('uptime.90_days', null);
         $testResponse->assertJsonPath('uptime.365_days', null);
     }
 
@@ -314,6 +318,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('checked_at_human', null);
         $testResponse->assertJsonPath('uptime.7_days', null);
         $testResponse->assertJsonPath('uptime.30_days', null);
+        $testResponse->assertJsonPath('uptime.90_days', null);
         $testResponse->assertJsonPath('uptime.365_days', null);
     }
 
@@ -346,6 +351,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('checked_at_human', null);
         $testResponse->assertJsonPath('uptime.7_days', null);
         $testResponse->assertJsonPath('uptime.30_days', null);
+        $testResponse->assertJsonPath('uptime.90_days', null);
         $testResponse->assertJsonPath('uptime.365_days', null);
     }
 }
