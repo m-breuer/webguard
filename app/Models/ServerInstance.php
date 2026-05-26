@@ -8,6 +8,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -27,12 +28,11 @@ use Illuminate\Support\Facades\Hash;
 #[Hidden([
     'api_key_hash',
 ])]
+#[WithoutIncrementing]
 class ServerInstance extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    public $incrementing = false;
 
     protected $keyType = 'string';
 

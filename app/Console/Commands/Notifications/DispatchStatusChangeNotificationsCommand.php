@@ -10,25 +10,15 @@ use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
 use App\Services\Notifications\NotificationPayload;
 use App\Services\Notifications\NotificationRouter;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
+#[Description('Dispatch status change notifications to configured channels.')]
+#[Signature('notifications:dispatch-status-changes')]
 class DispatchStatusChangeNotificationsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'notifications:dispatch-status-changes';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Dispatch status change notifications to configured channels.';
-
     public function __construct(private readonly NotificationRouter $notificationRouter)
     {
         parent::__construct();

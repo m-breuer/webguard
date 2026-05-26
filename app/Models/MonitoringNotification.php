@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -26,17 +27,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'sent',
 ])]
 #[Table(name: 'monitoring_notifications', key: 'id', keyType: 'string')]
+#[WithoutIncrementing]
 class MonitoringNotification extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
 
     public static function extractStatusChangeIdentifierFromMessage(string $message): string
     {

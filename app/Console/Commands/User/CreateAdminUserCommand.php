@@ -7,25 +7,15 @@ namespace App\Console\Commands\User;
 use App\Enums\UserRole;
 use App\Models\Package;
 use App\Models\User;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 
+#[Description('Create a new admin user with a default password.')]
+#[Signature('user:create-admin {email?}')]
 class CreateAdminUserCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'user:create-admin {email?}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Create a new admin user with a default password.';
-
     /**
      * Execute the console command.
      */

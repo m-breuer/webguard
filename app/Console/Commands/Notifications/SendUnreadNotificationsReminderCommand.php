@@ -7,24 +7,18 @@ namespace App\Console\Commands\Notifications;
 use App\Mail\UnreadNotificationsReminderMail;
 use App\Models\User;
 use App\Services\NotificationBoardService;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
+#[Description('Sends email reminders to users with unread board notifications according to their profile settings.')]
+#[Signature('notifications:remind-unread-weekly')]
 class SendUnreadNotificationsReminderCommand extends Command
 {
-    /**
-     * @var string
-     */
-    protected $signature = 'notifications:remind-unread-weekly';
-
-    /**
-     * @var string
-     */
-    protected $description = 'Sends email reminders to users with unread board notifications according to their profile settings.';
-
     public function __construct(private readonly NotificationBoardService $notificationBoardService)
     {
         parent::__construct();

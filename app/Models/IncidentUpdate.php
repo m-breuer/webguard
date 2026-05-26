@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\IncidentUpdateStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,12 +17,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'status',
     'message',
 ])]
+#[WithoutIncrementing]
 class IncidentUpdate extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    public $incrementing = false;
 
     /**
      * @return BelongsTo<Incident, $this>

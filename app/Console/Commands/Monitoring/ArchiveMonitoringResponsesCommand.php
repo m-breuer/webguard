@@ -8,26 +8,16 @@ use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use Carbon\CarbonInterface;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
+#[Description('Archives monitoring responses for a given date (defaults to yesterday) by moving them to a separate table and deleting them from the live table.')]
+#[Signature('monitoring:archive-responses')]
 class ArchiveMonitoringResponsesCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'monitoring:archive-responses';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Archives monitoring responses for a given date (defaults to yesterday) by moving them to a separate table and deleting them from the live table.';
-
     /**
      * Execute the console command.
      */

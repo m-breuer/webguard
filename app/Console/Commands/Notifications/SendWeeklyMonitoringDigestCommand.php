@@ -7,24 +7,18 @@ namespace App\Console\Commands\Notifications;
 use App\Mail\WeeklyMonitoringDigestMail;
 use App\Models\User;
 use App\Services\WeeklyMonitoringDigestService;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
+#[Description('Sends weekly email summaries with uptime, incidents, downtime, and expiry warnings.')]
+#[Signature('notifications:send-weekly-monitoring-digest {--period-end= : Final day to include in the weekly digest.}')]
 class SendWeeklyMonitoringDigestCommand extends Command
 {
-    /**
-     * @var string
-     */
-    protected $signature = 'notifications:send-weekly-monitoring-digest {--period-end= : Final day to include in the weekly digest.}';
-
-    /**
-     * @var string
-     */
-    protected $description = 'Sends weekly email summaries with uptime, incidents, downtime, and expiry warnings.';
-
     public function __construct(private readonly WeeklyMonitoringDigestService $weeklyMonitoringDigestService)
     {
         parent::__construct();
