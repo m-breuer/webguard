@@ -151,6 +151,33 @@ class MonitoringFailureConfirmationThresholdTest extends TestCase
         ]);
     }
 
+    public function test_monitoring_form_updates_failure_confirmation_threshold(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com/health',
+            'preferred_location' => $this->serverInstance->code,
+            'failure_confirmation_threshold' => 1,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), [
+            'name' => 'Noisy API',
+            'type' => MonitoringType::HTTP->value,
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'expected_http_statuses' => '200-299',
+            'preferred_location' => $this->serverInstance->code,
+            'failure_confirmation_threshold' => 4,
+        ]);
+
+        $testResponse->assertRedirect(route('monitorings.show', $monitoring));
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'failure_confirmation_threshold' => 4,
+        ]);
+    }
+
     public function test_failure_confirmation_threshold_must_be_within_supported_range(): void
     {
         $testResponse = $this->from(route('monitorings.create'))
