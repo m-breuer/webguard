@@ -9,25 +9,15 @@ use App\Models\MonitoringDailyResult;
 use App\Services\MonitoringAvailabilityService;
 use App\Services\MonitoringIncidentService;
 use App\Services\MonitoringResponseTimeService;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Database\Query\Builder;
 
+#[Description('Aggregates daily monitoring results.')]
+#[Signature('monitoring:aggregate-daily {days=1 : The number of past days to aggregate (default: 1)}')]
 class AggregateDailyResultsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'monitoring:aggregate-daily {days=1 : The number of past days to aggregate (default: 1)}';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Aggregates daily monitoring results.';
-
     /**
      * Execute the console command.
      */

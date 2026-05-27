@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\NotificationDeliveryStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,17 +34,11 @@ use Illuminate\Support\Carbon;
     'error_message',
     'sent_at',
 ])]
+#[WithoutIncrementing]
 class NotificationChannelDelivery extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
 
     /**
      * The primary key associated with the table.

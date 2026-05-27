@@ -11,24 +11,14 @@ use App\Models\MonitoringNotification;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringResponseArchived;
 use App\Models\MonitoringSslResult;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
+#[Description('Deletes all soft-deleted monitorings and their related data.')]
+#[Signature('monitoring:purge-soft-deleted')]
 class PurgeSoftDeletedMonitoringsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'monitoring:purge-soft-deleted';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Deletes all soft-deleted monitorings and their related data.';
-
     /**
      * Execute the console command.
      */

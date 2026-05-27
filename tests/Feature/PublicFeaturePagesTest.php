@@ -46,6 +46,20 @@ class PublicFeaturePagesTest extends TestCase
         }
     }
 
+    public function test_monitoring_locations_feature_slug_redirects_to_the_standalone_page(): void
+    {
+        $testResponse = $this->get(route('public-features.show', 'monitoring-locations'));
+
+        $testResponse->assertRedirect(route('monitoring-locations'));
+    }
+
+    public function test_unknown_public_feature_slug_returns_not_found(): void
+    {
+        $testResponse = $this->get(route('public-features.show', 'unknown-feature'));
+
+        $testResponse->assertNotFound();
+    }
+
     public function test_generated_scribe_api_reference_is_publicly_available(): void
     {
         $testResponse = $this->get(route('scribe'));

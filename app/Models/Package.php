@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,11 +31,10 @@ use Illuminate\Support\Carbon;
     'price',
     'is_selectable',
 ])]
+#[WithoutIncrementing]
 class Package extends Model
 {
     use HasFactory, HasUlids;
-
-    public $incrementing = false;
 
     protected $keyType = 'string';
 

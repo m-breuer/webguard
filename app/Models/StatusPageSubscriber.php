@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,12 +23,11 @@ use Illuminate\Support\Facades\Date;
     'verified_at',
 ])]
 #[Table(name: 'status_page_subscribers', key: 'id', keyType: 'string')]
+#[WithoutIncrementing]
 class StatusPageSubscriber extends Model
 {
     use HasFactory;
     use HasUlids;
-
-    public $incrementing = false;
 
     public static function hashToken(string $token): string
     {

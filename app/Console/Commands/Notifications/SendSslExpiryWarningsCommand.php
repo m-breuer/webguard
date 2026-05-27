@@ -12,25 +12,15 @@ use App\Models\MonitoringSslResult;
 use App\Services\Notifications\NotificationPayload;
 use App\Services\Notifications\NotificationRouter;
 use Carbon\CarbonInterface;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
+#[Description('Checks SSL certificates and domains and dispatches expiry notifications.')]
+#[Signature('notifications:send-ssl-expiry-warnings')]
 class SendSslExpiryWarningsCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'notifications:send-ssl-expiry-warnings';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Checks SSL certificates and domains and dispatches expiry notifications.';
-
     public function __construct(private readonly NotificationRouter $notificationRouter)
     {
         parent::__construct();
