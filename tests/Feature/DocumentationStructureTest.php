@@ -65,6 +65,17 @@ class DocumentationStructureTest extends TestCase
         }
     }
 
+    public function test_public_widget_api_docs_include_all_uptime_ranges(): void
+    {
+        $apiController = file_get_contents(app_path('Http/Controllers/ApiController.php'));
+
+        $this->assertIsString($apiController);
+        $this->assertStringContainsString('"7_days": 100', $apiController);
+        $this->assertStringContainsString('"30_days": 99.9', $apiController);
+        $this->assertStringContainsString('"90_days": 99.5', $apiController);
+        $this->assertStringContainsString('"365_days": 99.1', $apiController);
+    }
+
     /**
      * @return list<string>
      */

@@ -25,7 +25,7 @@ class MonitoringWidgetPayloadService
         $latestStatusCode = $monitoring->latestResponseResult?->http_status_code;
         $status = (string) ($statusSince['status'] ?? 'unknown');
         $checkedAt = $statusNow['checked_at'] ?? null;
-        $uptimePercentages = $this->resolveUptimePercentages($monitoring, [7, 30, 365]);
+        $uptimePercentages = $this->resolveUptimePercentages($monitoring, [7, 30, 90, 365]);
         $incidentCounts = $this->resolveIncidentCounts($monitoring, [30, 90, 365]);
 
         return new MonitoringWidgetPayload(
@@ -40,6 +40,7 @@ class MonitoringWidgetPayloadService
             uptime: new MonitoringWidgetUptimePayload(
                 sevenDays: $uptimePercentages[7] ?? null,
                 thirtyDays: $uptimePercentages[30] ?? null,
+                ninetyDays: $uptimePercentages[90] ?? null,
                 year: $uptimePercentages[365] ?? null
             ),
             publicUrl: route('public-label', $monitoring),
