@@ -198,6 +198,9 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'updated_at' => $checkedAt,
         ]);
 
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
         $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
 
         $testResponse->assertOk();
@@ -205,6 +208,12 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('uptime.7_days', 100);
         $testResponse->assertJsonPath('uptime.30_days', 100);
         $testResponse->assertJsonPath('uptime.365_days', 100);
+
+        $selectCount = collect(DB::getQueryLog())
+            ->filter(static fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
+            ->count();
+
+        $this->assertLessThanOrEqual(12, $selectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
     }
 
     public function test_public_widget_endpoint_returns_not_found_when_public_label_is_disabled(): void

@@ -18,6 +18,7 @@ use App\Models\Package;
 use App\Models\User;
 use App\Services\MonitoringWidgetPayloadService;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MonitoringWidgetPayloadServiceTest extends TestCase
@@ -81,6 +82,9 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         ]);
         $this->createDailyResult($monitoring, Date::now()->subDays(2)->toDateString());
 
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
         $monitoringWidgetPayload = resolve(MonitoringWidgetPayloadService::class)->getPayload($monitoring->fresh());
         $payload = $monitoringWidgetPayload->toArray();
 
@@ -102,6 +106,13 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         $this->assertTrue($payload['domain']['valid']);
         $this->assertSame(Date::parse('2027-02-01 00:00:00')->toIso8601String(), $payload['domain']['expires_at']);
         $this->assertFalse($payload['maintenance']['active']);
+
+        $incidentCountQuery = collect(DB::getQueryLog())->first(
+            static fn (array $entry): bool => str_contains($entry['query'], 'incidents_30_days')
+        );
+
+        $this->assertNotNull($incidentCountQuery);
+        $this->assertStringContainsString('SUM(CASE WHEN down_at >= ?', $incidentCountQuery['query']);
     }
 
     public function test_widget_payload_returns_unknown_without_results(): void

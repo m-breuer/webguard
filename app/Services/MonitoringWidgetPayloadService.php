@@ -71,20 +71,17 @@ class MonitoringWidgetPayloadService
     private function resolveUptimePercentages(Monitoring $monitoring, array $days): array
     {
         if ($monitoring->created_at->diffInDays(Date::now()) < 1) {
-            return collect($days)
-                ->mapWithKeys(function (int $day) use ($monitoring): array {
-                    $monitoringDateRange = MonitoringDateRange::pastDays($day);
+            $monitoringDateRange = MonitoringDateRange::pastDays(max($days));
+            $uptimePercentage = data_get($this->monitoringAvailabilityService->getUptimeDowntime(
+                $monitoring,
+                $monitoringDateRange->startDate,
+                $monitoringDateRange->endDate,
+                false,
+                false
+            ), 'uptime.percentage');
 
-                    return [
-                        $day => data_get($this->monitoringAvailabilityService->getUptimeDowntime(
-                            $monitoring,
-                            $monitoringDateRange->startDate,
-                            $monitoringDateRange->endDate,
-                            false,
-                            false
-                        ), 'uptime.percentage'),
-                    ];
-                })
+            return collect($days)
+                ->mapWithKeys(fn (int $day): array => [$day => $uptimePercentage])
                 ->all();
         }
 
@@ -104,15 +101,26 @@ class MonitoringWidgetPayloadService
     private function resolveIncidentCounts(Monitoring $monitoring, array $days): array
     {
         $oldestRange = max($days);
-        $incidents = $monitoring->incidents()
-            ->where('down_at', '>=', Date::now()->subDays($oldestRange))
-            ->get(['down_at']);
+        $now = Date::now();
+        $bindings = collect($days)
+            ->map(fn (int $day): string => $now->copy()->subDays($day)->toDateTimeString())
+            ->all();
+
+        $select = collect($days)
+            ->map(fn (int $day): string => sprintf(
+                'SUM(CASE WHEN down_at >= ? THEN 1 ELSE 0 END) as incidents_%d_days',
+                $day
+            ))
+            ->implode(', ');
+
+        $counts = $monitoring->incidents()
+            ->where('down_at', '>=', $now->copy()->subDays($oldestRange))
+            ->selectRaw($select, $bindings)
+            ->first();
 
         return collect($days)
             ->mapWithKeys(fn (int $day): array => [
-                $day => $incidents
-                    ->filter(fn ($incident): bool => $incident->down_at->greaterThanOrEqualTo(Date::now()->subDays($day)))
-                    ->count(),
+                $day => (int) ($counts->{'incidents_' . $day . '_days'} ?? 0),
             ])
             ->all();
     }
