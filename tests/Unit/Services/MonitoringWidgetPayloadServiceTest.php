@@ -97,6 +97,7 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         $this->assertSame(route('public-label', $monitoring), $payload['public_url']);
         $this->assertEquals(100.0, $payload['uptime']['7_days']);
         $this->assertEquals(100.0, $payload['uptime']['30_days']);
+        $this->assertEquals(100.0, $payload['uptime']['90_days']);
         $this->assertEquals(100.0, $payload['uptime']['365_days']);
         $this->assertSame(1, $payload['incidents']['30_days']);
         $this->assertSame(2, $payload['incidents']['90_days']);
