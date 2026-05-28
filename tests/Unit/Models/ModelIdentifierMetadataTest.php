@@ -55,10 +55,10 @@ class ModelIdentifierMetadataTest extends TestCase
     public function test_refactored_models_keep_string_non_incrementing_identifiers(string $modelClass): void
     {
         $model = new $modelClass;
-        $reflection = new ReflectionClass($modelClass);
+        $reflectionClass = new ReflectionClass($modelClass);
 
-        $declaresIncrementingProperty = $reflection->hasProperty('incrementing')
-            && $reflection->getProperty('incrementing')->getDeclaringClass()->getName() === $modelClass;
+        $declaresIncrementingProperty = $reflectionClass->hasProperty('incrementing')
+            && $reflectionClass->getProperty('incrementing')->getDeclaringClass()->getName() === $modelClass;
 
         $this->assertFalse($declaresIncrementingProperty);
         $this->assertFalse($model->getIncrementing());
