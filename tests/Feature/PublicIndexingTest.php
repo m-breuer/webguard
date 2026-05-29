@@ -205,6 +205,16 @@ class PublicIndexingTest extends TestCase
         $this->assertStringNotContainsString('Disallow:', $robotsContent);
     }
 
+    public function test_www_host_redirects_to_non_www_canonical_host(): void
+    {
+        config(['app.url' => 'https://webguard.marcel-breuer.dev']);
+
+        $testResponse = $this->get('https://www.webguard.marcel-breuer.dev/features?source=www');
+
+        $this->assertSame(301, $testResponse->getStatusCode());
+        $testResponse->assertRedirect('https://webguard.marcel-breuer.dev/features?source=www');
+    }
+
     public function test_generated_sitemap_lists_exactly_the_indexable_public_pages(): void
     {
         $sitemapPath = public_path('sitemap.xml');
