@@ -2,7 +2,7 @@
 
 This repository contains the WebGuard Management Core & API. It owns the user-facing dashboard, admin panel, status pages, notification workflows, API surface, and orchestration logic.
 
-Distributed scanning nodes and workers are maintained separately in the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
+Distributed scanning nodes and workers are maintained separately in the [WebGuard Instance Repository](https://github.com/marcel-breuer/webguard-instance).
 
 ## Backend
 
