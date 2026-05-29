@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://webguard.m-breuer.dev/sitemap.xml
+Sitemap: https://webguard.marcel-breuer.dev/sitemap.xml
