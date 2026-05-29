@@ -200,6 +200,8 @@ class PublicIndexingTest extends TestCase
         $this->assertStringContainsString('User-agent: *', $robotsContent);
         $this->assertStringContainsString('Allow: /', $robotsContent);
         $this->assertStringContainsString('Sitemap: https://webguard.marcel-breuer.dev/sitemap.xml', $robotsContent);
+        $this->assertStringNotContainsString('webguard.m-breuer.dev', $robotsContent);
+        $this->assertStringNotContainsString('www.webguard.marcel-breuer.dev', $robotsContent);
         $this->assertStringNotContainsString('Disallow:', $robotsContent);
     }
 

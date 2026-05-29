@@ -67,7 +67,9 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
 
         foreach ($matches[1] as $interpolatedVariable) {
             $this->assertTrue(
-                str_contains($interpolatedVariable, ':-') || str_contains($interpolatedVariable, ':?'),
+                ctype_digit($interpolatedVariable)
+                    || str_contains($interpolatedVariable, ':-')
+                    || str_contains($interpolatedVariable, ':?'),
                 sprintf('Compose variable "%s" must define a default value or be explicitly required.', $interpolatedVariable)
             );
         }
@@ -311,5 +313,36 @@ PHP
         $this->assertStringContainsString('entrypoints=https', $composeConfiguration);
         $this->assertStringContainsString('tls.certresolver=letsencrypt', $composeConfiguration);
         $this->assertStringContainsString('loadbalancer.server.port=8080', $composeConfiguration);
+    }
+
+    public function test_production_php_container_redirects_www_host_to_non_www(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString(
+            'traefik.http.middlewares.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-redirect.redirectregex.regex=^https?://www\.(.*)',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.middlewares.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-redirect.redirectregex.replacement=https://$${1}',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.middlewares.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-redirect.redirectregex.permanent=true',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-http.rule=Host(`www.${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.rule=Host(`www.${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.middlewares=webguard-${COOLIFY_RESOURCE_UUID:-local}-www-redirect',
+            $composeConfiguration
+        );
     }
 }
