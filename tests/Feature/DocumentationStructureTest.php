@@ -65,6 +65,19 @@ class DocumentationStructureTest extends TestCase
         }
     }
 
+    public function test_docs_reference_current_webguard_instance_repository(): void
+    {
+        $expectedRepositoryUrl = 'https://github.com/marcel-breuer/webguard-instance';
+
+        foreach (['README.md', 'docs/architecture.md'] as $document) {
+            $contents = file_get_contents(base_path($document));
+
+            $this->assertIsString($contents);
+            $this->assertStringContainsString($expectedRepositoryUrl, $contents);
+            $this->assertStringNotContainsString('https://github.com/m-breuer/webguard-instance-v2', $contents);
+        }
+    }
+
     public function test_public_widget_api_docs_include_all_uptime_ranges(): void
     {
         $apiController = file_get_contents(app_path('Http/Controllers/ApiController.php'));

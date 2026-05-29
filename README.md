@@ -4,7 +4,7 @@
 
 WebGuard is an open-source monitoring core built with Laravel 13. It provides the management UI, REST API, public status pages, notification workflows, and package administration for monitoring websites, DNS records, domains, SSL certificates, and background jobs.
 
-> **System architecture note:** this repository contains the Management Core & API. Distributed scanning nodes live in the [WebGuard Instance Repository](https://github.com/m-breuer/webguard-instance-v2).
+> **System architecture note:** this repository contains the Management Core & API. Distributed scanning nodes live in the [WebGuard Instance Repository](https://github.com/marcel-breuer/webguard-instance).
 
 ## What It Does
 
