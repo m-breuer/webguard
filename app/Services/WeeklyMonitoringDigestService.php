@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\MonitoringAvailabilityPayload;
+use App\Data\MonitoringAvailabilitySegmentPayload;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringSslResult;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 
 class WeeklyMonitoringDigestService
 {
-    public function __construct(
-        private readonly MonitoringAvailabilityService $monitoringAvailabilityService
-    ) {}
-
     /**
      * @return array{
      *     period_start: Carbon,
@@ -41,7 +40,31 @@ class WeeklyMonitoringDigestService
 
         $monitorings = $user->monitorings()
             ->active()
-            ->with(['sslResult', 'domainResult'])
+            ->with([
+                'sslResult',
+                'domainResult',
+                'dailyResults' => fn ($query) => $query
+                    ->whereBetween('date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+                    ->orderBy('date')
+                    ->select([
+                        'monitoring_id',
+                        'date',
+                        'uptime_minutes',
+                        'downtime_minutes',
+                        'unknown_minutes',
+                        'uptime_total',
+                        'downtime_total',
+                        'unknown_total',
+                        'incidents_count',
+                    ]),
+                'incidents' => fn ($query) => $query
+                    ->where('down_at', '<=', $periodEnd)
+                    ->where(function ($builder) use ($periodStart): void {
+                        $builder->where('up_at', '>=', $periodStart)
+                            ->orWhereNull('up_at');
+                    })
+                    ->select(['monitoring_id', 'down_at', 'up_at']),
+            ])
             ->orderBy('name')
             ->get();
 
@@ -59,17 +82,11 @@ class WeeklyMonitoringDigestService
             ->endOfDay();
 
         foreach ($monitorings as $monitoring) {
-            $uptimeDowntime = $this->monitoringAvailabilityService->getUptimeDowntime(
-                $monitoring,
-                $periodStart,
-                $periodEnd,
-                true,
-                false
-            );
+            $uptimeDowntime = $this->buildAvailabilityFromLoadedDailyResults($monitoring, $periodStart, $periodEnd);
             $maintenanceWindow = $this->getOverlappingMaintenanceWindow($monitoring, $periodStart, $periodEnd);
             $maintenanceMinutes = $this->getMaintenanceMinutes($maintenanceWindow);
 
-            $incidentDurations = $this->getOverlappingIncidentDurations($monitoring, $periodStart, $periodEnd, $maintenanceWindow);
+            $incidentDurations = $this->getOverlappingIncidentDurations($monitoring->incidents, $periodStart, $periodEnd, $maintenanceWindow);
             $incidentsCount = count($incidentDurations);
             $monitoringLongestDowntimeMinutes = empty($incidentDurations) ? 0 : max($incidentDurations);
 
@@ -122,22 +139,17 @@ class WeeklyMonitoringDigestService
     }
 
     /**
+     * @param  Collection<int, Incident>  $incidents
      * @param  array{from: Carbon, until: Carbon}|null  $maintenanceWindow
      * @return list<int>
      */
     private function getOverlappingIncidentDurations(
-        Monitoring $monitoring,
+        Collection $incidents,
         Carbon $periodStart,
         Carbon $periodEnd,
         ?array $maintenanceWindow = null
     ): array {
-        return $monitoring->incidents()
-            ->where('down_at', '<=', $periodEnd)
-            ->where(function ($builder) use ($periodStart): void {
-                $builder->where('up_at', '>=', $periodStart)
-                    ->orWhereNull('up_at');
-            })
-            ->get(['down_at', 'up_at'])
+        return $incidents
             ->map(function (Incident $incident) use ($periodStart, $periodEnd, $maintenanceWindow): int {
                 $downAt = $incident->down_at->copy()->max($periodStart);
                 $upAt = ($incident->up_at ?? $periodEnd)->copy()->min($periodEnd);
@@ -158,6 +170,71 @@ class WeeklyMonitoringDigestService
             ->filter(static fn (int $durationMinutes): bool => $durationMinutes > 0)
             ->values()
             ->all();
+    }
+
+    private function buildAvailabilityFromLoadedDailyResults(
+        Monitoring $monitoring,
+        Carbon $periodStart,
+        Carbon $periodEnd
+    ): MonitoringAvailabilityPayload {
+        $dailyResults = $monitoring->dailyResults;
+        $trackingStartedAt = $dailyResults->min('date')?->copy()->startOfDay();
+
+        if (! $trackingStartedAt || $trackingStartedAt->gt($periodEnd)) {
+            return $this->buildAvailability($periodStart, $periodEnd, $trackingStartedAt, 0, 0, 0, 0, 0, 0, 0);
+        }
+
+        return $this->buildAvailability(
+            $periodStart,
+            $periodEnd,
+            $trackingStartedAt,
+            (int) $dailyResults->sum('uptime_minutes'),
+            (int) $dailyResults->sum('downtime_minutes'),
+            (int) $dailyResults->sum('unknown_minutes'),
+            (int) $dailyResults->sum('uptime_total'),
+            (int) $dailyResults->sum('downtime_total'),
+            (int) $dailyResults->sum('unknown_total'),
+            (int) $dailyResults->sum('incidents_count')
+        );
+    }
+
+    private function buildAvailability(
+        Carbon $periodStart,
+        Carbon $periodEnd,
+        ?Carbon $trackingStartedAt,
+        int $uptimeMinutes,
+        int $downtimeMinutes,
+        int $unknownMinutes,
+        int $uptimeTotal,
+        int $downtimeTotal,
+        int $unknownTotal,
+        int $incidentsCount
+    ): MonitoringAvailabilityPayload {
+        $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes + $unknownMinutes;
+        $hasData = $totalTrackedMinutes > 0;
+
+        return new MonitoringAvailabilityPayload(
+            from: $periodStart,
+            to: $periodEnd,
+            hasData: $hasData,
+            trackingStartedAt: $trackingStartedAt?->toIso8601String(),
+            uptime: new MonitoringAvailabilitySegmentPayload(
+                minutes: $uptimeMinutes,
+                percentage: $hasData ? ($uptimeMinutes / $totalTrackedMinutes) * 100 : null,
+                total: $uptimeTotal
+            ),
+            downtime: new MonitoringAvailabilitySegmentPayload(
+                minutes: $downtimeMinutes,
+                percentage: $hasData ? ($downtimeMinutes / $totalTrackedMinutes) * 100 : null,
+                total: $downtimeTotal,
+                incidentsCount: $incidentsCount
+            ),
+            unknown: new MonitoringAvailabilitySegmentPayload(
+                minutes: $unknownMinutes,
+                percentage: $hasData ? ($unknownMinutes / $totalTrackedMinutes) * 100 : null,
+                total: $unknownTotal
+            )
+        );
     }
 
     /**

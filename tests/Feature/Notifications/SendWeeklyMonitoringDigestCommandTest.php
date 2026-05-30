@@ -19,6 +19,7 @@ use App\Services\WeeklyMonitoringDigestService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -163,6 +164,67 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         $this->assertStringContainsString('.digest-monitorings-table thead', $rendered);
         $this->assertStringContainsString('display: block !important;', $rendered);
         $this->assertStringContainsString('overflow-wrap: anywhere;', $rendered);
+    }
+
+    public function test_weekly_digest_builds_monitoring_summaries_with_constant_query_count(): void
+    {
+        Date::setTestNow('2026-04-20 09:00:00');
+        Package::factory()->create();
+
+        $user = User::factory()->create([
+            'monitoring_digest_enabled' => true,
+            'monitoring_digest_frequency' => 'weekly',
+        ]);
+
+        for ($monitoringIndex = 1; $monitoringIndex <= 8; $monitoringIndex++) {
+            $monitoring = Monitoring::factory()->for($user)->create([
+                'name' => sprintf('Storefront %02d', $monitoringIndex),
+                'type' => MonitoringType::HTTP,
+            ]);
+
+            for ($day = 13; $day <= 19; $day++) {
+                MonitoringDailyResult::query()->create([
+                    'monitoring_id' => $monitoring->id,
+                    'date' => '2026-04-' . $day,
+                    'uptime_total' => 286,
+                    'downtime_total' => 2,
+                    'unknown_total' => 0,
+                    'uptime_percentage' => 99.31,
+                    'downtime_percentage' => 0.69,
+                    'unknown_percentage' => 0,
+                    'uptime_minutes' => 1430,
+                    'downtime_minutes' => 10,
+                    'unknown_minutes' => 0,
+                    'avg_response_time' => 120,
+                    'min_response_time' => 80,
+                    'max_response_time' => 250,
+                    'incidents_count' => 1,
+                ]);
+            }
+
+            Incident::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'down_at' => '2026-04-15 10:00:00',
+                'up_at' => '2026-04-15 10:30:00',
+            ]);
+        }
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $digest = resolve(WeeklyMonitoringDigestService::class)->buildForUser(
+            $user,
+            Date::parse('2026-04-19'),
+            'weekly'
+        );
+
+        $selectQueries = collect(DB::getQueryLog())
+            ->filter(fn (array $query): bool => str_starts_with(mb_strtolower($query['query']), 'select'))
+            ->values();
+
+        $this->assertSame(8, $digest['overview']['monitorings_count']);
+        $this->assertSame(8, $digest['overview']['incidents_count']);
+        $this->assertLessThanOrEqual(5, $selectQueries->count(), (string) $selectQueries->pluck('query')->implode(PHP_EOL));
     }
 
     public function test_sends_weekly_digest_to_demo_users_when_profile_setting_is_enabled(): void
