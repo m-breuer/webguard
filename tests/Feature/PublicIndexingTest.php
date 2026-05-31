@@ -215,6 +215,25 @@ class PublicIndexingTest extends TestCase
         $testResponse->assertRedirect('https://webguard.marcel-breuer.dev/features?source=www');
     }
 
+    public function test_www_host_redirect_preserves_configured_canonical_port(): void
+    {
+        config(['app.url' => 'http://webguard.test:8080']);
+
+        $testResponse = $this->get('http://www.webguard.test/features?source=www');
+
+        $this->assertSame(301, $testResponse->getStatusCode());
+        $testResponse->assertRedirect('http://webguard.test:8080/features?source=www');
+    }
+
+    public function test_non_canonical_www_hosts_are_not_redirected(): void
+    {
+        config(['app.url' => 'https://webguard.marcel-breuer.dev']);
+
+        $testResponse = $this->get('https://www.example.test/features');
+
+        $testResponse->assertOk();
+    }
+
     public function test_generated_sitemap_lists_exactly_the_indexable_public_pages(): void
     {
         $sitemapPath = public_path('sitemap.xml');
