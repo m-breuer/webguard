@@ -312,4 +312,44 @@ PHP
         $this->assertStringContainsString('tls.certresolver=letsencrypt', $composeConfiguration);
         $this->assertStringContainsString('loadbalancer.server.port=8080', $composeConfiguration);
     }
+
+    public function test_production_php_container_routes_www_host_to_app(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-http.rule=Host(`www.${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-http.entrypoints=http',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-http.service=webguard-${COOLIFY_RESOURCE_UUID:-local}',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.rule=Host(`www.${SERVICE_FQDN_PHP:-webguard.example.com}`) && PathPrefix(`/`)',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.entrypoints=https',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.tls=true',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.tls.certresolver=letsencrypt',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString(
+            'traefik.http.routers.webguard-${COOLIFY_RESOURCE_UUID:-local}-www-https.service=webguard-${COOLIFY_RESOURCE_UUID:-local}',
+            $composeConfiguration
+        );
+        $this->assertStringNotContainsString('www-redirect.redirectregex', $composeConfiguration);
+    }
 }
