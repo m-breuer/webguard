@@ -38,6 +38,31 @@ class CiWorkflowRedisExtensionTest extends TestCase
         }
     }
 
+    public function test_ci_runs_phpstan_and_pest_coverage(): void
+    {
+        $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame('^3.9', $composerConfig['require-dev']['larastan/larastan'] ?? null);
+        $this->assertSame('^2.2', $composerConfig['require-dev']['phpstan/phpstan'] ?? null);
+        $this->assertSame(['./vendor/bin/phpstan analyse --ansi --memory-limit=1G'], $composerConfig['scripts']['analyse'] ?? null);
+        $this->assertSame(['./vendor/bin/pest --coverage --min=0'], $composerConfig['scripts']['test:coverage'] ?? null);
+        $this->assertFileExists(base_path('phpstan.neon'));
+
+        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+        $testJobSteps = collect($workflowConfig['jobs']['test']['steps'] ?? []);
+        $phpstanStep = $testJobSteps->firstWhere('name', 'Run PHPStan');
+        $coverageStep = $testJobSteps->firstWhere('name', 'Run tests with coverage');
+
+        $this->assertIsArray($phpstanStep);
+        $this->assertSame('composer analyse', $phpstanStep['run'] ?? null);
+
+        $this->assertIsArray($coverageStep);
+        $this->assertStringContainsString('composer test:coverage', $coverageStep['run'] ?? '');
+        $this->assertSame('sqlite', $coverageStep['env']['DB_CONNECTION'] ?? null);
+        $this->assertSame(':memory:', $coverageStep['env']['DB_DATABASE'] ?? null);
+        $this->assertSame('coverage', $coverageStep['env']['XDEBUG_MODE'] ?? null);
+    }
+
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
     {
         $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
