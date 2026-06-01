@@ -35,6 +35,12 @@ class LogApiUsage implements ShouldQueue
      */
     protected ?string $route = null;
 
+    public function __construct(string $userId, ?string $route = null)
+    {
+        $this->userId = $userId;
+        $this->route = $route;
+    }
+
     /**
      * Execute the job.
      */
