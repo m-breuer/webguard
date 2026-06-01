@@ -85,8 +85,8 @@ class ProfileNotificationSettingsTest extends TestCase
             ]));
         }
 
-        foreach ($channelConfigurations as $configuration) {
-            Http::assertSent(fn ($request): bool => $request->url() === $configuration['expectedUrl']
+        foreach ($channelConfigurations as $channelConfiguration) {
+            Http::assertSent(fn ($request): bool => $request->url() === $channelConfiguration['expectedUrl']
                 && str_contains(json_encode($request->data(), JSON_THROW_ON_ERROR), __('profile.notification_settings.test.payload.title')));
         }
 
