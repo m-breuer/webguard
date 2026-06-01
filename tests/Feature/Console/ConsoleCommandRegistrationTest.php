@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Console;
 
 use Illuminate\Support\Facades\Artisan;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ConsoleCommandRegistrationTest extends TestCase
@@ -67,13 +66,14 @@ class ConsoleCommandRegistrationTest extends TestCase
         ];
     }
 
-    #[DataProvider('commandProvider')]
-    public function test_attribute_backed_commands_are_registered_with_their_descriptions(string $commandName, string $description): void
+    public function test_attribute_backed_commands_are_registered_with_their_descriptions(): void
     {
         $commands = Artisan::all();
 
-        $this->assertArrayHasKey($commandName, $commands);
-        $this->assertSame($description, $commands[$commandName]->getDescription());
+        foreach (self::commandProvider() as [$commandName, $description]) {
+            $this->assertArrayHasKey($commandName, $commands);
+            $this->assertSame($description, $commands[$commandName]->getDescription());
+        }
     }
 
     public function test_attribute_backed_command_signatures_keep_arguments_and_options(): void

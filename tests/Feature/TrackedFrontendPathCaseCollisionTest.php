@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 class TrackedFrontendPathCaseCollisionTest extends TestCase
 {
     public function test_tracked_frontend_paths_do_not_collide_on_case_insensitive_filesystems(): void
     {
+        if (! $this->gitIsAvailable()) {
+            $this->markTestSkipped('The git binary is required to inspect tracked frontend paths.');
+        }
+
         $trackedPaths = $this->trackedPaths('resources/js');
 
         $duplicates = collect($trackedPaths)
@@ -35,5 +40,13 @@ class TrackedFrontendPathCaseCollisionTest extends TestCase
         $this->assertSame(0, $exitCode, 'Failed to read tracked paths from git.');
 
         return array_values(array_filter($output, static fn (string $line): bool => $line !== ''));
+    }
+
+    private function gitIsAvailable(): bool
+    {
+        $process = new Process(['git', '--version']);
+        $process->run();
+
+        return $process->isSuccessful();
     }
 }

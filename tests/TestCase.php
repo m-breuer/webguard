@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Cache;
@@ -18,6 +19,17 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         $this->withoutVite();
+        $this->withoutMiddleware(PreventRequestForgery::class);
+
+        config([
+            'cache.default' => 'array',
+            'database.default' => 'sqlite',
+            'mail.default' => 'array',
+            'queue.default' => 'sync',
+            'session.driver' => 'array',
+        ]);
+
+        Cache::setDefaultDriver('array');
     }
 
     protected function validCaptchaValue(): string

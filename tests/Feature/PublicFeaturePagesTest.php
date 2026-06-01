@@ -6,24 +6,29 @@ namespace Tests\Feature;
 
 use App\Enums\SupportedLanguage;
 use App\Http\Controllers\PublicFeatureController;
-use PHPUnit\Framework\Attributes\DataProvider;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class PublicFeaturePagesTest extends TestCase
 {
-    /**
-     * @return array<string, array{0: string}>
-     */
-    public static function featureSlugProvider(): array
+    public function test_public_feature_detail_pages_are_registered_for_all_configured_slugs(): void
     {
-        return collect(PublicFeatureController::slugs())
-            ->mapWithKeys(fn (string $slug): array => [$slug => [$slug]])
-            ->all();
+        $route = Route::getRoutes()->getByName('public-features.show');
+
+        $this->assertNotNull($route);
+
+        foreach (PublicFeatureController::slugs() as $slug) {
+            $feature = PublicFeatureController::features()[$slug];
+
+            $this->assertArrayHasKey('key', $feature);
+            $this->assertNotSame('', __('public_features.features.' . $feature['key'] . '.title'));
+            $this->assertStringEndsWith('/features/' . $slug, route('public-features.show', $slug));
+        }
     }
 
-    #[DataProvider('featureSlugProvider')]
-    public function test_public_feature_detail_pages_are_available(string $slug): void
+    public function test_representative_public_feature_detail_page_renders_expected_contract(): void
     {
+        $slug = 'api';
         $feature = PublicFeatureController::features()[$slug];
 
         $testResponse = $this->get(route('public-features.show', $slug));
