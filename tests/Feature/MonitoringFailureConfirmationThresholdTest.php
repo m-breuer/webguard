@@ -45,14 +45,16 @@ class MonitoringFailureConfirmationThresholdTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_default_threshold_opens_incident_on_first_failure(): void
+    public function test_default_threshold_requires_two_consecutive_failures(): void
     {
         Date::setTestNow('2026-05-24 09:00:00');
 
-        $monitoring = Monitoring::factory()->for($this->user)->create([
-            'failure_confirmation_threshold' => 1,
-        ]);
+        $monitoring = Monitoring::factory()->for($this->user)->create();
 
+        $this->recordResponse($monitoring, MonitoringStatus::DOWN);
+        $this->assertSame(0, Incident::query()->where('monitoring_id', $monitoring->id)->count());
+
+        Date::setTestNow(Date::now()->addMinute());
         $this->recordResponse($monitoring, MonitoringStatus::DOWN);
 
         $incident = Incident::query()->where('monitoring_id', $monitoring->id)->firstOrFail();
@@ -171,6 +173,27 @@ class MonitoringFailureConfirmationThresholdTest extends TestCase
             'user_id' => $this->user->id,
             'name' => 'Noisy API',
             'failure_confirmation_threshold' => 3,
+        ]);
+    }
+
+    public function test_monitoring_form_defaults_failure_confirmation_threshold_to_two(): void
+    {
+        $testResponse = $this->actingAs($this->user)->post(route('monitorings.store'), [
+            'name' => 'Default API',
+            'type' => MonitoringType::HTTP->value,
+            'target' => 'https://example.com/health',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'expected_http_statuses' => '200-299',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $testResponse->assertRedirect(route('monitorings.index'));
+
+        $this->assertDatabaseHas('monitorings', [
+            'user_id' => $this->user->id,
+            'name' => 'Default API',
+            'failure_confirmation_threshold' => 2,
         ]);
     }
 

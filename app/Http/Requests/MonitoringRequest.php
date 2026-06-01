@@ -255,7 +255,7 @@ class MonitoringRequest extends FormRequest
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
-            'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 1),
+            'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 2),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
         ];
