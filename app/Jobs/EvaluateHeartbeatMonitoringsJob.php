@@ -59,13 +59,7 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
                         continue;
                     }
 
-                    if ($monitoring->latestResponseResult?->status === MonitoringStatus::DOWN
-                        && $monitoring->incidents()->whereNull('up_at')->exists()) {
-                        continue;
-                    }
-
-                    if ($monitoring->latestResponseResult?->status === MonitoringStatus::DOWN
-                        && $monitoring->latestResponseResult->created_at?->isSameMinute(now())) {
+                    if (! $this->shouldRecordMissedHeartbeat($monitoring)) {
                         continue;
                     }
 
@@ -77,5 +71,28 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
                     ]);
                 }
             });
+    }
+
+    private function shouldRecordMissedHeartbeat(Monitoring $monitoring): bool
+    {
+        if ($monitoring->latestResponseResult?->status !== MonitoringStatus::DOWN) {
+            return true;
+        }
+
+        if ($monitoring->incidents()->whereNull('up_at')->exists()) {
+            return false;
+        }
+
+        $threshold = max(1, (int) ($monitoring->failure_confirmation_threshold ?? 1));
+        $responses = $monitoring->responseResults()
+            ->latest()
+            ->orderByDesc('id')
+            ->take($threshold)
+            ->get();
+        if ($responses->count() < $threshold) {
+            return true;
+        }
+
+        return $responses->contains(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status !== MonitoringStatus::DOWN);
     }
 }

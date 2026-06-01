@@ -105,6 +105,10 @@ class HeartbeatMonitoringTest extends TestCase
         ]);
 
         (new EvaluateHeartbeatMonitoringsJob)->handle();
+        $this->assertSame(0, Incident::query()->where('monitoring_id', $monitoring->id)->count());
+
+        Date::setTestNow('2026-04-18 12:01:00');
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
 
         Date::setTestNow(Date::now()->addMinute());
         (new EvaluateHeartbeatMonitoringsJob)->handle();
@@ -125,6 +129,9 @@ class HeartbeatMonitoringTest extends TestCase
             'status' => MonitoringStatus::DOWN->value,
             'http_status_code' => 503,
         ]);
+        $this->assertSame(2, $monitoring->responseResults()
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP->value,

@@ -56,13 +56,25 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
         ]);
 
         (new EvaluateHeartbeatMonitoringsJob)->handle();
+
+        $this->assertSame(0, Incident::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->count());
+
+        Date::setTestNow('2026-04-18 12:01:00');
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
         (new EvaluateHeartbeatMonitoringsJob)->handle();
 
         $this->assertSame(1, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
             ->where('status', MonitoringStatus::DOWN)
+            ->where('created_at', Date::now())
             ->count());
-        $this->assertSame(0, Incident::query()
+        $this->assertSame(2, MonitoringResponse::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
+        $this->assertSame(1, Incident::query()
             ->where('monitoring_id', $monitoring->id)
             ->count());
 
