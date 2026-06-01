@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -30,6 +31,7 @@ abstract class TestCase extends BaseTestCase
         ]);
 
         Cache::setDefaultDriver('array');
+        $this->app->forgetInstance(RateLimiter::class);
     }
 
     protected function validCaptchaValue(): string

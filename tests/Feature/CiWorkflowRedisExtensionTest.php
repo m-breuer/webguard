@@ -58,6 +58,7 @@ class CiWorkflowRedisExtensionTest extends TestCase
 
         $this->assertIsArray($coverageStep);
         $this->assertStringContainsString('composer test:coverage', $coverageStep['run'] ?? '');
+        $this->assertStringContainsString('--parallel', $coverageStep['run'] ?? '');
         $this->assertSame('sqlite', $coverageStep['env']['DB_CONNECTION'] ?? null);
         $this->assertSame(':memory:', $coverageStep['env']['DB_DATABASE'] ?? null);
         $this->assertSame('coverage', $coverageStep['env']['XDEBUG_MODE'] ?? null);

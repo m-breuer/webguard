@@ -108,4 +108,4 @@ jobs:
         DB_DATABASE: ':memory:'
         XDEBUG_MODE: coverage
       run: |
-        composer test:coverage
+        composer test:coverage -- --parallel
