@@ -59,7 +59,13 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
                         continue;
                     }
 
-                    if ($monitoring->latestResponseResult?->status === MonitoringStatus::DOWN) {
+                    if ($monitoring->latestResponseResult?->status === MonitoringStatus::DOWN
+                        && $monitoring->incidents()->whereNull('up_at')->exists()) {
+                        continue;
+                    }
+
+                    if ($monitoring->latestResponseResult?->status === MonitoringStatus::DOWN
+                        && $monitoring->latestResponseResult->created_at?->isSameMinute(now())) {
                         continue;
                     }
 
