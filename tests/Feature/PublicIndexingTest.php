@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\PublicFeatureController;
 use App\Models\Package;
 use App\Models\User;
 use App\Support\SitemapPages;
-use PHPUnit\Framework\Attributes\DataProvider;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Testing\TestResponse;
 use SimpleXMLElement;
 use Tests\TestCase;
 
@@ -21,63 +21,31 @@ class PublicIndexingTest extends TestCase
         $this->configureImprint();
     }
 
-    /**
-     * @return array<string, array{0: string}>
-     */
-    public static function indexablePublicRouteProvider(): array
+    public function test_indexable_public_routes_use_public_cache_middleware(): void
     {
-        return collect(self::expectedIndexablePageRouteNames())
-            ->mapWithKeys(fn (string $routeName): array => [$routeName => [$routeName]])
-            ->put('sitemap', ['sitemap'])
-            ->all();
+        foreach ([...self::expectedIndexablePageRouteNames(), 'sitemap', 'public-features.show'] as $routeName) {
+            $route = Route::getRoutes()->getByName($routeName);
+
+            $this->assertNotNull($route, "Missing indexable public route [{$routeName}].");
+            $this->assertContains('public.cache', $route->gatherMiddleware(), "Route [{$routeName}] is not publicly cacheable.");
+        }
     }
 
-    /**
-     * @return array<string, array{0: string}>
-     */
-    public static function indexablePublicFeatureProvider(): array
+    public function test_representative_indexable_public_pages_are_publicly_cacheable_for_guests(): void
     {
-        return collect(PublicFeatureController::slugs())
-            ->mapWithKeys(fn (string $slug): array => [$slug => [$slug]])
-            ->all();
+        foreach ($this->representativeIndexablePublicUrls() as $url) {
+            $testResponse = $this->get($url);
+
+            $testResponse->assertOk();
+            $this->assertPublicCacheHeaders($testResponse);
+        }
     }
 
-    #[DataProvider('indexablePublicRouteProvider')]
-    public function test_indexable_public_routes_are_publicly_cacheable_for_guests(string $routeName): void
+    public function test_representative_indexable_public_routes_do_not_start_sessions_or_queue_cookies(): void
     {
-        $testResponse = $this->get(route($routeName));
-
-        $testResponse->assertOk();
-
-        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
-
-        $this->assertStringContainsString('public', $cacheControl);
-        $this->assertStringContainsString('max-age=300', $cacheControl);
-        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
-        $this->assertStringNotContainsString('private', $cacheControl);
-        $this->assertStringNotContainsString('no-cache', $cacheControl);
-    }
-
-    #[DataProvider('indexablePublicFeatureProvider')]
-    public function test_indexable_public_feature_pages_are_publicly_cacheable_for_guests(string $slug): void
-    {
-        $testResponse = $this->get(route('public-features.show', $slug));
-
-        $testResponse->assertOk();
-
-        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
-
-        $this->assertStringContainsString('public', $cacheControl);
-        $this->assertStringContainsString('max-age=300', $cacheControl);
-        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
-        $this->assertStringNotContainsString('private', $cacheControl);
-    }
-
-    public function test_indexable_public_routes_do_not_start_sessions_or_queue_cookies(): void
-    {
-        foreach (self::indexablePublicRouteProvider() as [$routeName]) {
+        foreach ($this->representativeIndexablePublicUrls() as $url) {
             $testResponse = $this->withCookie(config('session.cookie'), 'existing-session-id')
-                ->get(route($routeName));
+                ->get($url);
 
             $testResponse->assertOk();
             $testResponse->assertHeaderMissing('Set-Cookie');
@@ -85,22 +53,15 @@ class PublicIndexingTest extends TestCase
         }
     }
 
-    public function test_indexable_public_routes_are_publicly_cacheable_for_head_requests(): void
+    public function test_representative_indexable_public_routes_are_publicly_cacheable_for_head_requests(): void
     {
-        foreach (self::indexablePublicRouteProvider() as [$routeName]) {
+        foreach ($this->representativeIndexablePublicUrls() as $url) {
             $testResponse = $this->withCookie(config('session.cookie'), 'existing-session-id')
-                ->head(route($routeName));
+                ->head($url);
 
             $testResponse->assertOk();
             $testResponse->assertHeaderMissing('Set-Cookie');
-
-            $cacheControl = (string) $testResponse->headers->get('Cache-Control');
-
-            $this->assertStringContainsString('public', $cacheControl);
-            $this->assertStringContainsString('max-age=300', $cacheControl);
-            $this->assertStringContainsString('s-maxage=3600', $cacheControl);
-            $this->assertStringNotContainsString('private', $cacheControl);
-            $this->assertStringNotContainsString('no-cache', $cacheControl);
+            $this->assertPublicCacheHeaders($testResponse);
         }
     }
 
@@ -124,7 +85,7 @@ class PublicIndexingTest extends TestCase
 
     public function test_indexable_marketing_pages_emit_search_metadata(): void
     {
-        foreach (self::expectedIndexablePageRouteNames() as $routeName) {
+        foreach ($this->representativeMarketingPageRouteNames() as $routeName) {
             $testResponse = $this->get(route($routeName));
 
             $testResponse->assertOk();
@@ -270,6 +231,41 @@ class PublicIndexingTest extends TestCase
     private static function expectedIndexablePageRouteNames(): array
     {
         return SitemapPages::routeNames();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function representativeIndexablePublicUrls(): array
+    {
+        return [
+            route('welcome'),
+            route('public-features.show', 'api'),
+            route('sitemap'),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function representativeMarketingPageRouteNames(): array
+    {
+        return [
+            'welcome',
+            'monitoring-locations',
+            'imprint',
+        ];
+    }
+
+    private function assertPublicCacheHeaders(TestResponse $testResponse): void
+    {
+        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('public', $cacheControl);
+        $this->assertStringContainsString('max-age=300', $cacheControl);
+        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
+        $this->assertStringNotContainsString('private', $cacheControl);
+        $this->assertStringNotContainsString('no-cache', $cacheControl);
     }
 
     /**

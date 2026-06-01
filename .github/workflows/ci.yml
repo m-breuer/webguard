@@ -99,9 +99,13 @@ jobs:
     - name: Build frontend assets
       run: bun run build
 
-    - name: Run tests
+    - name: Run PHPStan
+      run: composer analyse
+
+    - name: Run tests with coverage
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: ':memory:'
+        XDEBUG_MODE: coverage
       run: |
-        php artisan test --parallel
+        composer test:coverage -- --parallel

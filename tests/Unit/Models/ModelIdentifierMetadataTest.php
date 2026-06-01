@@ -19,7 +19,6 @@ use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
 use App\Models\StatusPageSubscriber;
 use Illuminate\Database\Eloquent\Model;
-use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
 use Tests\TestCase;
 
@@ -48,20 +47,18 @@ class ModelIdentifierMetadataTest extends TestCase
         ];
     }
 
-    /**
-     * @param  class-string<Model>  $modelClass
-     */
-    #[DataProvider('stringIdentifierModels')]
-    public function test_refactored_models_keep_string_non_incrementing_identifiers(string $modelClass): void
+    public function test_refactored_models_keep_string_non_incrementing_identifiers(): void
     {
-        $model = new $modelClass;
-        $reflectionClass = new ReflectionClass($modelClass);
+        foreach (self::stringIdentifierModels() as [$modelClass]) {
+            $model = new $modelClass;
+            $reflectionClass = new ReflectionClass($modelClass);
 
-        $declaresIncrementingProperty = $reflectionClass->hasProperty('incrementing')
-            && $reflectionClass->getProperty('incrementing')->getDeclaringClass()->getName() === $modelClass;
+            $declaresIncrementingProperty = $reflectionClass->hasProperty('incrementing')
+                && $reflectionClass->getProperty('incrementing')->getDeclaringClass()->getName() === $modelClass;
 
-        $this->assertFalse($declaresIncrementingProperty);
-        $this->assertFalse($model->getIncrementing());
-        $this->assertSame('string', $model->getKeyType());
+            $this->assertFalse($declaresIncrementingProperty);
+            $this->assertFalse($model->getIncrementing());
+            $this->assertSame('string', $model->getKeyType());
+        }
     }
 }

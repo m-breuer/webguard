@@ -28,7 +28,7 @@ class TrackApiUsage
             if ($user) {
                 RateLimiter::for('api', fn (Request $request) => Limit::perMinute(5)->by($request->user()->id));
 
-                dispatch(new LogApiUsage($user->id, url()->current()));
+                dispatch(new LogApiUsage((string) $user->getAuthIdentifier(), url()->current()));
 
                 return $next($request);
             }
