@@ -217,12 +217,21 @@ class PublicIndexingTest extends TestCase
 
     public function test_www_host_redirect_preserves_configured_canonical_port(): void
     {
-        config(['app.url' => 'http://webguard.test:8080']);
+        config(['app.url' => 'https://webguard.marcel-breuer.dev:8443']);
 
-        $testResponse = $this->get('http://www.webguard.test/features?source=www');
+        $testResponse = $this->get('https://www.webguard.marcel-breuer.dev/features?source=www');
 
         $this->assertSame(301, $testResponse->getStatusCode());
-        $testResponse->assertRedirect('http://webguard.test:8080/features?source=www');
+        $testResponse->assertRedirect('https://webguard.marcel-breuer.dev:8443/features?source=www');
+    }
+
+    public function test_www_host_redirect_is_skipped_without_configured_canonical_host(): void
+    {
+        config(['app.url' => '/']);
+
+        $testResponse = $this->get('https://www.webguard.marcel-breuer.dev/features');
+
+        $testResponse->assertOk();
     }
 
     public function test_non_canonical_www_hosts_are_not_redirected(): void
