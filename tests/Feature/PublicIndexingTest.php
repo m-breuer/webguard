@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\PublicFeatureController;
 use App\Models\Package;
 use App\Models\User;
 use App\Support\SitemapPages;
@@ -97,41 +96,6 @@ class PublicIndexingTest extends TestCase
             $testResponse->assertSeeHtml('<meta name="twitter:card" content="summary_large_image">');
             $testResponse->assertSeeHtml(sprintf('<link rel="canonical" href="%s">', route($routeName)));
         }
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function representativeIndexablePublicUrls(): array
-    {
-        return [
-            route('welcome'),
-            route('public-features.show', 'api'),
-            route('sitemap'),
-        ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function representativeMarketingPageRouteNames(): array
-    {
-        return [
-            'welcome',
-            'monitoring-locations',
-            'imprint',
-        ];
-    }
-
-    private function assertPublicCacheHeaders(TestResponse $testResponse): void
-    {
-        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
-
-        $this->assertStringContainsString('public', $cacheControl);
-        $this->assertStringContainsString('max-age=300', $cacheControl);
-        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
-        $this->assertStringNotContainsString('private', $cacheControl);
-        $this->assertStringNotContainsString('no-cache', $cacheControl);
     }
 
     public function test_welcome_landing_page_exposes_structured_seo_data(): void
@@ -267,6 +231,41 @@ class PublicIndexingTest extends TestCase
     private static function expectedIndexablePageRouteNames(): array
     {
         return SitemapPages::routeNames();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function representativeIndexablePublicUrls(): array
+    {
+        return [
+            route('welcome'),
+            route('public-features.show', 'api'),
+            route('sitemap'),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function representativeMarketingPageRouteNames(): array
+    {
+        return [
+            'welcome',
+            'monitoring-locations',
+            'imprint',
+        ];
+    }
+
+    private function assertPublicCacheHeaders(TestResponse $testResponse): void
+    {
+        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('public', $cacheControl);
+        $this->assertStringContainsString('max-age=300', $cacheControl);
+        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
+        $this->assertStringNotContainsString('private', $cacheControl);
+        $this->assertStringNotContainsString('no-cache', $cacheControl);
     }
 
     /**
