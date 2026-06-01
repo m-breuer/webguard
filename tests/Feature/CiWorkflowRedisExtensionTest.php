@@ -38,6 +38,17 @@ class CiWorkflowRedisExtensionTest extends TestCase
         }
     }
 
+    public function test_ci_runs_pest_tests_in_parallel(): void
+    {
+        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+        $testStep = collect($workflowConfig['jobs']['test']['steps'] ?? [])
+            ->firstWhere('name', 'Run tests');
+
+        $this->assertIsArray($testStep);
+        $this->assertIsString($testStep['run'] ?? null);
+        $this->assertStringContainsString('php artisan test --parallel', $testStep['run']);
+    }
+
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
     {
         $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
