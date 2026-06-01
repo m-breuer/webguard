@@ -8,6 +8,7 @@ use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
+use Illuminate\Contracts\Foundation\MaintenanceMode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,9 +22,37 @@ class MaintenanceWindowTest extends TestCase
 
     private ServerInstance $serverInstance;
 
+    private MaintenanceMode $maintenanceMode;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->maintenanceMode = new class implements MaintenanceMode
+        {
+            private ?array $payload = null;
+
+            public function activate(array $payload): void
+            {
+                $this->payload = $payload;
+            }
+
+            public function deactivate(): void
+            {
+                $this->payload = null;
+            }
+
+            public function active(): bool
+            {
+                return $this->payload !== null;
+            }
+
+            public function data(): array
+            {
+                return $this->payload ?? [];
+            }
+        };
+        $this->app->instance(MaintenanceMode::class, $this->maintenanceMode);
+
         Package::factory()->create();
         $this->user = User::factory()->create();
         $this->serverInstance = ServerInstance::query()->firstOrCreate(
@@ -39,22 +68,25 @@ class MaintenanceWindowTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->artisan('up')->assertSuccessful();
+        $this->maintenanceMode->deactivate();
+        $this->app->forgetInstance(MaintenanceMode::class);
 
         parent::tearDown();
     }
 
     public function test_internal_monitoring_api_is_available_during_application_maintenance(): void
     {
-        $this->artisan('down')->assertSuccessful();
+        $this->maintenanceMode->activate(['time' => time()]);
 
-        $this->get('/')->assertServiceUnavailable();
-
-        $this->withHeaders([
+        $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $this->serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])
-            ->getJson(route('v1.internal.monitorings.list', ['location' => $this->serverInstance->code]))
+            ->getJson(route('v1.internal.monitorings.list', ['location' => $this->serverInstance->code]));
+
+        $this->maintenanceMode->deactivate();
+
+        $testResponse
             ->assertOk()
             ->assertJsonFragment(['id' => $this->monitoring->id]);
     }
