@@ -89,8 +89,10 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
             ->orderByDesc('id')
             ->take($threshold)
             ->get();
+        if ($responses->count() < $threshold) {
+            return true;
+        }
 
-        return $responses->count() < $threshold
-            || $responses->contains(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status !== MonitoringStatus::DOWN);
+        return $responses->contains(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status !== MonitoringStatus::DOWN);
     }
 }
