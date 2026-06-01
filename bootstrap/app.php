@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->preventRequestsDuringMaintenance([
             'api/v1/internal/*',
             'api/monitorings/*',
+            'gdpr',
         ]);
         $middleware->alias([
             'role' => CheckUserRole::class,
