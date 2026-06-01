@@ -8,21 +8,22 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ProfileNotificationSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * @return array<string, array{channel: string, notificationChannels: array<string, mixed>, expectedUrl: string}>
-     */
-    public static function notificationChannelConfigurations(): array
+    public function test_user_can_send_test_notification_to_each_saved_channel(): void
     {
-        return [
+        Http::fake([
+            '*' => Http::response([], 200),
+        ]);
+
+        Package::factory()->create();
+
+        $channelConfigurations = [
             'slack' => [
-                'channel' => 'slack',
                 'notificationChannels' => [
                     'slack' => [
                         'enabled' => false,
@@ -32,7 +33,6 @@ class ProfileNotificationSettingsTest extends TestCase
                 'expectedUrl' => 'https://hooks.slack.test/services/T000/B000/XXX',
             ],
             'telegram' => [
-                'channel' => 'telegram',
                 'notificationChannels' => [
                     'telegram' => [
                         'enabled' => false,
@@ -43,7 +43,6 @@ class ProfileNotificationSettingsTest extends TestCase
                 'expectedUrl' => 'https://api.telegram.org/bot12345:ABCDEF/sendMessage',
             ],
             'discord' => [
-                'channel' => 'discord',
                 'notificationChannels' => [
                     'discord' => [
                         'enabled' => false,
@@ -53,7 +52,6 @@ class ProfileNotificationSettingsTest extends TestCase
                 'expectedUrl' => 'https://discord.test/api/webhooks/123/token',
             ],
             'teams' => [
-                'channel' => 'teams',
                 'notificationChannels' => [
                     'teams' => [
                         'enabled' => false,
@@ -63,7 +61,6 @@ class ProfileNotificationSettingsTest extends TestCase
                 'expectedUrl' => 'https://teams.test/webhook/123',
             ],
             'webhook' => [
-                'channel' => 'webhook',
                 'notificationChannels' => [
                     'webhook' => [
                         'enabled' => false,
@@ -73,6 +70,27 @@ class ProfileNotificationSettingsTest extends TestCase
                 'expectedUrl' => 'https://example.test/webhooks/webguard',
             ],
         ];
+
+        foreach ($channelConfigurations as $channel => $configuration) {
+            $user = User::factory()->create([
+                'notification_channels' => $configuration['notificationChannels'],
+            ]);
+
+            $testResponse = $this->actingAs($user)
+                ->post(route('profile.notification-channels.test', ['channel' => $channel]));
+
+            $testResponse->assertRedirect();
+            $testResponse->assertSessionHas('success', __('profile.notification_settings.test.messages.sent', [
+                'channel' => __('profile.notification_settings.channels.' . $channel . '.title'),
+            ]));
+        }
+
+        foreach ($channelConfigurations as $channelConfiguration) {
+            Http::assertSent(fn ($request): bool => $request->url() === $channelConfiguration['expectedUrl']
+                && str_contains(json_encode($request->data(), JSON_THROW_ON_ERROR), __('profile.notification_settings.test.payload.title')));
+        }
+
+        Http::assertSentCount(count($channelConfigurations));
     }
 
     public function test_profile_page_shows_notification_settings_and_one_time_hint(): void
@@ -350,35 +368,6 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'discord']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'teams']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'webhook']));
-    }
-
-    /**
-     * @param  array<string, mixed>  $notificationChannels
-     */
-    #[DataProvider('notificationChannelConfigurations')]
-    public function test_user_can_send_test_notification_to_saved_channel(
-        string $channel,
-        array $notificationChannels,
-        string $expectedUrl
-    ): void {
-        Http::fake([
-            '*' => Http::response([], 200),
-        ]);
-
-        Package::factory()->create();
-        $user = User::factory()->create([
-            'notification_channels' => $notificationChannels,
-        ]);
-
-        $testResponse = $this->actingAs($user)->post(route('profile.notification-channels.test', ['channel' => $channel]));
-
-        $testResponse->assertRedirect();
-        $testResponse->assertSessionHas('success', __('profile.notification_settings.test.messages.sent', [
-            'channel' => __('profile.notification_settings.channels.' . $channel . '.title'),
-        ]));
-
-        Http::assertSent(fn ($request): bool => $request->url() === $expectedUrl
-            && str_contains(json_encode($request->data(), JSON_THROW_ON_ERROR), __('profile.notification_settings.test.payload.title')));
     }
 
     public function test_channel_test_requires_saved_channel_configuration(): void

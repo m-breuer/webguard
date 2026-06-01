@@ -4,22 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class AuthEntryPointsTest extends TestCase
 {
-    /**
-     * @return array<string, array{0: string}>
-     */
-    public static function authEntryRouteProvider(): array
-    {
-        return [
-            'login' => ['login'],
-            'register' => ['register'],
-        ];
-    }
-
     public function test_login_page_uses_unified_auth_view_with_login_initial_mode(): void
     {
         $testResponse = $this->get(route('login'));
@@ -48,18 +36,19 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeHtml('data-initial-mode="register"');
     }
 
-    #[DataProvider('authEntryRouteProvider')]
-    public function test_auth_entry_pages_are_noindexed_and_not_publicly_cacheable(string $routeName): void
+    public function test_auth_entry_pages_are_noindexed_and_not_publicly_cacheable(): void
     {
-        $testResponse = $this->get(route($routeName));
+        foreach (['login', 'register'] as $routeName) {
+            $testResponse = $this->get(route($routeName));
 
-        $testResponse->assertOk();
-        $testResponse->assertSeeHtml('<meta name="robots" content="noindex, follow">');
+            $testResponse->assertOk();
+            $testResponse->assertSeeHtml('<meta name="robots" content="noindex, follow">');
 
-        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+            $cacheControl = (string) $testResponse->headers->get('Cache-Control');
 
-        $this->assertStringContainsString('private', $cacheControl);
-        $this->assertStringNotContainsString('public', $cacheControl);
+            $this->assertStringContainsString('private', $cacheControl);
+            $this->assertStringNotContainsString('public', $cacheControl);
+        }
     }
 
     public function test_legacy_guest_query_opens_unified_auth_view_in_demo_mode(): void

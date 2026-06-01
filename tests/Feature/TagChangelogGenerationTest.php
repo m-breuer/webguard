@@ -16,6 +16,10 @@ class TagChangelogGenerationTest extends TestCase
     {
         parent::setUp();
 
+        if (! $this->gitIsAvailable()) {
+            $this->markTestSkipped('The git binary is required for changelog generation tests.');
+        }
+
         $this->repositoryPath = sys_get_temp_dir() . '/webguard-changelog-' . bin2hex(random_bytes(6));
         mkdir($this->repositoryPath);
 
@@ -139,6 +143,14 @@ class TagChangelogGenerationTest extends TestCase
         $process->run();
 
         $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+    }
+
+    private function gitIsAvailable(): bool
+    {
+        $process = new Process(['git', '--version']);
+        $process->run();
+
+        return $process->isSuccessful();
     }
 
     private function removeDirectory(string $directory): void
