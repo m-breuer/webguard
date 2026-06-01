@@ -98,6 +98,41 @@ class PublicIndexingTest extends TestCase
         }
     }
 
+    /**
+     * @return list<string>
+     */
+    private function representativeIndexablePublicUrls(): array
+    {
+        return [
+            route('welcome'),
+            route('public-features.show', 'api'),
+            route('sitemap'),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function representativeMarketingPageRouteNames(): array
+    {
+        return [
+            'welcome',
+            'monitoring-locations',
+            'imprint',
+        ];
+    }
+
+    private function assertPublicCacheHeaders(TestResponse $testResponse): void
+    {
+        $cacheControl = (string) $testResponse->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('public', $cacheControl);
+        $this->assertStringContainsString('max-age=300', $cacheControl);
+        $this->assertStringContainsString('s-maxage=3600', $cacheControl);
+        $this->assertStringNotContainsString('private', $cacheControl);
+        $this->assertStringNotContainsString('no-cache', $cacheControl);
+    }
+
     public function test_welcome_landing_page_exposes_structured_seo_data(): void
     {
         $testResponse = $this->get(route('welcome'));
