@@ -234,6 +234,15 @@ class PublicIndexingTest extends TestCase
         $testResponse->assertOk();
     }
 
+    public function test_non_canonical_www_hosts_are_not_redirected(): void
+    {
+        config(['app.url' => 'https://webguard.marcel-breuer.dev']);
+
+        $testResponse = $this->get('https://www.example.test/features');
+
+        $testResponse->assertOk();
+    }
+
     public function test_generated_sitemap_lists_exactly_the_indexable_public_pages(): void
     {
         $sitemapPath = public_path('sitemap.xml');
