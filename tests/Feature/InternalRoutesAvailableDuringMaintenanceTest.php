@@ -9,17 +9,45 @@ use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
+use Illuminate\Contracts\Foundation\MaintenanceMode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
 {
     use RefreshDatabase;
 
+    private MaintenanceMode $maintenanceMode;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->maintenanceMode = new class implements MaintenanceMode
+        {
+            private ?array $payload = null;
+
+            public function activate(array $payload): void
+            {
+                $this->payload = $payload;
+            }
+
+            public function deactivate(): void
+            {
+                $this->payload = null;
+            }
+
+            public function active(): bool
+            {
+                return $this->payload !== null;
+            }
+
+            public function data(): array
+            {
+                return $this->payload ?? [];
+            }
+        };
+        $this->app->instance(MaintenanceMode::class, $this->maintenanceMode);
 
         config()->set('imprint.operator_name', 'Max Mustermann');
         config()->set('imprint.street', 'Musterstrasse 1');
@@ -28,6 +56,14 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
         config()->set('imprint.country', 'Germany');
         config()->set('imprint.email', 'max@example.test');
         config()->set('imprint.phone', '+49 1512 3456789');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->maintenanceMode->deactivate();
+        $this->app->forgetInstance(MaintenanceMode::class);
+
+        parent::tearDown();
     }
 
     public function test_internal_routes_remain_accessible_in_maintenance_mode(): void
@@ -51,7 +87,7 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
             'public_label_enabled' => true,
         ]);
 
-        Artisan::call('down');
+        $this->maintenanceMode->activate(['time' => time()]);
 
         try {
             $internalV1Response = $this->withHeaders([
@@ -67,7 +103,7 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
             $gdprResponse = $this->get(route('gdpr'));
             $gdprResponse->assertOk();
         } finally {
-            Artisan::call('up');
+            $this->maintenanceMode->deactivate();
         }
     }
 }
