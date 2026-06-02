@@ -110,10 +110,13 @@ class HeartbeatMonitoringTest extends TestCase
         Date::setTestNow('2026-04-18 12:01:00');
         (new EvaluateHeartbeatMonitoringsJob)->handle();
 
+        Date::setTestNow(Date::now()->addMinute());
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+
         $incident = Incident::query()->where('monitoring_id', $monitoring->id)->firstOrFail();
         $this->assertNull($incident->up_at);
 
-        Date::setTestNow('2026-04-18 12:02:00');
+        Date::setTestNow(Date::now()->addMinute());
 
         $this->getJson(route('monitorings.heartbeat.ping', ['token' => $monitoring->heartbeat_token]))
             ->assertOk();

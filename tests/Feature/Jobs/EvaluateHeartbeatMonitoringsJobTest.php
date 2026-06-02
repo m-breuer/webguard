@@ -18,7 +18,7 @@ use Tests\TestCase;
 
 class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 {
-    public function test_it_marks_overdue_heartbeat_monitorings_as_down_only_once(): void
+    public function test_it_suppresses_same_minute_duplicate_down_results_before_confirming_incident(): void
     {
         Date::setTestNow('2026-04-18 12:00:00');
 
@@ -70,6 +70,17 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
             ->where('status', MonitoringStatus::DOWN)
             ->where('created_at', Date::now())
             ->count());
+        $this->assertSame(2, MonitoringResponse::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
+        $this->assertSame(1, Incident::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->count());
+
+        Date::setTestNow(Date::now()->addMinute());
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+
         $this->assertSame(2, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
             ->where('status', MonitoringStatus::DOWN)
