@@ -18,6 +18,13 @@ use Tests\TestCase;
 
 class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Date::setTestNow();
+
+        parent::tearDown();
+    }
+
     public function test_it_suppresses_same_minute_duplicate_down_results_before_confirming_incident(): void
     {
         Date::setTestNow('2026-04-18 12:00:00');
@@ -145,6 +152,13 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
         $this->assertSame(1, Incident::query()
             ->where('monitoring_id', $monitoring->id)
             ->whereNull('up_at')
+            ->count());
+
+        Date::setTestNow(Date::now()->addMinute());
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+        $this->assertSame(3, MonitoringResponse::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('status', MonitoringStatus::DOWN)
             ->count());
     }
 }
