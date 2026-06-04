@@ -32,9 +32,7 @@ class SlackChannelDriver implements NotificationChannelDriver
     {
         $webhookUrl = (string) ($config['webhook_url'] ?? '');
 
-        if (! PubliclyRoutableUrl::allows($webhookUrl)) {
-            throw new RuntimeException('Slack notification webhook URL is not publicly routable.');
-        }
+        throw_unless(PubliclyRoutableUrl::allows($webhookUrl), RuntimeException::class, 'Slack notification webhook URL is not publicly routable.');
 
         $response = Http::timeout(10)->post($webhookUrl, [
             'text' => $notificationPayload->title . "\n" . $notificationPayload->message,

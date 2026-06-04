@@ -24,7 +24,7 @@ class PubliclyRoutableUrl
 
     private static function isPublicHost(string $host, bool $resolveDns): bool
     {
-        $host = mb_strtolower(trim($host, "[] \t\n\r\0\x0B."));
+        $host = mb_strtolower(mb_trim($host, "[] \t\n\r\0\x0B."));
 
         if ($host === '' || $host === 'localhost') {
             return false;

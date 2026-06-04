@@ -32,9 +32,7 @@ class TeamsChannelDriver implements NotificationChannelDriver
     {
         $webhookUrl = (string) ($config['webhook_url'] ?? '');
 
-        if (! PubliclyRoutableUrl::allows($webhookUrl)) {
-            throw new RuntimeException('Microsoft Teams notification webhook URL is not publicly routable.');
-        }
+        throw_unless(PubliclyRoutableUrl::allows($webhookUrl), RuntimeException::class, 'Microsoft Teams notification webhook URL is not publicly routable.');
 
         $response = Http::timeout(10)->post($webhookUrl, $this->payload($notificationPayload));
 

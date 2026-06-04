@@ -32,9 +32,7 @@ class WebhookChannelDriver implements NotificationChannelDriver
     {
         $url = (string) ($config['url'] ?? '');
 
-        if (! PubliclyRoutableUrl::allows($url)) {
-            throw new RuntimeException('Notification webhook URL is not publicly routable.');
-        }
+        throw_unless(PubliclyRoutableUrl::allows($url), RuntimeException::class, 'Notification webhook URL is not publicly routable.');
 
         $response = Http::timeout(10)->post($url, $notificationPayload->toArray());
 
