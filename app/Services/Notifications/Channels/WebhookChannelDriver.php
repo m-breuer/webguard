@@ -6,6 +6,7 @@ namespace App\Services\Notifications\Channels;
 
 use App\Enums\NotificationChannel;
 use App\Services\Notifications\NotificationPayload;
+use App\Support\PubliclyRoutableUrl;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -30,6 +31,9 @@ class WebhookChannelDriver implements NotificationChannelDriver
     public function send(NotificationPayload $notificationPayload, array $config): void
     {
         $url = (string) ($config['url'] ?? '');
+
+        throw_unless(PubliclyRoutableUrl::allows($url), RuntimeException::class, 'Notification webhook URL is not publicly routable.');
+
         $response = Http::timeout(10)->post($url, $notificationPayload->toArray());
 
         if (! $response->successful()) {

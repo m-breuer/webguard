@@ -81,4 +81,34 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
         $testResponse->assertUnprocessable();
         $testResponse->assertJsonValidationErrors(['http_status_code']);
     }
+
+    public function test_internal_instance_monitoring_responses_are_not_api_usage_rate_limited(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = ServerInstance::query()->firstOrCreate(
+            ['code' => 'de-1'],
+            ['api_key_hash' => 'test-token-1234567890', 'is_active' => true]
+        );
+        $serverInstance->update([
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+        ]);
+
+        foreach (range(1, 6) as $attempt) {
+            $this->withHeaders([
+                'X-INSTANCE-CODE' => $serverInstance->code,
+                'X-API-KEY' => 'test-token-1234567890',
+            ])->postJson(route('v1.internal.monitoring-responses.store'), [
+                'monitoring_id' => $monitoring->id,
+                'status' => MonitoringStatus::UP->value,
+                'http_status_code' => 200,
+                'response_time' => 100 + $attempt,
+            ])->assertOk();
+        }
+    }
 }
