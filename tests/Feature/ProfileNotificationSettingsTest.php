@@ -27,10 +27,10 @@ class ProfileNotificationSettingsTest extends TestCase
                 'notificationChannels' => [
                     'slack' => [
                         'enabled' => false,
-                        'webhook_url' => 'https://hooks.slack.test/services/T000/B000/XXX',
+                        'webhook_url' => 'https://hooks.slack.com/services/T000/B000/XXX',
                     ],
                 ],
-                'expectedUrl' => 'https://hooks.slack.test/services/T000/B000/XXX',
+                'expectedUrl' => 'https://hooks.slack.com/services/T000/B000/XXX',
             ],
             'telegram' => [
                 'notificationChannels' => [
@@ -46,28 +46,28 @@ class ProfileNotificationSettingsTest extends TestCase
                 'notificationChannels' => [
                     'discord' => [
                         'enabled' => false,
-                        'webhook_url' => 'https://discord.test/api/webhooks/123/token',
+                        'webhook_url' => 'https://discord.com/api/webhooks/123/token',
                     ],
                 ],
-                'expectedUrl' => 'https://discord.test/api/webhooks/123/token',
+                'expectedUrl' => 'https://discord.com/api/webhooks/123/token',
             ],
             'teams' => [
                 'notificationChannels' => [
                     'teams' => [
                         'enabled' => false,
-                        'webhook_url' => 'https://teams.test/webhook/123',
+                        'webhook_url' => 'https://example.com/teams/webhook/123',
                     ],
                 ],
-                'expectedUrl' => 'https://teams.test/webhook/123',
+                'expectedUrl' => 'https://example.com/teams/webhook/123',
             ],
             'webhook' => [
                 'notificationChannels' => [
                     'webhook' => [
                         'enabled' => false,
-                        'url' => 'https://example.test/webhooks/webguard',
+                        'url' => 'https://example.com/webhooks/webguard',
                     ],
                 ],
-                'expectedUrl' => 'https://example.test/webhooks/webguard',
+                'expectedUrl' => 'https://example.com/webhooks/webguard',
             ],
         ];
 
@@ -135,7 +135,7 @@ class ProfileNotificationSettingsTest extends TestCase
             'notification_channels' => [
                 'slack' => [
                     'enabled' => '1',
-                    'webhook_url' => 'https://hooks.slack.test/services/T000/B000/XXX',
+                    'webhook_url' => 'https://hooks.slack.com/services/T000/B000/XXX',
                 ],
                 'telegram' => [
                     'enabled' => '1',
@@ -153,11 +153,11 @@ class ProfileNotificationSettingsTest extends TestCase
                 ],
                 'teams' => [
                     'enabled' => '1',
-                    'webhook_url' => 'https://teams.test/webhook/123',
+                    'webhook_url' => 'https://example.com/teams/webhook/123',
                 ],
                 'webhook' => [
                     'enabled' => '1',
-                    'url' => 'https://example.test/webhooks/webguard',
+                    'url' => 'https://example.com/webhooks/webguard',
                 ],
             ],
         ]);
@@ -173,7 +173,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertTrue($user->unread_notifications_reminder_enabled);
         $this->assertSame('monthly', $user->unread_notifications_reminder_frequency);
         $this->assertTrue((bool) data_get($user->notification_channels, 'slack.enabled'));
-        $this->assertSame('https://hooks.slack.test/services/T000/B000/XXX', data_get($user->notification_channels, 'slack.webhook_url'));
+        $this->assertSame('https://hooks.slack.com/services/T000/B000/XXX', data_get($user->notification_channels, 'slack.webhook_url'));
         $this->assertNull(data_get($user->notification_channels, 'slack.events'));
         $this->assertTrue((bool) data_get($user->notification_channels, 'telegram.enabled'));
         $this->assertSame('12345:ABCDEF', data_get($user->notification_channels, 'telegram.bot_token'));
@@ -181,10 +181,57 @@ class ProfileNotificationSettingsTest extends TestCase
         $this->assertNull(data_get($user->notification_channels, 'telegram.events'));
         $this->assertFalse((bool) data_get($user->notification_channels, 'discord.enabled'));
         $this->assertTrue((bool) data_get($user->notification_channels, 'teams.enabled'));
-        $this->assertSame('https://teams.test/webhook/123', data_get($user->notification_channels, 'teams.webhook_url'));
+        $this->assertSame('https://example.com/teams/webhook/123', data_get($user->notification_channels, 'teams.webhook_url'));
         $this->assertTrue((bool) data_get($user->notification_channels, 'webhook.enabled'));
-        $this->assertSame('https://example.test/webhooks/webguard', data_get($user->notification_channels, 'webhook.url'));
+        $this->assertSame('https://example.com/webhooks/webguard', data_get($user->notification_channels, 'webhook.url'));
         $this->assertNull(data_get($user->notification_channels, 'webhook.events'));
+    }
+
+    public function test_profile_update_rejects_private_notification_webhook_urls(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'theme' => 'system',
+        ]);
+
+        foreach ([
+            'slack' => ['notification_channels.slack.webhook_url', ['slack' => ['enabled' => '1', 'webhook_url' => 'http://127.0.0.1:8080/slack']]],
+            'discord' => ['notification_channels.discord.webhook_url', ['discord' => ['enabled' => '1', 'webhook_url' => 'http://10.0.0.5/discord']]],
+            'teams' => ['notification_channels.teams.webhook_url', ['teams' => ['enabled' => '1', 'webhook_url' => 'http://localhost/teams']]],
+            'webhook' => ['notification_channels.webhook.url', ['webhook' => ['enabled' => '1', 'url' => 'http://[::1]/webhook']]],
+        ] as [$field, $notificationChannels]) {
+            $testResponse = $this->actingAs($user)->patch(route('profile.update'), [
+                'name' => $user->name,
+                'email' => $user->email,
+                'theme' => 'system',
+                'notification_channels' => $notificationChannels,
+            ]);
+
+            $testResponse->assertSessionHasErrors([$field]);
+        }
+    }
+
+    public function test_profile_update_allows_public_notification_webhook_urls(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'theme' => 'system',
+        ]);
+
+        $testResponse = $this->actingAs($user)->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'theme' => 'system',
+            'notification_channels' => [
+                'webhook' => [
+                    'enabled' => '1',
+                    'url' => 'https://example.com/webhooks/webguard',
+                ],
+            ],
+        ]);
+
+        $testResponse->assertRedirect(route('profile.edit'));
+        $testResponse->assertSessionHasNoErrors();
     }
 
     public function test_profile_update_defaults_optional_notification_settings_when_omitted(): void
@@ -420,7 +467,7 @@ class ProfileNotificationSettingsTest extends TestCase
             'notification_channels' => [
                 'slack' => [
                     'enabled' => false,
-                    'webhook_url' => 'https://hooks.slack.test/services/T000/B000/XXX',
+                    'webhook_url' => 'https://hooks.slack.com/services/T000/B000/XXX',
                 ],
             ],
         ]);

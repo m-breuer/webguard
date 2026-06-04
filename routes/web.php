@@ -155,7 +155,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 });
 
 Route::group(
-    ['prefix' => 'api', 'as' => 'api.'],
+    ['prefix' => 'api', 'as' => 'api.', 'middleware' => 'auth'],
     function () {
         require __DIR__ . '/api/internal.php';
     }

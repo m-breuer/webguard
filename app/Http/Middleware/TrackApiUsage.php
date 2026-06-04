@@ -6,7 +6,6 @@ namespace App\Http\Middleware;
 
 use App\Jobs\LogApiUsage;
 use Closure;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +25,15 @@ class TrackApiUsage
             $user = auth('sanctum')->user();
 
             if ($user) {
-                RateLimiter::for('api', fn (Request $request) => Limit::perMinute(5)->by($request->user()->id));
+                $key = 'api:' . $user->getAuthIdentifier();
+
+                if (RateLimiter::tooManyAttempts($key, 5)) {
+                    return response()->json([
+                        'message' => 'Too many requests.',
+                    ], 429)->header('Retry-After', (string) RateLimiter::availableIn($key));
+                }
+
+                RateLimiter::hit($key, 60);
 
                 dispatch(new LogApiUsage((string) $user->getAuthIdentifier(), url()->current()));
 

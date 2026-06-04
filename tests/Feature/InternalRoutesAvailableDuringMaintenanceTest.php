@@ -97,7 +97,7 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
 
             $internalV1Response->assertOk();
 
-            $legacyInternalResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/status');
+            $legacyInternalResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/status');
             $legacyInternalResponse->assertOk();
 
             $gdprResponse = $this->get(route('gdpr'));

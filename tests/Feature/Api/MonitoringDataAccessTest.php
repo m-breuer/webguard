@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class MonitoringDataAccessTest extends TestCase
 {
-    public function test_shared_monitoring_data_endpoint_blocks_private_monitoring_without_authentication(): void
+    public function test_shared_monitoring_data_endpoint_requires_authentication_for_private_monitoring(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -21,10 +21,10 @@ class MonitoringDataAccessTest extends TestCase
 
         $testResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
-        $testResponse->assertNotFound();
+        $testResponse->assertUnauthorized();
     }
 
-    public function test_shared_monitoring_data_endpoint_allows_public_monitoring_without_authentication(): void
+    public function test_shared_monitoring_data_endpoint_requires_authentication_for_public_monitoring(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -35,8 +35,7 @@ class MonitoringDataAccessTest extends TestCase
 
         $testResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
-        $testResponse->assertOk()
-            ->assertJsonPath('monitoring.name', 'Public Monitoring');
+        $testResponse->assertUnauthorized();
     }
 
     public function test_shared_monitoring_data_endpoint_allows_private_monitoring_for_owner(): void
@@ -78,6 +77,6 @@ class MonitoringDataAccessTest extends TestCase
 
         $testResponse = $this->getJson('/api/monitorings/' . $monitoring->id . '/uptime-calendar');
 
-        $testResponse->assertNotFound();
+        $testResponse->assertUnauthorized();
     }
 }

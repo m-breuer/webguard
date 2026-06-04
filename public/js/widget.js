@@ -129,6 +129,20 @@ if (!window.webguardWidgetInitialized) {
         `;
         document.head.appendChild(style);
 
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        }[character]));
+
+        const cssClassToken = (value) => {
+            const token = String(value ?? 'unknown').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+
+            return token === '' ? 'unknown' : token;
+        };
+
         const fetchAndRenderWidget = () => {
             widgetContainer.innerHTML = '<p class="wg-info-line">Loading WebGuard Widget...</p>';
 
@@ -144,12 +158,13 @@ if (!window.webguardWidgetInitialized) {
                     const statusLabel = typeof data.status_label === 'string' ? data.status_label : status.toUpperCase();
                     const lastChecked = data.checked_at_human ?? 'No checks yet';
                     const formatUptime = (value) => typeof value === 'number' ? `${value.toFixed(2)}%` : 'N/A';
+                    const monitoringName = typeof data.name === 'string' ? data.name : 'WebGuard Monitor';
 
                     widgetContainer.innerHTML = `
                         <div class="wg-widget-container">
-                            <h3 class="wg-heading">${data.name}</h3>
-                            <p class="wg-status-line"><span class="wg-label">Status:</span> <span class="wg-status-text wg-status-${status}">${statusLabel}</span></p>
-                            <p class="wg-info-line"><span class="wg-label">Last Checked:</span> ${lastChecked}</p>
+                            <h3 class="wg-heading">${escapeHtml(monitoringName)}</h3>
+                            <p class="wg-status-line"><span class="wg-label">Status:</span> <span class="wg-status-text wg-status-${cssClassToken(status)}">${escapeHtml(statusLabel)}</span></p>
+                            <p class="wg-info-line"><span class="wg-label">Last Checked:</span> ${escapeHtml(lastChecked)}</p>
                             <div class="wg-uptime-grid">
                                 <p class="wg-uptime-item"><span class="wg-label">Uptime (7 Days):</span> ${formatUptime(data.uptime?.['7_days'])}</p>
                                 <p class="wg-uptime-item"><span class="wg-label">Uptime (30 Days):</span> ${formatUptime(data.uptime?.['30_days'])}</p>
