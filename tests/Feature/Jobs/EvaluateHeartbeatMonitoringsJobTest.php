@@ -161,4 +161,77 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
             ->where('status', MonitoringStatus::DOWN)
             ->count());
     }
+
+    public function test_it_skips_heartbeat_monitorings_that_are_not_eligible_for_missed_results(): void
+    {
+        Date::setTestNow('2026-04-18 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $serverInstance = ServerInstance::query()->firstOrCreate(
+            ['code' => 'de-1'],
+            ['api_key_hash' => 'test-token-1234567890', 'is_active' => true]
+        );
+        $serverInstance->update([
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $underMaintenance = Monitoring::factory()
+            ->heartbeat()
+            ->for($user)
+            ->create([
+                'preferred_location' => $serverInstance->code,
+                'status' => MonitoringLifecycleStatus::ACTIVE,
+                'heartbeat_token' => 'maintenance-heartbeat-token',
+                'target' => route('monitorings.heartbeat.ping', ['token' => 'maintenance-heartbeat-token']),
+                'heartbeat_interval_minutes' => 30,
+                'heartbeat_grace_minutes' => 5,
+                'heartbeat_last_ping_at' => Date::now()->subHours(2),
+                'maintenance_from' => Date::now()->subMinute(),
+                'maintenance_until' => Date::now()->addMinute(),
+            ]);
+
+        $invalidInterval = Monitoring::factory()
+            ->heartbeat()
+            ->for($user)
+            ->create([
+                'preferred_location' => $serverInstance->code,
+                'status' => MonitoringLifecycleStatus::ACTIVE,
+                'heartbeat_token' => 'invalid-interval-heartbeat-token',
+                'target' => route('monitorings.heartbeat.ping', ['token' => 'invalid-interval-heartbeat-token']),
+                'heartbeat_interval_minutes' => 0,
+                'heartbeat_grace_minutes' => 5,
+                'heartbeat_last_ping_at' => Date::now()->subHours(2),
+            ]);
+
+        $notDue = Monitoring::factory()
+            ->heartbeat()
+            ->for($user)
+            ->create([
+                'preferred_location' => $serverInstance->code,
+                'status' => MonitoringLifecycleStatus::ACTIVE,
+                'heartbeat_token' => 'not-due-heartbeat-token',
+                'target' => route('monitorings.heartbeat.ping', ['token' => 'not-due-heartbeat-token']),
+                'heartbeat_interval_minutes' => 30,
+                'heartbeat_grace_minutes' => 5,
+                'heartbeat_last_ping_at' => Date::now()->subMinutes(20),
+            ]);
+
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+
+        $monitoringIds = [
+            $underMaintenance->id,
+            $invalidInterval->id,
+            $notDue->id,
+        ];
+
+        $this->assertSame(0, MonitoringResponse::query()
+            ->whereIn('monitoring_id', $monitoringIds)
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
+        $this->assertSame(0, Incident::query()
+            ->whereIn('monitoring_id', $monitoringIds)
+            ->count());
+    }
 }
