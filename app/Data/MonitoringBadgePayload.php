@@ -6,7 +6,7 @@ namespace App\Data;
 
 use JsonSerializable;
 
-final readonly class MonitoringWidgetPayload implements JsonSerializable
+final readonly class MonitoringBadgePayload implements JsonSerializable
 {
     public function __construct(
         public string $name,
@@ -17,7 +17,7 @@ final readonly class MonitoringWidgetPayload implements JsonSerializable
         public string $statusKey,
         public ?string $checkedAt,
         public ?string $checkedAtHuman,
-        public MonitoringWidgetUptimePayload $uptime,
+        public MonitoringBadgeUptimePayload $uptime,
         public string $publicUrl,
         /** @var array{30_days: int, 90_days: int, 365_days: int} */
         public array $incidents,

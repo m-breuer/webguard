@@ -112,9 +112,9 @@ class MonitoringStatsCache
         return sprintf('monitoring:%s:heatmap', $monitoring->id);
     }
 
-    public function widgetKey(Monitoring $monitoring): string
+    public function badgeKey(Monitoring $monitoring): string
     {
-        return sprintf('monitoring:%s:widget', $monitoring->id);
+        return sprintf('monitoring:%s:badge', $monitoring->id);
     }
 
     public function incidentsKey(Monitoring $monitoring, int $days, MonitoringDateRange $monitoringDateRange): string

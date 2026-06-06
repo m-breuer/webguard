@@ -237,7 +237,7 @@
             return;
         }
 
-        const apiUrl = new URL(`/api/public/monitorings/${encodeURIComponent(monitoringId)}/widget`, appBaseUrl).toString();
+        const apiUrl = new URL(`/api/public/monitorings/${encodeURIComponent(monitoringId)}/badge`, appBaseUrl).toString();
 
         fetch(apiUrl)
             .then(response => {

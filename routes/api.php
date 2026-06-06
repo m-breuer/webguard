@@ -7,8 +7,8 @@ use App\Http\Controllers\ApiController;
 use App\Http\Middleware\TrackApiUsage;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/public/monitorings/{monitoring}/widget', [ApiController::class, 'widget'])
-    ->name('public.monitorings.widget');
+Route::get('/public/monitorings/{monitoring}/badge', [ApiController::class, 'badge'])
+    ->name('public.monitorings.badge');
 
 Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
     ->middleware('throttle:60,1')

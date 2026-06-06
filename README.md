@@ -11,7 +11,7 @@ WebGuard is an open-source monitoring core built with Laravel 13. It provides th
 - Tracks uptime, response times, expected HTTP status ranges, expected DNS records, SSL expiry, and domain expiry.
 - Monitors heartbeats and cron jobs through private ping URLs.
 - Sends in-app, configurable, expiry, status-change, and weekly digest notifications.
-- Provides dashboards, public status pages, embeddable widgets, SLA badges, and a REST API.
+- Provides dashboards, public status pages, SLA badges, and a REST API.
 - Supports a global language switch across public and authenticated navigation.
 
 ## Quick Start

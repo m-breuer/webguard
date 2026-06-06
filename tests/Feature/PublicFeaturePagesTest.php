@@ -83,7 +83,7 @@ class PublicFeaturePagesTest extends TestCase
         $testResponse->assertSeeHtml(route('scribe'));
         $testResponse->assertSeeHtml(route('public-features.show', 'public-labels'));
         $testResponse->assertSeeText('Public Labels');
-        $testResponse->assertSeeText('Status Badges and Embeddable Status Widget');
+        $testResponse->assertSeeText('SLA Badges');
     }
 
     public function test_public_feature_pages_render_in_german(): void

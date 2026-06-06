@@ -329,17 +329,6 @@
                 </div>
 
                 <div class="mt-4">
-                    <x-input-label for="widget-snippet" :value="__('monitoring.detail.widget.heading')" />
-                    <x-paragraph
-                        class="text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring.detail.widget.description') }}</x-paragraph>
-                    <div class="mt-2 flex items-center space-x-2">
-                        <pre id="widget-snippet"
-                            class="flex-grow overflow-auto rounded-md border-gray-300 bg-gray-100 p-2 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"><code>&lt;div id="webguard-widget" data-monitoring="{{ $monitoring->id }}"&gt;&lt;/div&gt;
-&lt;script src="{{ route('widget.js') }}"&gt;&lt;/script&gt;</code></pre>
-                    </div>
-                </div>
-
-                <div class="mt-4">
                     <x-input-label for="sla-badge-snippet" :value="__('monitoring.detail.sla_badge.heading')" />
                     <x-paragraph
                         class="text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring.detail.sla_badge.description') }}</x-paragraph>

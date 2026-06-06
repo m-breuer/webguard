@@ -151,11 +151,6 @@ return [
                 'maintenance' => 'Maintenance',
             ],
         ],
-        'widget' => [
-            'heading' => 'Embed Widget',
-            'description' => 'Embed a live monitoring widget on your website or dashboard.',
-            'copy_button' => 'Copy Snippet',
-        ],
         'sla_badge' => [
             'heading' => 'Embed SLA Badge',
             'description' => 'Show a compact public trust badge with live status, uptime, incident count, and a link to the public monitoring label.',

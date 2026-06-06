@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Data\MonitoringWidgetPayload;
-use App\Data\MonitoringWidgetUptimePayload;
+use App\Data\MonitoringBadgePayload;
+use App\Data\MonitoringBadgeUptimePayload;
 use App\Models\Monitoring;
 use App\Support\MonitoringDateRange;
 use App\Support\MonitoringStatusMeta;
 use Illuminate\Support\Facades\Date;
 
-class MonitoringWidgetPayloadService
+class MonitoringBadgePayloadService
 {
     public function __construct(
         private readonly MonitoringStatusService $monitoringStatusService,
         private readonly MonitoringAvailabilityService $monitoringAvailabilityService
     ) {}
 
-    public function getPayload(Monitoring $monitoring): MonitoringWidgetPayload
+    public function getPayload(Monitoring $monitoring): MonitoringBadgePayload
     {
         $statusSince = $this->monitoringStatusService->getStatusSince($monitoring);
         $statusNow = $this->monitoringStatusService->getStatusNow($monitoring);
@@ -28,7 +28,7 @@ class MonitoringWidgetPayloadService
         $uptimePercentages = $this->resolveUptimePercentages($monitoring, [7, 30, 90, 365]);
         $incidentCounts = $this->resolveIncidentCounts($monitoring, [30, 90, 365]);
 
-        return new MonitoringWidgetPayload(
+        return new MonitoringBadgePayload(
             name: $monitoring->name,
             status: $status,
             statusLabel: mb_strtoupper($status),
@@ -37,7 +37,7 @@ class MonitoringWidgetPayloadService
             statusKey: MonitoringStatusMeta::statusKey($latestStatusCode, $monitoring->isUnderMaintenance()),
             checkedAt: $checkedAt,
             checkedAtHuman: $checkedAt ? Date::parse((string) $checkedAt)->diffForHumans() : null,
-            uptime: new MonitoringWidgetUptimePayload(
+            uptime: new MonitoringBadgeUptimePayload(
                 sevenDays: $uptimePercentages[7] ?? null,
                 thirtyDays: $uptimePercentages[30] ?? null,
                 ninetyDays: $uptimePercentages[90] ?? null,

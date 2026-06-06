@@ -20,11 +20,11 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
-class PublicMonitoringWidgetApiTest extends TestCase
+class PublicMonitoringBadgeApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_public_widget_endpoint_returns_public_monitoring_payload_without_authentication(): void
+    public function test_public_badge_endpoint_returns_public_monitoring_payload_without_authentication(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -90,7 +90,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'expires_at' => Date::parse('2027-02-01 00:00:00'),
         ]);
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('name', 'Primary API');
@@ -111,7 +111,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $this->assertIsNumeric($testResponse->json('uptime.365_days'));
     }
 
-    public function test_public_widget_endpoint_batches_uptime_range_queries(): void
+    public function test_public_badge_endpoint_batches_uptime_range_queries(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -158,7 +158,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('uptime.7_days', 100);
@@ -173,7 +173,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $this->assertLessThanOrEqual(8, $selectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
     }
 
-    public function test_public_widget_endpoint_uses_live_uptime_for_fresh_monitoring_without_daily_results(): void
+    public function test_public_badge_endpoint_uses_live_uptime_for_fresh_monitoring_without_daily_results(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -203,7 +203,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('status', MonitoringStatus::UP->value);
@@ -219,7 +219,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $this->assertLessThanOrEqual(12, $selectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
     }
 
-    public function test_public_widget_endpoint_returns_not_found_when_public_label_is_disabled(): void
+    public function test_public_badge_endpoint_returns_not_found_when_public_label_is_disabled(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -227,12 +227,12 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'public_label_enabled' => false,
         ]);
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertNotFound();
     }
 
-    public function test_public_widget_endpoint_returns_unknown_state_when_monitoring_has_no_results_yet(): void
+    public function test_public_badge_endpoint_returns_unknown_state_when_monitoring_has_no_results_yet(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -246,7 +246,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'created_at' => Date::now()->subMinutes(30),
         ]);
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('name', 'Fresh API');
@@ -263,7 +263,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('uptime.365_days', null);
     }
 
-    public function test_public_widget_endpoint_returns_maintenance_status_metadata_during_an_active_maintenance_window(): void
+    public function test_public_badge_endpoint_returns_maintenance_status_metadata_during_an_active_maintenance_window(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -289,7 +289,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'updated_at' => $checkedAt,
         ]);
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('status', MonitoringStatus::UP->value);
@@ -298,7 +298,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('status_key', 'notifications.status.maintenance');
     }
 
-    public function test_public_widget_endpoint_returns_maintenance_meta_when_monitoring_has_no_results_yet(): void
+    public function test_public_badge_endpoint_returns_maintenance_meta_when_monitoring_has_no_results_yet(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -314,7 +314,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'maintenance_until' => Date::now()->addMinutes(20),
         ]);
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('name', 'Fresh API');
@@ -331,7 +331,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
         $testResponse->assertJsonPath('uptime.365_days', null);
     }
 
-    public function test_public_widget_endpoint_returns_maintenance_meta_for_open_ended_maintenance_without_results(): void
+    public function test_public_badge_endpoint_returns_maintenance_meta_for_open_ended_maintenance_without_results(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -347,7 +347,7 @@ class PublicMonitoringWidgetApiTest extends TestCase
             'maintenance_until' => null,
         ]);
 
-        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/widget');
+        $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('name', 'Fresh API');

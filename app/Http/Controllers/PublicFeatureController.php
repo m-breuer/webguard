@@ -28,10 +28,10 @@ class PublicFeatureController extends Controller
         'notifications' => ['key' => 'notifications', 'category' => 'operations', 'related' => ['weekly-digest', 'public-labels', 'maintenance-windows']],
         'weekly-digest' => ['key' => 'weekly_digest', 'category' => 'operations', 'related' => ['notifications', 'response-time-uptime', 'ssl-certificate-monitoring']],
         'maintenance-windows' => ['key' => 'maintenance_windows', 'category' => 'operations', 'related' => ['public-labels', 'public-status-pages', 'notifications']],
-        'public-labels' => ['key' => 'public_labels', 'category' => 'sharing', 'related' => ['status-badges-widgets', 'public-status-pages', 'notifications']],
+        'public-labels' => ['key' => 'public_labels', 'category' => 'sharing', 'related' => ['status-badges', 'public-status-pages', 'notifications']],
         'public-status-pages' => ['key' => 'public_status_pages', 'category' => 'sharing', 'related' => ['public-labels', 'maintenance-windows', 'notifications']],
-        'status-badges-widgets' => ['key' => 'embeddable_widget', 'category' => 'sharing', 'related' => ['public-labels', 'api', 'public-status-pages']],
-        'api' => ['key' => 'rest_api', 'category' => 'integrations', 'related' => ['server-health-monitoring', 'status-badges-widgets', 'notifications']],
+        'status-badges' => ['key' => 'sla_badge', 'category' => 'sharing', 'related' => ['public-labels', 'api', 'public-status-pages']],
+        'api' => ['key' => 'rest_api', 'category' => 'integrations', 'related' => ['server-health-monitoring', 'status-badges', 'notifications']],
     ];
 
     /**

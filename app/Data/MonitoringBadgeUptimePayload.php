@@ -6,7 +6,7 @@ namespace App\Data;
 
 use JsonSerializable;
 
-final readonly class MonitoringWidgetUptimePayload implements JsonSerializable
+final readonly class MonitoringBadgeUptimePayload implements JsonSerializable
 {
     public function __construct(
         public float|int|null $sevenDays,

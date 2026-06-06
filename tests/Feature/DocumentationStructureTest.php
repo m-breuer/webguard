@@ -78,7 +78,7 @@ class DocumentationStructureTest extends TestCase
         }
     }
 
-    public function test_public_widget_api_docs_include_all_uptime_ranges(): void
+    public function test_public_badge_api_docs_include_all_uptime_ranges(): void
     {
         $apiController = file_get_contents(app_path('Http/Controllers/ApiController.php'));
 

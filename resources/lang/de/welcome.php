@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Integrationen, Widgets, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, Monitoring Widget, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Integrationen, SLA-Badges, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SLA Badge, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
         'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand- und DNS-Checks, klaren Benachrichtigungen und transparenten Statusseiten.',
     ],
@@ -139,10 +139,10 @@ return [
             'title' => 'Öffentliche Statusseiten',
             'text' => 'Veröffentlichen Sie komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos und aktiven oder geplanten Wartungsfenstern.',
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Embed',
-            'title' => 'Einbettbares Status-Widget und SLA-Badge',
-            'text' => 'Binden Sie ein schlankes JavaScript-Widget oder kompaktes SLA-Badge in externe Websites, Dashboards, Footer und Kundenportale ein, damit Besucher Live-Status und Uptime-Nachweis dort sehen, wo sie arbeiten.',
+            'title' => 'SLA-Badge einbetten',
+            'text' => 'Binden Sie ein kompaktes SLA-Badge in externe Websites, Dashboards, Footer und Kundenportale ein, damit Besucher Live-Status und Uptime-Nachweis dort sehen, wo sie arbeiten.',
         ],
         'rest_api' => [
             'badge' => 'API',
@@ -189,7 +189,7 @@ return [
             ],
             '3' => [
                 'title' => 'Status teilen',
-                'text' => 'Nutzen Sie Status-Labels, öffentliche Statusseiten, Widgets und Uptime-Historie, um Zuverlässigkeit transparent zu kommunizieren.',
+                'text' => 'Nutzen Sie Status-Labels, öffentliche Statusseiten, SLA-Badges und Uptime-Historie, um Zuverlässigkeit transparent zu kommunizieren.',
             ],
         ],
     ],
