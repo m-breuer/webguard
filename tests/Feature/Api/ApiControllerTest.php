@@ -56,6 +56,22 @@ class ApiControllerTest extends TestCase
         $testResponse->assertJsonPath('monitoring.target', $monitoring->target);
     }
 
+    public function test_token_api_requests_are_rate_limited(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(1, 5) as $_) {
+            $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')->assertOk();
+        }
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
+
+        $testResponse->assertTooManyRequests();
+        $this->assertSame('60', $testResponse->headers->get('Retry-After'));
+    }
+
     public function test_all_endpoint_returns_combined_monitoring_payload_without_nested_controller_responses(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');

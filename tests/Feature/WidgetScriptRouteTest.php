@@ -14,6 +14,9 @@ class WidgetScriptRouteTest extends TestCase
 
         $testResponse->assertOk();
         $this->assertStringContainsString('/api/public/monitorings/', $testResponse->getContent());
+        $this->assertStringContainsString('const escapeHtml =', $testResponse->getContent());
+        $this->assertStringContainsString('${escapeHtml(monitoringName)}', $testResponse->getContent());
+        $this->assertStringNotContainsString('${data.name}', $testResponse->getContent());
         $this->assertStringNotContainsString('webguard.m-breuer.dev', $testResponse->getContent());
     }
 

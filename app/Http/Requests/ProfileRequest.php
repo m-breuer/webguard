@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\NotificationChannel;
 use App\Models\User;
+use App\Rules\PubliclyRoutableUrl;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,12 +49,12 @@ class ProfileRequest extends FormRequest
             ],
             'theme' => ['required', 'string', Rule::in(['light', 'dark', 'system'])],
             'notification_channels' => ['nullable', 'array'],
-            'notification_channels.slack.webhook_url' => ['nullable', 'url', 'max:2048'],
+            'notification_channels.slack.webhook_url' => ['nullable', 'url', 'max:2048', new PubliclyRoutableUrl()],
             'notification_channels.telegram.bot_token' => ['nullable', 'string', 'max:255'],
             'notification_channels.telegram.chat_id' => ['nullable', 'string', 'max:255'],
-            'notification_channels.discord.webhook_url' => ['nullable', 'url', 'max:2048'],
-            'notification_channels.teams.webhook_url' => ['nullable', 'url', 'max:2048'],
-            'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048'],
+            'notification_channels.discord.webhook_url' => ['nullable', 'url', 'max:2048', new PubliclyRoutableUrl()],
+            'notification_channels.teams.webhook_url' => ['nullable', 'url', 'max:2048', new PubliclyRoutableUrl()],
+            'notification_channels.webhook.url' => ['nullable', 'url', 'max:2048', new PubliclyRoutableUrl()],
             'monitoring_digest_enabled' => ['nullable', 'boolean'],
             'monitoring_digest_frequency' => ['nullable', 'string', Rule::in(['daily', 'weekly', 'monthly'])],
             'unread_notifications_reminder_enabled' => ['nullable', 'boolean'],

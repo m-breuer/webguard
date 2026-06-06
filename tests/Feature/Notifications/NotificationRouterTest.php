@@ -25,18 +25,18 @@ class NotificationRouterTest extends TestCase
             'notification_channels' => [
                 'slack' => [
                     'enabled' => true,
-                    'webhook_url' => 'https://hooks.slack.test/services/test',
+                    'webhook_url' => 'https://hooks.slack.com/services/test',
                 ],
                 'discord' => [
                     'enabled' => true,
-                    'webhook_url' => 'https://discord.test/api/webhooks/test',
+                    'webhook_url' => 'https://discord.com/api/webhooks/test',
                 ],
             ],
         ]);
 
         Http::fake([
-            'https://hooks.slack.test/*' => Http::response(['ok' => false], 500),
-            'https://discord.test/*' => Http::response(['ok' => true], 204),
+            'https://hooks.slack.com/*' => Http::response(['ok' => false], 500),
+            'https://discord.com/*' => Http::response(['ok' => true], 204),
         ]);
 
         $notificationPayload = new NotificationPayload(
@@ -75,7 +75,7 @@ class NotificationRouterTest extends TestCase
             'notification_channels' => [
                 'slack' => [
                     'enabled' => true,
-                    'webhook_url' => 'https://hooks.slack.test/services/test',
+                    'webhook_url' => 'https://hooks.slack.com/services/test',
                 ],
             ],
         ]);
@@ -143,13 +143,13 @@ class NotificationRouterTest extends TestCase
             'notification_channels' => [
                 'teams' => [
                     'enabled' => true,
-                    'webhook_url' => 'https://teams.test/webhook/123',
+                    'webhook_url' => 'https://example.com/teams/webhook/123',
                 ],
             ],
         ]);
 
         Http::fake([
-            'https://teams.test/*' => Http::response([], 200),
+            'https://example.com/*' => Http::response([], 200),
         ]);
 
         $notificationPayload = new NotificationPayload(
@@ -166,7 +166,7 @@ class NotificationRouterTest extends TestCase
         $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['teams']);
 
         $this->assertTrue($wasDelivered);
-        Http::assertSent(fn ($request): bool => $request->url() === 'https://teams.test/webhook/123'
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://example.com/teams/webhook/123'
             && data_get($request->data(), 'type') === 'message'
             && data_get($request->data(), 'attachments.0.contentType') === 'application/vnd.microsoft.card.adaptive'
             && str_contains(json_encode($request->data(), JSON_THROW_ON_ERROR), 'Monitoring incident'));
@@ -175,6 +175,43 @@ class NotificationRouterTest extends TestCase
             'channel' => 'teams',
             'event_type' => NotificationEventType::INCIDENT->value,
             'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
+    }
+
+    public function test_router_blocks_private_webhook_destinations_before_sending(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'webhook' => [
+                    'enabled' => true,
+                    'url' => 'http://127.0.0.1:8080/webhook',
+                ],
+            ],
+        ]);
+
+        Http::fake();
+
+        $notificationPayload = new NotificationPayload(
+            eventType: NotificationEventType::INCIDENT,
+            title: 'Monitoring incident',
+            message: 'Service is down.',
+            severity: 'critical',
+            monitoringId: '01TEST',
+            monitoringName: 'API',
+            monitoringTarget: 'https://example.test',
+            occurredAt: now(),
+        );
+
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['webhook']);
+
+        $this->assertFalse($wasDelivered);
+        Http::assertNothingSent();
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'webhook',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::FAILED->value,
         ]);
     }
 }
