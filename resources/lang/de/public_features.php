@@ -29,7 +29,7 @@ return [
             'metrics' => [
                 '1' => ['label' => 'Monitor-Typen', 'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server, DNS'],
                 '2' => ['label' => 'Ablaufprüfungen', 'value' => 'SSL und Domains'],
-                '3' => ['label' => 'Sharing', 'value' => 'Labels, Badges, Widgets, Statusseiten'],
+                '3' => ['label' => 'Sharing', 'value' => 'Labels, Badges, Statusseiten'],
                 '4' => ['label' => 'Integrationen', 'value' => 'REST API und Webhooks'],
             ],
         ],
@@ -49,7 +49,7 @@ return [
         'sharing' => [
             'eyebrow' => 'Öffentliche Kommunikation',
             'title' => 'Status teilen, ohne privaten Betrieb offenzulegen',
-            'text' => 'Veröffentlichen Sie Status-Labels, Badges, einbettbare Widgets und öffentliche Statusseiten für Kunden und Stakeholder.',
+            'text' => 'Veröffentlichen Sie Status-Labels, SLA-Badges und öffentliche Statusseiten für Kunden und Stakeholder.',
         ],
         'integrations' => [
             'eyebrow' => 'Developer Surface',
@@ -168,7 +168,7 @@ return [
             'teaser' => 'Analysieren Sie Trends, vergleichen Sie Monitor-Verhalten und berichten Sie über Zuverlässigkeit.',
             'lead' => 'Analytics machen aus Rohchecks lesbare Uptime-, Downtime-, Incident- und Antwortzeitdaten.',
             'highlights' => ['Uptime- und Downtime-Zusammenfassungen', 'Antwortzeit-Charts und einzelne Checks', 'Tägliche Aggregation für Langzeitverlauf'],
-            'details' => ['Nutzen Sie Analytics, um zu erkennen, ob Services langsamer, instabiler oder zuverlässiger werden.', 'Monitor-Details enthalten Antwortzeittrends, einzelne Checks, Incidents, Uptime-Kalender, SSL-Status und Domain-Status, wo relevant.', 'Dieselben Betriebsdaten versorgen Wochenberichte, Public Labels, Widgets und API-Nutzer.'],
+            'details' => ['Nutzen Sie Analytics, um zu erkennen, ob Services langsamer, instabiler oder zuverlässiger werden.', 'Monitor-Details enthalten Antwortzeittrends, einzelne Checks, Incidents, Uptime-Kalender, SSL-Status und Domain-Status, wo relevant.', 'Dieselben Betriebsdaten versorgen Wochenberichte, Public Labels, SLA-Badges und API-Nutzer.'],
             'seo' => ['title' => 'Uptime Analytics - WebGuard', 'description' => 'Analysieren Sie Uptime, Downtime, Antwortzeiten, Incidents und einzelne Checks in WebGuard.', 'keywords' => 'Uptime Analytics, Antwortzeit Monitoring, Downtime Reporting'],
         ],
         'multi_location' => [
@@ -225,14 +225,14 @@ return [
             'details' => ['Nutzen Sie Statusseiten, wenn Kunden einen gebrandeten Überblick über mehrere Produktkomponenten statt einzelner Monitor-Labels brauchen.', 'Komponenten können zusammengehörige Monitorings gruppieren und komplexe SaaS-Systeme während Incidents verständlicher machen.', 'Incident-Updates und Wartungskontext geben Stakeholdern einen zentralen Ort für den aktuellen Servicezustand.'],
             'seo' => ['title' => 'Öffentliche Statusseiten - WebGuard', 'description' => 'Veröffentlichen Sie komponentenbasierte Statusseiten mit Incidents, Updates, Abos und Wartungsfenstern.', 'keywords' => 'Öffentliche Statusseite, SaaS Status Page, Incident Kommunikation'],
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Badges',
-            'title' => 'Einbettbares Status-Widget und Badges',
-            'teaser' => 'Binden Sie ein schlankes JavaScript-Widget in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
-            'lead' => 'Status Badges und Widgets bringen WebGuard-Status in Websites, interne Dashboards, Dokumentation und Kundenportale.',
-            'highlights' => ['Einbettbares JavaScript-Widget', 'Nutzt öffentliche Widget-Daten aktivierter Labels', 'Zeigt Status und Uptime-Zusammenfassungen'],
-            'details' => ['Nutzen Sie das Widget, wenn Stakeholder WebGuard nicht öffnen sollen, um den Zustand eines Services zu sehen.', 'Der öffentliche Widget-Endpunkt ist nur für Monitore verfügbar, bei denen Public Labels aktiv sind. Dadurch bleibt Veröffentlichung bewusst.', 'Widgets können aktuellen Status und Uptime-Zusammenfassungen auf externen Seiten anzeigen, während WebGuard die Quelle bleibt.'],
-            'seo' => ['title' => 'Status Badges und Widgets - WebGuard', 'description' => 'Betten Sie Live-Monitoring-Status von WebGuard mit öffentlichen Widgets und Badges in externe Seiten ein.', 'keywords' => 'Status Badge, Uptime Widget, Monitoring Widget'],
+            'title' => 'SLA-Badges',
+            'teaser' => 'Binden Sie ein kompaktes SLA-Badge in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
+            'lead' => 'SLA-Badges bringen WebGuard-Status in Websites, interne Dashboards, Dokumentation und Kundenportale.',
+            'highlights' => ['Einbettbares SLA-Badge-Script', 'Nutzt öffentliche Badge-Daten aktivierter Labels', 'Zeigt Status und Uptime-Zusammenfassungen'],
+            'details' => ['Nutzen Sie das SLA-Badge, wenn Stakeholder WebGuard nicht öffnen sollen, um den Zustand eines Services zu sehen.', 'Der öffentliche Badge-Endpunkt ist nur für Monitore verfügbar, bei denen Public Labels aktiv sind. Dadurch bleibt Veröffentlichung bewusst.', 'Badges können aktuellen Status und Uptime-Zusammenfassungen auf externen Seiten anzeigen, während WebGuard die Quelle bleibt.'],
+            'seo' => ['title' => 'SLA-Badges - WebGuard', 'description' => 'Betten Sie Live-Monitoring-Status von WebGuard mit öffentlichen SLA-Badges in externe Seiten ein.', 'keywords' => 'Status Badge, SLA Badge, Uptime Badge'],
         ],
         'rest_api' => [
             'badge' => 'API',

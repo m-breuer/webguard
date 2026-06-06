@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Data\MonitoringWidgetPayload;
+use App\Data\MonitoringBadgePayload;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
@@ -16,12 +16,12 @@ use App\Models\MonitoringResponse;
 use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\User;
-use App\Services\MonitoringWidgetPayloadService;
+use App\Services\MonitoringBadgePayloadService;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
-class MonitoringWidgetPayloadServiceTest extends TestCase
+class MonitoringBadgePayloadServiceTest extends TestCase
 {
     protected function tearDown(): void
     {
@@ -30,7 +30,7 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_widget_payload_contains_public_status_metadata_and_uptime_ranges(): void
+    public function test_badge_payload_contains_public_status_metadata_and_uptime_ranges(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -85,10 +85,10 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $monitoringWidgetPayload = resolve(MonitoringWidgetPayloadService::class)->getPayload($monitoring->fresh());
-        $payload = $monitoringWidgetPayload->toArray();
+        $monitoringBadgePayload = resolve(MonitoringBadgePayloadService::class)->getPayload($monitoring->fresh());
+        $payload = $monitoringBadgePayload->toArray();
 
-        $this->assertInstanceOf(MonitoringWidgetPayload::class, $monitoringWidgetPayload);
+        $this->assertInstanceOf(MonitoringBadgePayload::class, $monitoringBadgePayload);
         $this->assertSame('Primary API', $payload['name']);
         $this->assertSame(MonitoringStatus::UP->value, $payload['status']);
         $this->assertSame('UP', $payload['status_label']);
@@ -116,7 +116,7 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
         $this->assertStringContainsString('SUM(CASE WHEN down_at >= ?', $incidentCountQuery['query']);
     }
 
-    public function test_widget_payload_returns_unknown_without_results(): void
+    public function test_badge_payload_returns_unknown_without_results(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
 
@@ -126,10 +126,10 @@ class MonitoringWidgetPayloadServiceTest extends TestCase
             'created_at' => Date::now()->subMinutes(30),
         ]);
 
-        $monitoringWidgetPayload = resolve(MonitoringWidgetPayloadService::class)->getPayload($monitoring);
-        $payload = $monitoringWidgetPayload->toArray();
+        $monitoringBadgePayload = resolve(MonitoringBadgePayloadService::class)->getPayload($monitoring);
+        $payload = $monitoringBadgePayload->toArray();
 
-        $this->assertInstanceOf(MonitoringWidgetPayload::class, $monitoringWidgetPayload);
+        $this->assertInstanceOf(MonitoringBadgePayload::class, $monitoringBadgePayload);
         $this->assertSame('Fresh API', $payload['name']);
         $this->assertSame(MonitoringStatus::UNKNOWN->value, $payload['status']);
         $this->assertSame('UNKNOWN', $payload['status_label']);

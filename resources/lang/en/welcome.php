@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with integrations, widgets, configurable alerts, weekly digests, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, embeddable monitoring widget, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with integrations, SLA badges, configurable alerts, weekly digests, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SLA badge, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
         'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, Heartbeat, Server Health, and DNS monitoring, clear notifications, and transparent status pages.',
     ],
@@ -139,10 +139,10 @@ return [
             'title' => 'Public Status Pages',
             'text' => 'Publish component-based status pages with recent incidents, manual incident updates, subscriber emails, and active or upcoming maintenance windows.',
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Embed',
-            'title' => 'Embeddable Status Widget and SLA Badge',
-            'text' => 'Add a lightweight JavaScript widget or compact SLA badge to external sites, dashboards, footers, and customer portals so visitors can see live status and uptime proof where they already work.',
+            'title' => 'Embed SLA Badge',
+            'text' => 'Add a compact SLA badge to external sites, dashboards, footers, and customer portals so visitors can see live status and uptime proof where they already work.',
         ],
         'rest_api' => [
             'badge' => 'API',
@@ -189,7 +189,7 @@ return [
             ],
             '3' => [
                 'title' => 'Share status',
-                'text' => 'Use status labels, public status pages, widgets, and uptime history to communicate reliability with stakeholders.',
+                'text' => 'Use status labels, public status pages, SLA badges, and uptime history to communicate reliability with stakeholders.',
             ],
         ],
     ],

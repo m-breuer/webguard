@@ -151,11 +151,6 @@ return [
                 'maintenance' => 'Wartung',
             ],
         ],
-        'widget' => [
-            'heading' => 'Widget einbetten',
-            'description' => 'Betten Sie ein Live-Überwachungs-Widget auf Ihrer Website oder Ihrem Dashboard ein.',
-            'copy_button' => 'Snippet kopieren',
-        ],
         'sla_badge' => [
             'heading' => 'SLA-Badge einbetten',
             'description' => 'Zeigen Sie ein kompaktes öffentliches Vertrauens-Badge mit Live-Status, Uptime, Incident-Anzahl und Link zum öffentlichen Monitoring-Label.',

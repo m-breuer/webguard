@@ -163,7 +163,7 @@
                 </div>
 
                 <div class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    @foreach (['public_status_pages', 'embeddable_widget', 'notifications', 'rest_api'] as $featureKey)
+                    @foreach (['public_status_pages', 'sla_badge', 'notifications', 'rest_api'] as $featureKey)
                         @php
                             $slug = collect($features)->search(fn (array $feature): bool => $feature['key'] === $featureKey);
                         @endphp

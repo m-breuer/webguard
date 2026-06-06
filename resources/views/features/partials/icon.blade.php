@@ -52,7 +52,7 @@
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4zM7 10h5m-5 4h10m0-4h.01" /></svg>
     @break
 
-    @case('embeddable_widget')
+    @case('sla_badge')
     @case('rest_api')
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 8l-4 4 4 4m8-8l4 4-4 4M13 5l-2 14" /></svg>
     @break

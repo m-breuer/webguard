@@ -88,7 +88,7 @@ class MonitoringStatsCacheTest extends TestCase
         $this->assertSame('monitoring:monitoring-123:checks:all:100:0', $monitoringStatsCache->checksKey($monitoring, null, 100, 0));
         $this->assertSame('monitoring:monitoring-123:checks:7:50:10', $monitoringStatsCache->checksKey($monitoring, 7, 50, 10));
         $this->assertSame('monitoring:monitoring-123:heatmap', $monitoringStatsCache->heatmapKey($monitoring));
-        $this->assertSame('monitoring:monitoring-123:widget', $monitoringStatsCache->widgetKey($monitoring));
+        $this->assertSame('monitoring:monitoring-123:badge', $monitoringStatsCache->badgeKey($monitoring));
         $this->assertSame('monitoring:monitoring-123:incidents:7:20260405:20260412', $monitoringStatsCache->incidentsKey($monitoring, 7, $monitoringDateRange));
         $this->assertSame('monitoring:monitoring-123:ssl-status', $monitoringStatsCache->sslStatusKey($monitoring));
         $this->assertSame(
