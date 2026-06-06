@@ -18,6 +18,59 @@ use Tests\TestCase;
 
 class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 {
+    public function test_it_skips_heartbeat_monitorings_during_active_maintenance_windows(): void
+    {
+        Date::setTestNow('2026-04-18 12:00:00');
+
+        $monitoring = $this->createHeartbeatMonitoring([
+            'heartbeat_last_ping_at' => Date::now()->subHours(2),
+            'maintenance_from' => Date::now()->subMinute(),
+            'maintenance_until' => Date::now()->addMinute(),
+        ]);
+
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+
+        $this->assertSame(0, MonitoringResponse::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
+    }
+
+    public function test_it_skips_heartbeat_monitorings_with_invalid_intervals(): void
+    {
+        Date::setTestNow('2026-04-18 12:00:00');
+
+        $monitoring = $this->createHeartbeatMonitoring([
+            'heartbeat_interval_minutes' => 0,
+            'heartbeat_last_ping_at' => Date::now()->subHours(2),
+        ]);
+
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+
+        $this->assertSame(0, MonitoringResponse::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
+    }
+
+    public function test_it_skips_heartbeat_monitorings_that_are_still_inside_the_grace_window(): void
+    {
+        Date::setTestNow('2026-04-18 12:00:00');
+
+        $monitoring = $this->createHeartbeatMonitoring([
+            'heartbeat_interval_minutes' => 30,
+            'heartbeat_grace_minutes' => 5,
+            'heartbeat_last_ping_at' => Date::now()->subMinutes(20),
+        ]);
+
+        (new EvaluateHeartbeatMonitoringsJob)->handle();
+
+        $this->assertSame(0, MonitoringResponse::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->where('status', MonitoringStatus::DOWN)
+            ->count());
+    }
+
     public function test_it_suppresses_same_minute_duplicate_down_results_before_confirming_incident(): void
     {
         Date::setTestNow('2026-04-18 12:00:00');
@@ -146,5 +199,36 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
             ->where('monitoring_id', $monitoring->id)
             ->whereNull('up_at')
             ->count());
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function createHeartbeatMonitoring(array $overrides = []): Monitoring
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $serverInstance = ServerInstance::query()->firstOrCreate(
+            ['code' => 'de-1'],
+            ['api_key_hash' => 'test-token-1234567890', 'is_active' => true]
+        );
+        $serverInstance->update([
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $token = (string) fake()->unique()->uuid();
+
+        return Monitoring::factory()
+            ->heartbeat()
+            ->for($user)
+            ->create(array_merge([
+                'preferred_location' => $serverInstance->code,
+                'status' => MonitoringLifecycleStatus::ACTIVE,
+                'heartbeat_token' => $token,
+                'target' => route('monitorings.heartbeat.ping', ['token' => $token]),
+                'heartbeat_interval_minutes' => 30,
+                'heartbeat_grace_minutes' => 5,
+            ], $overrides));
     }
 }
