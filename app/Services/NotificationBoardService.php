@@ -33,9 +33,39 @@ class NotificationBoardService
      */
     public function getStatusBoardEntries(bool $showRead, int $offset = 0, int $limit = 5): Collection
     {
-        $notificationRelation = $showRead
-            ? 'latestStatusChangeNotification'
-            : 'latestUnreadStatusChangeNotification';
+        $statusChangeNotifications = MonitoringNotification::query()
+            ->withoutGlobalScopes()
+            ->select([
+                'monitoring_notifications.id',
+                'monitoring_notifications.monitoring_id',
+                'monitoring_notifications.message',
+                'monitoring_notifications.read',
+                'monitoring_notifications.created_at',
+            ])
+            ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
+            ->where('monitorings.user_id', auth()->id())
+            ->whereNull('monitorings.deleted_at')
+            ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
+            ->when(! $showRead, fn ($query) => $query->where('monitoring_notifications.read', false))
+            ->whereNotExists(function ($query) use ($showRead): void {
+                $query->selectRaw('1')
+                    ->from('monitoring_notifications as newer_notifications')
+                    ->whereColumn('newer_notifications.monitoring_id', 'monitoring_notifications.monitoring_id')
+                    ->where('newer_notifications.type', NotificationType::STATUS_CHANGE->value)
+                    ->when(! $showRead, fn ($query) => $query->where('newer_notifications.read', false))
+                    ->where(function ($query): void {
+                        $query->whereColumn('newer_notifications.created_at', '>', 'monitoring_notifications.created_at')
+                            ->orWhere(function ($query): void {
+                                $query->whereColumn('newer_notifications.created_at', 'monitoring_notifications.created_at')
+                                    ->whereColumn('newer_notifications.id', '>', 'monitoring_notifications.id');
+                            });
+                    });
+            })
+            ->orderByDesc('monitoring_notifications.created_at')
+            ->orderByDesc('monitoring_notifications.id')
+            ->offset($offset)
+            ->limit($limit + 1)
+            ->get();
 
         $monitorings = Monitoring::query()
             ->select([
@@ -46,15 +76,8 @@ class NotificationBoardService
                 'maintenance_from',
                 'maintenance_until',
             ])
-            ->where('user_id', auth()->id())
+            ->whereKey($statusChangeNotifications->pluck('monitoring_id')->all())
             ->with([
-                $notificationRelation => fn ($builder) => $builder->select([
-                    'monitoring_notifications.id',
-                    'monitoring_notifications.monitoring_id',
-                    'monitoring_notifications.message',
-                    'monitoring_notifications.read',
-                    'monitoring_notifications.created_at',
-                ]),
                 'latestResponseResult' => fn ($builder) => $builder->select([
                     'monitoring_response_results.id',
                     'monitoring_response_results.monitoring_id',
@@ -63,27 +86,11 @@ class NotificationBoardService
                 ]),
             ])
             ->get()
-            ->filter(fn (Monitoring $monitoring): bool => $monitoring->getRelation($notificationRelation) !== null)
-            ->sort(function (Monitoring $left, Monitoring $right) use ($notificationRelation): int {
-                /** @var MonitoringNotification $leftNotification */
-                $leftNotification = $left->getRelation($notificationRelation);
-                /** @var MonitoringNotification $rightNotification */
-                $rightNotification = $right->getRelation($notificationRelation);
+            ->keyBy('id');
 
-                return [
-                    $rightNotification->created_at?->getTimestamp() ?? 0,
-                    $rightNotification->id,
-                ] <=> [
-                    $leftNotification->created_at?->getTimestamp() ?? 0,
-                    $leftNotification->id,
-                ];
-            })
-            ->slice($offset, $limit + 1)
-            ->values();
-
-        return $monitorings->map(function (Monitoring $monitoring) use ($notificationRelation): array {
-            /** @var MonitoringNotification $latestStatusNotification */
-            $latestStatusNotification = $monitoring->getRelation($notificationRelation);
+        return $statusChangeNotifications->map(function (MonitoringNotification $latestStatusNotification) use ($monitorings): array {
+            /** @var Monitoring $monitoring */
+            $monitoring = $monitorings->get($latestStatusNotification->monitoring_id);
             /** @var MonitoringResponse|null $latestResponse */
             $latestResponse = $monitoring->getRelation('latestResponseResult');
             $latestStatusCode = $latestResponse?->http_status_code;
