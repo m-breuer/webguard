@@ -46,7 +46,7 @@ class NotificationBoardService
             ->where('monitorings.user_id', auth()->id())
             ->whereNull('monitorings.deleted_at')
             ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
-            ->when(! $showRead, fn ($query) => $query->where('monitoring_notifications.read', false))
+            ->unless($showRead, fn ($query) => $query->where('monitoring_notifications.read', false))
             ->whereNotExists(function ($query) use ($showRead): void {
                 $query->selectRaw('1')
                     ->from('monitoring_notifications as newer_notifications')
@@ -61,7 +61,7 @@ class NotificationBoardService
                             });
                     });
             })
-            ->orderByDesc('monitoring_notifications.created_at')
+            ->latest('monitoring_notifications.created_at')
             ->orderByDesc('monitoring_notifications.id')
             ->offset($offset)
             ->limit($limit + 1)
@@ -88,24 +88,24 @@ class NotificationBoardService
             ->get()
             ->keyBy('id');
 
-        return $statusChangeNotifications->map(function (MonitoringNotification $latestStatusNotification) use ($monitorings): array {
+        return $statusChangeNotifications->map(function (MonitoringNotification $monitoringNotification) use ($monitorings): array {
             /** @var Monitoring $monitoring */
-            $monitoring = $monitorings->get($latestStatusNotification->monitoring_id);
+            $monitoring = $monitorings->get($monitoringNotification->monitoring_id);
             /** @var MonitoringResponse|null $latestResponse */
             $latestResponse = $monitoring->getRelation('latestResponseResult');
             $latestStatusCode = $latestResponse?->http_status_code;
             $maintenanceActive = $monitoring->isUnderMaintenance();
 
             $statusIdentifier = MonitoringStatusMeta::identifier($latestStatusCode !== null ? (int) $latestStatusCode : null, $maintenanceActive);
-            $statusChangeMessage = $latestStatusNotification->message;
+            $statusChangeMessage = $monitoringNotification->message;
             $latestCheckedAt = $latestResponse?->created_at;
-            $latestStatusChangeAt = $latestStatusNotification->created_at;
+            $latestStatusChangeAt = $monitoringNotification->created_at;
             $statusChangeIdentifier = $maintenanceActive
                 ? 'maintenance'
                 : MonitoringNotification::extractStatusChangeIdentifierFromMessage($statusChangeMessage);
 
             return [
-                'notification_id' => $latestStatusNotification->id,
+                'notification_id' => $monitoringNotification->id,
                 'monitoring_id' => $monitoring->id,
                 'monitor_name' => $monitoring->name,
                 'target' => $monitoring->target,
@@ -123,7 +123,7 @@ class NotificationBoardService
                 ),
                 'status_change_key' => 'notifications.status_change.' . $statusChangeIdentifier,
                 'badge_type' => MonitoringStatusMeta::badgeType($statusIdentifier),
-                'read' => $latestStatusNotification->read,
+                'read' => $monitoringNotification->read,
             ];
         });
     }
