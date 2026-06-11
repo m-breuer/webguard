@@ -46,13 +46,13 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         Artisan::call('notifications:send-server-instance-health-alerts');
 
-        Mail::assertSent(ServerInstanceHealthAlertMail::class, function (ServerInstanceHealthAlertMail $mail) use ($admin, $serverInstance): bool {
-            return $mail->hasTo($admin->email)
-                && $mail->serverInstance->is($serverInstance)
-                && $mail->healthStatus === 'stale';
+        Mail::assertSent(ServerInstanceHealthAlertMail::class, function (ServerInstanceHealthAlertMail $serverInstanceHealthAlertMail) use ($admin, $serverInstance): bool {
+            return $serverInstanceHealthAlertMail->hasTo($admin->email)
+                && $serverInstanceHealthAlertMail->serverInstance->is($serverInstance)
+                && $serverInstanceHealthAlertMail->healthStatus === 'stale';
         });
-        Mail::assertNotSent(ServerInstanceHealthAlertMail::class, fn (ServerInstanceHealthAlertMail $mail): bool => $mail->hasTo($unverifiedAdmin->email));
-        Mail::assertNotSent(ServerInstanceHealthAlertMail::class, fn (ServerInstanceHealthAlertMail $mail): bool => $mail->hasTo($member->email));
+        Mail::assertNotSent(ServerInstanceHealthAlertMail::class, fn (ServerInstanceHealthAlertMail $serverInstanceHealthAlertMail): bool => $serverInstanceHealthAlertMail->hasTo($unverifiedAdmin->email));
+        Mail::assertNotSent(ServerInstanceHealthAlertMail::class, fn (ServerInstanceHealthAlertMail $serverInstanceHealthAlertMail): bool => $serverInstanceHealthAlertMail->hasTo($member->email));
 
         $serverInstance->refresh();
         $this->assertSame('stale', $serverInstance->last_health_alert_status);
@@ -90,14 +90,14 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         Package::factory()->create();
         $admin = User::factory()->create(['role' => UserRole::ADMIN]);
-        $newInstance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'scanner-new-1',
             'ip_address' => '192.0.2.42',
             'api_key_hash' => 'valid-instance-key',
             'is_active' => true,
             'last_seen_at' => null,
         ]);
-        $newInstance->forceFill([
+        $serverInstance->forceFill([
             'created_at' => Date::now()->subMinutes(5),
             'updated_at' => Date::now()->subMinutes(5),
         ])->saveQuietly();
@@ -115,14 +115,14 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         Artisan::call('notifications:send-server-instance-health-alerts');
 
-        Mail::assertSent(ServerInstanceHealthAlertMail::class, function (ServerInstanceHealthAlertMail $mail) use ($admin, $lateInstance): bool {
-            return $mail->hasTo($admin->email)
-                && $mail->serverInstance->is($lateInstance)
-                && $mail->healthStatus === 'never_seen';
+        Mail::assertSent(ServerInstanceHealthAlertMail::class, function (ServerInstanceHealthAlertMail $serverInstanceHealthAlertMail) use ($admin, $lateInstance): bool {
+            return $serverInstanceHealthAlertMail->hasTo($admin->email)
+                && $serverInstanceHealthAlertMail->serverInstance->is($lateInstance)
+                && $serverInstanceHealthAlertMail->healthStatus === 'never_seen';
         });
-        Mail::assertNotSent(ServerInstanceHealthAlertMail::class, fn (ServerInstanceHealthAlertMail $mail): bool => $mail->serverInstance->is($newInstance));
+        Mail::assertNotSent(ServerInstanceHealthAlertMail::class, fn (ServerInstanceHealthAlertMail $serverInstanceHealthAlertMail): bool => $serverInstanceHealthAlertMail->serverInstance->is($serverInstance));
 
-        $this->assertNull($newInstance->fresh()->last_health_alert_status);
+        $this->assertNull($serverInstance->fresh()->last_health_alert_status);
         $this->assertSame('never_seen', $lateInstance->fresh()->last_health_alert_status);
     }
 
@@ -146,10 +146,10 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         Artisan::call('notifications:send-server-instance-health-alerts');
 
-        Mail::assertSent(ServerInstanceHealthAlertMail::class, function (ServerInstanceHealthAlertMail $mail) use ($admin, $serverInstance): bool {
-            return $mail->hasTo($admin->email)
-                && $mail->serverInstance->is($serverInstance)
-                && $mail->healthStatus === 'healthy';
+        Mail::assertSent(ServerInstanceHealthAlertMail::class, function (ServerInstanceHealthAlertMail $serverInstanceHealthAlertMail) use ($admin, $serverInstance): bool {
+            return $serverInstanceHealthAlertMail->hasTo($admin->email)
+                && $serverInstanceHealthAlertMail->serverInstance->is($serverInstance)
+                && $serverInstanceHealthAlertMail->healthStatus === 'healthy';
         });
 
         $serverInstance->refresh();
