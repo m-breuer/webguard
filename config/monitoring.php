@@ -40,6 +40,7 @@ return [
     */
     'instance_seen_write_throttle_seconds' => (int) env('MONITORING_INSTANCE_SEEN_WRITE_THROTTLE_SECONDS', 60),
     'instance_stale_after_minutes' => (int) env('MONITORING_INSTANCE_STALE_AFTER_MINUTES', 10),
+    'instance_never_seen_alert_after_minutes' => (int) env('MONITORING_INSTANCE_NEVER_SEEN_ALERT_AFTER_MINUTES', 15),
 
     /*
     |--------------------------------------------------------------------------

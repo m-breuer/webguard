@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Hash;
     'api_key_hash',
     'is_active',
     'last_seen_at',
+    'last_health_alert_status',
+    'last_health_alerted_at',
 ])]
 #[Hidden([
     'api_key_hash',
@@ -109,6 +111,7 @@ class ServerInstance extends Model
             'ip_address' => 'string',
             'is_active' => 'boolean',
             'last_seen_at' => 'datetime',
+            'last_health_alerted_at' => 'datetime',
         ];
     }
 }

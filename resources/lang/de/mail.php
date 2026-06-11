@@ -40,6 +40,17 @@ return [
         'unsubscribe_text' => 'Diese Statusupdates abbestellen',
         'salutation' => 'Vielen Dank,',
     ],
+    'server_instance_health_alert' => [
+        'subject' => 'Server-Instanz :instanceCode ist :status',
+        'title' => 'Server-Instanz :status',
+        'greeting' => 'Hallo :userName,',
+        'alert_intro' => 'Die Scanner-Instanz ":instanceCode" ist aktuell als :status markiert.',
+        'recovery_intro' => 'Die Scanner-Instanz ":instanceCode" meldet sich wieder und ist jetzt fehlerfrei.',
+        'details' => 'IP-Adresse: :ipAddress. Zuletzt gesehen: :lastSeenAt. Instanzen gelten nach :staleAfterMinutes Minuten ohne erfolgreichen Bericht als veraltet.',
+        'action_text' => 'Prüfen Sie die Instanz-Zuweisung und den Scanner-Prozess, damit die Monitoring-Abdeckung intakt bleibt.',
+        'button_text' => 'Server-Instanzen anzeigen',
+        'salutation' => 'Vielen Dank,',
+    ],
     'unread_notifications_reminder' => [
         'subject' => 'Aktion auf der Plattform erforderlich',
         'greeting' => 'Hallo :userName,',
