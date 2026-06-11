@@ -40,6 +40,17 @@ return [
         'unsubscribe_text' => 'Unsubscribe from these status updates',
         'salutation' => 'Thank you,',
     ],
+    'server_instance_health_alert' => [
+        'subject' => 'Server instance :instanceCode is :status',
+        'title' => 'Server instance :status',
+        'greeting' => 'Hello :userName,',
+        'alert_intro' => 'The scanner instance ":instanceCode" is currently marked as :status.',
+        'recovery_intro' => 'The scanner instance ":instanceCode" is reporting again and is now healthy.',
+        'details' => 'IP address: :ipAddress. Last seen: :lastSeenAt. Instances are considered stale after :staleAfterMinutes minutes without a successful report.',
+        'action_text' => 'Review the instance assignment and scanner process to make sure monitoring coverage is intact.',
+        'button_text' => 'View Server Instances',
+        'salutation' => 'Thank you,',
+    ],
     'unread_notifications_reminder' => [
         'subject' => 'Action required on the platform',
         'greeting' => 'Hello :userName,',
