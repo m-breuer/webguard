@@ -82,6 +82,29 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_does_not_update_alert_state_without_verified_admins(): void
+    {
+        config(['monitoring.instance_stale_after_minutes' => 10]);
+        Date::setTestNow('2026-06-11 10:00:00');
+        Mail::fake();
+
+        Package::factory()->create();
+        User::factory()->unverified()->create(['role' => UserRole::ADMIN]);
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'scanner-no-admin-1',
+            'ip_address' => '192.0.2.46',
+            'api_key_hash' => 'valid-instance-key',
+            'is_active' => true,
+            'last_seen_at' => Date::now()->subMinutes(15),
+        ]);
+
+        Artisan::call('notifications:send-server-instance-health-alerts');
+
+        Mail::assertNothingSent();
+        $this->assertNull($serverInstance->fresh()->last_health_alert_status);
+        $this->assertNull($serverInstance->fresh()->last_health_alerted_at);
+    }
+
     public function test_never_seen_alert_respects_grace_period(): void
     {
         config(['monitoring.instance_never_seen_alert_after_minutes' => 15]);
@@ -124,6 +147,38 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         $this->assertNull($serverInstance->fresh()->last_health_alert_status);
         $this->assertSame('never_seen', $lateInstance->fresh()->last_health_alert_status);
+    }
+
+    public function test_does_not_repeat_same_never_seen_alert(): void
+    {
+        config(['monitoring.instance_never_seen_alert_after_minutes' => 15]);
+        Date::setTestNow('2026-06-11 10:00:00');
+        Mail::fake();
+
+        Package::factory()->create();
+        User::factory()->create(['role' => UserRole::ADMIN]);
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'scanner-never-seen-1',
+            'ip_address' => '192.0.2.47',
+            'api_key_hash' => 'valid-instance-key',
+            'is_active' => true,
+            'last_seen_at' => null,
+            'last_health_alert_status' => 'never_seen',
+            'last_health_alerted_at' => Date::now()->subMinutes(4),
+        ]);
+        $serverInstance->forceFill([
+            'created_at' => Date::now()->subMinutes(30),
+            'updated_at' => Date::now()->subMinutes(30),
+        ])->saveQuietly();
+
+        Artisan::call('notifications:send-server-instance-health-alerts');
+
+        Mail::assertNothingSent();
+        $this->assertSame('never_seen', $serverInstance->fresh()->last_health_alert_status);
+        $this->assertSame(
+            Date::now()->subMinutes(4)->toDateTimeString(),
+            $serverInstance->fresh()->last_health_alerted_at?->toDateTimeString()
+        );
     }
 
     public function test_sends_recovery_after_reported_instance_becomes_healthy(): void
