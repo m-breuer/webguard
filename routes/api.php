@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/public/monitorings/{monitoring}/badge', [ApiController::class, 'badge'])
     ->name('public.monitorings.badge');
+Route::get('/public/monitorings/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar'])
+    ->name('public.monitorings.uptime-calendar');
 
 Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
     ->middleware('throttle:60,1')

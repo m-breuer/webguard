@@ -88,6 +88,33 @@ class PublicStatusPageTest extends TestCase
         $testResponse->assertSeeText(__('monitoring.public_label.subscribe.heading'));
     }
 
+    public function test_public_status_page_loads_uptime_calendar_without_authentication(): void
+    {
+        Date::setTestNow('2026-05-03 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Public Calendar API',
+            'public_label_enabled' => true,
+            'created_at' => Date::parse('2026-04-01 00:00:00'),
+        ]);
+
+        $this->createDailyResult($monitoring, '2026-04-10');
+
+        $this->get(route('public-label', $monitoring))->assertOk()->assertSeeHtml('uptimeCalendar');
+
+        $testResponse = $this->getJson(route('public.monitorings.uptime-calendar', $monitoring) . '?' . http_build_query([
+            'start_date' => '2026-04-01',
+            'end_date' => '2026-04-30',
+        ]));
+
+        $testResponse->assertOk()
+            ->assertJsonCount(30, '2026-04.days')
+            ->assertJsonPath('2026-04.days.9.uptime_percentage', 100)
+            ->assertJsonPath('2026-04.monthly_average_uptime', 100);
+    }
+
     public function test_public_status_page_accepts_email_subscriptions_and_sends_confirmation(): void
     {
         Mail::fake();
