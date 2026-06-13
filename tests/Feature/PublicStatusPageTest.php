@@ -102,9 +102,7 @@ class PublicStatusPageTest extends TestCase
 
         $this->createDailyResult($monitoring, '2026-04-10');
 
-        $this->get(route('public-label', $monitoring))
-            ->assertOk()
-            ->assertSee('uptimeCalendar', false);
+        $this->get(route('public-label', $monitoring))->assertOk()->assertSeeHtml('uptimeCalendar');
 
         $testResponse = $this->getJson(route('public.monitorings.uptime-calendar', $monitoring) . '?' . http_build_query([
             'start_date' => '2026-04-01',
