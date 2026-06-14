@@ -231,4 +231,50 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         Mail::assertNothingSent();
     }
+
+    public function test_server_instance_health_alert_mail_renders_alert_details(): void
+    {
+        config(['monitoring.instance_stale_after_minutes' => 10]);
+        Date::setTestNow('2026-06-11 10:00:00');
+
+        $admin = User::factory()->make([
+            'name' => 'Admin User',
+            'role' => UserRole::ADMIN,
+        ]);
+        $serverInstance = new ServerInstance([
+            'code' => 'scanner-mail-1',
+            'ip_address' => '192.0.2.47',
+            'last_seen_at' => Date::now()->subMinutes(12),
+        ]);
+
+        $mail = new ServerInstanceHealthAlertMail($serverInstance, 'stale', $admin);
+        $rendered = $mail->render();
+
+        $this->assertSame('Server instance scanner-mail-1 is STALE', $mail->envelope()->subject);
+        $this->assertSame([], $mail->attachments());
+        $this->assertStringContainsString('Hello Admin User,', $rendered);
+        $this->assertStringContainsString('The scanner instance &quot;scanner-mail-1&quot; is currently marked as Stale.', $rendered);
+        $this->assertStringContainsString('IP address: 192.0.2.47.', $rendered);
+        $this->assertStringContainsString('considered stale after 10 minutes', $rendered);
+        $this->assertStringContainsString('class="mail-button"', $rendered);
+    }
+
+    public function test_server_instance_health_alert_mail_renders_recovery_copy(): void
+    {
+        $admin = User::factory()->make([
+            'name' => 'Recovery Admin',
+            'role' => UserRole::ADMIN,
+        ]);
+        $serverInstance = new ServerInstance([
+            'code' => 'scanner-recovery-mail-1',
+            'ip_address' => null,
+            'last_seen_at' => null,
+        ]);
+
+        $rendered = (new ServerInstanceHealthAlertMail($serverInstance, 'healthy', $admin))->render();
+
+        $this->assertStringContainsString('The scanner instance &quot;scanner-recovery-mail-1&quot; is reporting again and is now healthy.', $rendered);
+        $this->assertStringContainsString('IP address: None.', $rendered);
+        $this->assertStringContainsString('Last seen: Never seen.', $rendered);
+    }
 }
