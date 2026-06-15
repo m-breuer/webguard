@@ -247,11 +247,11 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
             'last_seen_at' => Date::now()->subMinutes(12),
         ]);
 
-        $mail = new ServerInstanceHealthAlertMail($serverInstance, 'stale', $admin);
-        $rendered = $mail->render();
+        $serverInstanceHealthAlertMail = new ServerInstanceHealthAlertMail($serverInstance, 'stale', $admin);
+        $rendered = $serverInstanceHealthAlertMail->render();
 
-        $this->assertSame('Server instance scanner-mail-1 is STALE', $mail->envelope()->subject);
-        $this->assertSame([], $mail->attachments());
+        $this->assertSame('Server instance scanner-mail-1 is STALE', $serverInstanceHealthAlertMail->envelope()->subject);
+        $this->assertSame([], $serverInstanceHealthAlertMail->attachments());
         $this->assertStringContainsString('Hello Admin User,', $rendered);
         $this->assertStringContainsString('The scanner instance &quot;scanner-mail-1&quot; is currently marked as Stale.', $rendered);
         $this->assertStringContainsString('IP address: 192.0.2.47.', $rendered);
