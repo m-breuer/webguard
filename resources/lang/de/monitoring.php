@@ -129,9 +129,13 @@ return [
             'loading_more' => 'Weitere Prüfungen werden geladen...',
             'load_more' => 'Mehr laden',
             'no_checks' => 'Es wurden noch keine Einzelprüfungen erfasst.',
+            'summary_suffix' => 'aktuelle Checks · Live-Daten',
             'status_code_unavailable' => 'Kein Statuscode',
             'response_time_unavailable' => 'Nicht verfügbar',
             'labels' => [
+                'checked_at' => 'Zeitpunkt',
+                'result' => 'Messwerte',
+                'status' => 'Status',
                 'status_code' => 'Statuscode',
                 'response_time' => 'Antwortzeit',
                 'server_health' => 'Server-Zustand',

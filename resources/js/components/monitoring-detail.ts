@@ -69,6 +69,8 @@ interface MonitoringDetailComponent {
     resolveCheckSourceLabel(this: MonitoringDetailComponent, source: string): string;
     formatResponseTime(this: MonitoringDetailComponent, responseTime: number | null): string;
     formatServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): string;
+    hasServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): boolean;
+    responseTimeBarWidth(this: MonitoringDetailComponent, responseTime: number | null): number;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -626,6 +628,24 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                 return `${labels[key] ?? key}: ${value}`;
             })
             .join(' | ') || '—';
+    },
+
+    hasServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): boolean {
+        if (!metrics) {
+            return false;
+        }
+
+        return Object.entries(metrics)
+            .filter(([key]) => key !== 'extra_metrics')
+            .some(([, value]) => value !== null && value !== undefined && value !== '');
+    },
+
+    responseTimeBarWidth(this: MonitoringDetailComponent, responseTime: number | null): number {
+        if (responseTime === null) {
+            return 0;
+        }
+
+        return Math.min(100, Math.max(12, Math.round((responseTime / 300) * 100)));
     },
 
     chartLabels: chartLabels
