@@ -117,6 +117,20 @@ class PublicStatusPageTest extends TestCase
             ->assertJsonPath('2026-04.monthly_average_uptime', 100);
     }
 
+    public function test_public_status_page_calendar_endpoint_validates_date_range_without_authentication(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => true,
+        ]);
+
+        $testResponse = $this->getJson(route('public.monitorings.uptime-calendar', $monitoring));
+
+        $testResponse->assertUnprocessable();
+        $testResponse->assertJsonValidationErrors(['start_date', 'end_date']);
+    }
+
     public function test_public_status_page_accepts_email_subscriptions_and_sends_confirmation(): void
     {
         Mail::fake();
