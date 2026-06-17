@@ -51,6 +51,7 @@ services:
       target: production
     image: webguard-core-php:latest
     restart: unless-stopped
+    stop_signal: SIGTERM
     environment:
       <<: *app-environment
       SSL_MODE: "${DOCKER_SSL_MODE:-off}"
@@ -117,7 +118,15 @@ services:
       PHP_MAX_EXECUTION_TIME: "3600"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "false"
-    command: php artisan schedule:work --verbose --no-interaction
+    command:
+      - sh
+      - -lc
+      - |
+        trap "exit 0" TERM INT QUIT
+        while true; do
+          php artisan schedule:run --verbose --no-interaction
+          sleep 60 & wait %1
+        done
     stop_signal: SIGTERM
     depends_on:
       mysql:
