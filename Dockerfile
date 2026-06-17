@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 ############################################
 # Base Image
 ############################################
@@ -41,27 +43,34 @@ USER root
 FROM base AS app_build
 # Install Composer
 USER root
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-USER www-data
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-req=ext-redis
-COPY . .
+RUN chown www-data:www-data /app
+USER www-data
+ENV COMPOSER_CACHE_DIR=/tmp/composer-cache
+COPY --link --chown=33:33 composer.json composer.lock ./
+RUN --mount=type=cache,target=/tmp/composer-cache,sharing=locked,uid=33,gid=33 \
+    composer install --no-dev --optimize-autoloader --no-scripts --no-interaction --no-progress --prefer-dist --ignore-platform-req=ext-redis
+COPY --link --chown=33:33 . .
 RUN rm -f bootstrap/cache/*.php && \
     composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
 
-FROM oven/bun:latest AS frontend_build
+FROM oven/bun:1 AS frontend_build
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-COPY . .
+ENV BUN_INSTALL_CACHE_DIR=/tmp/bun-cache
+COPY --link package.json bun.lock ./
+RUN --mount=type=cache,target=/tmp/bun-cache,sharing=locked \
+    bun install --frozen-lockfile
+COPY --link resources resources
+COPY --link public public
+COPY --link postcss.config.js tailwind.config.js tsconfig.json vite.config.js ./
 RUN bun run build
 
 FROM base AS production
-COPY --from=app_build --chown=www-data:www-data /app /var/www/html
-COPY --from=frontend_build --chown=www-data:www-data /app/public/build /var/www/html/public/build
-COPY docker/php/entrypoint.d/ /etc/entrypoint.d/
+COPY --link --from=app_build --chown=33:33 /app /var/www/html
+COPY --link --from=frontend_build --chown=33:33 /app/public/build /var/www/html/public/build
+COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/
 RUN chmod +x /etc/entrypoint.d/*.sh
 USER www-data
 WORKDIR /var/www/html
@@ -73,6 +82,6 @@ FROM serversideup/php:8.5-cli AS worker
 USER root
 RUN install-php-extensions redis
 # Copy application code from the build stage
-COPY --from=app_build --chown=www-data:www-data /app /var/www/html
+COPY --link --from=app_build --chown=33:33 /app /var/www/html
 USER www-data
 WORKDIR /var/www/html

@@ -148,6 +148,7 @@ services:
     volumes:
       - ./:/var/www/html
       - webguard_node_modules:/var/www/html/node_modules
+      - webguard_bun_cache:/tmp/.bun/install/cache
     networks:
       - webguard-network
 
@@ -162,4 +163,6 @@ services:
 
 volumes:
   webguard_node_modules:
+    driver: local
+  webguard_bun_cache:
     driver: local
