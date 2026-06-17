@@ -69,6 +69,12 @@ services:
     expose:
       - "8080"
       - "8443"
+    healthcheck:
+      test: ["CMD", "webguard-healthcheck"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
     volumes:
       - config:/config
       - data:/data
