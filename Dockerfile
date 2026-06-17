@@ -8,9 +8,23 @@
 # https://serversideup.net/open-source/docker-php/
 FROM serversideup/php:8.5-fpm-nginx AS base
 
-# Additional PHP extensions
+# Additional production PHP extensions
 USER root
-RUN install-php-extensions bcmath gd intl pdo_mysql sockets zip redis
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    set -eux; \
+    rm -f /etc/apt/apt.conf.d/docker-clean; \
+    export DEBIAN_FRONTEND=noninteractive; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends libfreetype6-dev libjpeg62-turbo-dev libpng-dev; \
+    docker-php-ext-configure gd --with-freetype --with-jpeg; \
+    docker-php-ext-install -j"$(nproc)" gd; \
+    apt-mark manual libfreetype6 libjpeg62-turbo; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev; \
+    php -m | grep -qx gd
 
 ############################################
 # Development Image
@@ -25,7 +39,8 @@ ARG GROUP_ID
 
 # Switch to root so we can set the user ID and group ID
 USER root
-RUN docker-php-serversideup-set-id www-data $USER_ID:$GROUP_ID && \
+RUN install-php-extensions sockets && \
+    docker-php-serversideup-set-id www-data $USER_ID:$GROUP_ID && \
     docker-php-serversideup-set-file-permissions --owner $USER_ID:$GROUP_ID
 USER www-data
 
@@ -36,6 +51,7 @@ FROM base AS ci
 
 # Sometimes CI images need to run as root
 USER root
+RUN install-php-extensions sockets
 
 ############################################
 # Production Image
@@ -51,7 +67,7 @@ USER www-data
 ENV COMPOSER_CACHE_DIR=/tmp/composer-cache
 COPY --link --chown=33:33 composer.json composer.lock ./
 RUN --mount=type=cache,target=/tmp/composer-cache,sharing=locked,uid=33,gid=33 \
-    composer install --no-dev --optimize-autoloader --no-scripts --no-interaction --no-progress --prefer-dist --ignore-platform-req=ext-redis
+    composer install --no-dev --no-autoloader --no-scripts --no-interaction --no-progress --prefer-dist --ignore-platform-req=ext-redis
 COPY --link --chown=33:33 . .
 RUN rm -f bootstrap/cache/*.php && \
     composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
@@ -79,8 +95,6 @@ WORKDIR /var/www/html
 # Production Worker Image
 ############################################
 FROM serversideup/php:8.5-cli AS worker
-USER root
-RUN install-php-extensions redis
 # Copy application code from the build stage
 COPY --link --from=app_build --chown=33:33 /app /var/www/html
 USER www-data
