@@ -42,7 +42,7 @@ jobs:
       run: ./vendor/bin/rector process --ansi --debug
 
     - name: Run Pint
-      run: ./vendor/bin/pint
+      run: ./vendor/bin/pint --parallel
 
     - name: Ensure local PR branch exists
       run: git checkout -B "${{ github.head_ref }}"
