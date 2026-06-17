@@ -47,6 +47,12 @@ class DocumentationStructureTest extends TestCase
                 'queue:work redis',
                 'webguard-instance Integration With Local Docker',
             ],
+            'docs/test-concept.md' => [
+                'Docker-First Execution',
+                'Pest',
+                'Browser Tests',
+                'Release Validation',
+            ],
             'docs/contributing.md' => [
                 'Conventional Commits',
                 'Write tests',
@@ -98,6 +104,7 @@ class DocumentationStructureTest extends TestCase
             'docs/features.md',
             'docs/architecture.md',
             'docs/installation.md',
+            'docs/test-concept.md',
             'docs/contributing.md',
         ];
     }
