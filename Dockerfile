@@ -10,9 +10,11 @@ FROM serversideup/php:8.5-fpm-nginx AS base
 
 # Additional production PHP extensions
 USER root
+COPY docker/php/healthcheck.sh /usr/local/bin/webguard-healthcheck
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     set -eux; \
+    chmod +x /usr/local/bin/webguard-healthcheck; \
     rm -f /etc/apt/apt.conf.d/docker-clean; \
     export DEBIAN_FRONTEND=noninteractive; \
     apt-get update; \
@@ -88,6 +90,7 @@ COPY --link --from=app_build --chown=33:33 /app /var/www/html
 COPY --link --from=frontend_build --chown=33:33 /app/public/build /var/www/html/public/build
 COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/
 RUN chmod +x /etc/entrypoint.d/*.sh
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 CMD ["webguard-healthcheck"]
 USER www-data
 WORKDIR /var/www/html
 
