@@ -214,7 +214,6 @@ class MonitoringController extends Controller
         abort_if(Auth::user()->isDemo(), 403);
 
         $validated = $monitoringRequest->validated();
-        unset($validated['target']);
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 
         if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {

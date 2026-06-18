@@ -13,7 +13,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class MonitoringTargetImmutabilityTest extends TestCase
+class MonitoringTargetEditTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -51,7 +51,7 @@ class MonitoringTargetImmutabilityTest extends TestCase
         ]);
     }
 
-    public function test_edit_page_displays_target_as_non_editable_with_helper_text(): void
+    public function test_edit_page_displays_target_as_editable(): void
     {
         $monitoring = Monitoring::factory()->for($this->user)->create([
             'type' => MonitoringType::PING,
@@ -63,11 +63,12 @@ class MonitoringTargetImmutabilityTest extends TestCase
         $testResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
 
         $testResponse->assertOk();
-        $testResponse->assertSee(__('monitoring.form.target_immutable_help'));
-        $testResponse->assertDontSeeHtml('name="target"');
+        $testResponse->assertSeeHtml('name="target"');
+        $testResponse->assertSee('1.1.1.1');
+        $testResponse->assertDontSee(__('monitoring.form.target_immutable_help'));
     }
 
-    public function test_crafted_update_payload_cannot_change_target(): void
+    public function test_update_payload_can_change_target(): void
     {
         $monitoring = Monitoring::factory()->for($this->user)->create([
             'type' => MonitoringType::PING,
@@ -87,7 +88,7 @@ class MonitoringTargetImmutabilityTest extends TestCase
         $monitoring->refresh();
 
         $this->assertSame('Renamed Monitor', $monitoring->name);
-        $this->assertSame('1.1.1.1', $monitoring->target);
+        $this->assertSame('9.9.9.9', $monitoring->target);
     }
 
     private function creationPayload(array $overrides = []): array

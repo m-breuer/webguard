@@ -87,17 +87,30 @@
     <div class="mt-4">
         <x-input-label for="target" :value="__('monitoring.form.target')" />
         @if (isset($monitoring))
-            <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
-                class="cursor-not-allowed" />
-            <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                @if ($monitoring->type === MonitoringType::HEARTBEAT)
+            @if ($monitoring->type === MonitoringType::HEARTBEAT || $monitoring->type === MonitoringType::SERVER_HEALTH)
+                <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
+                    class="cursor-not-allowed" />
+                <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    @if ($monitoring->type === MonitoringType::HEARTBEAT)
                     {{ __('monitoring.form.heartbeat_ping_url_help') }}
-                @elseif ($monitoring->type === MonitoringType::SERVER_HEALTH)
+                    @else
                     {{ __('monitoring.form.server_health_endpoint_help') }}
-                @else
-                    {{ __('monitoring.form.target_immutable_help') }}
-                @endif
-            </x-paragraph>
+                    @endif
+                </x-paragraph>
+            @else
+                <x-text-input id="target" type="text" name="target" x-model="target" required
+                    x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
+                    type === '{{ MonitoringType::PING->value }}' ?
+                    '{{ __('monitoring.form.placeholders.ping_target') }}' :
+                    type === '{{ MonitoringType::KEYWORD->value }}' ?
+                    '{{ __('monitoring.form.placeholders.http_target') }}' :
+                    type === '{{ MonitoringType::PORT->value }}' ?
+                    '{{ __('monitoring.form.placeholders.port_target') }}' :
+                    type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' ?
+                    '{{ __('monitoring.form.placeholders.domain_target') }}' :
+                    type === '{{ MonitoringType::DNS_RECORD->value }}' ?
+                    '{{ __('monitoring.form.placeholders.dns_target') }}' : ''" />
+            @endif
         @else
             <div x-show="type !== '{{ $heartbeatTypeValue }}' && type !== '{{ $serverHealthTypeValue }}'">
                 <x-text-input id="target" type="text" name="target" x-model="target"
@@ -122,8 +135,8 @@
                 class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
                 {{ __('monitoring.form.server_health_target_generated') }}
             </div>
-            <x-input-error :messages="$errors->get('target')" />
         @endif
+        <x-input-error :messages="$errors->get('target')" />
     </div>
 
         </section>

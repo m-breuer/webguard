@@ -100,7 +100,6 @@ class DemoMonitoringController extends Controller
         $demoUser = $this->demoUser();
         $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
         $validated = $demoMonitoringRequest->validated();
-        unset($validated['target']);
 
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 
