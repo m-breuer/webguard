@@ -116,6 +116,25 @@ class MonitoringGroupTest extends TestCase
         $testResponse->assertSeeHtml('value="' . $production->id . '" selected');
     }
 
+    public function test_monitorings_and_groups_can_exist_without_assignments(): void
+    {
+        $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Unassigned Group']);
+
+        $createResponse = $this->actingAs($this->user)->post(route('monitorings.store'), $this->httpPayload([
+            'name' => 'Standalone HTTP Monitoring',
+        ]));
+
+        $createResponse->assertRedirect(route('monitorings.index'));
+
+        $monitoring = Monitoring::query()->where('name', 'Standalone HTTP Monitoring')->firstOrFail();
+
+        $this->assertSame(0, $monitoring->groups()->count());
+        $this->assertSame(0, $monitoringGroup->monitorings()->count());
+        $this->assertDatabaseMissing('monitoring_group_monitoring', [
+            'monitoring_id' => $monitoring->id,
+        ]);
+    }
+
     public function test_foreign_groups_are_not_visible_or_assignable(): void
     {
         $ownGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Own Group']);
