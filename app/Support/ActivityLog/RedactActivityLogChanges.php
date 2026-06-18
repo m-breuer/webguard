@@ -53,11 +53,11 @@ class RedactActivityLogChanges extends LogActivityAction
      * @param  Collection<string, mixed>|array<string, mixed>  $values
      * @return array<string, mixed>
      */
-    private function withMissingOldAttributes(Collection|array $values, Model $activity): array
+    private function withMissingOldAttributes(Collection|array $values, Model $model): array
     {
         $changes = $values instanceof Collection ? $values->toArray() : $values;
 
-        if (($activity->event ?? null) !== 'updated' || ! $activity->subject instanceof Model) {
+        if (($model->event ?? null) !== 'updated' || ! $model->subject instanceof Model) {
             return $changes;
         }
 
@@ -66,16 +66,21 @@ class RedactActivityLogChanges extends LogActivityAction
         }
 
         $old = is_array($changes['old'] ?? null) ? $changes['old'] : [];
-        $previous = method_exists($activity->subject, 'getPrevious')
-            ? $activity->subject->getPrevious()
+        $previous = method_exists($model->subject, 'getPrevious')
+            ? $model->subject->getPrevious()
             : [];
 
         foreach (array_keys($changes['attributes']) as $attribute) {
-            if (! is_string($attribute) || array_key_exists($attribute, $old) || ! array_key_exists($attribute, $previous)) {
+            if (! is_string($attribute)) {
                 continue;
             }
-
-            $old[$attribute] = $this->formatPreviousAttributeValue($activity->subject, $attribute, $previous[$attribute]);
+            if (array_key_exists($attribute, $old)) {
+                continue;
+            }
+            if (! array_key_exists($attribute, $previous)) {
+                continue;
+            }
+            $old[$attribute] = $this->formatPreviousAttributeValue($model->subject, $attribute, $previous[$attribute]);
         }
 
         if ($old !== []) {

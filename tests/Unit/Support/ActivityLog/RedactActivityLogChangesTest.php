@@ -21,9 +21,9 @@ class RedactActivityLogChangesTest extends TestCase
             'auth_password' => 'fresh-basic-password',
         ], true);
 
-        $reflection = new ReflectionClass($monitoring);
-        $previous = $reflection->getProperty('previous');
-        $previous->setValue($monitoring, [
+        $reflectionClass = new ReflectionClass($monitoring);
+        $reflectionProperty = $reflectionClass->getProperty('previous');
+        $reflectionProperty->setValue($monitoring, [
             'name' => 'Sensitive HTTP Monitor',
             'auth_password' => 'raw-basic-password',
         ]);
@@ -38,11 +38,11 @@ class RedactActivityLogChangesTest extends TestCase
             ],
         ]);
 
-        $action = new RedactActivityLogChanges();
-        $method = new ReflectionMethod($action, 'transformChanges');
-        $method->invoke($action, $activity);
+        $redactActivityLogChanges = new RedactActivityLogChanges();
+        $reflectionMethod = new ReflectionMethod($redactActivityLogChanges, 'transformChanges');
+        $reflectionMethod->invoke($redactActivityLogChanges, $activity);
 
-        $changes = $activity->attribute_changes->toArray();
+        $changes = $activity->attribute_changes->all();
 
         $this->assertSame('Sensitive HTTP Monitor', data_get($changes, 'old.name'));
         $this->assertSame('[redacted]', data_get($changes, 'old.auth_password'));
