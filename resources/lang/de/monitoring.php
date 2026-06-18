@@ -211,6 +211,7 @@ return [
         'select_type' => 'Überwachungstyp auswählen',
         'name' => 'Name',
         'groups' => 'Gruppen',
+        'no_group' => 'Keine Gruppe',
         'groups_help' => 'Optional: Ordnen Sie diese Überwachung bestehenden Gruppen zu. Monitoring und Gruppen können auch ohne Zuordnung bestehen. Gruppen werden separat verwaltet.',
         'target' => 'Ziel',
         'target_immutable_help' => 'Die Ziel-URL kann nach der Erstellung nicht mehr geändert werden.',

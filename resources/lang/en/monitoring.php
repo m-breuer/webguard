@@ -211,6 +211,7 @@ return [
         'select_type' => 'Select Monitoring Type',
         'name' => 'Name',
         'groups' => 'Groups',
+        'no_group' => 'No group',
         'groups_help' => 'Optionally assign this monitoring to existing groups. Monitorings and groups can also exist without assignments. Groups are managed separately.',
         'target' => 'Target',
         'target_immutable_help' => 'Target URL cannot be changed after creation.',

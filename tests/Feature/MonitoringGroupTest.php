@@ -135,6 +135,42 @@ class MonitoringGroupTest extends TestCase
         ]);
     }
 
+    public function test_create_and_edit_forms_offer_explicit_no_group_selection(): void
+    {
+        MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $createResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
+        $editResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
+
+        $createResponse->assertOk();
+        $createResponse->assertSeeText('No group');
+        $createResponse->assertSeeHtml('<option value="" selected>No group</option>');
+
+        $editResponse->assertOk();
+        $editResponse->assertSeeText('No group');
+        $editResponse->assertSeeHtml('<option value="" selected>No group</option>');
+    }
+
+    public function test_selecting_no_group_detaches_existing_group_assignments(): void
+    {
+        $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $monitoring->groups()->attach($monitoringGroup);
+
+        $updateResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), $this->httpPayload([
+            'name' => 'Standalone HTTP Monitoring',
+            'group_ids' => [''],
+        ]));
+
+        $updateResponse->assertRedirect(route('monitorings.show', $monitoring));
+        $this->assertSame(0, $monitoring->refresh()->groups()->count());
+    }
+
     public function test_foreign_groups_are_not_visible_or_assignable(): void
     {
         $ownGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Own Group']);
