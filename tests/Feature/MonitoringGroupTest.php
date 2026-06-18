@@ -36,13 +36,13 @@ class MonitoringGroupTest extends TestCase
 
     public function test_user_can_manage_monitoring_groups(): void
     {
-        $createResponse = $this->actingAs($this->user)->post(route('monitoring-groups.store'), [
+        $testResponse = $this->actingAs($this->user)->post(route('monitoring-groups.store'), [
             'name' => 'Production',
             'description' => 'Critical production endpoints',
             'public_label_enabled' => '1',
         ]);
 
-        $createResponse->assertRedirect(route('monitoring-groups.index'));
+        $testResponse->assertRedirect(route('monitoring-groups.index'));
         $this->assertDatabaseHas('monitoring_groups', [
             'user_id' => $this->user->id,
             'name' => 'Production',
@@ -122,10 +122,10 @@ class MonitoringGroupTest extends TestCase
         $otherUser = User::factory()->create(['package_id' => Package::factory()->create()->id]);
         $foreignGroup = MonitoringGroup::factory()->for($otherUser)->create(['name' => 'Foreign Group']);
 
-        $editResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
-        $editResponse->assertOk();
-        $editResponse->assertSeeText('Own Group');
-        $editResponse->assertDontSeeText('Foreign Group');
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('Own Group');
+        $testResponse->assertDontSeeText('Foreign Group');
 
         $storeResponse = $this->from(route('monitorings.create'))
             ->actingAs($this->user)
