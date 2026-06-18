@@ -237,7 +237,6 @@ class MonitoringController extends Controller
         $groupIds = $validated['group_ids'] ?? [];
         unset($validated['group_ids']);
 
-        unset($validated['target']);
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 
         if (! isset($validated['public_label_enabled']) || ! $validated['public_label_enabled']) {

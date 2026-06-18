@@ -129,9 +129,13 @@ return [
             'loading_more' => 'Loading more checks...',
             'load_more' => 'Load more',
             'no_checks' => 'No individual checks have been recorded yet.',
+            'summary_suffix' => 'current checks · Live data',
             'status_code_unavailable' => 'No status code',
             'response_time_unavailable' => 'Not available',
             'labels' => [
+                'checked_at' => 'Checked at',
+                'result' => 'Measurements',
+                'status' => 'Status',
                 'status_code' => 'Status code',
                 'response_time' => 'Response time',
                 'server_health' => 'Server health',

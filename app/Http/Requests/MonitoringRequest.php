@@ -230,6 +230,8 @@ class MonitoringRequest extends FormRequest
 
         if ($this->isMethod('post')) {
             $rules['target'] = $this->targetRules();
+        } elseif ($this->isMethod('patch') || $this->isMethod('put')) {
+            $rules['target'] = ['sometimes', ...$this->targetRules()];
         }
 
         return $rules;
@@ -310,7 +312,7 @@ class MonitoringRequest extends FormRequest
     }
 
     /**
-     * Get validation rules for the target field during monitoring creation.
+     * Get validation rules for the target field.
      *
      * @return array<int, ValidationRule|callable|string>
      */

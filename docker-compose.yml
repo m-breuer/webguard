@@ -55,7 +55,7 @@ services:
     environment:
       <<: *app-environment
       SSL_MODE: "${DOCKER_SSL_MODE:-off}"
-      PHP_MEMORY_LIMIT: "512M"
+      PHP_MEMORY_LIMIT: "2048M"
       PHP_UPLOAD_MAX_FILE_SIZE: "100M"
       PHP_MAX_EXECUTION_TIME: "300"
       PHP_OPCACHE_ENABLE: "1"
@@ -69,6 +69,12 @@ services:
     expose:
       - "8080"
       - "8443"
+    healthcheck:
+      test: ["CMD", "webguard-healthcheck"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
     volumes:
       - config:/config
       - data:/data

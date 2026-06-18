@@ -61,15 +61,13 @@ final class MonitoringPayload
      */
     public static function prepareUpdate(array $validated, Monitoring $monitoring): array
     {
-        if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION) {
-            $validated['target'] = $monitoring->target;
+        $validated['target'] ??= $monitoring->target;
 
+        if ($monitoring->type === MonitoringType::DOMAIN_EXPIRATION) {
             return self::applyDomainDefaults($validated);
         }
 
         if ($monitoring->type === MonitoringType::DNS_RECORD) {
-            $validated['target'] = $monitoring->target;
-
             return self::applyDnsDefaults($validated);
         }
 
