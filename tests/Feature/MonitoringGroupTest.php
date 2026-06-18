@@ -142,12 +142,12 @@ class MonitoringGroupTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $createResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
         $editResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
 
-        $createResponse->assertOk();
-        $createResponse->assertSeeText('No group');
-        $createResponse->assertSeeHtml('<option value="" selected>No group</option>');
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('No group');
+        $testResponse->assertSeeHtml('<option value="" selected>No group</option>');
 
         $editResponse->assertOk();
         $editResponse->assertSeeText('No group');
@@ -162,12 +162,12 @@ class MonitoringGroupTest extends TestCase
         ]);
         $monitoring->groups()->attach($monitoringGroup);
 
-        $updateResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), $this->httpPayload([
+        $testResponse = $this->actingAs($this->user)->patch(route('monitorings.update', $monitoring), $this->httpPayload([
             'name' => 'Standalone HTTP Monitoring',
             'group_ids' => [''],
         ]));
 
-        $updateResponse->assertRedirect(route('monitorings.show', $monitoring));
+        $testResponse->assertRedirect(route('monitorings.show', $monitoring));
         $this->assertSame(0, $monitoring->refresh()->groups()->count());
     }
 
