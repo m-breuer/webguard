@@ -6,6 +6,8 @@ namespace App\Support\ActivityLog;
 
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
+use BackedEnum;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Spatie\Activitylog\Actions\LogActivityAction;
@@ -40,8 +42,64 @@ class RedactActivityLogChanges extends LogActivityAction
 
     protected function transformChanges(Model $activity): void
     {
-        $activity->attribute_changes = $this->redactCollection($activity->attribute_changes ?? collect(), $activity);
+        $activity->attribute_changes = $this->redactCollection(
+            $this->withMissingOldAttributes($activity->attribute_changes ?? collect(), $activity),
+            $activity
+        );
         $activity->properties = $this->redactCollection($activity->properties ?? collect(), $activity);
+    }
+
+    /**
+     * @param  Collection<string, mixed>|array<string, mixed>  $values
+     * @return array<string, mixed>
+     */
+    private function withMissingOldAttributes(Collection|array $values, Model $activity): array
+    {
+        $changes = $values instanceof Collection ? $values->toArray() : $values;
+
+        if (($activity->event ?? null) !== 'updated' || ! $activity->subject instanceof Model) {
+            return $changes;
+        }
+
+        if (! is_array($changes['attributes'] ?? null)) {
+            return $changes;
+        }
+
+        $old = is_array($changes['old'] ?? null) ? $changes['old'] : [];
+        $previous = method_exists($activity->subject, 'getPrevious')
+            ? $activity->subject->getPrevious()
+            : [];
+
+        foreach (array_keys($changes['attributes']) as $attribute) {
+            if (! is_string($attribute) || array_key_exists($attribute, $old) || ! array_key_exists($attribute, $previous)) {
+                continue;
+            }
+
+            $old[$attribute] = $this->formatPreviousAttributeValue($activity->subject, $attribute, $previous[$attribute]);
+        }
+
+        if ($old !== []) {
+            $changes['old'] = $old;
+        }
+
+        return $changes;
+    }
+
+    private function formatPreviousAttributeValue(Model $subject, string $attribute, mixed $value): mixed
+    {
+        $model = $subject->newInstance([], true);
+        $model->setRawAttributes([$attribute => $value], true);
+        $formatted = $model->getAttribute($attribute);
+
+        if ($formatted instanceof BackedEnum) {
+            return $formatted->value;
+        }
+
+        if ($formatted instanceof DateTimeInterface) {
+            return $formatted->format(DateTimeInterface::ATOM);
+        }
+
+        return $formatted;
     }
 
     /**
