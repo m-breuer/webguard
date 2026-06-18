@@ -206,6 +206,8 @@ return [
         'type' => 'Monitoring Type',
         'select_type' => 'Select Monitoring Type',
         'name' => 'Name',
+        'groups' => 'Groups',
+        'groups_help' => 'Assign this monitoring to one or more existing groups. Groups are managed separately.',
         'target' => 'Target',
         'target_immutable_help' => 'Target URL cannot be changed after creation.',
         'heartbeat_target_generated' => 'The heartbeat ping URL will be generated automatically after saving.',

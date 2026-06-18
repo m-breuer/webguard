@@ -8,6 +8,7 @@ use App\Models\ApiLog;
 use App\Models\IncidentUpdate;
 use App\Models\Monitoring;
 use App\Models\MonitoringDomainResult;
+use App\Models\MonitoringGroup;
 use App\Models\MonitoringNotification;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringResponseArchived;
@@ -34,6 +35,7 @@ class ModelIdentifierMetadataTest extends TestCase
             'incident update' => [IncidentUpdate::class],
             'monitoring' => [Monitoring::class],
             'monitoring domain result' => [MonitoringDomainResult::class],
+            'monitoring group' => [MonitoringGroup::class],
             'monitoring notification' => [MonitoringNotification::class],
             'monitoring response' => [MonitoringResponse::class],
             'monitoring response archived' => [MonitoringResponseArchived::class],

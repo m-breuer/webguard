@@ -217,6 +217,11 @@ class MonitoringRequest extends FormRequest
                 'string',
                 Rule::in($this->notificationChannelUser()?->enabledNotificationChannelKeys() ?? []),
             ],
+            'group_ids' => ['nullable', 'array'],
+            'group_ids.*' => [
+                'string',
+                Rule::exists('monitoring_groups', 'id')->where('user_id', $this->user()?->id),
+            ],
             'failure_confirmation_threshold' => ['required', 'integer', 'min:1', 'max:10'],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
             'maintenance_from' => ['nullable', 'date'],
@@ -255,6 +260,7 @@ class MonitoringRequest extends FormRequest
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
+            'group_ids' => $this->normalizeGroupIds(),
             'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 2),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
@@ -283,6 +289,23 @@ class MonitoringRequest extends FormRequest
         return array_values(array_unique(array_filter(
             $channels,
             static fn ($channel): bool => is_string($channel) && $channel !== ''
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizeGroupIds(): array
+    {
+        $groupIds = $this->input('group_ids', []);
+
+        if (! is_array($groupIds)) {
+            $groupIds = [$groupIds];
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $groupId): string => (string) $groupId, $groupIds),
+            static fn (string $groupId): bool => $groupId !== ''
         )));
     }
 

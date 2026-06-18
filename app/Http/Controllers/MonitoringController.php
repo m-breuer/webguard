@@ -50,6 +50,11 @@ class MonitoringController extends Controller
                 }
             }],
             'lifecycle' => ['nullable', 'string', Rule::enum(MonitoringLifecycleStatus::class)],
+            'group_id' => [
+                'nullable',
+                'string',
+                Rule::exists('monitoring_groups', 'id')->where('user_id', $currentUser->id),
+            ],
         ]);
 
         $query = Monitoring::query();
@@ -73,6 +78,12 @@ class MonitoringController extends Controller
             $query->where('status', $request->lifecycle);
         }
 
+        if ($request->filled('group_id')) {
+            $query->whereHas('groups', function ($builder) use ($request): void {
+                $builder->where('monitoring_groups.id', $request->string('group_id')->toString());
+            });
+        }
+
         $query->orderBy('status');
 
         match ($request->input('sort')) {
@@ -85,7 +96,8 @@ class MonitoringController extends Controller
         $lengthAwarePaginator = $query->paginate(5);
         $hasActiveFilters = $request->filled('search')
             || $request->filled('types')
-            || $request->filled('lifecycle');
+            || $request->filled('lifecycle')
+            || $request->filled('group_id');
         $monitoringsTotal = $hasActiveFilters
             ? $currentUser->monitorings()->count()
             : $lengthAwarePaginator->total();
@@ -107,6 +119,7 @@ class MonitoringController extends Controller
             'monitoringLimit' => $monitoringLimit,
             'canCreateMonitoring' => $canCreateMonitoring,
             'maintenanceStatusMap' => $maintenanceStatusMap,
+            'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -136,6 +149,7 @@ class MonitoringController extends Controller
             'types' => $types,
             'serverInstances' => $serverInstances,
             'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+            'monitoringGroups' => Auth::user()->monitoringGroups()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -155,9 +169,13 @@ class MonitoringController extends Controller
         }
 
         $validated = $monitoringRequest->validated();
+        $groupIds = $validated['group_ids'] ?? [];
+        unset($validated['group_ids']);
+
         $validated = MonitoringPayload::prepareStore($validated);
 
-        Auth::user()->monitorings()->create($validated);
+        $monitoring = Auth::user()->monitorings()->create($validated);
+        $monitoring->groups()->sync($groupIds);
 
         return to_route('monitorings.index')->with('success', __('monitoring.messages.created'));
     }
@@ -187,6 +205,7 @@ class MonitoringController extends Controller
     {
         abort_if(Auth::user()->isDemo(), 403);
 
+        $monitoring->loadMissing('groups');
         $types = MonitoringType::cases();
         $serverInstances = ServerInstance::query()
             ->where('is_active', true)
@@ -199,6 +218,7 @@ class MonitoringController extends Controller
             'types' => $types,
             'serverInstances' => $serverInstances,
             'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+            'monitoringGroups' => Auth::user()->monitoringGroups()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -214,6 +234,9 @@ class MonitoringController extends Controller
         abort_if(Auth::user()->isDemo(), 403);
 
         $validated = $monitoringRequest->validated();
+        $groupIds = $validated['group_ids'] ?? [];
+        unset($validated['group_ids']);
+
         unset($validated['target']);
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 
@@ -222,6 +245,7 @@ class MonitoringController extends Controller
         }
 
         $monitoring->update($validated);
+        $monitoring->groups()->sync($groupIds);
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.updated'));
     }

@@ -51,6 +51,9 @@
                     @if (request('lifecycle'))
                         <x-text-input type="hidden" name="lifecycle" :value="request('lifecycle')" />
                     @endif
+                    @if (request('group_id'))
+                        <x-text-input type="hidden" name="group_id" :value="request('group_id')" />
+                    @endif
                     @if (request('sort'))
                         <x-text-input type="hidden" name="sort" :value="request('sort')" />
                     @endif
@@ -109,13 +112,13 @@
                             updateStatus() {
                                 const url = new URL(window.location.href);
                                 const params = new URLSearchParams(window.location.search);
-                        
+
                                 if (this.selectedStatus) {
                                     params.set('lifecycle', this.selectedStatus);
                                 } else {
                                     params.delete('lifecycle');
                                 }
-                        
+
                                 url.search = params.toString();
                                 window.location.href = url.toString();
                             }
@@ -127,6 +130,36 @@
                                 @foreach (MonitoringLifecycleStatus::cases() as $status)
                                     <option value="{{ $status->value }}" @selected(request('lifecycle') === $status->value)>
                                         {{ ucfirst($status->value) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div x-data="{
+                            selectedGroup: '{{ request('group_id') ?? '' }}',
+                            updateGroup() {
+                                const url = new URL(window.location.href);
+                                const params = new URLSearchParams(window.location.search);
+
+                                if (this.selectedGroup) {
+                                    params.set('group_id', this.selectedGroup);
+                                } else {
+                                    params.delete('group_id');
+                                }
+
+                                url.search = params.toString();
+                                window.location.href = url.toString();
+                            }
+                        }" class="relative">
+                            <label for="group-select" class="sr-only">{{ __('monitoring_group.filter.label') }}</label>
+                            <select id="group-select" x-model="selectedGroup" @change="updateGroup"
+                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                <option value="">{{ __('monitoring_group.filter.all') }}</option>
+                                @foreach ($monitoringGroups as $monitoringGroup)
+                                    <option value="{{ $monitoringGroup->id }}" @selected(request('group_id') === $monitoringGroup->id)>
+                                        {{ $monitoringGroup->name }}
                                     </option>
                                 @endforeach
                             </select>

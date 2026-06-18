@@ -16,6 +16,10 @@
                         {{ __('monitoring.title') }}
                     </x-nav-link>
 
+                    <x-nav-link :href="route('monitoring-groups.index')" :active="request()->routeIs('monitoring-groups.*')">
+                        {{ __('monitoring_group.title') }}
+                    </x-nav-link>
+
                     <x-nav-link :href="route('status-pages.index')" :active="request()->routeIs('status-pages.*')">
                         {{ __('status_page.title') }}
                     </x-nav-link>
@@ -125,6 +129,10 @@
         <div class="space-y-1 pb-3 pt-2">
             <x-responsive-nav-link :href="route('monitorings.index')" :active="request()->routeIs('monitorings.*')">
                 {{ __('monitoring.title') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('monitoring-groups.index')" :active="request()->routeIs('monitoring-groups.*')">
+                {{ __('monitoring_group.title') }}
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('status-pages.index')" :active="request()->routeIs('status-pages.*')">
