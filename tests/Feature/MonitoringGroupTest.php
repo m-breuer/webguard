@@ -120,11 +120,11 @@ class MonitoringGroupTest extends TestCase
     {
         $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Unassigned Group']);
 
-        $createResponse = $this->actingAs($this->user)->post(route('monitorings.store'), $this->httpPayload([
+        $testResponse = $this->actingAs($this->user)->post(route('monitorings.store'), $this->httpPayload([
             'name' => 'Standalone HTTP Monitoring',
         ]));
 
-        $createResponse->assertRedirect(route('monitorings.index'));
+        $testResponse->assertRedirect(route('monitorings.index'));
 
         $monitoring = Monitoring::query()->where('name', 'Standalone HTTP Monitoring')->firstOrFail();
 
