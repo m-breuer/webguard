@@ -219,6 +219,15 @@ class Monitoring extends Model
     }
 
     /**
+     * @return BelongsToMany<MonitoringGroup, $this>
+     */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(MonitoringGroup::class, 'monitoring_group_monitoring')
+            ->withTimestamps();
+    }
+
+    /**
      * Determine if the monitoring is active.
      */
     public function isActive(): bool

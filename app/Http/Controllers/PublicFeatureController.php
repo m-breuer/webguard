@@ -24,6 +24,7 @@ class PublicFeatureController extends Controller
         'ssl-certificate-monitoring' => ['key' => 'ssl', 'category' => 'monitoring', 'related' => ['domain-expiration-monitoring', 'notifications', 'weekly-digest']],
         'status-code-monitoring' => ['key' => 'http_expectations', 'category' => 'monitoring', 'related' => ['http-monitoring', 'keyword-monitoring', 'response-time-uptime']],
         'response-time-uptime' => ['key' => 'stats', 'category' => 'operations', 'related' => ['http-monitoring', 'public-labels', 'weekly-digest']],
+        'monitoring-groups' => ['key' => 'monitoring_groups', 'category' => 'operations', 'related' => ['public-labels', 'public-status-pages', 'response-time-uptime']],
         'multi-location-monitoring' => ['key' => 'multi_location', 'category' => 'operations', 'related' => ['http-monitoring', 'ping-monitoring', 'monitoring-locations']],
         'notifications' => ['key' => 'notifications', 'category' => 'operations', 'related' => ['weekly-digest', 'public-labels', 'maintenance-windows']],
         'weekly-digest' => ['key' => 'weekly_digest', 'category' => 'operations', 'related' => ['notifications', 'response-time-uptime', 'ssl-certificate-monitoring']],

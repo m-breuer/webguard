@@ -30,4 +30,17 @@ class MysqlMigrationCompatibilityTest extends TestCase
         $this->assertStringContainsString("->foreign('status_page_component_id', '{$componentForeignKeyName}')", $migration);
         $this->assertStringContainsString("->foreign('monitoring_id', '{$monitoringForeignKeyName}')", $migration);
     }
+
+    public function test_monitoring_group_pivot_foreign_key_names_fit_mysql_identifier_limit(): void
+    {
+        $migration = file_get_contents(base_path('database/migrations/2026_06_18_120000_create_monitoring_groups_table.php'));
+        $groupForeignKeyName = 'monitoring_group_monitoring_group_fk';
+        $monitoringForeignKeyName = 'monitoring_group_monitoring_monitoring_fk';
+
+        $this->assertIsString($migration);
+        $this->assertLessThanOrEqual(64, mb_strlen($groupForeignKeyName));
+        $this->assertLessThanOrEqual(64, mb_strlen($monitoringForeignKeyName));
+        $this->assertStringContainsString("->foreign('monitoring_group_id', '{$groupForeignKeyName}')", $migration);
+        $this->assertStringContainsString("->foreign('monitoring_id', '{$monitoringForeignKeyName}')", $migration);
+    }
 }

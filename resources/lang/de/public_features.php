@@ -16,8 +16,8 @@ return [
     'index' => [
         'seo' => [
             'title' => 'WebGuard Funktionen - Monitoring, Public Status, Badges und API',
-            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
-            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
+            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Monitoring-Gruppen, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
+            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Monitoring-Gruppen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
             'og_title' => 'WebGuard Funktionen',
             'og_description' => 'Ein Überblick über Monitoring-Typen, öffentliche Statusfunktionen, Alerts, Analytics und API-Zugriff in WebGuard.',
         ],
@@ -44,7 +44,7 @@ return [
         'operations' => [
             'eyebrow' => 'Betrieb',
             'title' => 'Aus Checks wird Incident-Kontext',
-            'text' => 'Nutzen Sie Alerts, Bestätigungsschwellen, Antwortdaten, Wartungsfenster und Wochenberichte, um Betrieb lesbar zu halten.',
+            'text' => 'Nutzen Sie Gruppen, Alerts, Bestätigungsschwellen, Antwortdaten, Wartungsfenster und Wochenberichte, um Betrieb lesbar zu halten.',
         ],
         'sharing' => [
             'eyebrow' => 'Öffentliche Kommunikation',
@@ -170,6 +170,15 @@ return [
             'highlights' => ['Uptime- und Downtime-Zusammenfassungen', 'Antwortzeit-Charts und einzelne Checks', 'Tägliche Aggregation für Langzeitverlauf'],
             'details' => ['Nutzen Sie Analytics, um zu erkennen, ob Services langsamer, instabiler oder zuverlässiger werden.', 'Monitor-Details enthalten Antwortzeittrends, einzelne Checks, Incidents, Uptime-Kalender, SSL-Status und Domain-Status, wo relevant.', 'Dieselben Betriebsdaten versorgen Wochenberichte, Public Labels, SLA-Badges und API-Nutzer.'],
             'seo' => ['title' => 'Uptime Analytics - WebGuard', 'description' => 'Analysieren Sie Uptime, Downtime, Antwortzeiten, Incidents und einzelne Checks in WebGuard.', 'keywords' => 'Uptime Analytics, Antwortzeit Monitoring, Downtime Reporting'],
+        ],
+        'monitoring_groups' => [
+            'badge' => 'Organisation',
+            'title' => 'Monitoring-Gruppen',
+            'teaser' => 'Gruppieren Sie zusammengehörige Monitore, filtern Sie große Monitoring-Listen und veröffentlichen Sie Public Group Labels für freigegebene Checks.',
+            'lead' => 'Monitoring-Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
+            'highlights' => ['Mehrfachzuordnung für zusammengehörige Monitore', 'Bookmarkbare Gruppenfilter im Monitoring-Index', 'Optionale Public Group Labels für freigegebene öffentliche Monitore'],
+            'details' => ['Nutzen Sie Monitoring-Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Public Group Labels zeigen nur Monitore, deren Public Label aktiv ist. Private Checks bleiben damit aus geteilten Statusansichten heraus.'],
+            'seo' => ['title' => 'Monitoring-Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und optionalen Public Group Labels.', 'keywords' => 'Monitoring-Gruppen, gruppiertes Monitoring, Public Group Labels, Uptime Monitor Organisation'],
         ],
         'multi_location' => [
             'badge' => 'Verteilung',

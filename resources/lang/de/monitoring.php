@@ -210,6 +210,8 @@ return [
         'type' => 'Überwachungstyp',
         'select_type' => 'Überwachungstyp auswählen',
         'name' => 'Name',
+        'groups' => 'Gruppen',
+        'groups_help' => 'Ordnen Sie diese Überwachung einer oder mehreren bestehenden Gruppen zu. Gruppen werden separat verwaltet.',
         'target' => 'Ziel',
         'target_immutable_help' => 'Die Ziel-URL kann nach der Erstellung nicht mehr geändert werden.',
         'heartbeat_target_generated' => 'Die Heartbeat-Ping-URL wird nach dem Speichern automatisch erzeugt.',

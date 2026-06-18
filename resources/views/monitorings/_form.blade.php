@@ -23,6 +23,11 @@
         isset($monitoring) ? ($monitoring->notification_channels ?? $enabledNotificationChannels) : $enabledNotificationChannels
     );
     $selectedNotificationChannels = is_array($selectedNotificationChannels) ? $selectedNotificationChannels : [];
+    $selectedGroupIds = old(
+        'group_ids',
+        isset($monitoring) ? $monitoring->groups->pluck('id')->all() : []
+    );
+    $selectedGroupIds = is_array($selectedGroupIds) ? $selectedGroupIds : [];
 @endphp
 
 @csrf
@@ -82,6 +87,27 @@
         <x-input-label for="name" :value="__('monitoring.form.name')" />
         <x-text-input id="name" type="text" name="name" :value="old('name', $monitoring->name ?? '')" required />
         <x-input-error :messages="$errors->get('name')" />
+    </div>
+
+    <div class="mt-4">
+        <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
+        <x-select-input id="group_ids" class="mt-1 block min-h-32 w-full" name="group_ids[]" multiple>
+            @foreach ($monitoringGroups ?? [] as $monitoringGroup)
+                <option value="{{ $monitoringGroup->id }}" @selected(in_array($monitoringGroup->id, $selectedGroupIds, true))>
+                    {{ $monitoringGroup->name }}
+                </option>
+            @endforeach
+        </x-select-input>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.groups_help') }}
+            @if (!Auth::user()->isDemo())
+                <a href="{{ route('monitoring-groups.index') }}" class="text-purple-700 underline dark:text-purple-300">
+                    {{ __('monitoring_group.title') }}
+                </a>
+            @endif
+        </p>
+        <x-input-error :messages="$errors->get('group_ids')" />
+        <x-input-error :messages="$errors->get('group_ids.*')" />
     </div>
 
     <div class="mt-4">
