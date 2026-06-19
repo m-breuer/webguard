@@ -67,6 +67,78 @@ class MonitoringGroupTest extends TestCase
         ]);
     }
 
+    public function test_user_can_list_monitoring_groups_with_monitoring_counts(): void
+    {
+        $zulu = MonitoringGroup::factory()->for($this->user)->create([
+            'name' => 'Zulu Services',
+            'description' => 'Secondary systems',
+            'public_label_enabled' => false,
+        ]);
+        $alpha = MonitoringGroup::factory()->for($this->user)->create([
+            'name' => 'Alpha Services',
+            'description' => 'Primary systems',
+            'public_label_enabled' => true,
+        ]);
+        MonitoringGroup::factory()
+            ->for(User::factory()->create(['package_id' => Package::factory()->create()->id]))
+            ->create(['name' => 'Foreign Services']);
+
+        Monitoring::factory()
+            ->count(2)
+            ->for($this->user)
+            ->create(['preferred_location' => $this->serverInstance->code])
+            ->each(fn (Monitoring $monitoring) => $monitoring->groups()->attach($alpha));
+        Monitoring::factory()
+            ->for($this->user)
+            ->create(['preferred_location' => $this->serverInstance->code])
+            ->groups()
+            ->attach($zulu);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeInOrder(['Alpha Services', 'Zulu Services']);
+        $testResponse->assertSeeText('Primary systems');
+        $testResponse->assertSeeText('Secondary systems');
+        $testResponse->assertSeeText(trans_choice('monitoring_group.monitorings_count', 2, ['count' => 2]));
+        $testResponse->assertSeeText(trans_choice('monitoring_group.monitorings_count', 1, ['count' => 1]));
+        $testResponse->assertSeeHtml('href="' . route('public-monitoring-groups.show', $alpha) . '"');
+        $testResponse->assertDontSeeText('Foreign Services');
+    }
+
+    public function test_user_can_view_create_and_edit_monitoring_group_forms(): void
+    {
+        $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create([
+            'name' => 'Production',
+            'description' => 'Critical production endpoints',
+            'public_label_enabled' => true,
+        ]);
+
+        $createResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
+
+        $createResponse->assertOk();
+        $createResponse->assertSeeText(__('monitoring_group.create.title'));
+        $createResponse->assertSeeHtml('action="' . route('monitoring-groups.store') . '"');
+
+        $editResponse = $this->actingAs($this->user)->get(route('monitoring-groups.edit', $monitoringGroup));
+
+        $editResponse->assertOk();
+        $editResponse->assertSeeText(__('monitoring_group.edit.title', ['group' => 'Production']));
+        $editResponse->assertSeeHtml('action="' . route('monitoring-groups.update', $monitoringGroup) . '"');
+        $editResponse->assertSeeHtml('value="Production"');
+        $editResponse->assertSeeHtml('checked');
+    }
+
+    public function test_user_cannot_edit_foreign_monitoring_group(): void
+    {
+        $otherUser = User::factory()->create(['package_id' => Package::factory()->create()->id]);
+        $foreignGroup = MonitoringGroup::factory()->for($otherUser)->create();
+
+        $this->actingAs($this->user)
+            ->get(route('monitoring-groups.edit', $foreignGroup))
+            ->assertNotFound();
+    }
+
     public function test_group_name_is_unique_per_user(): void
     {
         MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
