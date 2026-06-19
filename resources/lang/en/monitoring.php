@@ -316,6 +316,7 @@ return [
             'email_placeholder' => 'you@example.com',
             'heading' => 'Subscribe to updates',
             'unsubscribe_button' => 'Unsubscribe',
+            'unsubscribe_confirmation' => 'Are you sure you want to unsubscribe from these status updates?',
             'unsubscribe_description' => 'Stop sending status updates for this monitor to :email.',
             'unsubscribe_heading' => 'Unsubscribe from status updates',
             'unsubscribe_title' => 'Unsubscribe from :monitoringName updates',

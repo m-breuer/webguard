@@ -316,6 +316,7 @@ return [
             'email_placeholder' => 'sie@example.com',
             'heading' => 'Updates abonnieren',
             'unsubscribe_button' => 'Abmelden',
+            'unsubscribe_confirmation' => 'Möchten Sie diese Statusupdates wirklich abbestellen?',
             'unsubscribe_description' => 'Keine Statusupdates für diese Überwachung mehr an :email senden.',
             'unsubscribe_heading' => 'Statusupdates abbestellen',
             'unsubscribe_title' => 'Updates für :monitoringName abbestellen',
