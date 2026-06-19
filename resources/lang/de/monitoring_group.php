@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 return [
-    'title' => 'Monitoring-Gruppen',
+    'title' => 'Gruppen',
     'create' => [
-        'title' => 'Monitoring-Gruppe erstellen',
+        'title' => 'Gruppe erstellen',
     ],
     'edit' => [
         'title' => ':group bearbeiten',
     ],
     'empty' => [
-        'title' => 'Noch keine Monitoring-Gruppen',
+        'title' => 'Noch keine Gruppen',
         'text' => 'Erstellen Sie Gruppen, um Ihre Überwachungen zu organisieren und zu filtern.',
     ],
     'form' => [
@@ -22,7 +22,7 @@ return [
     ],
     'filter' => [
         'all' => 'Alle Gruppen',
-        'label' => 'Monitoring-Gruppe',
+        'label' => 'Gruppe',
     ],
     'state' => [
         'private' => 'Privat',
@@ -32,13 +32,13 @@ return [
     'actions' => [
         'public_label' => 'Öffentliches Label',
         'delete' => [
-            'confirmation' => 'Möchten Sie diese Monitoring-Gruppe wirklich löschen? Die Überwachungen bleiben erhalten und verlieren nur diese Gruppenzuordnung.',
+            'confirmation' => 'Möchten Sie diese Gruppe wirklich löschen? Die Überwachungen bleiben erhalten und verlieren nur diese Gruppenzuordnung.',
         ],
     ],
     'messages' => [
-        'created' => 'Monitoring-Gruppe erfolgreich erstellt.',
-        'updated' => 'Monitoring-Gruppe erfolgreich aktualisiert.',
-        'deleted' => 'Monitoring-Gruppe erfolgreich gelöscht.',
+        'created' => 'Gruppe erfolgreich erstellt.',
+        'updated' => 'Gruppe erfolgreich aktualisiert.',
+        'deleted' => 'Gruppe erfolgreich gelöscht.',
     ],
     'public_label' => [
         'title' => ':groupName - Öffentlicher Status',

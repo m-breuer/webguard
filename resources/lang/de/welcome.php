@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Monitoring-Gruppen, Integrationen, SLA-Badges, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Monitoring-Gruppen, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SLA Badge, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Gruppen, Integrationen, SLA-Badges, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Gruppen, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SLA Badge, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
         'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand- und DNS-Checks, klaren Benachrichtigungen und transparenten Statusseiten.',
     ],
