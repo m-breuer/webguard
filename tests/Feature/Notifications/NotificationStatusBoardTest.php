@@ -222,6 +222,7 @@ class NotificationStatusBoardTest extends TestCase
         $notificationTime ??= Date::now()->subMinute();
 
         $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Status Board Monitor',
             'maintenance_from' => $maintenance ? Date::now()->subHour() : null,
             'maintenance_until' => $maintenance ? Date::now()->addHour() : null,
         ]);

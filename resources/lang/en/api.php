@@ -18,6 +18,7 @@ return [
         ],
         'messages' => [
             'copied' => 'API Key copied to clipboard!',
+            'confirm_revoke_token' => 'Are you sure you want to revoke your API token? Existing integrations that use this token will stop working.',
             'tokens_deleted' => 'Tokens deleted successfully.',
             'api_key_confidential_warning' => 'Keep your API key confidential. If you believe your key has been compromised, you can generate a new one.',
         ],

@@ -233,10 +233,14 @@ class PublicStatusPageTest extends TestCase
             'verified_at' => Date::now(),
         ]);
 
-        $this->get(route('public-label.subscribers.unsubscribe', [
+        $unsubscribeResponse = $this->get(route('public-label.subscribers.unsubscribe', [
             'monitoring' => $monitoring,
             'token' => $statusPageSubscriber->unsubscribe_token,
-        ]))->assertOk();
+        ]));
+
+        $unsubscribeResponse->assertOk();
+        $unsubscribeResponse->assertSeeHtml('x-data="confirmDialog()"');
+        $unsubscribeResponse->assertSeeHtml('data-confirm-message="' . __('monitoring.public_label.subscribe.unsubscribe_confirmation') . '"');
 
         $testResponse = $this->delete(route('public-label.subscribers.destroy', [
             'monitoring' => $monitoring,

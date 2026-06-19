@@ -16,8 +16,8 @@ return [
     'index' => [
         'seo' => [
             'title' => 'WebGuard Funktionen - Monitoring, Public Status, Badges und API',
-            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Monitoring-Gruppen, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
-            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Monitoring-Gruppen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
+            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Gruppen, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
+            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Gruppen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
             'og_title' => 'WebGuard Funktionen',
             'og_description' => 'Ein Überblick über Monitoring-Typen, öffentliche Statusfunktionen, Alerts, Analytics und API-Zugriff in WebGuard.',
         ],
@@ -173,12 +173,12 @@ return [
         ],
         'monitoring_groups' => [
             'badge' => 'Organisation',
-            'title' => 'Monitoring-Gruppen',
+            'title' => 'Gruppen',
             'teaser' => 'Gruppieren Sie zusammengehörige Monitore, filtern Sie große Monitoring-Listen und veröffentlichen Sie Gruppen bei Bedarf als Statusseite.',
-            'lead' => 'Monitoring-Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
+            'lead' => 'Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
             'highlights' => ['Mehrfachzuordnung für zusammengehörige Monitore', 'Bookmarkbare Gruppenfilter im Monitoring-Index', 'Statusseiten direkt aus Gruppen erstellen'],
-            'details' => ['Nutzen Sie Monitoring-Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Für öffentliche Kommunikation erstellen Sie aus einer Gruppe eine Statusseite, deren Komponente die Gruppeninhalte dynamisch übernimmt.'],
-            'seo' => ['title' => 'Monitoring-Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und Statusseiten aus Gruppen.', 'keywords' => 'Monitoring-Gruppen, gruppiertes Monitoring, Statusseiten aus Gruppen, Uptime Monitor Organisation'],
+            'details' => ['Nutzen Sie Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Für öffentliche Kommunikation erstellen Sie aus einer Gruppe eine Statusseite, deren Komponente die Gruppeninhalte dynamisch übernimmt.'],
+            'seo' => ['title' => 'Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und Statusseiten aus Gruppen.', 'keywords' => 'Gruppen, gruppiertes Monitoring, Statusseiten aus Gruppen, Uptime Monitor Organisation'],
         ],
         'multi_location' => [
             'badge' => 'Verteilung',

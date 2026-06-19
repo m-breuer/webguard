@@ -48,12 +48,11 @@
                                     <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)">
                                         {{ __('button.edit') }}
                                     </x-secondary-button>
-                                    <form method="POST" action="{{ route('monitoring-groups.destroy', $monitoringGroup) }}">
+                                    <form method="POST" action="{{ route('monitoring-groups.destroy', $monitoringGroup) }}"
+                                        data-confirm-message="{{ __('monitoring_group.actions.delete.confirmation') }}">
                                         @csrf
                                         @method('DELETE')
-                                        <x-danger-button
-                                            x-data
-                                            x-on:click.prevent="if (confirm('{{ __('monitoring_group.actions.delete.confirmation') }}')) $el.closest('form').submit()">
+                                        <x-danger-button>
                                             {{ __('button.delete') }}
                                         </x-danger-button>
                                     </form>

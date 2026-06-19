@@ -208,8 +208,10 @@ class MonitoringController extends Controller
         $monitoring->loadMissing('groups');
         $types = MonitoringType::cases();
         $serverInstances = ServerInstance::query()
-            ->where('is_active', true)
-            ->orWhere('code', $monitoring->preferred_location)
+            ->where(function ($query) use ($monitoring): void {
+                $query->where('is_active', true)
+                    ->orWhereIn('code', $monitoring->preferredLocationCodes());
+            })
             ->orderBy('code')
             ->get(['code']);
 

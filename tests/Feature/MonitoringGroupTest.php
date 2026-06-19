@@ -101,6 +101,18 @@ class MonitoringGroupTest extends TestCase
         $testResponse->assertDontSeeText('Foreign Services');
     }
 
+    public function test_delete_action_uses_app_confirm_dialog(): void
+    {
+        MonitoringGroup::factory()->for($this->user)->create();
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-confirm-message="' . __('monitoring_group.actions.delete.confirmation') . '"');
+        $testResponse->assertDontSeeHtml('if (confirm(');
+        $testResponse->assertDontSeeHtml('x-on:click.prevent');
+    }
+
     public function test_user_can_view_create_and_edit_monitoring_group_forms(): void
     {
         $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create([
@@ -213,11 +225,15 @@ class MonitoringGroupTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText('No group');
-        $testResponse->assertSeeHtml('<option value="" selected>No group</option>');
+        $testResponse->assertSeeText('Production');
+        $testResponse->assertSeeHtml('name="group_ids[]"');
+        $testResponse->assertSeeText('Select all');
 
         $editResponse->assertOk();
         $editResponse->assertSeeText('No group');
-        $editResponse->assertSeeHtml('<option value="" selected>No group</option>');
+        $editResponse->assertSeeText('Production');
+        $editResponse->assertSeeHtml('name="group_ids[]"');
+        $editResponse->assertSeeText('Select all');
     }
 
     public function test_selecting_no_group_detaches_existing_group_assignments(): void
