@@ -122,7 +122,7 @@ class MonitoringController extends Controller
 
         return Monitoring::query()
             ->where('id', $monitoringId)
-            ->where('preferred_location', $instanceCode)
+            ->assignedToLocation($instanceCode)
             ->exists();
     }
 }
