@@ -8,7 +8,6 @@ use App\Enums\StatusPageComponentSource;
 use App\Models\StatusPage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 class StatusPageRequest extends FormRequest
 {
@@ -54,9 +53,9 @@ class StatusPageRequest extends FormRequest
         ];
     }
 
-    public function withValidator(Validator $validator): void
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
     {
-        $validator->after(function (Validator $validator): void {
+        $validator->after(function (\Illuminate\Contracts\Validation\Validator $validator): void {
             $components = $this->input('components', []);
 
             if (! is_array($components)) {

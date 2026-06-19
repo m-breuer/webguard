@@ -374,11 +374,11 @@ class MonitoringGroupTest extends TestCase
 
         $monitoringGroup->monitorings()->attach($laterMonitoring->id);
 
-        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
 
-        $publicResponse->assertOk();
-        $publicResponse->assertSeeText('Initial API');
-        $publicResponse->assertSeeText('Added API');
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('Initial API');
+        $testResponse->assertSeeText('Added API');
     }
 
     private function httpPayload(array $overrides = []): array
