@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'user_id',
     'name',
     'description',
-    'public_label_enabled',
 ])]
 #[Table(name: 'monitoring_groups', key: 'id', keyType: 'string')]
 #[WithoutIncrementing]
@@ -49,7 +48,6 @@ class MonitoringGroup extends Model
     protected function casts(): array
     {
         return [
-            'public_label_enabled' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

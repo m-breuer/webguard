@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\IncidentUpdateStatus;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\StatusPage;
 use App\Models\User;
@@ -76,16 +77,47 @@ class StatusPageManagementTest extends TestCase
             'status_page_id' => $statusPage->id,
             'name' => 'API',
             'position' => 0,
+            'source_type' => 'manual',
+            'monitoring_group_id' => null,
         ]);
         $this->assertDatabaseHas('status_page_components', [
             'status_page_id' => $statusPage->id,
             'name' => 'Workers',
             'position' => 1,
+            'source_type' => 'manual',
+            'monitoring_group_id' => null,
         ]);
         $this->assertDatabaseHas('status_page_component_monitoring', [
             'monitoring_id' => $apiMonitoring->id,
             'position' => 0,
         ]);
+    }
+
+    public function test_status_page_group_components_cannot_reference_another_users_groups(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $otherUser = User::factory()->create(['package_id' => $package->id]);
+        $foreignGroup = MonitoringGroup::factory()->for($otherUser)->create();
+
+        $testResponse = $this->from(route('status-pages.create'))
+            ->actingAs($user)
+            ->post(route('status-pages.store'), [
+                'name' => 'Acme Status',
+                'slug' => 'acme-status',
+                'is_public' => '1',
+                'components' => [
+                    [
+                        'name' => 'Foreign Group',
+                        'source_type' => 'monitoring_group',
+                        'monitoring_group_id' => $foreignGroup->id,
+                    ],
+                ],
+            ]);
+
+        $testResponse->assertRedirect(route('status-pages.create'));
+        $testResponse->assertSessionHasErrors(['components.0.monitoring_group_id']);
+        $this->assertDatabaseMissing('status_pages', ['slug' => 'acme-status']);
     }
 
     public function test_status_page_components_cannot_reference_another_users_monitorings(): void

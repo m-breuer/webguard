@@ -174,11 +174,11 @@ return [
         'monitoring_groups' => [
             'badge' => 'Organization',
             'title' => 'Monitoring Groups',
-            'teaser' => 'Group related monitors, filter busy monitoring lists, and publish public group labels for the checks you choose to expose.',
+            'teaser' => 'Group related monitors, filter busy monitoring lists, and publish groups as status pages when needed.',
             'lead' => 'Monitoring groups keep larger check portfolios readable without changing individual monitor ownership or lifecycle.',
-            'highlights' => ['Many-to-many grouping for related monitors', 'Bookmarkable group filters on the monitoring index', 'Optional public group labels for enabled public monitors'],
-            'details' => ['Use monitoring groups for product areas, customer environments, infrastructure layers, or internal ownership boundaries.', 'A monitor can belong to multiple groups, so one endpoint can appear in both an API group and a customer-facing service group.', 'Public group labels only include monitors with public labels enabled, keeping private checks out of shared status views.'],
-            'seo' => ['title' => 'Monitoring Groups - WebGuard', 'description' => 'Organize WebGuard monitorings with user-owned groups, bookmarkable filters, and optional public group labels.', 'keywords' => 'monitoring groups, grouped monitoring, public group labels, uptime monitor organization'],
+            'highlights' => ['Many-to-many grouping for related monitors', 'Bookmarkable group filters on the monitoring index', 'Create status pages directly from groups'],
+            'details' => ['Use monitoring groups for product areas, customer environments, infrastructure layers, or internal ownership boundaries.', 'A monitor can belong to multiple groups, so one endpoint can appear in both an API group and a customer-facing service group.', 'For public communication, create a status page from a group and let its component dynamically follow the group contents.'],
+            'seo' => ['title' => 'Monitoring Groups - WebGuard', 'description' => 'Organize WebGuard monitorings with user-owned groups, bookmarkable filters, and group-backed status pages.', 'keywords' => 'monitoring groups, grouped monitoring, status pages from groups, uptime monitor organization'],
         ],
         'multi_location' => [
             'badge' => 'Distribution',

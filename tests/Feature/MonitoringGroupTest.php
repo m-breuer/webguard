@@ -11,6 +11,7 @@ use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\ServerInstance;
+use App\Models\StatusPage;
 use App\Models\User;
 use App\Support\HttpStatusCodeRanges;
 use Tests\TestCase;
@@ -39,7 +40,6 @@ class MonitoringGroupTest extends TestCase
         $testResponse = $this->actingAs($this->user)->post(route('monitoring-groups.store'), [
             'name' => 'Production',
             'description' => 'Critical production endpoints',
-            'public_label_enabled' => '1',
         ]);
 
         $testResponse->assertRedirect(route('monitoring-groups.index'));
@@ -47,7 +47,6 @@ class MonitoringGroupTest extends TestCase
             'user_id' => $this->user->id,
             'name' => 'Production',
             'description' => 'Critical production endpoints',
-            'public_label_enabled' => true,
         ]);
 
         $monitoringGroup = MonitoringGroup::query()->where('name', 'Production')->firstOrFail();
@@ -55,7 +54,6 @@ class MonitoringGroupTest extends TestCase
         $updateResponse = $this->actingAs($this->user)->patch(route('monitoring-groups.update', $monitoringGroup), [
             'name' => 'Production APIs',
             'description' => '',
-            'public_label_enabled' => '0',
         ]);
 
         $updateResponse->assertRedirect(route('monitoring-groups.index'));
@@ -63,7 +61,6 @@ class MonitoringGroupTest extends TestCase
             'id' => $monitoringGroup->id,
             'name' => 'Production APIs',
             'description' => null,
-            'public_label_enabled' => false,
         ]);
     }
 
@@ -72,12 +69,10 @@ class MonitoringGroupTest extends TestCase
         $zulu = MonitoringGroup::factory()->for($this->user)->create([
             'name' => 'Zulu Services',
             'description' => 'Secondary systems',
-            'public_label_enabled' => false,
         ]);
         $alpha = MonitoringGroup::factory()->for($this->user)->create([
             'name' => 'Alpha Services',
             'description' => 'Primary systems',
-            'public_label_enabled' => true,
         ]);
         MonitoringGroup::factory()
             ->for(User::factory()->create(['package_id' => Package::factory()->create()->id]))
@@ -102,7 +97,7 @@ class MonitoringGroupTest extends TestCase
         $testResponse->assertSeeText('Secondary systems');
         $testResponse->assertSeeText(trans_choice('monitoring_group.monitorings_count', 2, ['count' => 2]));
         $testResponse->assertSeeText(trans_choice('monitoring_group.monitorings_count', 1, ['count' => 1]));
-        $testResponse->assertSeeHtml('href="' . route('public-monitoring-groups.show', $alpha) . '"');
+        $testResponse->assertSeeHtml('action="' . route('monitoring-groups.publish-status-page', $alpha) . '"');
         $testResponse->assertDontSeeText('Foreign Services');
     }
 
@@ -111,7 +106,6 @@ class MonitoringGroupTest extends TestCase
         $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create([
             'name' => 'Production',
             'description' => 'Critical production endpoints',
-            'public_label_enabled' => true,
         ]);
 
         $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
@@ -126,7 +120,7 @@ class MonitoringGroupTest extends TestCase
         $editResponse->assertSeeText(__('monitoring_group.edit.title', ['group' => 'Production']));
         $editResponse->assertSeeHtml('action="' . route('monitoring-groups.update', $monitoringGroup) . '"');
         $editResponse->assertSeeHtml('value="Production"');
-        $editResponse->assertSeeHtml('checked');
+        $editResponse->assertDontSeeText(__('monitoring.form.public_label'));
     }
 
     public function test_user_cannot_edit_foreign_monitoring_group(): void
@@ -295,48 +289,80 @@ class MonitoringGroupTest extends TestCase
         $this->actingAs($demoUser)->get(route('monitoring-groups.create'))->assertForbidden();
         $this->actingAs($demoUser)->post(route('monitoring-groups.store'), ['name' => 'Demo'])->assertForbidden();
         $this->actingAs($demoUser)->get(route('monitoring-groups.edit', $monitoringGroup))->assertForbidden();
+        $this->actingAs($demoUser)->post(route('monitoring-groups.publish-status-page', $monitoringGroup))->assertForbidden();
         $this->actingAs($demoUser)->delete(route('monitoring-groups.destroy', $monitoringGroup))->assertForbidden();
     }
 
-    public function test_public_group_label_only_lists_monitorings_with_public_labels_enabled(): void
+    public function test_user_can_publish_group_as_dynamic_status_page(): void
     {
         $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create([
             'name' => 'Public Production',
-            'public_label_enabled' => true,
+            'description' => 'Customer facing services',
         ]);
-        $visibleMonitoring = Monitoring::factory()->for($this->user)->create([
-            'name' => 'Visible API',
+        $apiMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Checkout API',
             'type' => MonitoringType::HTTP,
             'target' => 'https://visible.example.com',
             'preferred_location' => $this->serverInstance->code,
-            'public_label_enabled' => true,
         ]);
-        $hiddenMonitoring = Monitoring::factory()->for($this->user)->create([
-            'name' => 'Hidden API',
+        $workerMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Worker Queue',
             'preferred_location' => $this->serverInstance->code,
-            'public_label_enabled' => false,
         ]);
 
-        $monitoringGroup->monitorings()->attach([$visibleMonitoring->id, $hiddenMonitoring->id]);
+        $monitoringGroup->monitorings()->attach([$apiMonitoring->id, $workerMonitoring->id]);
 
-        $testResponse = $this->get(route('public-monitoring-groups.show', $monitoringGroup));
+        $testResponse = $this->actingAs($this->user)
+            ->post(route('monitoring-groups.publish-status-page', $monitoringGroup));
 
-        $testResponse->assertOk();
-        $testResponse->assertSeeText('Public Production');
-        $testResponse->assertSeeText('Visible API');
-        $testResponse->assertDontSeeText('Hidden API');
-        $testResponse->assertSeeHtml('href="' . route('public-label', $visibleMonitoring) . '"');
+        $statusPage = StatusPage::query()->where('name', 'Public Production')->firstOrFail();
 
-        $otherUser = User::factory()->create(['package_id' => Package::factory()->create()->id]);
-        $authenticatedResponse = $this->actingAs($otherUser)->get(route('public-monitoring-groups.show', $monitoringGroup));
+        $testResponse->assertRedirect(route('status-pages.show', $statusPage));
+        $this->assertDatabaseHas('status_pages', [
+            'id' => $statusPage->id,
+            'user_id' => $this->user->id,
+            'slug' => 'public-production',
+            'is_public' => true,
+        ]);
+        $this->assertDatabaseHas('status_page_components', [
+            'status_page_id' => $statusPage->id,
+            'monitoring_group_id' => $monitoringGroup->id,
+            'source_type' => 'monitoring_group',
+            'name' => 'Public Production',
+        ]);
 
-        $authenticatedResponse->assertOk();
-        $authenticatedResponse->assertSeeText('Visible API');
-        $authenticatedResponse->assertDontSeeText('Hidden API');
+        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
 
-        $monitoringGroup->update(['public_label_enabled' => false]);
+        $publicResponse->assertOk();
+        $publicResponse->assertSeeText('Public Production');
+        $publicResponse->assertSeeText('Checkout API');
+        $publicResponse->assertSeeText('Worker Queue');
+        $this->get('/label/groups/' . $monitoringGroup->id)->assertNotFound();
+    }
 
-        $this->get(route('public-monitoring-groups.show', $monitoringGroup))->assertNotFound();
+    public function test_group_backed_status_page_component_follows_group_membership(): void
+    {
+        $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
+        $initialMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Initial API',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $laterMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Added API',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $monitoringGroup->monitorings()->attach($initialMonitoring->id);
+
+        $this->actingAs($this->user)->post(route('monitoring-groups.publish-status-page', $monitoringGroup));
+        $statusPage = StatusPage::query()->where('slug', 'production')->firstOrFail();
+
+        $monitoringGroup->monitorings()->attach($laterMonitoring->id);
+
+        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+
+        $publicResponse->assertOk();
+        $publicResponse->assertSeeText('Initial API');
+        $publicResponse->assertSeeText('Added API');
     }
 
     private function httpPayload(array $overrides = []): array

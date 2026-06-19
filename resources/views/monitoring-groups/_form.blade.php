@@ -16,21 +16,6 @@
         <x-input-error :messages="$errors->get('description')" />
     </div>
 
-    <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
-        <label for="public_label_enabled" class="flex items-start gap-3">
-            <x-checkbox-input id="public_label_enabled" name="public_label_enabled" value="1" :checked="old('public_label_enabled', $monitoringGroup->public_label_enabled ?? false)" />
-            <span>
-                <span class="block font-medium text-gray-900 dark:text-gray-100">
-                    {{ __('monitoring_group.form.public_label_enabled') }}
-                </span>
-                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
-                    {{ __('monitoring_group.form.public_label_help') }}
-                </span>
-            </span>
-        </label>
-        <x-input-error :messages="$errors->get('public_label_enabled')" />
-    </div>
-
     <div class="flex flex-wrap justify-end gap-2">
         <x-secondary-button :href="route('monitoring-groups.index')">
             {{ __('button.cancel') }}

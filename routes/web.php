@@ -19,7 +19,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicFeatureController;
 use App\Http\Controllers\PublicLabelController;
-use App\Http\Controllers\PublicMonitoringGroupLabelController;
 use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
@@ -83,8 +82,6 @@ Route::get('/sitemap.xml', function () {
 Route::get('/label/{monitoring}', PublicLabelController::class)
     ->name('public-label')
     ->scopeBindings();
-Route::get('/label/groups/{monitoringGroup}', PublicMonitoringGroupLabelController::class)
-    ->name('public-monitoring-groups.show');
 Route::post('/label/{monitoring}/subscribers', [StatusPageSubscriberController::class, 'store'])
     ->middleware('throttle:6,1')
     ->name('public-label.subscribers.store')
@@ -130,6 +127,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->except(['show'])
         ->parameters(['monitoring-groups' => 'monitoringGroup'])
         ->names('monitoring-groups');
+    Route::post('/monitoring-groups/{monitoringGroup}/publish-status-page', [MonitoringGroupController::class, 'publishStatusPage'])
+        ->name('monitoring-groups.publish-status-page');
     Route::resource('status-pages', StatusPageController::class)
         ->parameters(['status-pages' => 'statusPage'])
         ->names('status-pages');

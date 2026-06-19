@@ -17,7 +17,6 @@ class MonitoringGroupFactory extends Factory
         return [
             'name' => fake()->unique()->words(2, true),
             'description' => fake()->optional()->sentence(),
-            'public_label_enabled' => false,
         ];
     }
 }

@@ -64,6 +64,21 @@
                                 </div>
                             </div>
                         @endforeach
+                        @if ($statusPageComponent->source_type === \App\Enums\StatusPageComponentSource::MONITORING_GROUP)
+                            @foreach ($statusPageComponent->monitoringGroup?->monitorings ?? [] as $monitoring)
+                                <div class="flex flex-wrap items-center justify-between gap-3 py-3">
+                                    <div>
+                                        <a href="{{ route('monitorings.show', $monitoring) }}"
+                                            class="font-medium text-gray-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300">
+                                            {{ $monitoring->name }}
+                                        </a>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ __('monitoring.types.' . $monitoring->type->value) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
                     </div>
                 </x-container>
             @endforeach

@@ -174,11 +174,11 @@ return [
         'monitoring_groups' => [
             'badge' => 'Organisation',
             'title' => 'Monitoring-Gruppen',
-            'teaser' => 'Gruppieren Sie zusammengehörige Monitore, filtern Sie große Monitoring-Listen und veröffentlichen Sie Public Group Labels für freigegebene Checks.',
+            'teaser' => 'Gruppieren Sie zusammengehörige Monitore, filtern Sie große Monitoring-Listen und veröffentlichen Sie Gruppen bei Bedarf als Statusseite.',
             'lead' => 'Monitoring-Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
-            'highlights' => ['Mehrfachzuordnung für zusammengehörige Monitore', 'Bookmarkbare Gruppenfilter im Monitoring-Index', 'Optionale Public Group Labels für freigegebene öffentliche Monitore'],
-            'details' => ['Nutzen Sie Monitoring-Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Public Group Labels zeigen nur Monitore, deren Public Label aktiv ist. Private Checks bleiben damit aus geteilten Statusansichten heraus.'],
-            'seo' => ['title' => 'Monitoring-Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und optionalen Public Group Labels.', 'keywords' => 'Monitoring-Gruppen, gruppiertes Monitoring, Public Group Labels, Uptime Monitor Organisation'],
+            'highlights' => ['Mehrfachzuordnung für zusammengehörige Monitore', 'Bookmarkbare Gruppenfilter im Monitoring-Index', 'Statusseiten direkt aus Gruppen erstellen'],
+            'details' => ['Nutzen Sie Monitoring-Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Für öffentliche Kommunikation erstellen Sie aus einer Gruppe eine Statusseite, deren Komponente die Gruppeninhalte dynamisch übernimmt.'],
+            'seo' => ['title' => 'Monitoring-Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und Statusseiten aus Gruppen.', 'keywords' => 'Monitoring-Gruppen, gruppiertes Monitoring, Statusseiten aus Gruppen, Uptime Monitor Organisation'],
         ],
         'multi_location' => [
             'badge' => 'Verteilung',

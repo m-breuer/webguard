@@ -29,6 +29,8 @@ return [
         'component_name' => 'Component name',
         'component_description' => 'Component description',
         'monitorings' => 'Monitorings',
+        'monitoring_group' => 'Monitoring group',
+        'monitoring_group_source_help' => 'This component dynamically uses the monitorings from the monitoring group.',
         'add_component' => 'Add component',
         'remove_component' => 'Remove component',
     ],

@@ -33,7 +33,6 @@ class MonitoringGroupRequest extends FormRequest
                     ->ignore($monitoringGroup?->id),
             ],
             'description' => ['nullable', 'string'],
-            'public_label_enabled' => ['boolean'],
         ];
     }
 
@@ -44,7 +43,6 @@ class MonitoringGroupRequest extends FormRequest
         $this->merge([
             'name' => mb_trim((string) $this->input('name', '')),
             'description' => $description !== '' ? $description : null,
-            'public_label_enabled' => $this->boolean('public_label_enabled'),
         ]);
     }
 }

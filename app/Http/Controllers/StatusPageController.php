@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatusPageComponentSource;
 use App\Http\Requests\StatusPages\StatusPageRequest;
 use App\Models\Incident;
 use App\Models\Monitoring;
@@ -66,7 +67,7 @@ class StatusPageController extends Controller
     {
         $this->authorizeOwner($statusPage);
 
-        $statusPage->loadMissing('components.monitorings');
+        $this->loadStatusPageComponents($statusPage);
 
         return view('status-pages.show', [
             'statusPage' => $statusPage,
@@ -79,7 +80,7 @@ class StatusPageController extends Controller
         abort_if(Auth::user()->isDemo(), 403);
         $this->authorizeOwner($statusPage);
 
-        $statusPage->loadMissing('components.monitorings');
+        $this->loadStatusPageComponents($statusPage);
 
         return view('status-pages.edit', [
             'statusPage' => $statusPage,
@@ -135,7 +136,7 @@ class StatusPageController extends Controller
     }
 
     /**
-     * @param  list<array{name: string, description: string|null, monitoring_ids: list<string>}>  $components
+     * @param  list<array{name: string, description: string|null, source_type: string, monitoring_group_id: string|null, monitoring_ids: list<string>}>  $components
      */
     private function syncComponents(StatusPage $statusPage, array $components): void
     {
@@ -146,7 +147,15 @@ class StatusPageController extends Controller
                 'name' => $componentData['name'],
                 'description' => $componentData['description'] ?? null,
                 'position' => $componentPosition,
+                'source_type' => $componentData['source_type'],
+                'monitoring_group_id' => $componentData['source_type'] === StatusPageComponentSource::MONITORING_GROUP->value
+                    ? $componentData['monitoring_group_id']
+                    : null,
             ]);
+
+            if ($componentData['source_type'] === StatusPageComponentSource::MONITORING_GROUP->value) {
+                continue;
+            }
 
             $syncPayload = [];
             foreach (array_values($componentData['monitoring_ids']) as $monitoringPosition => $monitoringId) {
@@ -158,16 +167,36 @@ class StatusPageController extends Controller
     }
 
     /**
-     * @return list<array{name: string, description: string|null, monitoring_ids: list<string>}>
+     * @return list<array{name: string, description: string|null, source_type: string, monitoring_group_id: string|null, monitoring_ids: list<string>}>
      */
     private function defaultComponents(): array
     {
         return [
-            ['name' => 'API', 'description' => null, 'monitoring_ids' => []],
-            ['name' => 'Web App', 'description' => null, 'monitoring_ids' => []],
-            ['name' => 'Workers', 'description' => null, 'monitoring_ids' => []],
-            ['name' => 'Database', 'description' => null, 'monitoring_ids' => []],
+            ['name' => 'API', 'description' => null, 'source_type' => StatusPageComponentSource::MANUAL->value, 'monitoring_group_id' => null, 'monitoring_ids' => []],
+            ['name' => 'Web App', 'description' => null, 'source_type' => StatusPageComponentSource::MANUAL->value, 'monitoring_group_id' => null, 'monitoring_ids' => []],
+            ['name' => 'Workers', 'description' => null, 'source_type' => StatusPageComponentSource::MANUAL->value, 'monitoring_group_id' => null, 'monitoring_ids' => []],
+            ['name' => 'Database', 'description' => null, 'source_type' => StatusPageComponentSource::MANUAL->value, 'monitoring_group_id' => null, 'monitoring_ids' => []],
         ];
+    }
+
+    private function loadStatusPageComponents(StatusPage $statusPage): void
+    {
+        $statusPage->loadMissing([
+            'components.monitorings',
+            'components.monitoringGroup.monitorings' => fn ($query) => $query->orderBy('name'),
+        ]);
+    }
+
+    /**
+     * @return Collection<int, Monitoring>
+     */
+    private function componentMonitorings(StatusPageComponent $statusPageComponent): Collection
+    {
+        if ($statusPageComponent->source_type === StatusPageComponentSource::MONITORING_GROUP) {
+            return $statusPageComponent->monitoringGroup?->monitorings ?? new Collection();
+        }
+
+        return $statusPageComponent->monitorings;
     }
 
     /**
@@ -176,7 +205,7 @@ class StatusPageController extends Controller
     private function recentIncidents(StatusPage $statusPage): Collection
     {
         $monitoringIds = $statusPage->components
-            ->flatMap(static fn (StatusPageComponent $statusPageComponent) => $statusPageComponent->monitorings->pluck('id'))
+            ->flatMap(fn (StatusPageComponent $statusPageComponent) => $this->componentMonitorings($statusPageComponent)->pluck('id'))
             ->unique()
             ->values();
 
