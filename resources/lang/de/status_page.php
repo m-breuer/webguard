@@ -29,6 +29,8 @@ return [
         'component_name' => 'Komponentenname',
         'component_description' => 'Komponentenbeschreibung',
         'monitorings' => 'Überwachungen',
+        'monitoring_group' => 'Monitoring-Gruppe',
+        'monitoring_group_source_help' => 'Diese Komponente übernimmt ihre Überwachungen dynamisch aus der Monitoring-Gruppe.',
         'add_component' => 'Komponente hinzufügen',
         'remove_component' => 'Komponente entfernen',
     ],

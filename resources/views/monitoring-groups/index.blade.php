@@ -33,20 +33,18 @@
                                     </p>
                                 @endif
                                 <div class="mt-3 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <x-badge :type="$monitoringGroup->public_label_enabled ? 'success' : 'warning'">
-                                        {{ $monitoringGroup->public_label_enabled ? __('monitoring_group.state.public') : __('monitoring_group.state.private') }}
-                                    </x-badge>
                                     <span>{{ trans_choice('monitoring_group.monitorings_count', $monitoringGroup->monitorings_count, ['count' => $monitoringGroup->monitorings_count]) }}</span>
                                 </div>
                             </div>
 
                             <div class="flex flex-wrap gap-2">
-                                @if ($monitoringGroup->public_label_enabled)
-                                    <x-secondary-button :href="route('public-monitoring-groups.show', $monitoringGroup)" target="_blank">
-                                        {{ __('monitoring_group.actions.public_label') }}
-                                    </x-secondary-button>
-                                @endif
                                 @if (!Auth::user()->isDemo())
+                                    <form method="POST" action="{{ route('monitoring-groups.publish-status-page', $monitoringGroup) }}">
+                                        @csrf
+                                        <x-secondary-button>
+                                            {{ __('monitoring_group.actions.publish_status_page') }}
+                                        </x-secondary-button>
+                                    </form>
                                     <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)">
                                         {{ __('button.edit') }}
                                     </x-secondary-button>
