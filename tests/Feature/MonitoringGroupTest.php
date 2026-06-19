@@ -219,11 +219,15 @@ class MonitoringGroupTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText('No group');
-        $testResponse->assertSeeHtml('<option value="" selected>No group</option>');
+        $testResponse->assertSeeText('Production');
+        $testResponse->assertSeeHtml('name="group_ids[]"');
+        $testResponse->assertSeeText('Select all');
 
         $editResponse->assertOk();
         $editResponse->assertSeeText('No group');
-        $editResponse->assertSeeHtml('<option value="" selected>No group</option>');
+        $editResponse->assertSeeText('Production');
+        $editResponse->assertSeeHtml('name="group_ids[]"');
+        $editResponse->assertSeeText('Select all');
     }
 
     public function test_selecting_no_group_detaches_existing_group_assignments(): void

@@ -14,6 +14,16 @@ return [
         'copied_to_clipboard' => 'In die Zwischenablage kopiert!',
         'loading' => 'Wird geladen...',
     ],
+    'multi_select' => [
+        'placeholder' => 'Optionen auswählen',
+        'search_placeholder' => 'Suchen oder auswählen...',
+        'select_all' => 'Alle auswählen',
+        'all_selected' => 'Alle Optionen sind ausgewählt.',
+        'no_options' => 'Keine Optionen verfügbar.',
+        'no_results' => 'Keine passenden Optionen gefunden.',
+        'remove' => 'Entfernen:',
+        'clear' => 'Auswahl leeren',
+    ],
     'confirmation' => [
         'title' => 'Aktion bestätigen',
         'confirm' => 'Bestätigen',

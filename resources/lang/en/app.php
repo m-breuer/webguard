@@ -14,6 +14,16 @@ return [
         'copied_to_clipboard' => 'Copied to clipboard!',
         'loading' => 'Loading...',
     ],
+    'multi_select' => [
+        'placeholder' => 'Select options',
+        'search_placeholder' => 'Search or select...',
+        'select_all' => 'Select all',
+        'all_selected' => 'All options are selected.',
+        'no_options' => 'No options available.',
+        'no_results' => 'No matching options found.',
+        'remove' => 'Remove:',
+        'clear' => 'Clear selection',
+    ],
     'confirmation' => [
         'title' => 'Confirm action',
         'confirm' => 'Confirm',

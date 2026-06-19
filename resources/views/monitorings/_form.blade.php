@@ -32,6 +32,10 @@
         array_map(static fn (mixed $groupId): string => (string) $groupId, $selectedGroupIds),
         static fn (string $groupId): bool => $groupId !== ''
     ));
+    $groupOptions = collect($monitoringGroups ?? [])->map(static fn ($monitoringGroup): array => [
+        'value' => (string) $monitoringGroup->id,
+        'label' => $monitoringGroup->name,
+    ])->values();
 @endphp
 
 @csrf
@@ -45,7 +49,6 @@
     timeoutValue: {{ old('timeout', $monitoring->timeout ?? 5) }},
     publicLabelEnabled: @js(old('public_label_enabled', $monitoring->public_label_enabled ?? false)),
     notificationOnFailure: @js(old('notification_on_failure', $monitoring->notification_on_failure ?? true)),
-    groupIds: @js($selectedGroupIds === [] ? [''] : $selectedGroupIds),
     init() {
         if (!@js(isset($monitoring))) {
             if ((this.type === '{{ MonitoringType::HTTP->value }}' || this.type === '{{ MonitoringType::KEYWORD->value }}') && (!this.target || !this.target.startsWith('http'))) {
@@ -56,35 +59,6 @@
                 this.target = '';
             }
         }
-    },
-    syncGroupSelection(event) {
-        const options = Array.from(event.target.options);
-        const emptyOption = options.find(option => option.value === '');
-        const selectedValues = options.filter(option => option.selected).map(option => option.value);
-        const selectedGroupIds = selectedValues.filter(value => value !== '');
-
-        if (!emptyOption) {
-            this.groupIds = selectedGroupIds;
-
-            return;
-        }
-
-        if (emptyOption.selected && !this.groupIds.includes('')) {
-            options.forEach(option => option.selected = option.value === '');
-            this.groupIds = [''];
-
-            return;
-        }
-
-        if (selectedGroupIds.length > 0) {
-            emptyOption.selected = false;
-            this.groupIds = selectedGroupIds;
-
-            return;
-        }
-
-        emptyOption.selected = true;
-        this.groupIds = [''];
     }
 }" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
@@ -125,14 +99,19 @@
 
     <div class="mt-4">
         <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
-        <x-select-input id="group_ids" class="mt-1 block min-h-32 w-full" name="group_ids[]" multiple x-on:change="syncGroupSelection($event)">
-            <option value="" @selected($selectedGroupIds === [])>{{ __('monitoring.form.no_group') }}</option>
-            @foreach ($monitoringGroups ?? [] as $monitoringGroup)
-                <option value="{{ $monitoringGroup->id }}" @selected(in_array($monitoringGroup->id, $selectedGroupIds, true))>
-                    {{ $monitoringGroup->name }}
-                </option>
-            @endforeach
-        </x-select-input>
+        <x-multi-select
+            id="group_ids"
+            name="group_ids"
+            :options="$groupOptions"
+            :selected="$selectedGroupIds"
+            :placeholder="__('monitoring.form.no_group')"
+            :search-placeholder="__('monitoring.form.search_groups')"
+            :select-all-label="__('monitoring.form.select_all_groups')"
+            :all-selected-label="__('monitoring.form.all_groups_selected')"
+            :no-options-label="__('monitoring.form.no_groups_available')"
+            :no-results-label="__('monitoring.form.no_groups_found')"
+            :remove-label="__('monitoring.form.remove_group')"
+            :clear-label="__('monitoring.form.clear_groups')" />
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {{ __('monitoring.form.groups_help') }}
             @if (!Auth::user()->isDemo())
