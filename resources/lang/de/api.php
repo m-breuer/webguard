@@ -18,6 +18,7 @@ return [
         ],
         'messages' => [
             'copied' => 'API-Schlüssel in die Zwischenablage kopiert!',
+            'confirm_revoke_token' => 'Möchten Sie Ihren API-Token wirklich widerrufen? Bestehende Integrationen mit diesem Token funktionieren danach nicht mehr.',
             'tokens_deleted' => 'Token erfolgreich gelöscht.',
             'api_key_confidential_warning' => 'Halten Sie Ihren API-Schlüssel vertraulich. Wenn Sie glauben, dass Ihr Schlüssel kompromittiert wurde, können Sie einen neuen generieren.',
         ],
