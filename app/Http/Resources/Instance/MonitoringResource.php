@@ -36,6 +36,7 @@ class MonitoringResource extends JsonResource
             'auth_password' => $this->auth_password,
             'public_label_enabled' => $this->public_label_enabled,
             'preferred_location' => $this->preferred_location,
+            'preferred_locations' => $this->preferredLocationCodes(),
             'deleted_at' => $this->deleted_at,
             'maintenance_active' => $this->isUnderMaintenance(),
             'maintenance_from' => $this->maintenance_from,

@@ -210,6 +210,8 @@ class MonitoringRequest extends FormRequest
                 },
             ],
             'preferred_location' => ['required', 'string', Rule::exists('server_instances', 'code')->where('is_active', true)],
+            'preferred_locations' => ['required', 'array', 'min:1'],
+            'preferred_locations.*' => ['required', 'string', 'distinct', Rule::exists('server_instances', 'code')->where('is_active', true)],
             'public_label_enabled' => ['boolean'],
             'notification_on_failure' => ['boolean'],
             'notification_channels' => ['nullable', 'array'],
@@ -253,12 +255,15 @@ class MonitoringRequest extends FormRequest
         $httpHeaders = $this->normalizeHttpHeaders();
         $dnsRecordType = DnsRecordExpectation::normalizeRecordType($this->input('dns_record_type'));
         $dnsExpectedValues = $this->normalizeDnsExpectedValues($type, $dnsRecordType);
+        $preferredLocations = $this->normalizePreferredLocations();
 
         $prepared = [
             'type' => $type,
             'http_headers' => $httpHeaders,
             'dns_record_type' => $dnsRecordType,
             'dns_expected_values' => $dnsExpectedValues,
+            'preferred_location' => $preferredLocations[0] ?? null,
+            'preferred_locations' => $preferredLocations,
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
@@ -308,6 +313,23 @@ class MonitoringRequest extends FormRequest
         return array_values(array_unique(array_filter(
             array_map(static fn (mixed $groupId): string => (string) $groupId, $groupIds),
             static fn (string $groupId): bool => $groupId !== ''
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizePreferredLocations(): array
+    {
+        $locations = $this->input('preferred_locations', $this->input('preferred_location', []));
+
+        if (! is_array($locations)) {
+            $locations = [$locations];
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $location): string => (string) $location, $locations),
+            static fn (string $location): bool => $location !== ''
         )));
     }
 

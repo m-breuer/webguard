@@ -489,15 +489,29 @@
             </div>
 
     <div class="mt-4">
-        <x-input-label for="preferred_location" :value="__('monitoring.form.preferred_location')" />
-        <x-select-input id="preferred_location" class="mt-1 block w-full" name="preferred_location" required>
+        @php
+            $selectedPreferredLocations = old(
+                'preferred_locations',
+                old('preferred_location', isset($monitoring) ? $monitoring->preferredLocationCodes() : [$serverInstances->first()?->code])
+            );
+            $selectedPreferredLocations = is_array($selectedPreferredLocations)
+                ? array_values(array_filter($selectedPreferredLocations))
+                : array_filter([(string) $selectedPreferredLocations]);
+        @endphp
+        <x-input-label for="preferred_locations" :value="__('monitoring.form.preferred_location')" />
+        <x-select-input id="preferred_locations" class="mt-1 block min-h-32 w-full" name="preferred_locations[]" multiple required>
             @foreach ($serverInstances as $instance)
-                <option value="{{ $instance->code }}" @selected(old('preferred_location', $monitoring->preferred_location ?? $serverInstances->first()?->code) === $instance->code)>
+                <option value="{{ $instance->code }}" @selected(in_array($instance->code, $selectedPreferredLocations, true))>
                     {{ $instance->code }}
                 </option>
             @endforeach
         </x-select-input>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.preferred_locations_help') }}
+        </p>
         <x-input-error :messages="$errors->get('preferred_location')" />
+        <x-input-error :messages="$errors->get('preferred_locations')" />
+        <x-input-error :messages="$errors->get('preferred_locations.*')" />
     </div>
 
     <div class="mt-4">

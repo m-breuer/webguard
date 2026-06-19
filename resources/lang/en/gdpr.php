@@ -30,7 +30,7 @@ return [
                 'Account and profile data (name, email, password hash, role, locale, theme settings, and optional avatar).',
                 'Authentication and session data (login timestamps, session identifiers, IP address, user agent, and required session/CSRF metadata).',
                 'Consent and auditability data (timestamps of acceptance for Terms of Use and Privacy Policy).',
-                'Monitoring configuration data (name, monitoring type, target, port, keyword, DNS record expectations, HTTP method, expected HTTP status codes, headers/body, optional credentials, preferred location, maintenance window, public label setting, heartbeat interval, grace period, and private heartbeat ping URL or token).',
+                'Monitoring configuration data (name, monitoring type, target, port, keyword, DNS record expectations, HTTP method, expected HTTP status codes, headers/body, optional credentials, preferred locations, maintenance window, public label setting, heartbeat interval, grace period, and private heartbeat ping URL or token).',
                 'Monitoring result data (status, HTTP status codes, response times, SSL/TLS certificate data, domain-expiration data including registrar where available, heartbeat ping timestamps, incidents, recent individual checks, archived raw data, and daily uptime/downtime aggregates).',
                 'Publicly exposed status data when public labels or SLA badges are enabled (for example monitoring name, current status, uptime metrics, and maintenance status).',
                 'Notification data (channel configuration including webhook URLs, Telegram bot token/chat ID, event preferences, delivery status, delivery history, technical payloads/error messages, and read state).',

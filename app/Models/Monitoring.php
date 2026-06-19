@@ -51,6 +51,7 @@ use Spatie\Activitylog\Support\LogOptions;
     'auth_password',
     'public_label_enabled',
     'preferred_location',
+    'preferred_locations',
     'notification_on_failure',
     'notification_channels',
     'failure_confirmation_threshold',
@@ -270,6 +271,23 @@ class Monitoring extends Model
     }
 
     /**
+     * @return list<string>
+     */
+    public function preferredLocationCodes(): array
+    {
+        $locations = is_array($this->preferred_locations) ? $this->preferred_locations : [];
+
+        if (is_string($this->preferred_location) && $this->preferred_location !== '') {
+            array_unshift($locations, $this->preferred_location);
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $location): string => (string) $location, $locations),
+            static fn (string $location): bool => $location !== ''
+        )));
+    }
+
+    /**
      * Apply the global scope to ensure all queries are restricted to the authenticated user.
      */
     #[Override]
@@ -303,6 +321,18 @@ class Monitoring extends Model
     }
 
     /**
+     * Scope a query to monitorings assigned to the given server instance code.
+     */
+    #[Scope]
+    protected function assignedToLocation(Builder $builder, string $location): Builder
+    {
+        return $builder->where(function (Builder $query) use ($location): void {
+            $query->where('preferred_location', $location)
+                ->orWhereJsonContains('preferred_locations', $location);
+        });
+    }
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @return array<string, string>
@@ -320,6 +350,7 @@ class Monitoring extends Model
             'public_label_enabled' => 'boolean',
             'notification_on_failure' => 'boolean',
             'preferred_location' => 'string',
+            'preferred_locations' => 'array',
             'heartbeat_interval_minutes' => 'integer',
             'heartbeat_grace_minutes' => 'integer',
             'notification_channels' => 'array',
