@@ -114,11 +114,11 @@ class MonitoringGroupTest extends TestCase
             'public_label_enabled' => true,
         ]);
 
-        $createResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
 
-        $createResponse->assertOk();
-        $createResponse->assertSeeText(__('monitoring_group.create.title'));
-        $createResponse->assertSeeHtml('action="' . route('monitoring-groups.store') . '"');
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring_group.create.title'));
+        $testResponse->assertSeeHtml('action="' . route('monitoring-groups.store') . '"');
 
         $editResponse = $this->actingAs($this->user)->get(route('monitoring-groups.edit', $monitoringGroup));
 
