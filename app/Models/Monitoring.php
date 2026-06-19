@@ -326,8 +326,8 @@ class Monitoring extends Model
     #[Scope]
     protected function assignedToLocation(Builder $builder, string $location): Builder
     {
-        return $builder->where(function (Builder $query) use ($location): void {
-            $query->where('preferred_location', $location)
+        return $builder->where(function (Builder $builder) use ($location): void {
+            $builder->where('preferred_location', $location)
                 ->orWhereJsonContains('preferred_locations', $location);
         });
     }

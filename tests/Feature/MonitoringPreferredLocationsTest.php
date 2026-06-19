@@ -67,17 +67,17 @@ class MonitoringPreferredLocationsTest extends TestCase
             'preferred_locations' => [$this->deInstance->code, $this->usInstance->code],
         ]);
 
-        $primaryResponse = $this->withHeaders($this->instanceHeaders($this->deInstance))
+        $testResponse = $this->withHeaders($this->instanceHeaders($this->deInstance))
             ->getJson(route('v1.internal.monitorings.list', ['location' => $this->deInstance->code]));
         $secondaryResponse = $this->withHeaders($this->instanceHeaders($this->usInstance))
             ->getJson(route('v1.internal.monitorings.list', ['location' => $this->usInstance->code]));
         $unassignedResponse = $this->withHeaders($this->instanceHeaders($this->nlInstance))
             ->getJson(route('v1.internal.monitorings.list', ['location' => $this->nlInstance->code]));
 
-        $primaryResponse->assertOk();
-        $primaryResponse->assertJsonPath('0.id', $monitoring->id);
-        $primaryResponse->assertJsonPath('0.preferred_location', $this->deInstance->code);
-        $primaryResponse->assertJsonPath('0.preferred_locations.1', $this->usInstance->code);
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('0.id', $monitoring->id);
+        $testResponse->assertJsonPath('0.preferred_location', $this->deInstance->code);
+        $testResponse->assertJsonPath('0.preferred_locations.1', $this->usInstance->code);
 
         $secondaryResponse->assertOk();
         $secondaryResponse->assertJsonPath('0.id', $monitoring->id);
@@ -97,14 +97,14 @@ class MonitoringPreferredLocationsTest extends TestCase
             'preferred_locations' => [$this->deInstance->code, $this->usInstance->code],
         ]);
 
-        $allowedResponse = $this->withHeaders($this->instanceHeaders($this->usInstance))
+        $testResponse = $this->withHeaders($this->instanceHeaders($this->usInstance))
             ->postJson(route('v1.internal.monitoring-responses.store'), [
                 'monitoring_id' => $monitoring->id,
                 'status' => MonitoringStatus::UP->value,
                 'response_time' => 123.4,
             ]);
 
-        $allowedResponse->assertOk();
+        $testResponse->assertOk();
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP->value,
