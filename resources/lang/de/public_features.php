@@ -16,8 +16,8 @@ return [
     'index' => [
         'seo' => [
             'title' => 'WebGuard Funktionen - Monitoring, Public Status, Badges und API',
-            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Monitoring-Gruppen, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
-            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Monitoring-Gruppen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
+            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Gruppen, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
+            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Gruppen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
             'og_title' => 'WebGuard Funktionen',
             'og_description' => 'Ein Überblick über Monitoring-Typen, öffentliche Statusfunktionen, Alerts, Analytics und API-Zugriff in WebGuard.',
         ],
@@ -173,12 +173,12 @@ return [
         ],
         'monitoring_groups' => [
             'badge' => 'Organisation',
-            'title' => 'Monitoring-Gruppen',
+            'title' => 'Gruppen',
             'teaser' => 'Gruppieren Sie zusammengehörige Monitore, filtern Sie große Monitoring-Listen und veröffentlichen Sie Public Group Labels für freigegebene Checks.',
-            'lead' => 'Monitoring-Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
+            'lead' => 'Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
             'highlights' => ['Mehrfachzuordnung für zusammengehörige Monitore', 'Bookmarkbare Gruppenfilter im Monitoring-Index', 'Optionale Public Group Labels für freigegebene öffentliche Monitore'],
-            'details' => ['Nutzen Sie Monitoring-Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Public Group Labels zeigen nur Monitore, deren Public Label aktiv ist. Private Checks bleiben damit aus geteilten Statusansichten heraus.'],
-            'seo' => ['title' => 'Monitoring-Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und optionalen Public Group Labels.', 'keywords' => 'Monitoring-Gruppen, gruppiertes Monitoring, Public Group Labels, Uptime Monitor Organisation'],
+            'details' => ['Nutzen Sie Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Public Group Labels zeigen nur Monitore, deren Public Label aktiv ist. Private Checks bleiben damit aus geteilten Statusansichten heraus.'],
+            'seo' => ['title' => 'Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und optionalen Public Group Labels.', 'keywords' => 'Gruppen, gruppiertes Monitoring, Public Group Labels, Uptime Monitor Organisation'],
         ],
         'multi_location' => [
             'badge' => 'Verteilung',

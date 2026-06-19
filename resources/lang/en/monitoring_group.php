@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 return [
-    'title' => 'Monitoring Groups',
+    'title' => 'Groups',
     'create' => [
-        'title' => 'Create Monitoring Group',
+        'title' => 'Create Group',
     ],
     'edit' => [
         'title' => 'Edit :group',
     ],
     'empty' => [
-        'title' => 'No monitoring groups yet',
+        'title' => 'No groups yet',
         'text' => 'Create groups to organize and filter your monitorings.',
     ],
     'form' => [
@@ -22,7 +22,7 @@ return [
     ],
     'filter' => [
         'all' => 'All groups',
-        'label' => 'Monitoring group',
+        'label' => 'Group',
     ],
     'state' => [
         'private' => 'Private',
@@ -32,13 +32,13 @@ return [
     'actions' => [
         'public_label' => 'Public label',
         'delete' => [
-            'confirmation' => 'Are you sure you want to delete this monitoring group? Monitorings remain available and only lose this group assignment.',
+            'confirmation' => 'Are you sure you want to delete this group? Monitorings remain available and only lose this group assignment.',
         ],
     ],
     'messages' => [
-        'created' => 'Monitoring group created successfully.',
-        'updated' => 'Monitoring group updated successfully.',
-        'deleted' => 'Monitoring group deleted successfully.',
+        'created' => 'Group created successfully.',
+        'updated' => 'Group updated successfully.',
+        'deleted' => 'Group deleted successfully.',
     ],
     'public_label' => [
         'title' => ':groupName - Public Status',
