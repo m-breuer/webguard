@@ -37,9 +37,9 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
 
 Route::apiResource('teams', TeamController::class);
 Route::get('/teams/{team}/members', [TeamMemberController::class, 'index']);
-Route::patch('/teams/{team}/members/{membership}', [TeamMemberController::class, 'update']);
-Route::delete('/teams/{team}/members/{membership}', [TeamMemberController::class, 'destroy']);
+Route::patch('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'update']);
+Route::delete('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'destroy']);
 Route::get('/teams/{team}/invitations', [TeamInvitationController::class, 'index']);
 Route::post('/teams/{team}/invitations', [TeamInvitationController::class, 'store']);
-Route::delete('/teams/{team}/invitations/{invitation}', [TeamInvitationController::class, 'destroy']);
+Route::delete('/teams/{team}/invitations/{teamInvitation}', [TeamInvitationController::class, 'destroy']);
 Route::post('/team-invitations/{token}/accept', [TeamInvitationController::class, 'accept']);
