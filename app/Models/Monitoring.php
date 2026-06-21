@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -34,6 +35,8 @@ use Spatie\Activitylog\Support\LogOptions;
  **/
 #[Fillable([
     'user_id',
+    'team_id',
+    'created_by_user_id',
     'name',
     'type',
     'target',
@@ -86,6 +89,22 @@ class Monitoring extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<Team, $this>
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     /**
@@ -194,6 +213,14 @@ class Monitoring extends Model
     }
 
     /**
+     * @return HasMany<MonitoringNotificationPreference, $this>
+     */
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationPreference::class);
+    }
+
+    /**
      * @return HasMany<StatusPageSubscriber, $this>
      */
     public function statusPageSubscribers(): HasMany
@@ -254,6 +281,51 @@ class Monitoring extends Model
         return $this->type === MonitoringType::SERVER_HEALTH;
     }
 
+    public function isTeamOwned(): bool
+    {
+        return $this->team_id !== null;
+    }
+
+    public function isPrivateOwned(): bool
+    {
+        return $this->user_id !== null && $this->team_id === null;
+    }
+
+    public function isVisibleTo(User $user): bool
+    {
+        if ($this->user_id === $user->id) {
+            return true;
+        }
+
+        if ($this->team_id === null) {
+            return false;
+        }
+
+        return $this->team()
+            ->whereHas('memberships', function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id);
+            })
+            ->exists();
+    }
+
+    public function isManageableBy(User $user): bool
+    {
+        if ($this->user_id === $user->id && $this->team_id === null) {
+            return true;
+        }
+
+        if ($this->team_id === null) {
+            return false;
+        }
+
+        return $this->team()
+            ->whereHas('memberships', function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id)
+                    ->where('role', TeamRole::ADMIN);
+            })
+            ->exists();
+    }
+
     /**
      * Determine if the monitoring is currently under maintenance.
      */
@@ -297,7 +369,14 @@ class Monitoring extends Model
 
         static::addGlobalScope('user', function (Builder $builder): void {
             if (Auth::check()) {
-                $builder->where('user_id', Auth::user()->id);
+                $user = Auth::user();
+
+                $builder->where(function (Builder $builder) use ($user): void {
+                    $builder->where('user_id', $user->id)
+                        ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                            $builder->where('user_id', $user->id);
+                        });
+                });
             }
         });
     }
@@ -318,6 +397,39 @@ class Monitoring extends Model
     protected function paused(Builder $builder): Builder
     {
         return $builder->where('status', MonitoringLifecycleStatus::PAUSED);
+    }
+
+    #[Scope]
+    protected function visibleTo(Builder $builder, User $user): Builder
+    {
+        return $builder->where(function (Builder $builder) use ($user): void {
+            $builder->where('user_id', $user->id)
+                ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                    $builder->where('user_id', $user->id);
+                });
+        });
+    }
+
+    #[Scope]
+    protected function manageableBy(Builder $builder, User $user): Builder
+    {
+        return $builder->where(function (Builder $builder) use ($user): void {
+            $builder->where(function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id)
+                    ->whereNull('team_id');
+            })
+                ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                    $builder->where('user_id', $user->id)
+                        ->where('role', TeamRole::ADMIN);
+                });
+        });
+    }
+
+    #[Scope]
+    protected function privateOwnedBy(Builder $builder, User $user): Builder
+    {
+        return $builder->where('user_id', $user->id)
+            ->whereNull('team_id');
     }
 
     /**

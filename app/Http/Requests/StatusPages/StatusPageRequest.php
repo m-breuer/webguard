@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\StatusPages;
 
 use App\Enums\StatusPageComponentSource;
+use App\Models\Monitoring;
 use App\Models\StatusPage;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -48,14 +50,20 @@ class StatusPageRequest extends FormRequest
             'components.*.monitoring_ids.*' => [
                 'required',
                 'string',
-                Rule::exists('monitorings', 'id')->where('user_id', $this->user()?->id),
+                Rule::exists('monitorings', 'id'),
+                function ($attribute, $value, $fail): void {
+                    if (! $this->user()
+                        || ! Monitoring::query()->visibleTo($this->user())->whereKey((string) $value)->exists()) {
+                        $fail(__('status_page.validation.monitoring_not_accessible'));
+                    }
+                },
             ],
         ];
     }
 
-    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
-        $validator->after(function (\Illuminate\Contracts\Validation\Validator $validator): void {
+        $validator->after(function (Validator $validator): void {
             $components = $this->input('components', []);
 
             if (! is_array($components)) {

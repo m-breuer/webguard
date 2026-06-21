@@ -25,3 +25,9 @@ Distributed scanning nodes and workers are maintained separately in the [WebGuar
 ## Runtime Responsibilities
 
 The core application coordinates monitor configuration, status aggregation, notification delivery, user and package administration, public status output, and API access. Queue workers handle asynchronous monitoring and notification work so the web interface stays responsive.
+
+## Team Ownership
+
+Monitorings are either private (`user_id`) or team-owned (`team_id`). Private monitorings remain visible only to their owner. Team-owned monitorings are visible to all team members, while create, update, delete, reset, and ownership-move actions require a team admin role.
+
+Team notification channels are not shared. Notification channel configuration stays on the user profile, and per-monitoring notification preferences/read states are stored per user so each team member can choose delivery channels independently.

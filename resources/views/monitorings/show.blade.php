@@ -29,11 +29,14 @@
                     {{ __('monitoring.index.table.maintenance') }}
                 </x-badge>
             @endif
+            <x-badge type="{{ $monitoring->isTeamOwned() ? 'info' : 'success' }}">
+                {{ $monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private') }}
+            </x-badge>
         </x-heading>
 
         <div class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
 
-            @if (!Auth::user()->isDemo())
+            @if ($canManageMonitoring)
                 <div class="relative" x-data="{ open: false }">
                     <x-secondary-button @click="open = !open">
                         {{ __('monitoring.actions.heading') }}
@@ -48,6 +51,32 @@
                             class="block px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
                             {{ __('monitoring.actions.edit') }}
                         </a>
+                        @if (!$monitoring->isTeamOwned() && $adminTeams->isNotEmpty())
+                            <form method="POST" action="{{ route('monitorings.team-ownership.store', $monitoring) }}"
+                                class="px-4 py-2">
+                                @csrf
+                                <label for="move-team-{{ $monitoring->id }}" class="sr-only">{{ __('team.ownership.move_to_team') }}</label>
+                                <select id="move-team-{{ $monitoring->id }}" name="team_id"
+                                    class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                    @foreach ($adminTeams as $team)
+                                        <option value="{{ $team->id }}">{{ $team->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="block w-full text-left text-gray-700 hover:bg-gray-100 sm:text-right">
+                                    {{ __('team.ownership.move_to_team') }}
+                                </button>
+                            </form>
+                        @endif
+                        @if ($monitoring->isTeamOwned())
+                            <form method="POST" action="{{ route('monitorings.team-ownership.destroy', $monitoring) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
+                                    {{ __('team.ownership.move_to_private') }}
+                                </button>
+                            </form>
+                        @endif
                         <form method="POST" action="{{ route('monitorings.destroyResults', $monitoring) }}"
                             data-confirm-message="{{ __('monitoring.actions.reset.confirmation') }}">
                             @csrf
@@ -324,6 +353,60 @@
             @endforeach
 
         </div>
+
+        @if (!Auth::user()->isDemo())
+            @php
+                $selectedNotificationChannels = $notificationPreference->notification_channels ?? [];
+                $selectedNotificationChannels = is_array($selectedNotificationChannels) ? $selectedNotificationChannels : [];
+                $enabledNotificationChannels = Auth::user()->enabledNotificationChannelKeys();
+            @endphp
+
+            <x-container class="mb-4">
+                <x-heading type="h2">{{ __('team.sections.notification_preferences') }}</x-heading>
+                <form method="POST" action="{{ route('monitorings.notification-preferences.update', $monitoring) }}"
+                    class="mt-4 space-y-4">
+                    @csrf
+                    @method('PATCH')
+
+                    <x-text-checkbox id="notification_on_failure" name="notification_on_failure" value="1"
+                        :checked="$notificationPreference->notification_on_failure"
+                        label="{{ __('monitoring.form.notification_on_failure_enabled') }}" />
+
+                    <div>
+                        <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
+                        @if ($enabledNotificationChannels === [])
+                            <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                {{ __('monitoring.form.notification_channels_empty') }}
+                            </x-paragraph>
+                        @else
+                            <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                @foreach ($enabledNotificationChannels as $channel)
+                                    <label class="flex items-center gap-2 rounded-md border border-gray-200 p-3 text-sm dark:border-gray-700">
+                                        <input type="checkbox" name="notification_channels[]" value="{{ $channel }}"
+                                            class="rounded-sm border-gray-300 text-purple-600 shadow-xs focus:border-purple-300 focus:ring-3 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
+                                            @checked(in_array($channel, $selectedNotificationChannels, true))>
+                                        <span>{{ __('profile.notification_settings.channels.' . $channel . '.title') }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @endif
+                        <x-input-error :messages="$errors->get('notification_channels')" />
+                        <x-input-error :messages="$errors->get('notification_channels.*')" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="ssl_expiry_warning_days" :value="__('monitoring.form.ssl_expiry_warning_days')" />
+                        <x-text-input id="ssl_expiry_warning_days" type="number" min="1" max="365"
+                            name="ssl_expiry_warning_days" :value="old('ssl_expiry_warning_days', $notificationPreference->ssl_expiry_warning_days)" required />
+                        <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
+                    </div>
+
+                    <x-primary-button>
+                        {{ __('button.save') }}
+                    </x-primary-button>
+                </form>
+            </x-container>
+        @endif
 
         <div class="my-4" id="uptime-calendar-{{ $monitoring->id }}">
             <x-heading type="h2" class="mb-2">{{ __('monitoring.detail.calendar.heading') }}</x-heading>

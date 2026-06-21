@@ -38,7 +38,8 @@ class WeeklyMonitoringDigestService
         };
         $periodStart = $periodEnd->copy()->subDays($periodDays - 1)->startOfDay();
 
-        $monitorings = $user->monitorings()
+        $monitorings = Monitoring::query()
+            ->visibleTo($user)
             ->active()
             ->with([
                 'sslResult',

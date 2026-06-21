@@ -71,7 +71,7 @@ class AuditLogTest extends TestCase
             'notification_channels' => [
                 'slack' => [
                     'enabled' => '1',
-                    'webhook_url' => 'https://hooks.slack.test/services/raw-secret',
+                    'webhook_url' => 'https://hooks.slack.com/services/raw-secret',
                 ],
                 'telegram' => [
                     'enabled' => '1',
@@ -80,11 +80,11 @@ class AuditLogTest extends TestCase
                 ],
                 'discord' => [
                     'enabled' => '0',
-                    'webhook_url' => 'https://discord.test/api/webhooks/raw-secret',
+                    'webhook_url' => 'https://discord.com/api/webhooks/raw-secret',
                 ],
                 'webhook' => [
                     'enabled' => '1',
-                    'url' => 'https://example.test/raw-webhook-secret',
+                    'url' => 'https://example.com/raw-webhook-secret',
                 ],
             ],
         ]);

@@ -13,8 +13,13 @@ class UserScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         if (auth()->check()) {
-            $builder->whereHas('monitoring', function (\Illuminate\Contracts\Database\Query\Builder $builder) {
-                $builder->where('user_id', auth()->id());
+            $user = auth()->user();
+
+            $builder->whereHas('monitoring', function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id)
+                    ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                        $builder->where('user_id', $user->id);
+                    });
             });
         }
     }

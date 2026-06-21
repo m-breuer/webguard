@@ -10,7 +10,9 @@ use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
+use App\Models\Team;
 use App\Models\User;
+use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
 use App\Support\MonitoringPayload;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -55,6 +57,20 @@ class MonitoringController extends Controller
                 'string',
                 Rule::exists('monitoring_groups', 'id')->where('user_id', $currentUser->id),
             ],
+            'team_id' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($currentUser): void {
+                    if (blank($value)) {
+                        return;
+                    }
+
+                    if (! Team::query()->visibleTo($currentUser)->whereKey((string) $value)->exists()) {
+                        $fail(__('team.validation.not_member'));
+                    }
+                },
+            ],
+            'ownership' => ['nullable', 'string', Rule::in(['all', 'private', 'team'])],
         ]);
 
         $query = Monitoring::query();
@@ -84,6 +100,16 @@ class MonitoringController extends Controller
             });
         }
 
+        if ($request->filled('team_id')) {
+            $query->where('team_id', $request->string('team_id')->toString());
+        }
+
+        if ($request->input('ownership') === 'private') {
+            $query->whereNull('team_id');
+        } elseif ($request->input('ownership') === 'team') {
+            $query->whereNotNull('team_id');
+        }
+
         $query->orderBy('status');
 
         match ($request->input('sort')) {
@@ -97,12 +123,16 @@ class MonitoringController extends Controller
         $hasActiveFilters = $request->filled('search')
             || $request->filled('types')
             || $request->filled('lifecycle')
-            || $request->filled('group_id');
+            || $request->filled('group_id')
+            || $request->filled('team_id')
+            || $request->filled('ownership');
+        $privateMonitoringsTotal = $currentUser->monitorings()->whereNull('team_id')->count();
         $monitoringsTotal = $hasActiveFilters
-            ? $currentUser->monitorings()->count()
+            ? Monitoring::query()->count()
             : $lengthAwarePaginator->total();
         $monitoringLimit = (int) $currentUser->package->monitoring_limit;
-        $canCreateMonitoring = ! $currentUser->isDemo() && $monitoringsTotal < $monitoringLimit;
+        $canCreateMonitoring = ! $currentUser->isDemo()
+            && ($privateMonitoringsTotal < $monitoringLimit || $currentUser->administeredTeams()->exists());
 
         if (! $hasActiveFilters && $monitoringsTotal === 0) {
             $request->attributes->set('unread_notifications_count', 0);
@@ -117,9 +147,11 @@ class MonitoringController extends Controller
             'monitorings' => $lengthAwarePaginator,
             'monitoringsTotal' => $monitoringsTotal,
             'monitoringLimit' => $monitoringLimit,
+            'privateMonitoringsTotal' => $privateMonitoringsTotal,
             'canCreateMonitoring' => $canCreateMonitoring,
             'maintenanceStatusMap' => $maintenanceStatusMap,
             'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
+            'teams' => Team::query()->visibleTo($currentUser)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -132,7 +164,10 @@ class MonitoringController extends Controller
     {
         abort_if(Auth::user()->isDemo(), 403);
 
-        if (Auth::user()->monitorings()->count() >= Auth::user()->package->monitoring_limit) {
+        $adminTeams = Auth::user()->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']);
+
+        if (Auth::user()->monitorings()->whereNull('team_id')->count() >= Auth::user()->package->monitoring_limit
+            && $adminTeams->isEmpty()) {
             return to_route('monitorings.index')
                 ->withErrors(['limit' => __('monitoring.messages.limit_reached')]);
         }
@@ -150,6 +185,7 @@ class MonitoringController extends Controller
             'serverInstances' => $serverInstances,
             'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
             'monitoringGroups' => Auth::user()->monitoringGroups()->orderBy('name')->get(['id', 'name']),
+            'adminTeams' => $adminTeams,
         ]);
     }
 
@@ -163,19 +199,30 @@ class MonitoringController extends Controller
     {
         abort_if(Auth::user()->isDemo(), 403);
 
-        if (Auth::user()->monitorings()->count() >= Auth::user()->package->monitoring_limit) {
+        if (Auth::user()->monitorings()->whereNull('team_id')->count() >= Auth::user()->package->monitoring_limit
+            && blank($monitoringRequest->input('team_id'))) {
             return to_route('monitorings.index')
                 ->withErrors(['limit' => __('monitoring.messages.limit_reached')]);
         }
 
         $validated = $monitoringRequest->validated();
         $groupIds = $validated['group_ids'] ?? [];
+        $teamId = $validated['team_id'] ?? null;
         unset($validated['group_ids']);
+        unset($validated['team_id']);
 
         $validated = MonitoringPayload::prepareStore($validated);
 
-        $monitoring = Auth::user()->monitorings()->create($validated);
-        $monitoring->groups()->sync($groupIds);
+        if ($teamId) {
+            $validated['user_id'] = null;
+            $validated['team_id'] = $teamId;
+            $validated['created_by_user_id'] = Auth::id();
+
+            $monitoring = Monitoring::query()->create($validated);
+        } else {
+            $monitoring = Auth::user()->monitorings()->create($validated);
+            $monitoring->groups()->sync($groupIds);
+        }
 
         return to_route('monitorings.index')->with('success', __('monitoring.messages.created'));
     }
@@ -186,12 +233,19 @@ class MonitoringController extends Controller
      * @param  Monitoring  $monitoring  The monitoring instance to display.
      * @return View The view displaying the monitoring details.
      */
-    public function show(Monitoring $monitoring): View
-    {
-        $monitoring->loadMissing('domainResult');
+    public function show(
+        Monitoring $monitoring,
+        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver
+    ): View {
+        /** @var User $user */
+        $user = Auth::user();
+        $monitoring->loadMissing('domainResult', 'team');
 
         return view('monitorings.show', [
             'monitoring' => $monitoring,
+            'canManageMonitoring' => $monitoring->isManageableBy($user) && ! $user->isDemo(),
+            'adminTeams' => Team::query()->administeredBy($user)->orderBy('name')->get(['teams.id', 'teams.name']),
+            'notificationPreference' => $monitoringNotificationPreferenceResolver->preferenceFor($monitoring, $user),
         ]);
     }
 
@@ -204,8 +258,9 @@ class MonitoringController extends Controller
     public function edit(Monitoring $monitoring): View
     {
         abort_if(Auth::user()->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy(Auth::user()), 403);
 
-        $monitoring->loadMissing('groups');
+        $monitoring->loadMissing('groups', 'team');
         $types = MonitoringType::cases();
         $serverInstances = ServerInstance::query()
             ->where(function ($query) use ($monitoring): void {
@@ -220,7 +275,10 @@ class MonitoringController extends Controller
             'types' => $types,
             'serverInstances' => $serverInstances,
             'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
-            'monitoringGroups' => Auth::user()->monitoringGroups()->orderBy('name')->get(['id', 'name']),
+            'monitoringGroups' => $monitoring->isPrivateOwned()
+                ? Auth::user()->monitoringGroups()->orderBy('name')->get(['id', 'name'])
+                : collect(),
+            'adminTeams' => Auth::user()->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
         ]);
     }
 
@@ -234,10 +292,12 @@ class MonitoringController extends Controller
     public function update(MonitoringRequest $monitoringRequest, Monitoring $monitoring): RedirectResponse
     {
         abort_if(Auth::user()->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy(Auth::user()), 403);
 
         $validated = $monitoringRequest->validated();
         $groupIds = $validated['group_ids'] ?? [];
         unset($validated['group_ids']);
+        unset($validated['team_id']);
 
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 
@@ -246,7 +306,9 @@ class MonitoringController extends Controller
         }
 
         $monitoring->update($validated);
-        $monitoring->groups()->sync($groupIds);
+        if ($monitoring->isPrivateOwned()) {
+            $monitoring->groups()->sync($groupIds);
+        }
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.updated'));
     }
@@ -260,6 +322,7 @@ class MonitoringController extends Controller
     public function destroy(Monitoring $monitoring): RedirectResponse
     {
         abort_if(Auth::user()->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy(Auth::user()), 403);
 
         $monitoring->delete();
 
@@ -275,6 +338,7 @@ class MonitoringController extends Controller
     public function destroyResults(Monitoring $monitoring): RedirectResponse
     {
         abort_if(Auth::user()->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy(Auth::user()), 403);
 
         if (cache()->getStore() instanceof TaggableStore) {
             cache()->tags(['monitoring:' . $monitoring->id])->flush();

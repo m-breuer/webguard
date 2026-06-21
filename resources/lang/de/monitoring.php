@@ -307,6 +307,7 @@ return [
         'updated' => 'Überwachung erfolgreich aktualisiert.',
         'deleted' => 'Überwachung erfolgreich gelöscht.',
         'results_deleted' => 'Überwachungsergebnisse werden in Kürze gelöscht.',
+        'notification_preferences_updated' => 'Benachrichtigungseinstellungen wurden aktualisiert.',
         'public_label_slug_will_be_generated' => 'Die URL des öffentlichen Labels wird nach dem Speichern generiert.',
         'no_server_instances' => 'Keine aktiven Serverinstanzen verfügbar. Bitte kontaktieren Sie einen Administrator.',
     ],
