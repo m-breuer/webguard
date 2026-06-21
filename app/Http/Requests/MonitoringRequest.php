@@ -224,8 +224,6 @@ class MonitoringRequest extends FormRequest
             ],
             'failure_confirmation_threshold' => ['required', 'integer', 'min:1', 'max:10'],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
-            'maintenance_from' => ['nullable', 'date'],
-            'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
         ];
 
         if ($this->isMethod('post')) {
