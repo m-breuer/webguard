@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
-#[Description('Sends admin alerts when scanner server instances become stale, remain unseen, or recover.')]
+#[Description('Sends admin alerts when scanner server instances become unreachable, remain unseen, or recover.')]
 #[Signature('notifications:send-server-instance-health-alerts')]
 class SendServerInstanceHealthAlertsCommand extends Command
 {

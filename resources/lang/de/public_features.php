@@ -120,7 +120,7 @@ return [
         'server_health' => [
             'badge' => 'Server',
             'title' => 'Server-Zustand-Monitoring',
-            'teaser' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als down gelten.',
+            'teaser' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als nicht verfügbar gelten.',
             'lead' => 'Server-Zustand-Monitoring lässt Infrastruktur eigene Nutzungsmetriken an WebGuard senden und gegen monitor-spezifische Schwellen bewerten.',
             'highlights' => ['Push-Endpunkt für Server-Health-Reports', 'CPU, RAM, Speicher, Load, Uptime und Custom Metrics', 'Konfigurierbare Nutzungsschwellen pro Monitor'],
             'details' => ['Nutzen Sie Server-Zustand-Monitore, wenn Infrastruktur ihren Zustand genauer melden kann als ein externer Poll ihn ableiten könnte.', 'Jeder Monitor kann eigene Nutzungsschwellen definieren, sodass Worker, Datenbank-Hosts und kleine Utility-Server unterschiedliche Betriebsbereiche haben.', 'Die API-Referenz dokumentiert den Health-Report-Endpunkt öffentlich, damit Teams Agents und Automationen ohne Suche in Profileinstellungen anbinden können.'],
@@ -240,7 +240,7 @@ return [
             'teaser' => 'Binden Sie ein kompaktes SLA-Badge in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
             'lead' => 'SLA-Badges bringen WebGuard-Status in Websites, interne Dashboards, Dokumentation und Kundenportale.',
             'highlights' => ['Einbettbares SLA-Badge-Script', 'Nutzt öffentliche Badge-Daten aktivierter Labels', 'Zeigt Status und Uptime-Zusammenfassungen'],
-            'details' => ['Nutzen Sie das SLA-Badge, wenn Stakeholder WebGuard nicht öffnen sollen, um den Zustand eines Services zu sehen.', 'Der öffentliche Badge-Endpunkt ist nur für Monitore verfügbar, bei denen Public Labels aktiv sind. Dadurch bleibt Veröffentlichung bewusst.', 'Badges können aktuellen Status und Uptime-Zusammenfassungen auf externen Seiten anzeigen, während WebGuard die Quelle bleibt.'],
+            'details' => ['Nutzen Sie das SLA-Badge, wenn Stakeholder WebGuard nicht öffnen sollen, um den Zustand eines Services zu sehen.', 'Der öffentliche Badge-Endpunkt ist nur für Monitore verfügbar, bei denen Public Labels aktiv sind. Dadurch bleibt die Veröffentlichung bewusst gesteuert.', 'Badges können aktuellen Status und Uptime-Zusammenfassungen auf externen Seiten anzeigen, während WebGuard die Quelle bleibt.'],
             'seo' => ['title' => 'SLA-Badges - WebGuard', 'description' => 'Betten Sie Live-Monitoring-Status von WebGuard mit öffentlichen SLA-Badges in externe Seiten ein.', 'keywords' => 'Status Badge, SLA Badge, Uptime Badge'],
         ],
         'rest_api' => [

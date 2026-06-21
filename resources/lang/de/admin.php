@@ -116,14 +116,14 @@ return [
         'summary' => [
             'total_instances' => 'Instanzen gesamt',
             'active_instances' => 'Aktive Instanzen',
-            'stale_instances' => 'Veraltete Instanzen',
+            'stale_instances' => 'Nicht erreichbare Instanzen',
             'total_monitorings' => 'Zugewiesene Monitorings',
         ],
         'monitorings_count' => ':count Monitoring|:count Monitorings',
         'health' => [
-            'healthy' => 'Gesund',
-            'stale' => 'Veraltet',
-            'never_seen' => 'Nie gesehen',
+            'healthy' => 'Erreichbar',
+            'stale' => 'Nicht erreichbar',
+            'never_seen' => 'Noch kein Bericht',
             'inactive' => 'Inaktiv',
         ],
         'messages' => [

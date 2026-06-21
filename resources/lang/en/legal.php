@@ -26,7 +26,7 @@ return [
                     'SSL/TLS certificate checks and domain-expiration checks, including expiry warnings for supported endpoints and domains.',
                     'Status and incident tracking, response-time insights, recent individual checks, maintenance windows, and uptime/downtime visualizations.',
                     'Public status labels and embeddable SLA badges when enabled by the user.',
-                    'Channel-based notifications for incidents, recoveries, SSL events, and domain-expiration events (for example email, Slack, Telegram, Discord, custom webhooks), including test delivery, delivery history, weekly digest, and unread-notification reminders.',
+                    'Channel-based notifications for incidents, recoveries, SSL events, and domain-expiration events (for example email, Slack, Telegram, Discord, Microsoft Teams, and custom webhooks), including test delivery, delivery history, weekly digest, and unread-notification reminders.',
                     'Token-based API access for supported endpoints and public badge endpoints for enabled public labels.',
                     'Monitoring-location display and multiple server instances used to perform checks.',
                     'Optional GitHub sign-in and demo access.',

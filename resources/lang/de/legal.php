@@ -26,7 +26,7 @@ return [
                     'SSL-/TLS-Zertifikatsprüfungen und Domain-Ablaufprüfungen inkl. Ablaufwarnungen für geeignete Endpunkte und Domains.',
                     'Status- und Vorfallauswertung, Antwortzeiten, letzte Einzelprüfungen, Wartungsfenster sowie Uptime-/Downtime-Visualisierungen.',
                     'Öffentliche Status-Labels (Public Label) und einbettbare SLA-Badges, sofern vom Nutzer aktiviert.',
-                    'Kanalbasierte Benachrichtigungen für Incidents, Recovery, SSL- und Domain-Ablaufereignisse (z. B. E-Mail, Slack, Telegram, Discord, Custom Webhooks) einschließlich Testversand, Versandhistorie, Wochen-Digest und Erinnerungen an ungelesene Benachrichtigungen.',
+                    'Kanalbasierte Benachrichtigungen für Vorfälle, Wiederherstellungen, SSL- und Domain-Ablaufereignisse (z. B. E-Mail, Slack, Telegram, Discord, Microsoft Teams und eigene Webhooks) einschließlich Testversand, Versandhistorie, Wochenbericht und Erinnerungen an ungelesene Benachrichtigungen.',
                     'Tokenbasierter API-Zugriff für freigegebene Endpunkte sowie öffentliche Badge-Endpunkte für aktivierte Public Labels.',
                     'Anzeige von Monitoring-Standorten und Betrieb mehrerer Serverinstanzen zur Durchführung von Checks.',
                     'Optionale Anmeldung über GitHub sowie Demo-Zugang.',

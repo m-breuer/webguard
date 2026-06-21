@@ -77,6 +77,23 @@ class NotificationDeliveryHistoryTest extends TestCase
             'updated_at' => Date::now()->subSeconds(30),
         ]);
 
+        $teamsDelivery = NotificationChannelDelivery::query()->forceCreate([
+            'user_id' => $user->id,
+            'monitoring_notification_id' => null,
+            'channel' => 'teams',
+            'event_type' => NotificationEventType::RECOVERY->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+            'payload' => [
+                'monitoring' => [
+                    'name' => 'Teams API',
+                    'target' => 'https://teams.example.test',
+                ],
+            ],
+            'sent_at' => Date::now()->subSeconds(45),
+            'created_at' => Date::now()->subSeconds(45),
+            'updated_at' => Date::now()->subSeconds(45),
+        ]);
+
         $hiddenDelivery = NotificationChannelDelivery::query()->forceCreate([
             'user_id' => $otherUser->id,
             'monitoring_notification_id' => null,
@@ -111,10 +128,13 @@ class NotificationDeliveryHistoryTest extends TestCase
 
         $this->assertStringContainsString('id="' . $notificationChannelDelivery->id . '"', $html);
         $this->assertStringContainsString('id="' . $payloadOnlyDelivery->id . '"', $html);
+        $this->assertStringContainsString('id="' . $teamsDelivery->id . '"', $html);
         $this->assertStringNotContainsString('id="' . $hiddenDelivery->id . '"', $html);
         $this->assertStringContainsString('Primary API', $html);
         $this->assertStringContainsString('Worker API', $html);
+        $this->assertStringContainsString('Teams API', $html);
         $this->assertStringContainsString(__('notifications.channels.slack'), $html);
+        $this->assertStringContainsString(__('notifications.channels.teams'), $html);
         $this->assertStringContainsString(__('notifications.events.incident'), $html);
         $this->assertStringContainsString(__('notifications.delivery_status.failed'), $html);
         $this->assertStringContainsString('Webhook responded with HTTP 500.', $html);
