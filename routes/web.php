@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringGroupController;
 use App\Http\Controllers\MonitoringLocationsController;
@@ -123,6 +124,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     });
 
     Route::resource('monitorings', MonitoringController::class)->names('monitorings');
+    Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
+    Route::delete('/maintenance', [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
     Route::resource('monitoring-groups', MonitoringGroupController::class)
         ->except(['show'])
         ->parameters(['monitoring-groups' => 'monitoringGroup'])

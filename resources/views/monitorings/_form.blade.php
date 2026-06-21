@@ -520,21 +520,6 @@
         <x-input-error :messages="$errors->get('status')" />
     </div>
 
-    <div class="mt-4">
-        <x-input-label for="maintenance_from" :value="__('monitoring.form.maintenance_from')" />
-        <x-text-input id="maintenance_from" type="datetime-local" name="maintenance_from" :value="old('maintenance_from', isset($monitoring) ? $monitoring->maintenance_from?->format('Y-m-d\TH:i') : '')" />
-        <x-input-error :messages="$errors->get('maintenance_from')" />
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('monitoring.form.maintenance_help') }}
-        </p>
-    </div>
-
-    <div class="mt-4">
-        <x-input-label for="maintenance_until" :value="__('monitoring.form.maintenance_until')" />
-        <x-text-input id="maintenance_until" type="datetime-local" name="maintenance_until" :value="old('maintenance_until', isset($monitoring) ? $monitoring->maintenance_until?->format('Y-m-d\TH:i') : '')" />
-        <x-input-error :messages="$errors->get('maintenance_until')" />
-    </div>
-
         </section>
 
         <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
