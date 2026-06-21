@@ -144,11 +144,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::resource('teams', TeamController::class)->names('teams');
     Route::post('/teams/{team}/invitations', [TeamInvitationController::class, 'store'])
         ->name('teams.invitations.store');
-    Route::delete('/teams/{team}/invitations/{invitation}', [TeamInvitationController::class, 'destroy'])
+    Route::delete('/teams/{team}/invitations/{teamInvitation}', [TeamInvitationController::class, 'destroy'])
         ->name('teams.invitations.destroy');
-    Route::patch('/teams/{team}/members/{membership}', [TeamMemberController::class, 'update'])
+    Route::patch('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'update'])
         ->name('teams.members.update');
-    Route::delete('/teams/{team}/members/{membership}', [TeamMemberController::class, 'destroy'])
+    Route::delete('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'destroy'])
         ->name('teams.members.destroy');
     Route::delete('/teams/{team}/leave', [TeamMemberController::class, 'leave'])
         ->name('teams.leave');
