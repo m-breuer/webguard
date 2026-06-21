@@ -57,6 +57,31 @@ class MonitoringPreferredLocationsTest extends TestCase
         $this->assertSame([$this->deInstance->code, $this->usInstance->code], $monitoring->preferredLocationCodes());
     }
 
+    public function test_create_and_edit_forms_use_searchable_multi_select_for_preferred_locations(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->deInstance->code,
+            'preferred_locations' => [$this->deInstance->code, $this->usInstance->code],
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
+        $editResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('name="preferred_locations[]"');
+        $testResponse->assertSee($this->deInstance->code);
+        $testResponse->assertSee($this->usInstance->code);
+        $testResponse->assertSee(__('monitoring.form.search_preferred_locations'));
+        $testResponse->assertSeeText(__('monitoring.form.select_all_preferred_locations'));
+
+        $editResponse->assertOk();
+        $editResponse->assertSeeHtml('name="preferred_locations[]"');
+        $editResponse->assertSee($this->deInstance->code);
+        $editResponse->assertSee($this->usInstance->code);
+        $editResponse->assertSee(__('monitoring.form.search_preferred_locations'));
+        $editResponse->assertSeeText(__('monitoring.form.select_all_preferred_locations'));
+    }
+
     public function test_internal_monitoring_list_returns_monitoring_for_each_selected_location(): void
     {
         $monitoring = Monitoring::factory()->for($this->user)->create([

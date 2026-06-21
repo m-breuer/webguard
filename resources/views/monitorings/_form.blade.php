@@ -36,6 +36,23 @@
         'value' => (string) $monitoringGroup->id,
         'label' => $monitoringGroup->name,
     ])->values();
+    $selectedPreferredLocations = old(
+        'preferred_locations',
+        old('preferred_location', isset($monitoring) ? $monitoring->preferredLocationCodes() : [$serverInstances->first()?->code])
+    );
+    $selectedPreferredLocations = is_array($selectedPreferredLocations)
+        ? array_values(array_filter(
+            array_map(static fn (mixed $location): string => (string) $location, $selectedPreferredLocations),
+            static fn (string $location): bool => $location !== ''
+        ))
+        : array_values(array_filter(
+            [(string) $selectedPreferredLocations],
+            static fn (string $location): bool => $location !== ''
+        ));
+    $serverInstanceOptions = collect($serverInstances ?? [])->map(static fn ($serverInstance): array => [
+        'value' => $serverInstance->code,
+        'label' => $serverInstance->code,
+    ])->values();
 @endphp
 
 @csrf
@@ -468,23 +485,21 @@
             </div>
 
     <div class="mt-4">
-        @php
-            $selectedPreferredLocations = old(
-                'preferred_locations',
-                old('preferred_location', isset($monitoring) ? $monitoring->preferredLocationCodes() : [$serverInstances->first()?->code])
-            );
-            $selectedPreferredLocations = is_array($selectedPreferredLocations)
-                ? array_values(array_filter($selectedPreferredLocations))
-                : array_filter([(string) $selectedPreferredLocations]);
-        @endphp
         <x-input-label for="preferred_locations" :value="__('monitoring.form.preferred_location')" />
-        <x-select-input id="preferred_locations" class="mt-1 block min-h-32 w-full" name="preferred_locations[]" multiple required>
-            @foreach ($serverInstances as $instance)
-                <option value="{{ $instance->code }}" @selected(in_array($instance->code, $selectedPreferredLocations, true))>
-                    {{ $instance->code }}
-                </option>
-            @endforeach
-        </x-select-input>
+        <x-multi-select
+            id="preferred_locations"
+            name="preferred_locations"
+            class="mt-1"
+            :options="$serverInstanceOptions"
+            :selected="$selectedPreferredLocations"
+            :placeholder="__('monitoring.form.no_preferred_locations')"
+            :search-placeholder="__('monitoring.form.search_preferred_locations')"
+            :select-all-label="__('monitoring.form.select_all_preferred_locations')"
+            :all-selected-label="__('monitoring.form.all_preferred_locations_selected')"
+            :no-options-label="__('monitoring.form.no_preferred_locations_available')"
+            :no-results-label="__('monitoring.form.no_preferred_locations_found')"
+            :remove-label="__('monitoring.form.remove_preferred_location')"
+            :clear-label="__('monitoring.form.clear_preferred_locations')" />
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {{ __('monitoring.form.preferred_locations_help') }}
         </p>
