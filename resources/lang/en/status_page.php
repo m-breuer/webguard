@@ -66,5 +66,6 @@ return [
     ],
     'validation' => [
         'fix_errors' => 'Please fix the highlighted status page settings.',
+        'monitoring_not_accessible' => 'The selected monitoring is not accessible.',
     ],
 ];

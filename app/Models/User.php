@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -111,6 +112,48 @@ class User extends Authenticatable implements MustVerifyEmail
     public function monitoringGroups(): HasMany
     {
         return $this->hasMany(MonitoringGroup::class);
+    }
+
+    /**
+     * @return HasMany<TeamMembership, $this>
+     */
+    public function teamMemberships(): HasMany
+    {
+        return $this->hasMany(TeamMembership::class);
+    }
+
+    /**
+     * @return BelongsToMany<Team, $this>
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_memberships')
+            ->withPivot('id', 'role')
+            ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<Team, $this>
+     */
+    public function administeredTeams(): BelongsToMany
+    {
+        return $this->teams()->wherePivot('role', \App\Enums\TeamRole::ADMIN->value);
+    }
+
+    /**
+     * @return HasMany<MonitoringNotificationPreference, $this>
+     */
+    public function monitoringNotificationPreferences(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationPreference::class);
+    }
+
+    /**
+     * @return HasMany<MonitoringNotificationState, $this>
+     */
+    public function monitoringNotificationStates(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationState::class);
     }
 
     /**

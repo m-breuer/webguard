@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\MonitoringManagementController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\TeamInvitationController;
+use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +15,13 @@ use Illuminate\Support\Facades\Route;
  * This is to ensure that the documentation is generated in a logical order.
  */
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {
+    Route::get('/', [MonitoringManagementController::class, 'index']);
+    Route::post('/', [MonitoringManagementController::class, 'store']);
+    Route::patch('/{monitoring}', [MonitoringManagementController::class, 'update']);
+    Route::delete('/{monitoring}', [MonitoringManagementController::class, 'destroy']);
+    Route::post('/{monitoring}/team-ownership', [MonitoringManagementController::class, 'moveToTeam']);
+    Route::delete('/{monitoring}/team-ownership', [MonitoringManagementController::class, 'moveToPrivate']);
+
     Route::get('/{monitoring}', [ApiController::class, 'all']);
 
     Route::get('/{monitoring}/status', [ApiController::class, 'status']);
@@ -23,3 +34,12 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
     Route::get('/{monitoring}/ssl', [ApiController::class, 'sslStatus']);
     Route::get('/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar']);
 });
+
+Route::apiResource('teams', TeamController::class);
+Route::get('/teams/{team}/members', [TeamMemberController::class, 'index']);
+Route::patch('/teams/{team}/members/{membership}', [TeamMemberController::class, 'update']);
+Route::delete('/teams/{team}/members/{membership}', [TeamMemberController::class, 'destroy']);
+Route::get('/teams/{team}/invitations', [TeamInvitationController::class, 'index']);
+Route::post('/teams/{team}/invitations', [TeamInvitationController::class, 'store']);
+Route::delete('/teams/{team}/invitations/{invitation}', [TeamInvitationController::class, 'destroy']);
+Route::post('/team-invitations/{token}/accept', [TeamInvitationController::class, 'accept']);

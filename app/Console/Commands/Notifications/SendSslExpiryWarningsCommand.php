@@ -9,6 +9,8 @@ use App\Enums\NotificationType;
 use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringNotification;
 use App\Models\MonitoringSslResult;
+use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
+use App\Services\Notifications\MonitoringNotificationStateService;
 use App\Services\Notifications\NotificationPayload;
 use App\Services\Notifications\NotificationRouter;
 use Carbon\CarbonInterface;
@@ -21,8 +23,11 @@ use Illuminate\Support\Facades\Cache;
 #[Signature('notifications:send-ssl-expiry-warnings')]
 class SendSslExpiryWarningsCommand extends Command
 {
-    public function __construct(private readonly NotificationRouter $notificationRouter)
-    {
+    public function __construct(
+        private readonly NotificationRouter $notificationRouter,
+        private readonly MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver,
+        private readonly MonitoringNotificationStateService $monitoringNotificationStateService
+    ) {
         parent::__construct();
     }
 
@@ -47,7 +52,7 @@ class SendSslExpiryWarningsCommand extends Command
                 })
                     ->orWhere('is_valid', false);
             })
-            ->with(['monitoring.user'])
+            ->with(['monitoring.user', 'monitoring.team.users'])
             ->get();
 
         foreach ($sslResults as $sslResult) {
@@ -77,7 +82,7 @@ class SendSslExpiryWarningsCommand extends Command
                 })
                     ->orWhere('is_valid', false);
             })
-            ->with(['monitoring.user'])
+            ->with(['monitoring.user', 'monitoring.team.users'])
             ->get();
 
         foreach ($domainResults as $domainResult) {
@@ -115,20 +120,24 @@ class SendSslExpiryWarningsCommand extends Command
             return;
         }
 
-        $user = $monitoring->user;
-        if (! $user) {
-            return;
-        }
-
-        if (! $monitoring->notification_on_failure) {
-            return;
-        }
-
         $expiresAt = $result->expires_at;
         $isExpired = ! $result->is_valid || ($expiresAt !== null && $expiresAt->lte(now()));
         $daysUntilExpiry = $expiresAt !== null ? $this->daysUntilExpiry($expiresAt) : null;
 
-        if (! $isExpired && ! $this->shouldWarn($daysUntilExpiry, $warningWindowDays)) {
+        $recipients = $this->monitoringNotificationPreferenceResolver
+            ->recipientsFor($monitoring)
+            ->filter(function (array $recipient) use ($daysUntilExpiry, $isExpired): bool {
+                $preference = $recipient['preference'];
+
+                if (! $preference->notification_on_failure) {
+                    return false;
+                }
+
+                return $isExpired || $this->shouldWarn($daysUntilExpiry, $preference->ssl_expiry_warning_days);
+            })
+            ->values();
+
+        if ($recipients->isEmpty()) {
             return;
         }
 
@@ -170,7 +179,15 @@ class SendSslExpiryWarningsCommand extends Command
             ],
         );
 
-        $this->notificationRouter->dispatch($user, $notificationPayload, $monitoring->notification_channels);
+        $recipients->each(function (array $recipient) use ($monitoringNotification, $notificationPayload): void {
+            $user = $recipient['user'];
+            $preference = $recipient['preference'];
+
+            $this->monitoringNotificationStateService->ensureState($monitoringNotification, $user);
+            $this->notificationRouter->dispatch($user, $notificationPayload, $preference->notification_channels);
+            $this->monitoringNotificationStateService->markSent($monitoringNotification, $user);
+        });
+
         $monitoringNotification->update(['sent' => true]);
         Cache::put($cacheKey, true, now()->addHours(23));
     }

@@ -7,12 +7,12 @@ namespace App\Http\Requests;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Models\Team;
 use App\Models\User;
 use App\Support\DnsRecordExpectation;
 use App\Support\HttpStatusCodeRanges;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use JsonException;
@@ -36,7 +36,7 @@ class MonitoringRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return $this->user() !== null;
     }
 
     /**
@@ -219,6 +219,22 @@ class MonitoringRequest extends FormRequest
                 'string',
                 Rule::in($this->notificationChannelUser()?->enabledNotificationChannelKeys() ?? []),
             ],
+            'team_id' => [
+                'nullable',
+                'string',
+                Rule::exists('teams', 'id'),
+                function ($attribute, $value, $fail): void {
+                    if (blank($value)) {
+                        return;
+                    }
+
+                    $user = $this->user();
+
+                    if (! $user || ! Team::query()->administeredBy($user)->whereKey((string) $value)->exists()) {
+                        $fail(__('team.validation.not_admin'));
+                    }
+                },
+            ],
             'group_ids' => ['nullable', 'array'],
             'group_ids.*' => [
                 'string',
@@ -265,6 +281,7 @@ class MonitoringRequest extends FormRequest
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
+            'team_id' => $this->normalizeTeamId(),
             'group_ids' => $this->normalizeGroupIds(),
             'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 2),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
@@ -312,6 +329,19 @@ class MonitoringRequest extends FormRequest
             array_map(static fn (mixed $groupId): string => (string) $groupId, $groupIds),
             static fn (string $groupId): bool => $groupId !== ''
         )));
+    }
+
+    private function normalizeTeamId(): ?string
+    {
+        $teamId = $this->input('team_id');
+
+        if (! is_scalar($teamId)) {
+            return null;
+        }
+
+        $teamId = mb_trim((string) $teamId);
+
+        return $teamId === '' ? null : $teamId;
     }
 
     /**

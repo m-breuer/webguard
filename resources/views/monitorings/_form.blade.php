@@ -36,6 +36,8 @@
         'value' => (string) $monitoringGroup->id,
         'label' => $monitoringGroup->name,
     ])->values();
+    $adminTeams = $adminTeams ?? collect();
+    $selectedTeamId = old('team_id', $monitoring->team_id ?? '');
     $selectedPreferredLocations = old(
         'preferred_locations',
         old('preferred_location', isset($monitoring) ? $monitoring->preferredLocationCodes() : [$serverInstances->first()?->code])
@@ -112,6 +114,29 @@
         <x-input-label for="name" :value="__('monitoring.form.name')" />
         <x-text-input id="name" type="text" name="name" :value="old('name', $monitoring->name ?? '')" required />
         <x-input-error :messages="$errors->get('name')" />
+    </div>
+
+    <div class="mt-4">
+        <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
+        @if (isset($monitoring))
+            <x-text-input id="team_id" class="cursor-not-allowed" :value="$monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private')" readonly />
+        @else
+            <x-select-input id="team_id" name="team_id" class="mt-1 block w-full">
+                <option value="">{{ __('team.ownership.private') }}</option>
+                @foreach ($adminTeams as $team)
+                    <option value="{{ $team->id }}" @selected($selectedTeamId === $team->id)>
+                        {{ __('team.ownership.team') }}: {{ $team->name }}
+                    </option>
+                @endforeach
+            </x-select-input>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('team.ownership.private_help') }}
+                @if ($adminTeams->isNotEmpty())
+                    {{ __('team.ownership.team_help') }}
+                @endif
+            </p>
+        @endif
+        <x-input-error :messages="$errors->get('team_id')" />
     </div>
 
     <div class="mt-4">

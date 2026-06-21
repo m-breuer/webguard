@@ -131,7 +131,7 @@
 
                         <div class="mt-4">
                             <x-input-label for="register_email" :value="__('auth.register.email')" />
-                            <x-text-input id="register_email" type="email" name="email" :value="old('email')" required
+                            <x-text-input id="register_email" type="email" name="email" :value="old('email', request('email'))" required
                                 autocomplete="username" />
                             <x-input-error :messages="$errors->get('email')" />
                         </div>

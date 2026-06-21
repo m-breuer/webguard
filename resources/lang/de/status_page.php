@@ -66,5 +66,6 @@ return [
     ],
     'validation' => [
         'fix_errors' => 'Bitte korrigieren Sie die markierten Statusseiten-Einstellungen.',
+        'monitoring_not_accessible' => 'Die ausgewählte Überwachung ist nicht zugänglich.',
     ],
 ];
