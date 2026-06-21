@@ -53,7 +53,7 @@ class ConsoleCommandRegistrationTest extends TestCase
             ],
             'send server instance health alerts' => [
                 'notifications:send-server-instance-health-alerts',
-                'Sends admin alerts when scanner server instances become stale, remain unseen, or recover.',
+                'Sends admin alerts when scanner server instances become unreachable, remain unseen, or recover.',
             ],
             'send weekly monitoring digest' => [
                 'notifications:send-weekly-monitoring-digest',

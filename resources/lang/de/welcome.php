@@ -97,7 +97,7 @@ return [
         'server_health' => [
             'badge' => 'Server',
             'title' => 'Server-Zustand-Monitoring',
-            'text' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als down gelten.',
+            'text' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als nicht verfügbar gelten.',
         ],
         'dns_record' => [
             'badge' => 'DNS',

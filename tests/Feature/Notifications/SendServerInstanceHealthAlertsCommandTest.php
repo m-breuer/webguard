@@ -22,6 +22,7 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
     protected function tearDown(): void
     {
         Date::setTestNow();
+        app()->setLocale((string) config('app.locale'));
 
         parent::tearDown();
     }
@@ -250,13 +251,61 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
         $serverInstanceHealthAlertMail = new ServerInstanceHealthAlertMail($serverInstance, 'stale', $admin);
         $rendered = $serverInstanceHealthAlertMail->render();
 
-        $this->assertSame('Server instance scanner-mail-1 is STALE', $serverInstanceHealthAlertMail->envelope()->subject);
+        $this->assertSame('Server instance scanner-mail-1: UNREACHABLE', $serverInstanceHealthAlertMail->envelope()->subject);
         $this->assertSame([], $serverInstanceHealthAlertMail->attachments());
         $this->assertStringContainsString('Hello Admin User,', $rendered);
-        $this->assertStringContainsString('The scanner instance &quot;scanner-mail-1&quot; is currently marked as Stale.', $rendered);
+        $this->assertStringContainsString('The scanner instance &quot;scanner-mail-1&quot; currently has the status &quot;Unreachable&quot;.', $rendered);
         $this->assertStringContainsString('IP address: 192.0.2.47.', $rendered);
-        $this->assertStringContainsString('considered stale after 10 minutes', $rendered);
+        $this->assertStringContainsString('considered unreachable after 10 minutes', $rendered);
         $this->assertStringContainsString('class="mail-button"', $rendered);
+    }
+
+    public function test_server_instance_health_alert_mail_renders_german_unreachable_copy(): void
+    {
+        config(['monitoring.instance_stale_after_minutes' => 10]);
+        app()->setLocale('de');
+
+        $admin = User::factory()->make([
+            'name' => 'Marcel Breuer',
+            'role' => UserRole::ADMIN,
+        ]);
+        $serverInstance = new ServerInstance([
+            'code' => 'de-1',
+            'ip_address' => '217.154.152.5',
+            'last_seen_at' => Date::parse('2026-06-21 17:04:00'),
+        ]);
+
+        $serverInstanceHealthAlertMail = new ServerInstanceHealthAlertMail($serverInstance, 'stale', $admin);
+        $rendered = $serverInstanceHealthAlertMail->render();
+
+        $this->assertSame('Server-Instanz de-1: NICHT ERREICHBAR', $serverInstanceHealthAlertMail->envelope()->subject);
+        $this->assertStringContainsString('Hallo Marcel Breuer,', $rendered);
+        $this->assertStringContainsString('Die Scanner-Instanz &quot;de-1&quot; hat aktuell den Status &quot;Nicht erreichbar&quot;.', $rendered);
+        $this->assertStringContainsString('IP-Adresse: 217.154.152.5.', $rendered);
+        $this->assertStringContainsString('gelten nach 10 Minuten ohne erfolgreichen Bericht als nicht erreichbar', $rendered);
+    }
+
+    public function test_server_instance_health_alert_mail_renders_never_seen_copy(): void
+    {
+        config(['monitoring.instance_never_seen_alert_after_minutes' => 15]);
+
+        $admin = User::factory()->make([
+            'name' => 'Admin User',
+            'role' => UserRole::ADMIN,
+        ]);
+        $serverInstance = new ServerInstance([
+            'code' => 'scanner-new-mail-1',
+            'ip_address' => '192.0.2.48',
+            'last_seen_at' => null,
+        ]);
+
+        $serverInstanceHealthAlertMail = new ServerInstanceHealthAlertMail($serverInstance, 'never_seen', $admin);
+        $rendered = $serverInstanceHealthAlertMail->render();
+
+        $this->assertSame('Server instance scanner-new-mail-1: NO REPORT YET', $serverInstanceHealthAlertMail->envelope()->subject);
+        $this->assertStringContainsString('The scanner instance &quot;scanner-new-mail-1&quot; currently has the status &quot;No report yet&quot;.', $rendered);
+        $this->assertStringContainsString('No successful report has been received yet.', $rendered);
+        $this->assertStringContainsString('after 15 minutes without a first successful report', $rendered);
     }
 
     public function test_server_instance_health_alert_mail_renders_recovery_copy(): void
@@ -273,8 +322,8 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
 
         $rendered = (new ServerInstanceHealthAlertMail($serverInstance, 'healthy', $admin))->render();
 
-        $this->assertStringContainsString('The scanner instance &quot;scanner-recovery-mail-1&quot; is reporting again and is now healthy.', $rendered);
+        $this->assertStringContainsString('The scanner instance &quot;scanner-recovery-mail-1&quot; is reporting again and is now reachable.', $rendered);
         $this->assertStringContainsString('IP address: None.', $rendered);
-        $this->assertStringContainsString('Last seen: Never seen.', $rendered);
+        $this->assertStringContainsString('Last successful report: No report yet.', $rendered);
     }
 }

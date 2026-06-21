@@ -29,7 +29,7 @@ class ServerInstanceHealthAlertMail extends Mailable
         return new Envelope(
             subject: __('mail.server_instance_health_alert.subject', [
                 'instanceCode' => $this->serverInstance->code,
-                'status' => mb_strtoupper($this->healthStatus),
+                'status' => mb_strtoupper(__('admin.server_instances.health.' . $this->healthStatus)),
             ]),
         );
     }
@@ -45,6 +45,7 @@ class ServerInstanceHealthAlertMail extends Mailable
                 'healthStatusLabel' => __('admin.server_instances.health.' . $this->healthStatus),
                 'isRecovery' => $this->healthStatus === 'healthy',
                 'staleAfterMinutes' => max(1, (int) config('monitoring.instance_stale_after_minutes', 10)),
+                'neverSeenAlertAfterMinutes' => max(1, (int) config('monitoring.instance_never_seen_alert_after_minutes', 15)),
             ],
         );
     }

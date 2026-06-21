@@ -31,7 +31,7 @@ return [
             'audit' => [
                 'label' => 'Audit',
                 'title' => 'Channel delivery',
-                'description' => 'Inspect whether Slack, Telegram, Discord, and webhook notifications reached their target.',
+                'description' => 'Inspect whether Slack, Telegram, Discord, Microsoft Teams, and webhook notifications reached their target.',
             ],
         ],
     ],
@@ -114,6 +114,7 @@ return [
         'slack' => 'Slack',
         'telegram' => 'Telegram',
         'discord' => 'Discord',
+        'teams' => 'Microsoft Teams',
         'webhook' => 'Webhook',
     ],
     'events' => [
