@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\TeamRole;
 use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -137,7 +138,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function administeredTeams(): BelongsToMany
     {
-        return $this->teams()->wherePivot('role', \App\Enums\TeamRole::ADMIN->value);
+        return $this->teams()->wherePivot('role', TeamRole::ADMIN->value);
     }
 
     /**

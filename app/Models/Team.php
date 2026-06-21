@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Builder;
@@ -92,14 +93,16 @@ class Team extends Model
             ->count();
     }
 
-    public function scopeVisibleTo(Builder $builder, User $user): Builder
+    #[Scope]
+    protected function visibleTo(Builder $builder, User $user): Builder
     {
         return $builder->whereHas('memberships', function (Builder $builder) use ($user): void {
             $builder->where('user_id', $user->id);
         });
     }
 
-    public function scopeAdministeredBy(Builder $builder, User $user): Builder
+    #[Scope]
+    protected function administeredBy(Builder $builder, User $user): Builder
     {
         return $builder->whereHas('memberships', function (Builder $builder) use ($user): void {
             $builder->where('user_id', $user->id)

@@ -38,15 +38,15 @@ class TeamInvitationController extends Controller
 
     public function destroy(
         Team $team,
-        TeamInvitation $invitation,
+        TeamInvitation $teamInvitation,
         TeamMembershipService $teamMembershipService
     ): RedirectResponse {
         /** @var User $user */
         $user = auth()->user();
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($invitation->team_id === $team->id, 404);
+        abort_unless($teamInvitation->team_id === $team->id, 404);
 
-        $invitation->delete();
+        $teamInvitation->delete();
 
         return back()->with('success', __('team.messages.invitation_revoked'));
     }

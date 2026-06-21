@@ -16,12 +16,12 @@ class TeamInvitationAcceptController extends Controller
         Request $request,
         TeamInvitationService $teamInvitationService
     ): RedirectResponse {
-        $invitation = $teamInvitationService->findPendingByToken($token);
+        $teamInvitation = $teamInvitationService->findPendingByToken($token);
 
         if (! $request->user()) {
-            $targetRoute = User::query()->where('email', $invitation->email)->exists()
+            $targetRoute = User::query()->where('email', $teamInvitation->email)->exists()
                 ? route('login')
-                : route('register', ['mode' => 'register', 'email' => $invitation->email]);
+                : route('register', ['mode' => 'register', 'email' => $teamInvitation->email]);
 
             return redirect()->guest($targetRoute)
                 ->with('status', __('team.messages.login_to_accept'));

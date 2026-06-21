@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,17 +47,18 @@ class TeamInvitation extends Model
         return $this->belongsTo(User::class, 'invited_by_user_id');
     }
 
-    public function scopePending(Builder $builder): Builder
-    {
-        return $builder->whereNull('accepted_at')
-            ->where('expires_at', '>', now());
-    }
-
     public function isPending(): bool
     {
         return $this->accepted_at === null
             && $this->expires_at !== null
             && $this->expires_at->isFuture();
+    }
+
+    #[Scope]
+    protected function pending(Builder $builder): Builder
+    {
+        return $builder->whereNull('accepted_at')
+            ->where('expires_at', '>', now());
     }
 
     /**

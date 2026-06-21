@@ -37,27 +37,27 @@ class TeamMembershipService
         });
     }
 
-    public function changeRole(TeamMembership $membership, TeamRole $role): void
+    public function changeRole(TeamMembership $teamMembership, TeamRole $teamRole): void
     {
-        if ($membership->role === $role) {
+        if ($teamMembership->role === $teamRole) {
             return;
         }
 
-        if ($membership->role === TeamRole::ADMIN && $role !== TeamRole::ADMIN) {
-            $this->assertNotLastAdmin($membership);
+        if ($teamMembership->role === TeamRole::ADMIN && $teamRole !== TeamRole::ADMIN) {
+            $this->assertNotLastAdmin($teamMembership);
         }
 
-        $membership->update(['role' => $role]);
+        $teamMembership->update(['role' => $teamRole]);
     }
 
-    public function remove(TeamMembership $membership): void
+    public function remove(TeamMembership $teamMembership): void
     {
-        if ($membership->role === TeamRole::ADMIN) {
-            $this->assertNotLastAdmin($membership);
+        if ($teamMembership->role === TeamRole::ADMIN) {
+            $this->assertNotLastAdmin($teamMembership);
         }
 
-        $this->deleteMemberMonitoringState($membership);
-        $membership->delete();
+        $this->deleteMemberMonitoringState($teamMembership);
+        $teamMembership->delete();
     }
 
     public function leave(Team $team, User $user): void
@@ -76,29 +76,23 @@ class TeamMembershipService
 
     public function assertAdmin(Team $team, User $user): void
     {
-        if (! $team->isMember($user)) {
-            abort(404);
-        }
+        abort_unless($team->isMember($user), 404);
 
-        if (! $team->isAdmin($user)) {
-            abort(403);
-        }
+        abort_unless($team->isAdmin($user), 403);
     }
 
     public function assertMember(Team $team, User $user): void
     {
-        if (! $team->isMember($user)) {
-            abort(404);
-        }
+        abort_unless($team->isMember($user), 404);
     }
 
-    private function assertNotLastAdmin(TeamMembership $membership): void
+    private function assertNotLastAdmin(TeamMembership $teamMembership): void
     {
-        if (! $membership->team) {
-            $membership->load('team');
+        if (! $teamMembership->team) {
+            $teamMembership->load('team');
         }
 
-        $adminCount = $membership->team->adminCount();
+        $adminCount = $teamMembership->team->adminCount();
 
         if ($adminCount <= 1) {
             throw ValidationException::withMessages([
@@ -107,11 +101,11 @@ class TeamMembershipService
         }
     }
 
-    private function deleteMemberMonitoringState(TeamMembership $membership): void
+    private function deleteMemberMonitoringState(TeamMembership $teamMembership): void
     {
         $monitoringIds = Monitoring::query()
             ->withoutGlobalScopes()
-            ->where('team_id', $membership->team_id)
+            ->where('team_id', $teamMembership->team_id)
             ->pluck('id');
 
         if ($monitoringIds->isEmpty()) {
@@ -119,12 +113,12 @@ class TeamMembershipService
         }
 
         MonitoringNotificationPreference::query()
-            ->where('user_id', $membership->user_id)
+            ->where('user_id', $teamMembership->user_id)
             ->whereIn('monitoring_id', $monitoringIds)
             ->delete();
 
         MonitoringNotificationState::query()
-            ->where('user_id', $membership->user_id)
+            ->where('user_id', $teamMembership->user_id)
             ->whereHas('monitoringNotification', function ($builder) use ($monitoringIds): void {
                 $builder->whereIn('monitoring_id', $monitoringIds);
             })

@@ -16,9 +16,9 @@ use Illuminate\Validation\ValidationException;
 
 class TeamInvitationService
 {
-    public function invite(Team $team, User $inviter, string $email, TeamRole $role): TeamInvitation
+    public function invite(Team $team, User $user, string $email, TeamRole $teamRole): TeamInvitation
     {
-        $normalizedEmail = Str::lower(trim($email));
+        $normalizedEmail = Str::lower(mb_trim($email));
 
         if ($team->memberships()
             ->whereHas('user', fn ($builder) => $builder->where('email', $normalizedEmail))
@@ -29,7 +29,7 @@ class TeamInvitationService
         }
 
         $token = Str::random(64);
-        $invitation = DB::transaction(function () use ($team, $inviter, $normalizedEmail, $role, $token): TeamInvitation {
+        $invitation = DB::transaction(function () use ($team, $user, $normalizedEmail, $teamRole, $token): TeamInvitation {
             $team->invitations()
                 ->where('email', $normalizedEmail)
                 ->whereNull('accepted_at')
@@ -37,9 +37,9 @@ class TeamInvitationService
 
             return $team->invitations()->create([
                 'email' => $normalizedEmail,
-                'role' => $role,
+                'role' => $teamRole,
                 'token_hash' => $this->hashToken($token),
-                'invited_by_user_id' => $inviter->id,
+                'invited_by_user_id' => $user->id,
                 'expires_at' => now()->addDays(7),
             ]);
         });
@@ -61,9 +61,7 @@ class TeamInvitationService
             ->with('team')
             ->first();
 
-        if (! $invitation) {
-            abort(404);
-        }
+        abort_unless($invitation, 404);
 
         return $invitation;
     }
@@ -71,22 +69,22 @@ class TeamInvitationService
     public function accept(string $token, User $user): Team
     {
         return DB::transaction(function () use ($token, $user): Team {
-            $invitation = $this->findPendingByToken($token);
+            $teamInvitation = $this->findPendingByToken($token);
 
-            if (Str::lower($user->email) !== Str::lower($invitation->email)) {
+            if (Str::lower($user->email) !== Str::lower($teamInvitation->email)) {
                 throw ValidationException::withMessages([
                     'email' => __('team.validation.email_mismatch'),
                 ]);
             }
 
-            $invitation->team->memberships()->firstOrCreate(
+            $teamInvitation->team->memberships()->firstOrCreate(
                 ['user_id' => $user->id],
-                ['role' => $invitation->role]
+                ['role' => $teamInvitation->role]
             );
 
-            $invitation->update(['accepted_at' => now()]);
+            $teamInvitation->update(['accepted_at' => now()]);
 
-            return $invitation->team;
+            return $teamInvitation->team;
         });
     }
 

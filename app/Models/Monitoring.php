@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -320,7 +321,7 @@ class Monitoring extends Model
         return $this->team()
             ->whereHas('memberships', function (Builder $builder) use ($user): void {
                 $builder->where('user_id', $user->id)
-                    ->where('role', \App\Enums\TeamRole::ADMIN);
+                    ->where('role', TeamRole::ADMIN);
             })
             ->exists();
     }
@@ -419,7 +420,7 @@ class Monitoring extends Model
             })
                 ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
                     $builder->where('user_id', $user->id)
-                        ->where('role', \App\Enums\TeamRole::ADMIN);
+                        ->where('role', TeamRole::ADMIN);
                 });
         });
     }

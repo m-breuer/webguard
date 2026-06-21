@@ -252,8 +252,8 @@ class NotificationController extends Controller
             ->limit($limit + 1)
             ->get();
 
-        $notifications->each(function (MonitoringNotification $notification): void {
-            $notification->setAttribute('read', $notification->user_read_at !== null);
+        $notifications->each(function (MonitoringNotification $monitoringNotification): void {
+            $monitoringNotification->setAttribute('read', $monitoringNotification->user_read_at !== null);
         });
 
         $hasMore = $notifications->count() > $limit;

@@ -7,6 +7,7 @@ namespace App\Http\Requests\StatusPages;
 use App\Enums\StatusPageComponentSource;
 use App\Models\Monitoring;
 use App\Models\StatusPage;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -60,9 +61,9 @@ class StatusPageRequest extends FormRequest
         ];
     }
 
-    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
-        $validator->after(function (\Illuminate\Contracts\Validation\Validator $validator): void {
+        $validator->after(function (Validator $validator): void {
             $components = $this->input('components', []);
 
             if (! is_array($components)) {

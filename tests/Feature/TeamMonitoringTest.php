@@ -27,13 +27,13 @@ class TeamMonitoringTest extends TestCase
         $admin = User::factory()->create();
         $registeredUser = User::factory()->create(['email' => 'registered@example.com']);
 
-        $createResponse = $this->actingAs($admin)->post(route('teams.store'), [
+        $testResponse = $this->actingAs($admin)->post(route('teams.store'), [
             'name' => 'Operations',
             'description' => 'Production monitoring',
         ]);
 
         $team = Team::query()->where('name', 'Operations')->firstOrFail();
-        $createResponse->assertRedirect(route('teams.show', $team));
+        $testResponse->assertRedirect(route('teams.show', $team));
         $this->assertDatabaseHas('team_memberships', [
             'team_id' => $team->id,
             'user_id' => $admin->id,
@@ -164,7 +164,7 @@ class TeamMonitoringTest extends TestCase
             'created_by_user_id' => $admin->id,
         ]);
 
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'Monitoring is down',
@@ -172,14 +172,14 @@ class TeamMonitoringTest extends TestCase
             'sent' => true,
         ]);
 
-        $this->actingAs($member)->post(route('notifications.markAsRead', $notification))->assertRedirect();
+        $this->actingAs($member)->post(route('notifications.markAsRead', $monitoringNotification))->assertRedirect();
 
         $this->assertNotNull(MonitoringNotificationState::query()
-            ->where('monitoring_notification_id', $notification->id)
+            ->where('monitoring_notification_id', $monitoringNotification->id)
             ->where('user_id', $member->id)
             ->value('read_at'));
         $this->assertNull(MonitoringNotificationState::query()
-            ->where('monitoring_notification_id', $notification->id)
+            ->where('monitoring_notification_id', $monitoringNotification->id)
             ->where('user_id', $admin->id)
             ->value('read_at'));
     }

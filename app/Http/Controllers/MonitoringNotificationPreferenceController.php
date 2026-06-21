@@ -33,8 +33,8 @@ class MonitoringNotificationPreferenceController extends Controller
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
         ]);
 
-        $preference = $monitoringNotificationPreferenceResolver->preferenceFor($monitoring, $user);
-        $preference->update([
+        $monitoringNotificationPreference = $monitoringNotificationPreferenceResolver->preferenceFor($monitoring, $user);
+        $monitoringNotificationPreference->update([
             'notification_on_failure' => $request->boolean('notification_on_failure'),
             'notification_channels' => array_values(array_unique($validated['notification_channels'] ?? [])),
             'ssl_expiry_warning_days' => (int) $validated['ssl_expiry_warning_days'],
@@ -42,9 +42,9 @@ class MonitoringNotificationPreferenceController extends Controller
 
         if ($monitoring->user_id === $user->id && $monitoring->team_id === null) {
             $monitoring->update([
-                'notification_on_failure' => $preference->notification_on_failure,
-                'notification_channels' => $preference->notification_channels,
-                'ssl_expiry_warning_days' => $preference->ssl_expiry_warning_days,
+                'notification_on_failure' => $monitoringNotificationPreference->notification_on_failure,
+                'notification_channels' => $monitoringNotificationPreference->notification_channels,
+                'ssl_expiry_warning_days' => $monitoringNotificationPreference->ssl_expiry_warning_days,
             ]);
         }
 

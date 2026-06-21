@@ -49,29 +49,29 @@ class TeamInvitationController extends Controller
             'role' => ['required', Rule::enum(TeamRole::class)],
         ]);
 
-        $invitation = $teamInvitationService->invite(
+        $teamInvitation = $teamInvitationService->invite(
             $team,
             $user,
             (string) $validated['email'],
             TeamRole::from((string) $validated['role'])
         );
 
-        return response()->json(['data' => $invitation], 201);
+        return response()->json(['data' => $teamInvitation], 201);
     }
 
     public function destroy(
         Request $request,
         Team $team,
-        TeamInvitation $invitation,
+        TeamInvitation $teamInvitation,
         TeamMembershipService $teamMembershipService
     ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
         abort_if($user->isDemo(), 403);
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($invitation->team_id === $team->id, 404);
+        abort_unless($teamInvitation->team_id === $team->id, 404);
 
-        $invitation->delete();
+        $teamInvitation->delete();
 
         return response()->json(status: 204);
     }

@@ -10,27 +10,27 @@ use App\Models\User;
 
 class MonitoringNotificationStateService
 {
-    public function ensureState(MonitoringNotification $notification, User $user): MonitoringNotificationState
+    public function ensureState(MonitoringNotification $monitoringNotification, User $user): MonitoringNotificationState
     {
-        /** @var MonitoringNotificationState $state */
-        $state = MonitoringNotificationState::query()->firstOrCreate([
-            'monitoring_notification_id' => $notification->id,
+        /** @var MonitoringNotificationState $monitoringNotificationState */
+        $monitoringNotificationState = MonitoringNotificationState::query()->firstOrCreate([
+            'monitoring_notification_id' => $monitoringNotification->id,
             'user_id' => $user->id,
         ]);
 
-        return $state;
+        return $monitoringNotificationState;
     }
 
-    public function markSent(MonitoringNotification $notification, User $user): void
+    public function markSent(MonitoringNotification $monitoringNotification, User $user): void
     {
-        $this->ensureState($notification, $user)->update([
+        $this->ensureState($monitoringNotification, $user)->update([
             'sent_at' => now(),
         ]);
     }
 
-    public function markRead(MonitoringNotification $notification, User $user): void
+    public function markRead(MonitoringNotification $monitoringNotification, User $user): void
     {
-        $this->ensureState($notification, $user)->update([
+        $this->ensureState($monitoringNotification, $user)->update([
             'read_at' => now(),
         ]);
     }

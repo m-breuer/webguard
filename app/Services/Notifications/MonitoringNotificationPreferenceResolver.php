@@ -14,8 +14,8 @@ class MonitoringNotificationPreferenceResolver
 {
     public function preferenceFor(Monitoring $monitoring, User $user): MonitoringNotificationPreference
     {
-        /** @var MonitoringNotificationPreference $preference */
-        $preference = MonitoringNotificationPreference::query()->firstOrCreate(
+        /** @var MonitoringNotificationPreference $monitoringNotificationPreference */
+        $monitoringNotificationPreference = MonitoringNotificationPreference::query()->firstOrCreate(
             [
                 'monitoring_id' => $monitoring->id,
                 'user_id' => $user->id,
@@ -29,7 +29,7 @@ class MonitoringNotificationPreferenceResolver
             ]
         );
 
-        return $preference;
+        return $monitoringNotificationPreference;
     }
 
     /**

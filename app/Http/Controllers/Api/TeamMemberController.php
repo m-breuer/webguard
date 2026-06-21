@@ -28,44 +28,44 @@ class TeamMemberController extends Controller
         $teamMembershipService->assertMember($team, $user);
 
         return response()->json([
-            'data' => $team->memberships()->with('user:id,name,email')->orderBy('created_at')->get(),
+            'data' => $team->memberships()->with('user:id,name,email')->oldest()->get(),
         ]);
     }
 
     public function update(
         Request $request,
         Team $team,
-        TeamMembership $membership,
+        TeamMembership $teamMembership,
         TeamMembershipService $teamMembershipService
     ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
         abort_if($user->isDemo(), 403);
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($membership->team_id === $team->id, 404);
+        abort_unless($teamMembership->team_id === $team->id, 404);
 
         $validated = $request->validate([
             'role' => ['required', Rule::enum(TeamRole::class)],
         ]);
 
-        $teamMembershipService->changeRole($membership, TeamRole::from((string) $validated['role']));
+        $teamMembershipService->changeRole($teamMembership, TeamRole::from((string) $validated['role']));
 
-        return response()->json(['data' => $membership->refresh()->load('user:id,name,email')]);
+        return response()->json(['data' => $teamMembership->refresh()->load('user:id,name,email')]);
     }
 
     public function destroy(
         Request $request,
         Team $team,
-        TeamMembership $membership,
+        TeamMembership $teamMembership,
         TeamMembershipService $teamMembershipService
     ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
         abort_if($user->isDemo(), 403);
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($membership->team_id === $team->id, 404);
+        abort_unless($teamMembership->team_id === $team->id, 404);
 
-        $teamMembershipService->remove($membership);
+        $teamMembershipService->remove($teamMembership);
 
         return response()->json(status: 204);
     }
