@@ -160,12 +160,12 @@ class MaintenanceManagementTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $createResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.create'));
         $editResponse = $this->actingAs($this->user)->get(route('monitorings.edit', $monitoring));
 
-        $createResponse->assertOk();
-        $createResponse->assertDontSeeHtml('name="maintenance_from"');
-        $createResponse->assertDontSeeHtml('name="maintenance_until"');
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeHtml('name="maintenance_from"');
+        $testResponse->assertDontSeeHtml('name="maintenance_until"');
 
         $editResponse->assertOk();
         $editResponse->assertDontSeeHtml('name="maintenance_from"');

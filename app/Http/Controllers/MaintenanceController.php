@@ -75,16 +75,16 @@ class MaintenanceController extends Controller
             ->with('success', __('maintenance.messages.cleared'));
     }
 
-    private function targetMonitorings(MaintenanceRequest $request): Builder
+    private function targetMonitorings(MaintenanceRequest $maintenanceRequest): Builder
     {
         $query = Monitoring::query();
 
-        if ($request->string('scope')->toString() === 'group') {
-            return $query->whereHas('groups', function ($builder) use ($request): void {
-                $builder->where('monitoring_groups.id', $request->string('monitoring_group_id')->toString());
+        if ($maintenanceRequest->string('scope')->toString() === 'group') {
+            return $query->whereHas('groups', function ($builder) use ($maintenanceRequest): void {
+                $builder->where('monitoring_groups.id', $maintenanceRequest->string('monitoring_group_id')->toString());
             });
         }
 
-        return $query->whereKey($request->string('monitoring_id')->toString());
+        return $query->whereKey($maintenanceRequest->string('monitoring_id')->toString());
     }
 }
