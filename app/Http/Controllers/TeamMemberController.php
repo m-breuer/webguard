@@ -17,31 +17,31 @@ class TeamMemberController extends Controller
     public function update(
         TeamMembershipRequest $teamMembershipRequest,
         Team $team,
-        TeamMembership $teamMembership,
+        TeamMembership $membership,
         TeamMembershipService $teamMembershipService
     ): RedirectResponse {
         /** @var User $user */
         $user = $teamMembershipRequest->user();
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($teamMembership->team_id === $team->id, 404);
+        abort_unless($membership->team_id === $team->id, 404);
         $validated = $teamMembershipRequest->validated();
 
-        $teamMembershipService->changeRole($teamMembership, TeamRole::from((string) $validated['role']));
+        $teamMembershipService->changeRole($membership, TeamRole::from((string) $validated['role']));
 
         return back()->with('success', __('team.messages.member_updated'));
     }
 
     public function destroy(
         Team $team,
-        TeamMembership $teamMembership,
+        TeamMembership $membership,
         TeamMembershipService $teamMembershipService
     ): RedirectResponse {
         /** @var User $user */
         $user = auth()->user();
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($teamMembership->team_id === $team->id, 404);
+        abort_unless($membership->team_id === $team->id, 404);
 
-        $teamMembershipService->remove($teamMembership);
+        $teamMembershipService->remove($membership);
 
         return back()->with('success', __('team.messages.member_removed'));
     }

@@ -35,37 +35,37 @@ class TeamMemberController extends Controller
     public function update(
         Request $request,
         Team $team,
-        TeamMembership $teamMembership,
+        TeamMembership $membership,
         TeamMembershipService $teamMembershipService
     ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
         abort_if($user->isDemo(), 403);
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($teamMembership->team_id === $team->id, 404);
+        abort_unless($membership->team_id === $team->id, 404);
 
         $validated = $request->validate([
             'role' => ['required', Rule::enum(TeamRole::class)],
         ]);
 
-        $teamMembershipService->changeRole($teamMembership, TeamRole::from((string) $validated['role']));
+        $teamMembershipService->changeRole($membership, TeamRole::from((string) $validated['role']));
 
-        return response()->json(['data' => $teamMembership->refresh()->load('user:id,name,email')]);
+        return response()->json(['data' => $membership->refresh()->load('user:id,name,email')]);
     }
 
     public function destroy(
         Request $request,
         Team $team,
-        TeamMembership $teamMembership,
+        TeamMembership $membership,
         TeamMembershipService $teamMembershipService
     ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
         abort_if($user->isDemo(), 403);
         $teamMembershipService->assertAdmin($team, $user);
-        abort_unless($teamMembership->team_id === $team->id, 404);
+        abort_unless($membership->team_id === $team->id, 404);
 
-        $teamMembershipService->remove($teamMembership);
+        $teamMembershipService->remove($membership);
 
         return response()->json(status: 204);
     }

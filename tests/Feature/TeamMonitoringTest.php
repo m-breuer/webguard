@@ -81,6 +81,35 @@ class TeamMonitoringTest extends TestCase
         ]);
     }
 
+    public function test_team_member_routes_reject_memberships_from_another_team(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create();
+        $otherMember = User::factory()->create();
+
+        $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        $team->memberships()->create([
+            'user_id' => $admin->id,
+            'role' => TeamRole::ADMIN,
+        ]);
+
+        $otherTeam = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        $otherMembership = $otherTeam->memberships()->create([
+            'user_id' => $otherMember->id,
+            'role' => TeamRole::MEMBER,
+        ]);
+
+        $this->actingAs($admin)->patch(route('teams.members.update', [$team, $otherMembership]), [
+            'role' => TeamRole::ADMIN->value,
+        ])->assertNotFound();
+
+        $this->assertDatabaseHas('team_memberships', [
+            'id' => $otherMembership->id,
+            'team_id' => $otherTeam->id,
+            'role' => TeamRole::MEMBER->value,
+        ]);
+    }
+
     public function test_team_admin_can_create_team_monitoring_and_member_can_only_view_it(): void
     {
         Package::factory()->create(['monitoring_limit' => 10]);
