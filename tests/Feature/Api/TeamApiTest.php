@@ -56,4 +56,33 @@ class TeamApiTest extends TestCase
             'role' => TeamRole::MEMBER->value,
         ])->assertCreated();
     }
+
+    public function test_team_api_member_routes_reject_memberships_from_another_team(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create();
+        $otherMember = User::factory()->create();
+
+        $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        $team->memberships()->create([
+            'user_id' => $admin->id,
+            'role' => TeamRole::ADMIN,
+        ]);
+
+        $otherTeam = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        $otherMembership = $otherTeam->memberships()->create([
+            'user_id' => $otherMember->id,
+            'role' => TeamRole::MEMBER,
+        ]);
+
+        $this->actingAs($admin)->patchJson('/api/v1/teams/' . $team->id . '/members/' . $otherMembership->id, [
+            'role' => TeamRole::ADMIN->value,
+        ])->assertNotFound();
+
+        $this->assertDatabaseHas('team_memberships', [
+            'id' => $otherMembership->id,
+            'team_id' => $otherTeam->id,
+            'role' => TeamRole::MEMBER->value,
+        ]);
+    }
 }
