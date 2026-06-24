@@ -14,6 +14,7 @@ use App\Models\MonitoringNotification;
 use App\Models\MonitoringNotificationState;
 use App\Models\Package;
 use App\Models\Team;
+use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -53,6 +54,28 @@ class TeamMonitoringTest extends TestCase
         $this->assertDatabaseHas('team_invitations', ['team_id' => $team->id, 'email' => $registeredUser->email]);
         $this->assertDatabaseHas('team_invitations', ['team_id' => $team->id, 'email' => 'new-user@example.com']);
         Mail::assertSent(TeamInvitationMail::class, 2);
+    }
+
+    public function test_team_admin_can_revoke_pending_invitation(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create();
+        $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        $team->memberships()->create(['user_id' => $admin->id, 'role' => TeamRole::ADMIN]);
+        $teamInvitation = TeamInvitation::query()->create([
+            'team_id' => $team->id,
+            'email' => 'pending@example.com',
+            'role' => TeamRole::MEMBER,
+            'token_hash' => hash('sha256', 'pending-token'),
+            'invited_by_user_id' => $admin->id,
+            'expires_at' => now()->addWeek(),
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('teams.invitations.destroy', [$team, $teamInvitation]))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('team_invitations', ['id' => $teamInvitation->id]);
     }
 
     public function test_last_team_admin_cannot_leave_be_demoted_or_removed(): void

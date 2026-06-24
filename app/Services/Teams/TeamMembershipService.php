@@ -88,11 +88,10 @@ class TeamMembershipService
 
     private function assertNotLastAdmin(TeamMembership $teamMembership): void
     {
-        if (! $teamMembership->team) {
-            $teamMembership->load('team');
-        }
-
-        $adminCount = $teamMembership->team->adminCount();
+        $adminCount = TeamMembership::query()
+            ->where('team_id', $teamMembership->team_id)
+            ->where('role', TeamRole::ADMIN)
+            ->count();
 
         if ($adminCount <= 1) {
             throw ValidationException::withMessages([

@@ -7,6 +7,7 @@ namespace Tests\Feature\Api;
 use App\Enums\TeamRole;
 use App\Models\Package;
 use App\Models\Team;
+use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -55,5 +56,27 @@ class TeamApiTest extends TestCase
             'email' => 'api-invite@example.com',
             'role' => TeamRole::MEMBER->value,
         ])->assertCreated();
+    }
+
+    public function test_team_api_allows_admin_to_revoke_pending_invitation(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create();
+        $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        $team->memberships()->create(['user_id' => $admin->id, 'role' => TeamRole::ADMIN]);
+        $teamInvitation = TeamInvitation::query()->create([
+            'team_id' => $team->id,
+            'email' => 'api-pending@example.com',
+            'role' => TeamRole::MEMBER,
+            'token_hash' => hash('sha256', 'api-pending-token'),
+            'invited_by_user_id' => $admin->id,
+            'expires_at' => now()->addWeek(),
+        ]);
+
+        $this->actingAs($admin)
+            ->deleteJson('/api/v1/teams/' . $team->id . '/invitations/' . $teamInvitation->id)
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('team_invitations', ['id' => $teamInvitation->id]);
     }
 }
