@@ -50,15 +50,43 @@ return [
     ],
 
     'feature_section' => [
-        'eyebrow' => 'Complete Coverage',
-        'title' => 'Everything you need to monitor service health',
-        'subtitle' => 'The homepage gives the essentials. Each feature also has a public detail page for evaluation before signing in.',
+        'eyebrow' => 'Monitoring Areas',
+        'title' => 'Find the right feature page faster',
+        'subtitle' => 'The homepage stays intentionally short. Deeper details live on focused pages for checks, status communication, and integrations.',
         'all_features_cta' => 'Browse all features',
         'full_stack_title' => 'All WebGuard capabilities',
     ],
 
+    'feature_routes' => [
+        'website_api' => [
+            'title' => 'Website & API Monitoring',
+            'text' => 'HTTP checks, keyword validation, and expected status codes for public endpoints.',
+            'cta' => 'View website checks',
+        ],
+        'infrastructure' => [
+            'title' => 'Infrastructure Checks',
+            'text' => 'Ping, ports, and DNS records help isolate network and service problems.',
+            'cta' => 'Check infrastructure',
+        ],
+        'automation' => [
+            'title' => 'Cronjobs & Alerts',
+            'text' => 'Heartbeat monitoring, notification channels, and weekly reports for running processes.',
+            'cta' => 'Protect automations',
+        ],
+        'status' => [
+            'title' => 'Status Pages',
+            'text' => 'Public status pages, public labels, and SLA badges for clear communication.',
+            'cta' => 'View status communication',
+        ],
+        'integrations' => [
+            'title' => 'Integrations & API',
+            'text' => 'REST API, server health reports, and groups for custom workflows and teams.',
+            'cta' => 'View API and integrations',
+        ],
+    ],
+
     'platform' => [
-        'eyebrow' => 'Public Trust and Integrations',
+        'eyebrow' => 'Status Communication and Integrations',
         'title' => 'Status communication and API access are first-class public surfaces',
         'subtitle' => 'Public labels, badges, status pages, notifications, and the generated Scribe API reference are linked directly from the marketing site.',
     ],
@@ -155,6 +183,11 @@ return [
         'eyebrow' => 'Product Overview',
         'title' => 'A clear workflow for operations and monitoring',
         'subtitle' => 'From dashboard summaries to monitor-level details and public labels, WebGuard keeps incident context in one place.',
+        'photos' => [
+            'hero_alt' => 'Purple monitoring dashboard illustration with uptime cards and signal trends',
+            'status_alt' => 'Purple status page illustration with components and notification signals',
+            'workflow_alt' => 'Purple monitoring hub with connected checks, alerts, and integrations',
+        ],
         'previews' => [
             'dashboard' => [
                 'title' => 'Dashboard Overview',

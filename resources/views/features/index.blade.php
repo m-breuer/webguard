@@ -33,7 +33,7 @@
         <header class="border-b border-slate-200/80 dark:border-slate-800/70">
             <x-main class="grid w-full gap-10 py-14 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-20">
                 <div>
-                    <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
+                    <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-purple-700 dark:text-purple-300">
                         {{ __('public_features.index.hero.eyebrow') }}
                     </x-paragraph>
                     <x-heading type="h1" class="mt-4 max-w-4xl text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
@@ -45,7 +45,7 @@
 
                     <div class="mt-8 flex flex-wrap gap-3">
                         <x-primary-button :href="route('register')"
-                            class="bg-emerald-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
+                            class="bg-purple-500 px-6 py-3 text-base font-semibold text-white normal-case tracking-normal shadow-lg shadow-purple-500/20 transition hover:bg-purple-600 focus:ring-purple-500 dark:bg-purple-400 dark:text-slate-950 dark:hover:bg-purple-300 dark:focus:ring-purple-300">
                             {{ __('public_features.common.get_started') }}
                         </x-primary-button>
                         <x-secondary-button :href="route('login', ['mode' => 'demo'])"
@@ -88,7 +88,7 @@
 
                     <section aria-labelledby="feature-category-{{ $category }}">
                         <div class="max-w-3xl">
-                            <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
+                            <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-purple-700 dark:text-purple-300">
                                 {{ __('public_features.categories.' . $category . '.eyebrow') }}
                             </x-paragraph>
                             <x-heading id="feature-category-{{ $category }}" type="h2" class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -102,12 +102,12 @@
                         <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                             @foreach ($categoryFeatures as $slug => $feature)
                                 <a href="{{ route('public-features.show', $slug) }}"
-                                    class="group rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg hover:shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-emerald-400/50 dark:hover:shadow-slate-950/20">
+                                    class="group rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-purple-300 hover:shadow-lg hover:shadow-slate-300/20 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-purple-400/50 dark:hover:shadow-slate-950/20">
                                     <div class="flex items-center justify-between gap-4">
-                                        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-300/15 dark:text-emerald-300">
+                                        <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-300/15 dark:text-purple-300">
                                             @include('features.partials.icon', ['featureKey' => $feature['key']])
                                         </span>
-                                        <span class="rounded-full border border-emerald-300/70 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-300/10 dark:text-emerald-300">
+                                        <span class="rounded-full border border-purple-300/70 bg-purple-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-purple-700 dark:border-purple-300/30 dark:bg-purple-300/10 dark:text-purple-300">
                                             {{ __('public_features.features.' . $feature['key'] . '.badge') }}
                                         </span>
                                     </div>
@@ -117,7 +117,7 @@
                                     <x-paragraph class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
                                         {{ __('public_features.features.' . $feature['key'] . '.teaser') }}
                                     </x-paragraph>
-                                    <span class="mt-5 inline-flex items-center text-sm font-semibold text-emerald-700 transition group-hover:text-emerald-800 dark:text-emerald-300 dark:group-hover:text-emerald-200">
+                                    <span class="mt-5 inline-flex items-center text-sm font-semibold text-purple-700 transition group-hover:text-purple-800 dark:text-purple-300 dark:group-hover:text-purple-200">
                                         {{ __('public_features.common.learn_more') }}
                                         <span class="ml-2" aria-hidden="true">-&gt;</span>
                                     </span>

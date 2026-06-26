@@ -28,5 +28,14 @@ return [
         'title' => 'Confirm action',
         'confirm' => 'Confirm',
     ],
+    'navigation' => [
+        'monitoring' => 'Monitoring',
+        'workspace' => 'Workspace',
+        'sections' => [
+            'operations' => 'Operations',
+            'collaboration' => 'Collaboration',
+            'administration' => 'Administration',
+        ],
+    ],
     'public_status_title' => 'WebGuard Public Status',
 ];
