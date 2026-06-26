@@ -116,6 +116,7 @@ return [
         'discord' => 'Discord',
         'teams' => 'Microsoft Teams',
         'webhook' => 'Webhook',
+        'mobile_push' => 'Mobile Push',
     ],
     'events' => [
         'incident' => 'Incident',

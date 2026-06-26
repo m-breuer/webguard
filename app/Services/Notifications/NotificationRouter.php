@@ -8,6 +8,7 @@ use App\Enums\NotificationDeliveryStatus;
 use App\Models\NotificationChannelDelivery;
 use App\Models\User;
 use App\Services\Notifications\Channels\DiscordChannelDriver;
+use App\Services\Notifications\Channels\MobilePushChannelDriver;
 use App\Services\Notifications\Channels\NotificationChannelDriver;
 use App\Services\Notifications\Channels\SlackChannelDriver;
 use App\Services\Notifications\Channels\TeamsChannelDriver;
@@ -29,7 +30,8 @@ class NotificationRouter
         TelegramChannelDriver $telegramChannelDriver,
         DiscordChannelDriver $discordChannelDriver,
         TeamsChannelDriver $teamsChannelDriver,
-        WebhookChannelDriver $webhookChannelDriver
+        WebhookChannelDriver $webhookChannelDriver,
+        MobilePushChannelDriver $mobilePushChannelDriver
     ) {
         $this->drivers = [
             $slackChannelDriver->channel() => $slackChannelDriver,
@@ -37,6 +39,7 @@ class NotificationRouter
             $discordChannelDriver->channel() => $discordChannelDriver,
             $teamsChannelDriver->channel() => $teamsChannelDriver,
             $webhookChannelDriver->channel() => $webhookChannelDriver,
+            $mobilePushChannelDriver->channel() => $mobilePushChannelDriver,
         ];
     }
 
@@ -131,6 +134,7 @@ class NotificationRouter
             $enabled = (bool) ($channelConfig['enabled'] ?? false);
 
             if ($enabled) {
+                $channelConfig['user_id'] = $user->id;
                 $activeChannels[$channel] = $channelConfig;
             }
         }

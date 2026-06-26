@@ -108,6 +108,10 @@ return [
                 'title' => 'Webhook',
                 'help' => 'Sendet die Payload an einen eigenen HTTP-Endpunkt.',
             ],
+            'mobile_push' => [
+                'title' => 'Mobile Push',
+                'help' => 'Sendet Alarme an registrierte iOS- und Android-Geräte.',
+            ],
         ],
     ],
     'update_password' => [

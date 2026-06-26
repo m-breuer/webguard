@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\MobilePushDeviceController;
 use App\Http\Controllers\Api\MonitoringManagementController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamInvitationController;
@@ -34,6 +35,9 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
     Route::get('/{monitoring}/ssl', [ApiController::class, 'sslStatus']);
     Route::get('/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar']);
 });
+
+Route::apiResource('mobile-push-devices', MobilePushDeviceController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
 
 Route::apiResource('teams', TeamController::class);
 Route::get('/teams/{team}/members', [TeamMemberController::class, 'index']);

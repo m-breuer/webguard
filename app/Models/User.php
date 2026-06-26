@@ -52,6 +52,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property-read int|null $tokens_count
  * @property-read Collection<int, Monitoring> $monitorings
  * @property-read int|null $monitorings_count
+ * @property-read Collection<int, MobilePushDevice> $mobilePushDevices
+ * @property-read int|null $mobile_push_devices_count
  * @property-read Collection<int, MonitoringGroup> $monitoringGroups
  * @property-read int|null $monitoring_groups_count
  * @property-read Collection<int, ApiLog> $apiLogs
@@ -103,6 +105,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function monitorings(): HasMany
     {
         return $this->hasMany(Monitoring::class);
+    }
+
+    /**
+     * @return HasMany<MobilePushDevice, $this>
+     */
+    public function mobilePushDevices(): HasMany
+    {
+        return $this->hasMany(MobilePushDevice::class);
     }
 
     /**

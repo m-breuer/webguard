@@ -209,6 +209,13 @@ class ProfileController extends Controller
         $normalized = [];
 
         foreach (NotificationChannel::values() as $channel) {
+            if ($channel === NotificationChannel::MOBILE_PUSH->value && ! $profileRequest->has('notification_channels.mobile_push')) {
+                $existingConfig = data_get($profileRequest->user()->notification_channels, 'mobile_push', []);
+                $normalized[$channel] = is_array($existingConfig) ? $existingConfig : ['enabled' => false];
+
+                continue;
+            }
+
             $channelConfig = [
                 'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
             ];
