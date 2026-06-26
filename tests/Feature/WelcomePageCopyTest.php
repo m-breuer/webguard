@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\SupportedLanguage;
+use App\Http\Controllers\PublicFeatureController;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -124,5 +125,39 @@ class WelcomePageCopyTest extends TestCase
 
         $secondResponse->assertOk();
         $secondResponse->assertSeeText('1 Minute');
+    }
+
+    public function test_welcome_page_links_each_feature_cluster_to_public_feature_pages(): void
+    {
+        $testResponse = $this->get(route('welcome'));
+
+        $testResponse->assertOk();
+
+        $expectedClusterSlugs = [
+            'http-monitoring',
+            'keyword-monitoring',
+            'status-code-monitoring',
+            'ping-monitoring',
+            'port-monitoring',
+            'dns-record-monitoring',
+            'heartbeat-monitoring',
+            'notifications',
+            'weekly-digest',
+            'public-status-pages',
+            'public-labels',
+            'status-badges',
+            'api',
+            'server-health-monitoring',
+            'monitoring-groups',
+        ];
+
+        foreach ($expectedClusterSlugs as $slug) {
+            $this->assertContains($slug, PublicFeatureController::slugs());
+            $testResponse->assertSeeHtml(route('public-features.show', $slug));
+        }
+
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.hero_alt'))));
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.status_alt'))));
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.workflow_alt'))));
     }
 }
