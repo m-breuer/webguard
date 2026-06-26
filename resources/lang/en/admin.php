@@ -116,14 +116,14 @@ return [
         'summary' => [
             'total_instances' => 'Total instances',
             'active_instances' => 'Active instances',
-            'stale_instances' => 'Stale instances',
+            'stale_instances' => 'Unreachable instances',
             'total_monitorings' => 'Assigned monitorings',
         ],
         'monitorings_count' => ':count monitoring|:count monitorings',
         'health' => [
-            'healthy' => 'Healthy',
-            'stale' => 'Stale',
-            'never_seen' => 'Never seen',
+            'healthy' => 'Reachable',
+            'stale' => 'Unreachable',
+            'never_seen' => 'No report yet',
             'inactive' => 'Inactive',
         ],
         'messages' => [

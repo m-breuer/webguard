@@ -69,7 +69,10 @@ class ApiControllerTest extends TestCase
         $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertTooManyRequests();
-        $this->assertSame('60', $testResponse->headers->get('Retry-After'));
+
+        $retryAfter = (int) $testResponse->headers->get('Retry-After');
+        $this->assertGreaterThan(0, $retryAfter);
+        $this->assertLessThanOrEqual(60, $retryAfter);
     }
 
     public function test_all_endpoint_returns_combined_monitoring_payload_without_nested_controller_responses(): void

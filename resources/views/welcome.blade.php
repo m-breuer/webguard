@@ -8,6 +8,7 @@
         'heartbeat-monitoring',
         'server-health-monitoring',
         'dns-record-monitoring',
+        'monitoring-groups',
         'public-labels',
     ];
 @endphp

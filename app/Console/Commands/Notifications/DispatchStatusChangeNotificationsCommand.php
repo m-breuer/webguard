@@ -8,6 +8,8 @@ use App\Enums\NotificationEventType;
 use App\Mail\StatusPageStatusUpdateMail;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
+use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
+use App\Services\Notifications\MonitoringNotificationStateService;
 use App\Services\Notifications\NotificationPayload;
 use App\Services\Notifications\NotificationRouter;
 use Illuminate\Console\Attributes\Description;
@@ -19,8 +21,11 @@ use Illuminate\Support\Facades\Mail;
 #[Signature('notifications:dispatch-status-changes')]
 class DispatchStatusChangeNotificationsCommand extends Command
 {
-    public function __construct(private readonly NotificationRouter $notificationRouter)
-    {
+    public function __construct(
+        private readonly NotificationRouter $notificationRouter,
+        private readonly MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver,
+        private readonly MonitoringNotificationStateService $monitoringNotificationStateService
+    ) {
         parent::__construct();
     }
 
@@ -32,14 +37,13 @@ class DispatchStatusChangeNotificationsCommand extends Command
         $notifications = MonitoringNotification::query()
             ->statusChange()
             ->where('sent', false)
-            ->with(['monitoring.user'])
+            ->with(['monitoring.user', 'monitoring.team.users'])
             ->get();
 
         foreach ($notifications as $notification) {
             $monitoring = $notification->monitoring;
-            $user = $monitoring?->user;
 
-            if (! $monitoring || ! $user) {
+            if (! $monitoring) {
                 $notification->update(['sent' => true]);
 
                 continue;
@@ -51,12 +55,6 @@ class DispatchStatusChangeNotificationsCommand extends Command
                 : NotificationEventType::RECOVERY;
 
             $this->dispatchStatusPageSubscriberEmails($monitoring, $notification, $identifier);
-
-            if (! $monitoring->notification_on_failure) {
-                $notification->update(['sent' => true]);
-
-                continue;
-            }
 
             $payload = new NotificationPayload(
                 eventType: $eventType,
@@ -79,7 +77,22 @@ class DispatchStatusChangeNotificationsCommand extends Command
                 ],
             );
 
-            $this->notificationRouter->dispatch($user, $payload, $monitoring->notification_channels);
+            $this->monitoringNotificationPreferenceResolver
+                ->recipientsFor($monitoring)
+                ->each(function (array $recipient) use ($notification, $payload): void {
+                    $user = $recipient['user'];
+                    $preference = $recipient['preference'];
+
+                    $this->monitoringNotificationStateService->ensureState($notification, $user);
+
+                    if (! $preference->notification_on_failure) {
+                        return;
+                    }
+
+                    $this->notificationRouter->dispatch($user, $payload, $preference->notification_channels);
+                    $this->monitoringNotificationStateService->markSent($notification, $user);
+                });
+
             $notification->update(['sent' => true]);
         }
 

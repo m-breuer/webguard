@@ -181,7 +181,7 @@
                 <div class="mb-4">
                     <x-heading type="h2">{{ __('monitoring.detail.calendar.heading') }}</x-heading>
                 </div>
-                <div x-data="uptimeCalendar('{{ $monitoring->id }}')" x-init="fetchUptimeCalendar">
+                <div x-data="uptimeCalendar('{{ $monitoring->id }}', @js(route('public.monitorings.uptime-calendar', $monitoring)))" x-init="fetchUptimeCalendar">
                     <template x-if="isLoading">
                         <x-container>
                             <p>{{ __('calendar.loading') }}</p>

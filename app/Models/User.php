@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\TeamRole;
 use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -52,6 +54,8 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property-read int|null $monitorings_count
  * @property-read Collection<int, MobilePushDevice> $mobilePushDevices
  * @property-read int|null $mobile_push_devices_count
+ * @property-read Collection<int, MonitoringGroup> $monitoringGroups
+ * @property-read int|null $monitoring_groups_count
  * @property-read Collection<int, ApiLog> $apiLogs
  * @property-read int|null $api_logs_count
  * @property-read Package|null $package
@@ -109,6 +113,58 @@ class User extends Authenticatable implements MustVerifyEmail
     public function mobilePushDevices(): HasMany
     {
         return $this->hasMany(MobilePushDevice::class);
+    }
+
+    /**
+     * Get all monitoring groups that belong to the user.
+     *
+     * @return HasMany<MonitoringGroup, $this>
+     */
+    public function monitoringGroups(): HasMany
+    {
+        return $this->hasMany(MonitoringGroup::class);
+    }
+
+    /**
+     * @return HasMany<TeamMembership, $this>
+     */
+    public function teamMemberships(): HasMany
+    {
+        return $this->hasMany(TeamMembership::class);
+    }
+
+    /**
+     * @return BelongsToMany<Team, $this>
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_memberships')
+            ->withPivot('id', 'role')
+            ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<Team, $this>
+     */
+    public function administeredTeams(): BelongsToMany
+    {
+        return $this->teams()->wherePivot('role', TeamRole::ADMIN->value);
+    }
+
+    /**
+     * @return HasMany<MonitoringNotificationPreference, $this>
+     */
+    public function monitoringNotificationPreferences(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationPreference::class);
+    }
+
+    /**
+     * @return HasMany<MonitoringNotificationState, $this>
+     */
+    public function monitoringNotificationStates(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationState::class);
     }
 
     /**

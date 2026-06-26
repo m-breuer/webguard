@@ -133,6 +133,19 @@ Optional:
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
 - `IMPRINT_*` fields for legal/imprint content
 
+### Build and Startup Performance
+
+The production Dockerfile uses BuildKit cache mounts for Composer and Bun dependency downloads. Keep BuildKit enabled in Docker, Docker Compose, or your deployment platform so repeated builds can reuse those caches.
+
+The production web container keeps startup-generated artifacts off by default to make deploys and restarts faster:
+
+```env
+AUTORUN_LARAVEL_SITEMAP_GENERATE=false
+AUTORUN_LARAVEL_SCRIBE_GENERATE=false
+```
+
+Set either value to `true` only when the container should regenerate the static sitemap or Scribe API documentation during startup. The entrypoint scripts remain installed in the image and skip work unless the matching flag is enabled.
+
 ### External Database and Redis
 
 For production deployments such as Coolify, set `DB_HOST` and `REDIS_HOST` to the service names or hostnames of the database and Redis containers you want to use.
@@ -278,6 +291,8 @@ DOCKER_MAILPIT_UI_PORT=8025
 DOCKER_SSL_MODE=off
 WEBGUARD_NETWORK=webguard-network
 COMPOSE_PROFILES=internal-services
+AUTORUN_LARAVEL_SITEMAP_GENERATE=false
+AUTORUN_LARAVEL_SCRIBE_GENERATE=false
 ```
 
 If you already have an older `.env`, align it with `.env.example` before using Docker.

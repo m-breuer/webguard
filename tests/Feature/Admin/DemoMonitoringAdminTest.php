@@ -139,6 +139,7 @@ class DemoMonitoringAdminTest extends TestCase
         $testResponse = $this->actingAs($admin)->patch(route('admin.demo-monitorings.update', $monitoring), [
             'name' => 'Updated Demo Check',
             'type' => MonitoringType::HTTP->value,
+            'target' => 'https://updated-demo.example.test',
             'status' => MonitoringLifecycleStatus::PAUSED->value,
             'timeout' => 10,
             'http_method' => 'get',
@@ -156,7 +157,7 @@ class DemoMonitoringAdminTest extends TestCase
         $this->assertSame(MonitoringLifecycleStatus::PAUSED, $monitoring->status);
         $this->assertSame(10, $monitoring->timeout);
         $this->assertSame('200,204', $monitoring->expected_http_statuses);
-        $this->assertSame('https://original-demo.example.test', $monitoring->target);
+        $this->assertSame('https://updated-demo.example.test', $monitoring->target);
     }
 
     public function test_admin_cannot_edit_non_demo_monitoring_through_demo_management(): void

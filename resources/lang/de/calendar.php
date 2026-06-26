@@ -27,7 +27,7 @@ return [
     ],
     'legend' => [
         'excellent' => '>= 97,5 %',
-        'good' => '>= 90 % & 97.5 %',
+        'good' => '>= 90 % und < 97,5 %',
         'poor' => '< 90 %',
         'no_data' => 'N/A',
     ],

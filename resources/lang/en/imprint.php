@@ -13,7 +13,7 @@ return [
     'hero' => [
         'eyebrow' => 'Legal Notice',
         'title' => 'Imprint',
-        'subtitle' => 'Information pursuant to Section 5 TMG.',
+        'subtitle' => 'Information pursuant to Section 5 DDG.',
     ],
     'sections' => [
         'operator' => 'Operator',

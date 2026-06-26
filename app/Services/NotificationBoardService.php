@@ -39,20 +39,32 @@ class NotificationBoardService
                 'monitoring_notifications.id',
                 'monitoring_notifications.monitoring_id',
                 'monitoring_notifications.message',
-                'monitoring_notifications.read',
+                'monitoring_notification_states.read_at',
                 'monitoring_notifications.created_at',
             ])
+            ->join('monitoring_notification_states', 'monitoring_notification_states.monitoring_notification_id', '=', 'monitoring_notifications.id')
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
-            ->where('monitorings.user_id', auth()->id())
+            ->where('monitoring_notification_states.user_id', auth()->id())
+            ->where(function ($query): void {
+                $query->where('monitorings.user_id', auth()->id())
+                    ->orWhereExists(function ($query): void {
+                        $query->selectRaw('1')
+                            ->from('team_memberships')
+                            ->whereColumn('team_memberships.team_id', 'monitorings.team_id')
+                            ->where('team_memberships.user_id', auth()->id());
+                    });
+            })
             ->whereNull('monitorings.deleted_at')
             ->where('monitoring_notifications.type', NotificationType::STATUS_CHANGE->value)
-            ->unless($showRead, fn ($query) => $query->where('monitoring_notifications.read', false))
+            ->unless($showRead, fn ($query) => $query->whereNull('monitoring_notification_states.read_at'))
             ->whereNotExists(function ($query) use ($showRead): void {
                 $query->selectRaw('1')
                     ->from('monitoring_notifications as newer_notifications')
+                    ->join('monitoring_notification_states as newer_states', 'newer_states.monitoring_notification_id', '=', 'newer_notifications.id')
                     ->whereColumn('newer_notifications.monitoring_id', 'monitoring_notifications.monitoring_id')
+                    ->whereColumn('newer_states.user_id', 'monitoring_notification_states.user_id')
                     ->where('newer_notifications.type', NotificationType::STATUS_CHANGE->value)
-                    ->when(! $showRead, fn ($query) => $query->where('newer_notifications.read', false))
+                    ->when(! $showRead, fn ($query) => $query->whereNull('newer_states.read_at'))
                     ->where(function ($query): void {
                         $query->whereColumn('newer_notifications.created_at', '>', 'monitoring_notifications.created_at')
                             ->orWhere(function ($query): void {
@@ -123,7 +135,7 @@ class NotificationBoardService
                 ),
                 'status_change_key' => 'notifications.status_change.' . $statusChangeIdentifier,
                 'badge_type' => MonitoringStatusMeta::badgeType($statusIdentifier),
-                'read' => $monitoringNotification->read,
+                'read' => $monitoringNotification->read_at !== null,
             ];
         });
     }
@@ -132,10 +144,20 @@ class NotificationBoardService
     {
         $total = MonitoringNotification::query()
             ->withoutGlobalScopes()
+            ->join('monitoring_notification_states', 'monitoring_notification_states.monitoring_notification_id', '=', 'monitoring_notifications.id')
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
-            ->where('monitorings.user_id', auth()->id())
+            ->where('monitoring_notification_states.user_id', auth()->id())
+            ->where(function ($query): void {
+                $query->where('monitorings.user_id', auth()->id())
+                    ->orWhereExists(function ($query): void {
+                        $query->selectRaw('1')
+                            ->from('team_memberships')
+                            ->whereColumn('team_memberships.team_id', 'monitorings.team_id')
+                            ->where('team_memberships.user_id', auth()->id());
+                    });
+            })
             ->whereNull('monitorings.deleted_at')
-            ->where('monitoring_notifications.read', false)
+            ->whereNull('monitoring_notification_states.read_at')
             ->selectRaw(
                 <<<'SQL'
                 count(distinct case
@@ -164,12 +186,22 @@ class NotificationBoardService
     {
         return MonitoringNotification::query()
             ->withoutGlobalScopes()
+            ->join('monitoring_notification_states', 'monitoring_notification_states.monitoring_notification_id', '=', 'monitoring_notifications.id')
             ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
-            ->where('monitoring_notifications.read', false)
+            ->whereNull('monitoring_notification_states.read_at')
+            ->where(function ($query): void {
+                $query->whereColumn('monitorings.user_id', 'monitoring_notification_states.user_id')
+                    ->orWhereExists(function ($query): void {
+                        $query->selectRaw('1')
+                            ->from('team_memberships')
+                            ->whereColumn('team_memberships.team_id', 'monitorings.team_id')
+                            ->whereColumn('team_memberships.user_id', 'monitoring_notification_states.user_id');
+                    });
+            })
             ->whereNull('monitorings.deleted_at')
             ->selectRaw(
                 <<<'SQL'
-                monitorings.user_id as user_id,
+                monitoring_notification_states.user_id as user_id,
                 count(distinct case
                     when monitoring_notifications.type = ?
                     then monitoring_notifications.monitoring_id
@@ -184,7 +216,7 @@ class NotificationBoardService
                     NotificationType::STATUS_CHANGE->value,
                 ]
             )
-            ->groupBy('monitorings.user_id')
+            ->groupBy('monitoring_notification_states.user_id')
             ->pluck('total', 'user_id')
             ->map(fn (int|string $total): int => (int) $total);
     }

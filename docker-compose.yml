@@ -55,10 +55,11 @@ services:
       target: production
     image: webguard-core-php:latest
     restart: unless-stopped
+    stop_signal: SIGTERM
     environment:
       <<: *app-environment
       SSL_MODE: "${DOCKER_SSL_MODE:-off}"
-      PHP_MEMORY_LIMIT: "512M"
+      PHP_MEMORY_LIMIT: "2048M"
       PHP_UPLOAD_MAX_FILE_SIZE: "100M"
       PHP_MAX_EXECUTION_TIME: "300"
       PHP_OPCACHE_ENABLE: "1"
@@ -67,11 +68,17 @@ services:
       AUTORUN_LARAVEL_MIGRATION_FORCE: "true"
       AUTORUN_LARAVEL_OPTIMIZE: "true"
       AUTORUN_LARAVEL_STORAGE_LINK: "true"
-      AUTORUN_LARAVEL_SITEMAP_GENERATE: "true"
-      AUTORUN_LARAVEL_SCRIBE_GENERATE: "true"
+      AUTORUN_LARAVEL_SITEMAP_GENERATE: "${AUTORUN_LARAVEL_SITEMAP_GENERATE:-false}"
+      AUTORUN_LARAVEL_SCRIBE_GENERATE: "${AUTORUN_LARAVEL_SCRIBE_GENERATE:-false}"
     expose:
       - "8080"
       - "8443"
+    healthcheck:
+      test: ["CMD", "webguard-healthcheck"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
     volumes:
       - config:/config
       - data:/data
@@ -121,7 +128,15 @@ services:
       PHP_MAX_EXECUTION_TIME: "3600"
       PHP_OPCACHE_ENABLE: "1"
       AUTORUN_ENABLED: "false"
-    command: php artisan schedule:work --verbose --no-interaction
+    command:
+      - sh
+      - -lc
+      - |
+        trap "exit 0" TERM INT QUIT
+        while true; do
+          php artisan schedule:run --verbose --no-interaction
+          sleep 60 & wait %1
+        done
     stop_signal: SIGTERM
     depends_on:
       mysql:

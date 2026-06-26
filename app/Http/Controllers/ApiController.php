@@ -492,7 +492,7 @@ class ApiController extends Controller
     {
         $user = request()->user();
 
-        if ($user && $monitoring->user_id === $user->id) {
+        if ($user && $monitoring->isVisibleTo($user)) {
             return;
         }
 

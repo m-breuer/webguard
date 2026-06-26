@@ -51,24 +51,7 @@ class ServerInstanceController extends Controller
             ->paginate($asyncTableOptions->perPage);
 
         $instanceCodes = $lengthAwarePaginator->getCollection()->pluck('code');
-        $monitoringCounts = Monitoring::query()
-            ->withoutGlobalScope('user')
-            ->selectRaw('preferred_location, count(*) as monitorings_count')
-            ->whereIn('preferred_location', $instanceCodes)
-            ->groupBy('preferred_location')
-            ->pluck('monitorings_count', 'preferred_location');
-        $monitoringTypeCounts = Monitoring::query()
-            ->withoutGlobalScope('user')
-            ->selectRaw('preferred_location, type, count(*) as monitorings_count')
-            ->whereIn('preferred_location', $instanceCodes)
-            ->groupBy('preferred_location', 'type')
-            ->get()
-            ->groupBy('preferred_location')
-            ->map(fn (Collection $rows): Collection => $rows->mapWithKeys(
-                fn (Monitoring $monitoring): array => [
-                    (string) $monitoring->type->value => (int) $monitoring->getAttribute('monitorings_count'),
-                ]
-            ));
+        [$monitoringCounts, $monitoringTypeCounts] = $this->monitoringLoadFor($instanceCodes);
 
         if ($request->expectsJson()) {
             return AsyncTable::json(
@@ -84,12 +67,7 @@ class ServerInstanceController extends Controller
 
         $summaryInstances = ServerInstance::query()->get();
         $summaryInstanceCodes = $summaryInstances->pluck('code');
-        $summaryMonitoringCounts = Monitoring::query()
-            ->withoutGlobalScope('user')
-            ->selectRaw('preferred_location, count(*) as monitorings_count')
-            ->whereIn('preferred_location', $summaryInstanceCodes)
-            ->groupBy('preferred_location')
-            ->pluck('monitorings_count', 'preferred_location');
+        [$summaryMonitoringCounts] = $this->monitoringLoadFor($summaryInstanceCodes);
         $healthCounts = $summaryInstances
             ->map(fn (ServerInstance $serverInstance): string => $serverInstance->healthStatus())
             ->countBy();
@@ -180,12 +158,61 @@ class ServerInstanceController extends Controller
 
     public function destroy(ServerInstance $serverInstance): RedirectResponse
     {
-        if ($serverInstance->monitorings()->exists()) {
+        if (Monitoring::query()->withoutGlobalScope('user')->assignedToLocation($serverInstance->code)->exists()) {
             return to_route('admin.server-instances.index')->with('error', __('admin.server_instances.messages.instance_in_use'));
         }
 
         $serverInstance->delete();
 
         return to_route('admin.server-instances.index')->with('success', __('admin.server_instances.messages.instance_deleted'));
+    }
+
+    /**
+     * @param  Collection<int, string>  $instanceCodes
+     * @return array{0: Collection<string, int>, 1: Collection<string, Collection<string, int>>}
+     */
+    private function monitoringLoadFor(Collection $instanceCodes): array
+    {
+        $codes = $instanceCodes
+            ->filter(static fn (mixed $code): bool => is_string($code) && $code !== '')
+            ->values();
+
+        $monitoringCounts = $codes->mapWithKeys(static fn (string $code): array => [$code => 0]);
+        $monitoringTypeCounts = $codes->mapWithKeys(static fn (string $code): array => [$code => collect()]);
+
+        if ($codes->isEmpty()) {
+            return [$monitoringCounts, $monitoringTypeCounts];
+        }
+
+        $monitorings = Monitoring::query()
+            ->withoutGlobalScope('user')
+            ->where(function (Builder $builder) use ($codes): void {
+                $builder->whereIn('preferred_location', $codes);
+
+                foreach ($codes as $code) {
+                    $builder->orWhereJsonContains('preferred_locations', $code);
+                }
+            })
+            ->get(['id', 'type', 'preferred_location', 'preferred_locations']);
+
+        $codeLookup = $codes->flip();
+
+        foreach ($monitorings as $monitoring) {
+            foreach ($monitoring->preferredLocationCodes() as $code) {
+                if (! $codeLookup->has($code)) {
+                    continue;
+                }
+
+                $monitoringCounts->put($code, (int) $monitoringCounts->get($code, 0) + 1);
+
+                /** @var Collection<string, int> $typeCounts */
+                $typeCounts = $monitoringTypeCounts->get($code, collect());
+                $type = $monitoring->type->value;
+                $typeCounts->put($type, (int) $typeCounts->get($type, 0) + 1);
+                $monitoringTypeCounts->put($code, $typeCounts);
+            }
+        }
+
+        return [$monitoringCounts, $monitoringTypeCounts];
     }
 }

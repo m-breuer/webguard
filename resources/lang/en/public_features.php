@@ -16,8 +16,8 @@ return [
     'index' => [
         'seo' => [
             'title' => 'WebGuard Features - Monitoring, Public Status, Badges, and API',
-            'description' => 'Explore all WebGuard features: HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, domain checks, notifications, public labels, badges, status pages, and API access.',
-            'keywords' => 'WebGuard features, uptime monitoring features, public status labels, monitoring badges, API monitoring documentation',
+            'description' => 'Explore all WebGuard features: HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, domain checks, groups, notifications, public labels, badges, status pages, and API access.',
+            'keywords' => 'WebGuard features, uptime monitoring features, groups, public status labels, monitoring badges, API monitoring documentation',
             'og_title' => 'WebGuard Features',
             'og_description' => 'A complete overview of WebGuard monitoring types, public sharing features, alerting, analytics, and API access.',
         ],
@@ -44,7 +44,7 @@ return [
         'operations' => [
             'eyebrow' => 'Operations',
             'title' => 'Turn checks into incident context',
-            'text' => 'Use alerts, confirmation thresholds, response data, maintenance windows, and weekly reports to keep operations readable.',
+            'text' => 'Use groups, alerts, confirmation thresholds, response data, maintenance windows, and weekly reports to keep operations readable.',
         ],
         'sharing' => [
             'eyebrow' => 'Public Communication',
@@ -170,6 +170,15 @@ return [
             'highlights' => ['Uptime and downtime summaries', 'Response time charts and recent checks', 'Daily aggregation for long-term history'],
             'details' => ['Use analytics to understand whether services are getting slower, flakier, or more reliable over time.', 'Monitor details include response time trends, recent individual checks, incidents, uptime calendars, SSL status, and domain status where relevant.', 'The same operational data supports weekly digests, public labels, SLA badges, and API consumers.'],
             'seo' => ['title' => 'Uptime Analytics - WebGuard', 'description' => 'Analyze uptime, downtime, response times, incidents, and recent checks in WebGuard.', 'keywords' => 'uptime analytics, response time monitoring, downtime reporting'],
+        ],
+        'monitoring_groups' => [
+            'badge' => 'Organization',
+            'title' => 'Groups',
+            'teaser' => 'Group related monitors, filter busy monitoring lists, and publish groups as status pages when needed.',
+            'lead' => 'Groups keep larger check portfolios readable without changing individual monitor ownership or lifecycle.',
+            'highlights' => ['Many-to-many grouping for related monitors', 'Bookmarkable group filters on the monitoring index', 'Create status pages directly from groups'],
+            'details' => ['Use groups for product areas, customer environments, infrastructure layers, or internal ownership boundaries.', 'A monitor can belong to multiple groups, so one endpoint can appear in both an API group and a customer-facing service group.', 'For public communication, create a status page from a group and let its component dynamically follow the group contents.'],
+            'seo' => ['title' => 'Groups - WebGuard', 'description' => 'Organize WebGuard monitorings with user-owned groups, bookmarkable filters, and group-backed status pages.', 'keywords' => 'groups, grouped monitoring, status pages from groups, uptime monitor organization'],
         ],
         'multi_location' => [
             'badge' => 'Distribution',

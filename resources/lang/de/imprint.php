@@ -13,7 +13,7 @@ return [
     'hero' => [
         'eyebrow' => 'Rechtliche Angaben',
         'title' => 'Impressum',
-        'subtitle' => 'Angaben gemäß Paragraf 5 TMG.',
+        'subtitle' => 'Angaben gemäß § 5 DDG.',
     ],
     'sections' => [
         'operator' => 'Betreiber',

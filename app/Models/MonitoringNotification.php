@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Appends(['created_at_for_humans', 'translated_message'])]
 #[Fillable([
@@ -56,6 +57,14 @@ class MonitoringNotification extends Model
         return $this->belongsTo(Monitoring::class);
     }
 
+    /**
+     * @return HasMany<MonitoringNotificationState, $this>
+     */
+    public function states(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationState::class);
+    }
+
     public function statusChangeIdentifier(bool $maintenanceActive = false): string
     {
         if ($maintenanceActive) {
@@ -73,6 +82,32 @@ class MonitoringNotification extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new UserScope());
+
+        static::created(function (MonitoringNotification $monitoringNotification): void {
+            /** @var Monitoring|null $monitoring */
+            $monitoring = Monitoring::query()
+                ->withoutGlobalScopes()
+                ->with(['user', 'team.users'])
+                ->find($monitoringNotification->monitoring_id);
+
+            if (! $monitoring) {
+                return;
+            }
+
+            $users = $monitoring->team_id !== null
+                ? ($monitoring->team?->users ?? collect())
+                : collect([$monitoring->user])->filter();
+
+            foreach ($users as $user) {
+                MonitoringNotificationState::query()->firstOrCreate([
+                    'monitoring_notification_id' => $monitoringNotification->id,
+                    'user_id' => $user->id,
+                ], [
+                    'read_at' => $monitoringNotification->read ? now() : null,
+                    'sent_at' => $monitoringNotification->sent ? now() : null,
+                ]);
+            }
+        });
     }
 
     /**
@@ -83,7 +118,7 @@ class MonitoringNotification extends Model
     {
         $value = $type instanceof NotificationType ? $type->value : $type;
 
-        return $builder->where('type', $value);
+        return $builder->where($builder->getModel()->qualifyColumn('type'), $value);
     }
 
     /**
@@ -119,6 +154,13 @@ class MonitoringNotification extends Model
     #[Scope]
     protected function read(Builder $builder): Builder
     {
+        if (auth()->check()) {
+            return $builder->whereHas('states', function (Builder $builder): void {
+                $builder->where('user_id', auth()->id())
+                    ->whereNotNull('read_at');
+            });
+        }
+
         return $builder->where('read', true);
     }
 
@@ -128,6 +170,13 @@ class MonitoringNotification extends Model
     #[Scope]
     protected function unread(Builder $builder): Builder
     {
+        if (auth()->check()) {
+            return $builder->whereHas('states', function (Builder $builder): void {
+                $builder->where('user_id', auth()->id())
+                    ->whereNull('read_at');
+            });
+        }
+
         return $builder->where('read', false);
     }
 

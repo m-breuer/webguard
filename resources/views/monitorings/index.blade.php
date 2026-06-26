@@ -51,6 +51,15 @@
                     @if (request('lifecycle'))
                         <x-text-input type="hidden" name="lifecycle" :value="request('lifecycle')" />
                     @endif
+                    @if (request('group_id'))
+                        <x-text-input type="hidden" name="group_id" :value="request('group_id')" />
+                    @endif
+                    @if (request('team_id'))
+                        <x-text-input type="hidden" name="team_id" :value="request('team_id')" />
+                    @endif
+                    @if (request('ownership'))
+                        <x-text-input type="hidden" name="ownership" :value="request('ownership')" />
+                    @endif
                     @if (request('sort'))
                         <x-text-input type="hidden" name="sort" :value="request('sort')" />
                     @endif
@@ -109,13 +118,13 @@
                             updateStatus() {
                                 const url = new URL(window.location.href);
                                 const params = new URLSearchParams(window.location.search);
-                        
+
                                 if (this.selectedStatus) {
                                     params.set('lifecycle', this.selectedStatus);
                                 } else {
                                     params.delete('lifecycle');
                                 }
-                        
+
                                 url.search = params.toString();
                                 window.location.href = url.toString();
                             }
@@ -127,6 +136,93 @@
                                 @foreach (MonitoringLifecycleStatus::cases() as $status)
                                     <option value="{{ $status->value }}" @selected(request('lifecycle') === $status->value)>
                                         {{ ucfirst($status->value) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div x-data="{
+                            selectedGroup: '{{ request('group_id') ?? '' }}',
+                            updateGroup() {
+                                const url = new URL(window.location.href);
+                                const params = new URLSearchParams(window.location.search);
+
+                                if (this.selectedGroup) {
+                                    params.set('group_id', this.selectedGroup);
+                                } else {
+                                    params.delete('group_id');
+                                }
+
+                                url.search = params.toString();
+                                window.location.href = url.toString();
+                            }
+                        }" class="relative">
+                            <label for="group-select" class="sr-only">{{ __('monitoring_group.filter.label') }}</label>
+                            <select id="group-select" x-model="selectedGroup" @change="updateGroup"
+                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                <option value="">{{ __('monitoring_group.filter.all') }}</option>
+                                @foreach ($monitoringGroups as $monitoringGroup)
+                                    <option value="{{ $monitoringGroup->id }}" @selected(request('group_id') === $monitoringGroup->id)>
+                                        {{ $monitoringGroup->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div x-data="{
+                            selectedOwnership: '{{ request('ownership') ?? '' }}',
+                            updateOwnership() {
+                                const url = new URL(window.location.href);
+                                const params = new URLSearchParams(window.location.search);
+
+                                if (this.selectedOwnership) {
+                                    params.set('ownership', this.selectedOwnership);
+                                } else {
+                                    params.delete('ownership');
+                                }
+
+                                url.search = params.toString();
+                                window.location.href = url.toString();
+                            }
+                        }" class="relative">
+                            <label for="ownership-select" class="sr-only">{{ __('team.ownership.select_label') }}</label>
+                            <select id="ownership-select" x-model="selectedOwnership" @change="updateOwnership"
+                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                <option value="">{{ __('search.filter.all') }}</option>
+                                <option value="private" @selected(request('ownership') === 'private')>{{ __('team.ownership.private') }}</option>
+                                <option value="team" @selected(request('ownership') === 'team')>{{ __('team.ownership.team') }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div x-data="{
+                            selectedTeam: '{{ request('team_id') ?? '' }}',
+                            updateTeam() {
+                                const url = new URL(window.location.href);
+                                const params = new URLSearchParams(window.location.search);
+
+                                if (this.selectedTeam) {
+                                    params.set('team_id', this.selectedTeam);
+                                } else {
+                                    params.delete('team_id');
+                                }
+
+                                url.search = params.toString();
+                                window.location.href = url.toString();
+                            }
+                        }" class="relative">
+                            <label for="team-select" class="sr-only">{{ __('team.title') }}</label>
+                            <select id="team-select" x-model="selectedTeam" @change="updateTeam"
+                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                <option value="">{{ __('team.title') }}</option>
+                                @foreach ($teams as $team)
+                                    <option value="{{ $team->id }}" @selected(request('team_id') === $team->id)>
+                                        {{ $team->name }}
                                     </option>
                                 @endforeach
                             </select>

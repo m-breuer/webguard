@@ -73,11 +73,28 @@ class MonitoringNotificationSettingsTest extends TestCase
         $testResponse->assertSeeText(__('monitoring.form.sections.sharing'));
         $testResponse->assertSeeText(__('monitoring.form.sections.notifications'));
         $testResponse->assertSeeText(__('monitoring.form.sections.operations'));
+        $testResponse->assertSeeText(__('team.sections.notification_preferences'));
         $testResponse->assertSeeText(__('monitoring.form.notification_channels'));
         $testResponse->assertSeeText(__('profile.notification_settings.channels.slack.title'));
         $testResponse->assertSeeText(__('profile.notification_settings.channels.telegram.title'));
         $testResponse->assertDontSeeText(__('profile.notification_settings.channels.webhook.title'));
+        $testResponse->assertSeeHtml('action="' . route('monitorings.notification-preferences.update', $monitoring) . '"');
         $testResponse->assertSeeHtml('value="14"');
+    }
+
+    public function test_detail_page_does_not_show_monitoring_notification_preferences(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeText(__('team.sections.notification_preferences'));
+        $testResponse->assertDontSeeHtml('action="' . route('monitorings.notification-preferences.update', $monitoring) . '"');
     }
 
     public function test_update_persists_per_monitoring_channels_and_ssl_warning_window(): void

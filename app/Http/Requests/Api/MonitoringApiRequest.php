@@ -19,7 +19,7 @@ abstract class MonitoringApiRequest extends FormRequest
 
         $user = $this->user();
 
-        if ($user && $monitoring->user_id === $user->id) {
+        if ($user && $monitoring->isVisibleTo($user)) {
             return true;
         }
 

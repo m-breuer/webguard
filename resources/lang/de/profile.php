@@ -34,9 +34,9 @@ return [
         'enabled' => 'Aktiviert',
         'hint_banner' => 'Konfigurieren Sie mindestens einen Kanal, um weiterhin Incident-, SSL- und Domain-Ablaufbenachrichtigungen zu erhalten.',
         'digest' => [
-            'heading' => 'Mitteilungsübersicht',
+            'heading' => 'Monitoring-Zusammenfassung',
             'description' => 'Erhalten Sie eine E-Mail-Zusammenfassung über alle Ihre aktiven Überwachungen.',
-            'enabled' => 'Mitteilungsübersicht per E-Mail aktivieren',
+            'enabled' => 'Monitoring-Zusammenfassung per E-Mail aktivieren',
             'frequency' => 'Zeitraum',
             'frequencies' => [
                 'daily' => 'Täglich',
@@ -46,7 +46,7 @@ return [
         ],
         'unread_reminder' => [
             'heading' => 'Erinnerung bei ungelesenen Nachrichten',
-            'description' => 'Erhalten Sie eine E-Mail, wenn in Ihrer Mitteilungsübersicht noch ungelesene Nachrichten vorhanden sind.',
+            'description' => 'Erhalten Sie eine E-Mail, wenn in Ihrer Benachrichtigungsübersicht noch ungelesene Nachrichten vorhanden sind.',
             'enabled' => 'E-Mail-Erinnerung für ungelesene Nachrichten aktivieren',
             'frequency' => 'Intervall',
             'frequencies' => [
@@ -80,29 +80,29 @@ return [
             'option' => '{1} :days Tag vor Ablauf|[2,*] :days Tage vor Ablauf',
         ],
         'fields' => [
-            'telegram_bot_token' => 'Telegram Bot Token',
-            'telegram_chat_id' => 'Telegram Chat ID',
-            'slack_webhook_url' => 'Slack Webhook URL',
-            'discord_webhook_url' => 'Discord Webhook URL',
-            'teams_webhook_url' => 'Microsoft Teams Webhook URL',
-            'webhook_url' => 'Webhook URL',
+            'telegram_bot_token' => 'Telegram-Bot-Token',
+            'telegram_chat_id' => 'Telegram-Chat-ID',
+            'slack_webhook_url' => 'Slack-Webhook-URL',
+            'discord_webhook_url' => 'Discord-Webhook-URL',
+            'teams_webhook_url' => 'Microsoft-Teams-Webhook-URL',
+            'webhook_url' => 'Webhook-URL',
         ],
         'channels' => [
             'slack' => [
                 'title' => 'Slack',
-                'help' => 'Verwenden Sie eine Slack Incoming Webhook URL.',
+                'help' => 'Verwenden Sie eine Slack-Incoming-Webhook-URL.',
             ],
             'telegram' => [
                 'title' => 'Telegram',
-                'help' => 'Geben Sie den Bot Token und die Ziel-Chat-ID an.',
+                'help' => 'Geben Sie den Bot-Token und die Ziel-Chat-ID an.',
             ],
             'discord' => [
                 'title' => 'Discord',
-                'help' => 'Verwenden Sie eine Discord Webhook URL.',
+                'help' => 'Verwenden Sie eine Discord-Webhook-URL.',
             ],
             'teams' => [
                 'title' => 'Microsoft Teams',
-                'help' => 'Verwenden Sie eine Microsoft Teams Incoming Webhook URL.',
+                'help' => 'Verwenden Sie eine Microsoft-Teams-Incoming-Webhook-URL.',
             ],
             'webhook' => [
                 'title' => 'Webhook',

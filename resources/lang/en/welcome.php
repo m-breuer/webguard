@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with integrations, SLA badges, configurable alerts, weekly digests, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SLA badge, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with groups, integrations, SLA badges, configurable alerts, weekly digests, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, groups, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SLA badge, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
         'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, Heartbeat, Server Health, and DNS monitoring, clear notifications, and transparent status pages.',
     ],

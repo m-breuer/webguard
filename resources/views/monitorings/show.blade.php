@@ -29,11 +29,14 @@
                     {{ __('monitoring.index.table.maintenance') }}
                 </x-badge>
             @endif
+            <x-badge type="{{ $monitoring->isTeamOwned() ? 'info' : 'success' }}">
+                {{ $monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private') }}
+            </x-badge>
         </x-heading>
 
         <div class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
 
-            @if (!Auth::user()->isDemo())
+            @if ($canManageMonitoring)
                 <div class="relative" x-data="{ open: false }">
                     <x-secondary-button @click="open = !open">
                         {{ __('monitoring.actions.heading') }}
@@ -48,6 +51,32 @@
                             class="block px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
                             {{ __('monitoring.actions.edit') }}
                         </a>
+                        @if (!$monitoring->isTeamOwned() && $adminTeams->isNotEmpty())
+                            <form method="POST" action="{{ route('monitorings.team-ownership.store', $monitoring) }}"
+                                class="px-4 py-2">
+                                @csrf
+                                <label for="move-team-{{ $monitoring->id }}" class="sr-only">{{ __('team.ownership.move_to_team') }}</label>
+                                <select id="move-team-{{ $monitoring->id }}" name="team_id"
+                                    class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                    @foreach ($adminTeams as $team)
+                                        <option value="{{ $team->id }}">{{ $team->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="block w-full text-left text-gray-700 hover:bg-gray-100 sm:text-right">
+                                    {{ __('team.ownership.move_to_team') }}
+                                </button>
+                            </form>
+                        @endif
+                        @if ($monitoring->isTeamOwned())
+                            <form method="POST" action="{{ route('monitorings.team-ownership.destroy', $monitoring) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
+                                    {{ __('team.ownership.move_to_private') }}
+                                </button>
+                            </form>
+                        @endif
                         <form method="POST" action="{{ route('monitorings.destroyResults', $monitoring) }}"
                             data-confirm-message="{{ __('monitoring.actions.reset.confirmation') }}">
                             @csrf
@@ -456,10 +485,17 @@
         </div>
 
         <div id="recent-checks" class="mt-8">
-            <div class="mb-2 flex items-center justify-between gap-4">
-                <x-heading type="h2" class="text-lg font-semibold text-gray-800">
-                    {{ __('monitoring.detail.checks.heading') }}
-                </x-heading>
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <x-heading type="h2" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ __('monitoring.detail.checks.heading') }}
+                    </x-heading>
+                    <x-paragraph class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                        x-show="!recentChecksLoading && recentChecks.length > 0">
+                        <span x-text="recentChecks.length"></span>
+                        <span>{{ __('monitoring.detail.checks.summary_suffix') }}</span>
+                    </x-paragraph>
+                </div>
             </div>
 
             <template x-if="recentChecksLoading">
@@ -473,68 +509,115 @@
             </template>
 
             <template x-if="!recentChecksLoading && recentChecks.length > 0">
-                <div class="space-y-3">
-                    <template x-for="check in recentChecks" :key="check.id">
-                        <x-container space="true">
-                            <div class="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <x-paragraph class="text-sm font-semibold text-gray-900 dark:text-gray-100"
-                                        x-text="check.checkedAt"></x-paragraph>
-                                    <x-paragraph class="text-sm text-gray-500"
-                                        x-text="check.checkedAtHuman"></x-paragraph>
-                                </div>
-                                <x-span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                                    x-bind:class="resolveCheckStatusClass(check.statusIdentifier)"
-                                    x-text="resolveCheckStatusLabel(check.statusIdentifier)"></x-span>
-                            </div>
+                <div>
+                    <div
+                        class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div
+                            class="hidden grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:border-gray-700 dark:bg-gray-900/35 dark:text-gray-400 lg:grid">
+                            <span>{{ __('monitoring.detail.checks.labels.checked_at') }}</span>
+                            <span>{{ __('monitoring.detail.checks.labels.result') }}</span>
+                            <span class="text-right">{{ __('monitoring.detail.checks.labels.status') }}</span>
+                        </div>
 
-                            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-5">
-                                <div>
-                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        {{ __('monitoring.detail.checks.labels.status_code') }}
-                                    </x-span>
-                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
-                                        x-text="check.httpStatusCode ?? '{{ __('monitoring.detail.checks.status_code_unavailable') }}'"></x-span>
-                                </div>
-                                <div>
-                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        {{ __('monitoring.detail.checks.labels.response_time') }}
-                                    </x-span>
-                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
-                                        x-text="formatResponseTime(check.responseTime)"></x-span>
-                                </div>
-                                <div>
-                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        {{ __('monitoring.detail.checks.labels.server_health') }}
-                                    </x-span>
-                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
-                                        x-text="formatServerHealthMetrics(check.serverHealthMetrics)"></x-span>
-                                </div>
-                                <div>
-                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        {{ __('monitoring.detail.checks.labels.source') }}
-                                    </x-span>
-                                    <x-span class="text-sm text-gray-800 dark:text-gray-200"
-                                        x-text="resolveCheckSourceLabel(check.source)"></x-span>
-                                </div>
-                                <div>
-                                    <x-span class="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        {{ __('monitoring.detail.checks.labels.raw_status') }}
-                                    </x-span>
-                                    <x-span class="text-sm uppercase text-gray-800 dark:text-gray-200"
-                                        x-text="check.status"></x-span>
-                                </div>
-                            </div>
-                        </x-container>
-                    </template>
+                        <div class="divide-y divide-gray-100 dark:divide-gray-700/80">
+                            <template x-for="(check, index) in recentChecks" :key="check.id">
+                                <div
+                                    class="grid gap-4 px-4 py-4 transition duration-150 hover:bg-gray-50/80 dark:hover:bg-gray-900/30 sm:px-5 lg:grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] lg:items-center">
+                                    <div class="flex min-w-0 gap-3">
+                                        <div class="relative flex w-5 shrink-0 justify-center">
+                                            <span
+                                                class="mt-1 flex size-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                                <svg class="size-3.5" viewBox="0 0 16 16" aria-hidden="true">
+                                                    <path fill="currentColor"
+                                                        d="M6.35 11.15 2.9 7.7l1.05-1.05 2.4 2.4 5.7-5.7L13.1 4.4z" />
+                                                </svg>
+                                            </span>
+                                            <span
+                                                class="absolute top-7 bottom-[-1rem] w-px bg-emerald-100 dark:bg-emerald-900"
+                                                x-show="index < recentChecks.length - 1"></span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="truncate text-sm font-semibold text-gray-950 dark:text-gray-100"
+                                                x-text="check.checkedAt"></p>
+                                            <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400"
+                                                x-text="check.checkedAtHuman"></p>
+                                        </div>
+                                    </div>
 
-                    <div class="pt-1 text-center" x-show="recentChecksHasMore">
-                        <x-primary-button type="button" @click="loadMoreChecks()"
+                                    <div
+                                        class="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(6.5rem,0.8fr)_minmax(10rem,1.2fr)_minmax(5rem,0.7fr)_minmax(5rem,0.7fr)]"
+                                        x-bind:class="hasServerHealthMetrics(check.serverHealthMetrics) ? 'xl:grid-cols-[minmax(6.5rem,0.8fr)_minmax(10rem,1.2fr)_minmax(9rem,1.2fr)_minmax(5rem,0.7fr)_minmax(5rem,0.7fr)]' : ''">
+                                        <div>
+                                            <span
+                                                class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                {{ __('monitoring.detail.checks.labels.status_code') }}
+                                            </span>
+                                            <span class="mt-1 block text-sm font-semibold text-gray-900 dark:text-gray-100"
+                                                x-text="check.httpStatusCode ?? '{{ __('monitoring.detail.checks.status_code_unavailable') }}'"></span>
+                                        </div>
+
+                                        <div>
+                                            <div class="flex items-baseline justify-between gap-3">
+                                                <span
+                                                    class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                    {{ __('monitoring.detail.checks.labels.response_time') }}
+                                                </span>
+                                                <span class="text-sm font-semibold text-sky-700 dark:text-sky-300"
+                                                    x-text="formatResponseTime(check.responseTime)"></span>
+                                            </div>
+                                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                                                <div class="h-full rounded-full bg-sky-500 dark:bg-sky-400"
+                                                    x-bind:style="`width: ${responseTimeBarWidth(check.responseTime)}%`"></div>
+                                            </div>
+                                        </div>
+
+                                        <div x-show="hasServerHealthMetrics(check.serverHealthMetrics)">
+                                            <span
+                                                class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                {{ __('monitoring.detail.checks.labels.server_health') }}
+                                            </span>
+                                            <span class="mt-1 block truncate text-sm text-gray-900 dark:text-gray-100"
+                                                x-text="formatServerHealthMetrics(check.serverHealthMetrics)"></span>
+                                        </div>
+
+                                        <div>
+                                            <span
+                                                class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                {{ __('monitoring.detail.checks.labels.source') }}
+                                            </span>
+                                            <span class="mt-1 block text-sm text-gray-900 dark:text-gray-100"
+                                                x-text="resolveCheckSourceLabel(check.source)"></span>
+                                        </div>
+
+                                        <div>
+                                            <span
+                                                class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                {{ __('monitoring.detail.checks.labels.raw_status') }}
+                                            </span>
+                                            <span class="mt-1 block text-sm font-semibold uppercase text-gray-900 dark:text-gray-100"
+                                                x-text="check.status"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-start lg:justify-end">
+                                        <span
+                                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase"
+                                            x-bind:class="resolveCheckStatusClass(check.statusIdentifier)"
+                                            x-text="resolveCheckStatusLabel(check.statusIdentifier)"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="pt-5 text-center" x-show="recentChecksHasMore">
+                        <button type="button" @click="loadMoreChecks()"
+                            class="inline-flex items-center rounded-md border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold uppercase text-emerald-700 shadow-sm transition duration-150 hover:border-emerald-300 hover:bg-emerald-50 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-800 dark:bg-gray-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                             x-bind:disabled="recentChecksLoadingMore"
                             x-bind:class="{ 'opacity-60 cursor-not-allowed': recentChecksLoadingMore }">
                             <span
                                 x-text="recentChecksLoadingMore ? '{{ __('monitoring.detail.checks.loading_more') }}' : '{{ __('monitoring.detail.checks.load_more') }}'"></span>
-                        </x-primary-button>
+                        </button>
                     </div>
                 </div>
             </template>
