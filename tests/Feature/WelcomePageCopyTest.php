@@ -151,9 +151,9 @@ class WelcomePageCopyTest extends TestCase
             'monitoring-groups',
         ];
 
-        foreach ($expectedClusterSlugs as $slug) {
-            $this->assertContains($slug, PublicFeatureController::slugs());
-            $testResponse->assertSeeHtml(route('public-features.show', $slug));
+        foreach ($expectedClusterSlugs as $expectedClusterSlug) {
+            $this->assertContains($expectedClusterSlug, PublicFeatureController::slugs());
+            $testResponse->assertSeeHtml(route('public-features.show', $expectedClusterSlug));
         }
 
         $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.hero_alt'))));
