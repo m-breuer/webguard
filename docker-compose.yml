@@ -42,6 +42,10 @@ x-app-environment: &app-environment
   REDIS_QUEUE_CONNECTION: "default"
   REDIS_QUEUE: "default"
   HEARTBEAT_QUEUE: "heartbeat"
+  FCM_PROJECT_ID: "${FCM_PROJECT_ID:-}"
+  FCM_ACCESS_TOKEN: "${FCM_ACCESS_TOKEN:-}"
+  FCM_SERVICE_ACCOUNT_JSON: "${FCM_SERVICE_ACCOUNT_JSON:-}"
+  FCM_SERVICE_ACCOUNT_PATH: "${FCM_SERVICE_ACCOUNT_PATH:-}"
 
 services:
   php:

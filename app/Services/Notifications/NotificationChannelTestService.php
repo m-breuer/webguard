@@ -8,6 +8,7 @@ use App\Enums\NotificationChannel;
 use App\Enums\NotificationEventType;
 use App\Models\User;
 use App\Services\Notifications\Channels\DiscordChannelDriver;
+use App\Services\Notifications\Channels\MobilePushChannelDriver;
 use App\Services\Notifications\Channels\NotificationChannelDriver;
 use App\Services\Notifications\Channels\SlackChannelDriver;
 use App\Services\Notifications\Channels\TeamsChannelDriver;
@@ -27,7 +28,8 @@ class NotificationChannelTestService
         TelegramChannelDriver $telegramChannelDriver,
         DiscordChannelDriver $discordChannelDriver,
         TeamsChannelDriver $teamsChannelDriver,
-        WebhookChannelDriver $webhookChannelDriver
+        WebhookChannelDriver $webhookChannelDriver,
+        MobilePushChannelDriver $mobilePushChannelDriver
     ) {
         $this->drivers = [
             $slackChannelDriver->channel() => $slackChannelDriver,
@@ -35,6 +37,7 @@ class NotificationChannelTestService
             $discordChannelDriver->channel() => $discordChannelDriver,
             $teamsChannelDriver->channel() => $teamsChannelDriver,
             $webhookChannelDriver->channel() => $webhookChannelDriver,
+            $mobilePushChannelDriver->channel() => $mobilePushChannelDriver,
         ];
     }
 
@@ -43,6 +46,7 @@ class NotificationChannelTestService
      */
     public function send(User $user, NotificationChannel $notificationChannel, array $config): void
     {
+        $config['user_id'] = $user->id;
         $driver = $this->drivers[$notificationChannel->value] ?? null;
 
         throw_unless($driver, InvalidArgumentException::class, 'Unsupported notification channel.');

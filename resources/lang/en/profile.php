@@ -108,6 +108,10 @@ return [
                 'title' => 'Webhook',
                 'help' => 'Send the notification payload to a custom HTTP endpoint.',
             ],
+            'mobile_push' => [
+                'title' => 'Mobile Push',
+                'help' => 'Send alerts to registered iOS and Android devices.',
+            ],
         ],
     ],
     'update_password' => [

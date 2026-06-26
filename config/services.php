@@ -37,6 +37,14 @@ return [
         ],
     ],
 
+    'fcm' => [
+        'project_id' => env('FCM_PROJECT_ID'),
+        'access_token' => env('FCM_ACCESS_TOKEN'),
+        'service_account_json' => env('FCM_SERVICE_ACCOUNT_JSON'),
+        'service_account_path' => env('FCM_SERVICE_ACCOUNT_PATH'),
+        'token_uri' => env('FCM_TOKEN_URI', 'https://oauth2.googleapis.com/token'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Socialite Providers

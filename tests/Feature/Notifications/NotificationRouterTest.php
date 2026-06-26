@@ -6,6 +6,7 @@ namespace Tests\Feature\Notifications;
 
 use App\Enums\NotificationDeliveryStatus;
 use App\Enums\NotificationEventType;
+use App\Models\MobilePushDevice;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\Notifications\NotificationPayload;
@@ -212,6 +213,58 @@ class NotificationRouterTest extends TestCase
             'channel' => 'webhook',
             'event_type' => NotificationEventType::INCIDENT->value,
             'status' => NotificationDeliveryStatus::FAILED->value,
+        ]);
+    }
+
+    public function test_router_sends_to_mobile_push_devices(): void
+    {
+        config([
+            'services.fcm.project_id' => 'webguard-test',
+            'services.fcm.access_token' => 'test-access-token',
+        ]);
+
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'mobile_push' => [
+                    'enabled' => true,
+                ],
+            ],
+        ]);
+        MobilePushDevice::factory()->for($user)->create([
+            'platform' => 'ios',
+            'push_token' => 'fcm-device-token',
+            'token_hash' => hash('sha256', 'fcm-device-token'),
+        ]);
+
+        Http::fake([
+            'https://fcm.googleapis.com/*' => Http::response(['name' => 'projects/webguard-test/messages/123'], 200),
+        ]);
+
+        $notificationPayload = new NotificationPayload(
+            eventType: NotificationEventType::INCIDENT,
+            title: 'Monitoring incident',
+            message: 'Service is down.',
+            severity: 'critical',
+            monitoringId: '01TEST',
+            monitoringName: 'API',
+            monitoringTarget: 'https://example.test',
+            occurredAt: now()
+        );
+
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['mobile_push']);
+
+        $this->assertTrue($wasDelivered);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://fcm.googleapis.com/v1/projects/webguard-test/messages:send'
+            && $request->hasHeader('Authorization', 'Bearer test-access-token')
+            && data_get($request->data(), 'message.token') === 'fcm-device-token'
+            && data_get($request->data(), 'message.notification.title') === 'Monitoring incident'
+            && data_get($request->data(), 'message.data.notification_id') === '');
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'mobile_push',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
         ]);
     }
 }
