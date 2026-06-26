@@ -446,6 +446,15 @@
                 <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
             </div>
 
+    @if (isset($monitoring))
+        <input type="hidden" name="notification_on_failure" value="{{ old('notification_on_failure', $monitoring->notification_on_failure ?? true) ? '1' : '0' }}">
+        @foreach ($selectedNotificationChannels as $channel)
+            <input type="hidden" name="notification_channels[]" value="{{ $channel }}">
+        @endforeach
+        <input type="hidden" name="ssl_expiry_warning_days" value="{{ old('ssl_expiry_warning_days', $monitoring->ssl_expiry_warning_days ?? 7) }}">
+    @endif
+
+    @unless (isset($monitoring))
     <div class="mt-4">
         <x-input-label for="notification_on_failure" :value="__('monitoring.form.notification_on_failure')" />
         <label class="relative inline-flex cursor-pointer items-center">
@@ -458,6 +467,7 @@
                 class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('monitoring.form.notification_on_failure_enabled') }}</span>
         </label>
     </div>
+    @endunless
 
     <div class="mt-4">
         <x-input-label for="failure_confirmation_threshold" :value="__('monitoring.form.failure_confirmation_threshold')" />
@@ -469,6 +479,7 @@
         <x-input-error :messages="$errors->get('failure_confirmation_threshold')" />
     </div>
 
+    @unless (isset($monitoring))
     <div class="mt-4">
         <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
         @if (count($enabledNotificationChannels) > 0)
@@ -501,6 +512,7 @@
         </p>
         <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
     </div>
+    @endunless
 
         </section>
 
