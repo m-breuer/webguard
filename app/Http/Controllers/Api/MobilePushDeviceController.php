@@ -36,10 +36,11 @@ class MobilePushDeviceController extends Controller
         $user = $storeMobilePushDeviceRequest->user();
         $validated = $storeMobilePushDeviceRequest->validated();
         $pushToken = (string) $validated['push_token'];
+        $pushProvider = (string) ($validated['push_provider'] ?? 'fcm');
         $tokenHash = hash('sha256', $pushToken);
 
         $mobilePushDevice = MobilePushDevice::query()->firstOrNew([
-            'push_provider' => 'fcm',
+            'push_provider' => $pushProvider,
             'token_hash' => $tokenHash,
         ]);
         $wasRecentlyCreated = ! $mobilePushDevice->exists;
@@ -47,7 +48,7 @@ class MobilePushDeviceController extends Controller
         $mobilePushDevice->fill([
             'user_id' => $user->id,
             'platform' => $validated['platform'],
-            'push_provider' => 'fcm',
+            'push_provider' => $pushProvider,
             'push_token' => $pushToken,
             'token_hash' => $tokenHash,
             'device_name' => $validated['device_name'] ?? null,

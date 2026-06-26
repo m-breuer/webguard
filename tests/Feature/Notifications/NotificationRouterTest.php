@@ -267,4 +267,76 @@ class NotificationRouterTest extends TestCase
             'status' => NotificationDeliveryStatus::SENT->value,
         ]);
     }
+
+    public function test_router_sends_to_apns_mobile_push_devices(): void
+    {
+        $privateKey = $this->test_ec_private_key();
+
+        config([
+            'services.apns.key_id' => 'ABC123DEFG',
+            'services.apns.team_id' => 'TEAM123456',
+            'services.apns.bundle_id' => 'dev.marcelbreuer.webguard',
+            'services.apns.private_key' => $privateKey,
+            'services.apns.environment' => 'development',
+        ]);
+
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'mobile_push' => [
+                    'enabled' => true,
+                ],
+            ],
+        ]);
+        MobilePushDevice::factory()->for($user)->create([
+            'platform' => 'ios',
+            'push_provider' => 'apns',
+            'push_token' => 'apns-device-token',
+            'token_hash' => hash('sha256', 'apns-device-token'),
+        ]);
+
+        Http::fake([
+            'https://api.sandbox.push.apple.com/*' => Http::response(null, 200),
+        ]);
+
+        $notificationPayload = new NotificationPayload(
+            eventType: NotificationEventType::INCIDENT,
+            title: 'Monitoring incident',
+            message: 'Service is down.',
+            severity: 'critical',
+            monitoringId: '01TEST',
+            monitoringName: 'API',
+            monitoringTarget: 'https://example.test',
+            occurredAt: now()
+        );
+
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch($user, $notificationPayload, ['mobile_push']);
+
+        $this->assertTrue($wasDelivered);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://api.sandbox.push.apple.com/3/device/apns-device-token'
+            && str_starts_with((string) data_get($request->header('Authorization'), 0), 'Bearer ')
+            && $request->hasHeader('apns-topic', 'dev.marcelbreuer.webguard')
+            && $request->hasHeader('apns-push-type', 'alert')
+            && data_get($request->data(), 'aps.alert.title') === 'Monitoring incident'
+            && data_get($request->data(), 'monitoring_id') === '01TEST');
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'mobile_push',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
+    }
+
+    private function test_ec_private_key(): string
+    {
+        $key = openssl_pkey_new([
+            'private_key_type' => OPENSSL_KEYTYPE_EC,
+            'curve_name' => 'prime256v1',
+        ]);
+
+        $privateKey = '';
+        openssl_pkey_export($key, $privateKey);
+
+        return $privateKey;
+    }
 }

@@ -16,6 +16,7 @@ class StoreMobilePushDeviceRequest extends FormRequest
     {
         return [
             'platform' => ['required', 'string', Rule::in(['ios', 'android'])],
+            'push_provider' => ['sometimes', 'string', Rule::in(['apns', 'fcm'])],
             'push_token' => ['required', 'string', 'max:4096'],
             'device_name' => ['nullable', 'string', 'max:255'],
             'app_version' => ['nullable', 'string', 'max:64'],
