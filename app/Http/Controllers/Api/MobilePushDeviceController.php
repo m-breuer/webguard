@@ -25,26 +25,26 @@ class MobilePushDeviceController extends Controller
                 ->latest('last_registered_at')
                 ->latest()
                 ->get()
-                ->map(fn (MobilePushDevice $device): array => $this->devicePayload($device))
+                ->map(fn (MobilePushDevice $mobilePushDevice): array => $this->devicePayload($mobilePushDevice))
                 ->values(),
         ]);
     }
 
-    public function store(StoreMobilePushDeviceRequest $request): JsonResponse
+    public function store(StoreMobilePushDeviceRequest $storeMobilePushDeviceRequest): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
-        $validated = $request->validated();
+        $user = $storeMobilePushDeviceRequest->user();
+        $validated = $storeMobilePushDeviceRequest->validated();
         $pushToken = (string) $validated['push_token'];
         $tokenHash = hash('sha256', $pushToken);
 
-        $device = MobilePushDevice::query()->firstOrNew([
+        $mobilePushDevice = MobilePushDevice::query()->firstOrNew([
             'push_provider' => 'fcm',
             'token_hash' => $tokenHash,
         ]);
-        $wasRecentlyCreated = ! $device->exists;
+        $wasRecentlyCreated = ! $mobilePushDevice->exists;
 
-        $device->fill([
+        $mobilePushDevice->fill([
             'user_id' => $user->id,
             'platform' => $validated['platform'],
             'push_provider' => 'fcm',
@@ -61,23 +61,23 @@ class MobilePushDeviceController extends Controller
             'revoked_at' => null,
         ])->save();
 
-        if ($device->enabled) {
+        if ($mobilePushDevice->enabled) {
             $this->enableMobilePushChannel($user);
         }
 
         return response()->json([
-            'data' => $this->devicePayload($device),
+            'data' => $this->devicePayload($mobilePushDevice),
         ], $wasRecentlyCreated ? 201 : 200);
     }
 
-    public function update(UpdateMobilePushDeviceRequest $request, MobilePushDevice $mobilePushDevice): JsonResponse
+    public function update(UpdateMobilePushDeviceRequest $updateMobilePushDeviceRequest, MobilePushDevice $mobilePushDevice): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $updateMobilePushDeviceRequest->user();
 
         abort_unless($mobilePushDevice->user_id === $user->id, 404);
 
-        $validated = $request->validated();
+        $validated = $updateMobilePushDeviceRequest->validated();
 
         if (array_key_exists('enabled', $validated) && (bool) $validated['enabled']) {
             $validated['revoked_at'] = null;
@@ -114,23 +114,23 @@ class MobilePushDeviceController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function devicePayload(MobilePushDevice $device): array
+    private function devicePayload(MobilePushDevice $mobilePushDevice): array
     {
         return [
-            'id' => $device->id,
-            'platform' => $device->platform,
-            'push_provider' => $device->push_provider,
-            'device_name' => $device->device_name,
-            'app_version' => $device->app_version,
-            'locale' => $device->locale,
-            'timezone' => $device->timezone,
-            'enabled' => $device->enabled,
-            'notifications_authorized_at' => $device->notifications_authorized_at?->toIso8601String(),
-            'last_registered_at' => $device->last_registered_at?->toIso8601String(),
-            'last_seen_at' => $device->last_seen_at?->toIso8601String(),
-            'revoked_at' => $device->revoked_at?->toIso8601String(),
-            'created_at' => $device->created_at?->toIso8601String(),
-            'updated_at' => $device->updated_at?->toIso8601String(),
+            'id' => $mobilePushDevice->id,
+            'platform' => $mobilePushDevice->platform,
+            'push_provider' => $mobilePushDevice->push_provider,
+            'device_name' => $mobilePushDevice->device_name,
+            'app_version' => $mobilePushDevice->app_version,
+            'locale' => $mobilePushDevice->locale,
+            'timezone' => $mobilePushDevice->timezone,
+            'enabled' => $mobilePushDevice->enabled,
+            'notifications_authorized_at' => $mobilePushDevice->notifications_authorized_at?->toIso8601String(),
+            'last_registered_at' => $mobilePushDevice->last_registered_at?->toIso8601String(),
+            'last_seen_at' => $mobilePushDevice->last_seen_at?->toIso8601String(),
+            'revoked_at' => $mobilePushDevice->revoked_at?->toIso8601String(),
+            'created_at' => $mobilePushDevice->created_at?->toIso8601String(),
+            'updated_at' => $mobilePushDevice->updated_at?->toIso8601String(),
         ];
     }
 
