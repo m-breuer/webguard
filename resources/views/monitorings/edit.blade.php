@@ -22,6 +22,8 @@
                 @include('monitorings._form')
             </form>
         </x-container>
+
+        @include('monitorings._notification_preferences', ['fieldIdPrefix' => 'edit_notification_preference'])
     </x-main>
 </x-app-layout>
 <script>

@@ -233,10 +233,8 @@ class MonitoringController extends Controller
      * @param  Monitoring  $monitoring  The monitoring instance to display.
      * @return View The view displaying the monitoring details.
      */
-    public function show(
-        Monitoring $monitoring,
-        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver
-    ): View {
+    public function show(Monitoring $monitoring): View
+    {
         /** @var User $user */
         $user = Auth::user();
         $monitoring->loadMissing('domainResult', 'team');
@@ -245,7 +243,6 @@ class MonitoringController extends Controller
             'monitoring' => $monitoring,
             'canManageMonitoring' => $monitoring->isManageableBy($user) && ! $user->isDemo(),
             'adminTeams' => Team::query()->administeredBy($user)->orderBy('name')->get(['teams.id', 'teams.name']),
-            'notificationPreference' => $monitoringNotificationPreferenceResolver->preferenceFor($monitoring, $user),
         ]);
     }
 
@@ -255,11 +252,15 @@ class MonitoringController extends Controller
      * @param  Monitoring  $monitoring  The monitoring instance to edit.
      * @return View The view for editing the monitoring.
      */
-    public function edit(Monitoring $monitoring): View
-    {
+    public function edit(
+        Monitoring $monitoring,
+        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver
+    ): View {
         abort_if(Auth::user()->isDemo(), 403);
         abort_unless($monitoring->isManageableBy(Auth::user()), 403);
 
+        /** @var User $user */
+        $user = Auth::user();
         $monitoring->loadMissing('groups', 'team');
         $types = MonitoringType::cases();
         $serverInstances = ServerInstance::query()
@@ -274,11 +275,12 @@ class MonitoringController extends Controller
             'monitoring' => $monitoring,
             'types' => $types,
             'serverInstances' => $serverInstances,
-            'enabledNotificationChannels' => Auth::user()->enabledNotificationChannelKeys(),
+            'enabledNotificationChannels' => $user->enabledNotificationChannelKeys(),
             'monitoringGroups' => $monitoring->isPrivateOwned()
-                ? Auth::user()->monitoringGroups()->orderBy('name')->get(['id', 'name'])
+                ? $user->monitoringGroups()->orderBy('name')->get(['id', 'name'])
                 : collect(),
-            'adminTeams' => Auth::user()->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
+            'adminTeams' => $user->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
+            'notificationPreference' => $monitoringNotificationPreferenceResolver->preferenceFor($monitoring, $user),
         ]);
     }
 
