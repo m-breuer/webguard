@@ -9,7 +9,7 @@
     <main class="py-14 lg:py-20">
         <x-main class="w-full space-y-10 lg:space-y-12">
             <header class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10">
-                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-emerald-700 dark:text-emerald-300">
+                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.1em] text-purple-700 dark:text-purple-300">
                     {{ __('monitoring_locations.hero.eyebrow') }}
                 </x-paragraph>
                 <x-heading type="h1" class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">

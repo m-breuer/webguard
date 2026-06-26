@@ -43,7 +43,7 @@
     <div
         class="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div
-            class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.14),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.14),transparent_42%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.2),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.2),transparent_42%)]">
+            class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.13),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(99,102,241,0.12),transparent_42%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.2),transparent_48%),radial-gradient(circle_at_80%_10%,rgba(99,102,241,0.18),transparent_42%)]">
         </div>
 
         <header class="relative z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/80" style="z-index: 40;">
@@ -55,21 +55,21 @@
                     </a>
 
                     <div class="hidden items-center gap-8 md:flex">
-                        <a href="{{ route('welcome') . '#features' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.features') }}</a>
-                        <a href="{{ route('public-features.index') }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.feature_pages') }}</a>
-                        <a href="{{ route('scribe') }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.api_docs') }}</a>
-                        <a href="{{ route('welcome') . '#proof' }}" class="text-sm font-medium text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">{{ __('welcome.nav.proof') }}</a>
+                        <a href="{{ route('welcome') . '#features' }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.features') }}</a>
+                        <a href="{{ route('public-features.index') }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.feature_pages') }}</a>
+                        <a href="{{ route('scribe') }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.api_docs') }}</a>
+                        <a href="{{ route('welcome') . '#proof' }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.proof') }}</a>
                     </div>
 
                     <div class="flex items-center gap-2 sm:gap-3">
                         <x-language-switch id="language-switch-guest" variant="marketing" />
 
                         <x-primary-button :href="route('register')"
-                            class="bg-emerald-500 text-white normal-case tracking-normal hover:bg-emerald-600 focus:ring-emerald-500 dark:bg-emerald-400 dark:text-slate-950 dark:hover:bg-emerald-300 dark:focus:ring-emerald-300">
+                            class="!border-purple-600 !bg-purple-600 !text-white !normal-case !tracking-normal hover:!bg-purple-700 focus:!ring-purple-500 dark:!border-purple-400 dark:!bg-purple-400 dark:!text-slate-950 dark:hover:!bg-purple-300 dark:focus:!ring-purple-300">
                             {{ __('welcome.nav.get_started') }}
                         </x-primary-button>
                         <x-secondary-button :href="route('login', ['mode' => 'demo'])"
-                            class="border-slate-300 bg-white text-slate-700 normal-case tracking-normal transition hover:border-slate-400 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:border-slate-500 dark:hover:bg-slate-800">
+                            class="!border-slate-300 !bg-white !text-slate-700 !normal-case !tracking-normal transition hover:!border-slate-400 hover:!bg-slate-100 dark:!border-slate-600 dark:!bg-slate-900/70 dark:!text-slate-100 dark:hover:!border-slate-500 dark:hover:!bg-slate-800">
                             {{ __('welcome.nav.demo_access') }}
                         </x-secondary-button>
                     </div>

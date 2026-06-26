@@ -28,5 +28,14 @@ return [
         'title' => 'Aktion bestätigen',
         'confirm' => 'Bestätigen',
     ],
+    'navigation' => [
+        'monitoring' => 'Monitoring',
+        'workspace' => 'Workspace',
+        'sections' => [
+            'operations' => 'Betrieb',
+            'collaboration' => 'Zusammenarbeit',
+            'administration' => 'Administration',
+        ],
+    ],
     'public_status_title' => 'WebGuard Öffentlicher Status',
 ];

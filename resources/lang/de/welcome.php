@@ -50,15 +50,43 @@ return [
     ],
 
     'feature_section' => [
-        'eyebrow' => 'Umfassende Abdeckung',
-        'title' => 'Alles, was Sie für zuverlässiges Monitoring brauchen',
-        'subtitle' => 'Die Hauptseite zeigt die Grundlagen. Jede Funktion hat zusätzlich eine öffentliche Detailseite zur Bewertung vor dem Login.',
+        'eyebrow' => 'Monitoring-Bereiche',
+        'title' => 'Finden Sie schneller die passende Unterseite',
+        'subtitle' => 'Die Startseite bleibt bewusst kurz. Vertiefende Details liegen auf fokussierten Unterseiten für Checks, Statuskommunikation und Integrationen.',
         'all_features_cta' => 'Alle Funktionen ansehen',
         'full_stack_title' => 'Alle WebGuard-Funktionen',
     ],
 
+    'feature_routes' => [
+        'website_api' => [
+            'title' => 'Website & API Monitoring',
+            'text' => 'HTTP-Checks, Keyword-Prüfungen und erwartete Statuscodes für öffentliche Endpunkte.',
+            'cta' => 'Website-Checks ansehen',
+        ],
+        'infrastructure' => [
+            'title' => 'Infrastruktur-Checks',
+            'text' => 'Ping, Ports und DNS-Einträge helfen, Netzwerk- und Service-Probleme einzugrenzen.',
+            'cta' => 'Infrastruktur prüfen',
+        ],
+        'automation' => [
+            'title' => 'Cronjobs & Alerts',
+            'text' => 'Heartbeat-Monitoring, Benachrichtigungskanäle und Wochenberichte für laufende Prozesse.',
+            'cta' => 'Automationen absichern',
+        ],
+        'status' => [
+            'title' => 'Status Pages',
+            'text' => 'Öffentliche Statusseiten, Public Labels und SLA-Badges für nachvollziehbare Kommunikation.',
+            'cta' => 'Statuskommunikation ansehen',
+        ],
+        'integrations' => [
+            'title' => 'Integrationen & API',
+            'text' => 'REST API, Server-Health-Reports und Gruppen für eigene Workflows und Teams.',
+            'cta' => 'API und Integrationen ansehen',
+        ],
+    ],
+
     'platform' => [
-        'eyebrow' => 'Öffentliches Vertrauen und Integrationen',
+        'eyebrow' => 'Statuskommunikation und Integrationen',
         'title' => 'Statuskommunikation und API-Zugriff sind sichtbare öffentliche Flächen',
         'subtitle' => 'Public Labels, Badges, Statusseiten, Benachrichtigungen und die generierte Scribe-API-Referenz sind direkt von der Marketing-Seite verlinkt.',
     ],
@@ -155,6 +183,11 @@ return [
         'eyebrow' => 'Produktüberblick',
         'title' => 'Ein klarer Workflow für Betrieb und Monitoring',
         'subtitle' => 'Vom Dashboard über Monitor-Details bis zu öffentlichen Status-Labels bleibt der gesamte Incident-Kontext an einem Ort.',
+        'photos' => [
+            'hero_alt' => 'Violette Monitoring-Dashboard-Illustration mit Uptime-Karten und Signalverläufen',
+            'status_alt' => 'Violette Statusseiten-Illustration mit Komponenten und Benachrichtigungssignalen',
+            'workflow_alt' => 'Violetter Monitoring-Hub mit verbundenen Checks, Alerts und Integrationen',
+        ],
         'previews' => [
             'dashboard' => [
                 'title' => 'Dashboard-Übersicht',
