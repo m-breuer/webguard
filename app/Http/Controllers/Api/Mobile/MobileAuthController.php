@@ -14,17 +14,17 @@ use Illuminate\Support\Str;
 
 class MobileAuthController extends Controller
 {
-    public function login(MobileLoginRequest $request): JsonResponse
+    public function login(MobileLoginRequest $mobileLoginRequest): JsonResponse
     {
         $user = User::query()
-            ->whereRaw('lower(email) = ?', [Str::lower($request->string('email')->toString())])
+            ->whereRaw('lower(email) = ?', [Str::lower($mobileLoginRequest->string('email')->toString())])
             ->first();
 
-        if (! $user instanceof User || ! Hash::check($request->string('password')->toString(), $user->password)) {
-            throw $request->failedLogin();
+        if (! $user instanceof User || ! Hash::check($mobileLoginRequest->string('password')->toString(), $user->password)) {
+            throw $mobileLoginRequest->failedLogin();
         }
 
-        $token = $user->createToken('ios-app:' . $request->deviceName())->plainTextToken;
+        $token = $user->createToken('ios-app:' . $mobileLoginRequest->deviceName())->plainTextToken;
 
         return response()->json([
             'data' => [
