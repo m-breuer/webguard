@@ -22,7 +22,8 @@ class MobilePushDeviceApiTest extends TestCase
 
         $testResponse = $this->actingAs($user)->postJson('/api/v1/mobile-push-devices', [
             'platform' => 'ios',
-            'push_token' => 'fcm-token-123',
+            'push_provider' => 'apns',
+            'push_token' => 'apns-token-123',
             'device_name' => 'Marcel iPhone',
             'app_version' => '1.0.0',
             'locale' => 'de-DE',
@@ -32,13 +33,15 @@ class MobilePushDeviceApiTest extends TestCase
         $testResponse
             ->assertCreated()
             ->assertJsonPath('data.platform', 'ios')
+            ->assertJsonPath('data.push_provider', 'apns')
             ->assertJsonPath('data.device_name', 'Marcel iPhone')
             ->assertJsonMissingPath('data.push_token');
 
         $this->assertDatabaseHas('mobile_push_devices', [
             'user_id' => $user->id,
             'platform' => 'ios',
-            'token_hash' => hash('sha256', 'fcm-token-123'),
+            'push_provider' => 'apns',
+            'token_hash' => hash('sha256', 'apns-token-123'),
             'enabled' => true,
         ]);
 

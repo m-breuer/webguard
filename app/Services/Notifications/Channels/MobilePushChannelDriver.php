@@ -6,6 +6,7 @@ namespace App\Services\Notifications\Channels;
 
 use App\Enums\NotificationChannel;
 use App\Models\MobilePushDevice;
+use App\Services\Notifications\ApnsClient;
 use App\Services\Notifications\FcmClient;
 use App\Services\Notifications\NotificationPayload;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,10 @@ use Throwable;
 
 class MobilePushChannelDriver implements NotificationChannelDriver
 {
-    public function __construct(private readonly FcmClient $fcmClient) {}
+    public function __construct(
+        private readonly FcmClient $fcmClient,
+        private readonly ApnsClient $apnsClient
+    ) {}
 
     public function channel(): string
     {
@@ -28,12 +32,25 @@ class MobilePushChannelDriver implements NotificationChannelDriver
     {
         $userId = $config['user_id'] ?? null;
 
-        return is_string($userId)
-            && $this->fcmClient->isConfigured()
+        if (! is_string($userId)) {
+            return false;
+        }
+
+        $hasConfiguredFcmDevice = $this->fcmClient->isConfigured()
             && MobilePushDevice::query()
                 ->where('user_id', $userId)
+                ->where('push_provider', 'fcm')
                 ->active()
                 ->exists();
+
+        $hasConfiguredApnsDevice = $this->apnsClient->isConfigured()
+            && MobilePushDevice::query()
+                ->where('user_id', $userId)
+                ->where('push_provider', 'apns')
+                ->active()
+                ->exists();
+
+        return $hasConfiguredFcmDevice || $hasConfiguredApnsDevice;
     }
 
     /**
@@ -55,7 +72,10 @@ class MobilePushChannelDriver implements NotificationChannelDriver
 
         foreach ($devices as $device) {
             try {
-                $this->fcmClient->sendToToken($device->push_token, $notificationPayload);
+                match ($device->push_provider) {
+                    'apns' => $this->apnsClient->sendToToken($device->push_token, $notificationPayload),
+                    default => $this->fcmClient->sendToToken($device->push_token, $notificationPayload),
+                };
                 $sentCount++;
                 $device->forceFill(['last_seen_at' => now()])->save();
             } catch (Throwable $throwable) {
@@ -87,6 +107,9 @@ class MobilePushChannelDriver implements NotificationChannelDriver
     {
         return str_contains($errorMessage, 'UNREGISTERED')
             || str_contains($errorMessage, 'registration-token-not-registered')
-            || str_contains($errorMessage, 'Requested entity was not found');
+            || str_contains($errorMessage, 'Requested entity was not found')
+            || str_contains($errorMessage, 'BadDeviceToken')
+            || str_contains($errorMessage, 'DeviceTokenNotForTopic')
+            || str_contains($errorMessage, 'Unregistered');
     }
 }
