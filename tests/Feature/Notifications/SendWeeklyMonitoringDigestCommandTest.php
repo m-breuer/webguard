@@ -250,6 +250,63 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         });
     }
 
+    public function test_weekly_digest_respects_daily_and_monthly_due_dates(): void
+    {
+        Date::setTestNow('2026-06-01 09:00:00');
+
+        try {
+            Package::factory()->create();
+            $dailyUser = User::factory()->create([
+                'monitoring_digest_enabled' => true,
+                'monitoring_digest_frequency' => 'daily',
+            ]);
+            $monthlyUser = User::factory()->create([
+                'monitoring_digest_enabled' => true,
+                'monitoring_digest_frequency' => 'monthly',
+            ]);
+            $weeklyDefaultUser = User::factory()->create([
+                'monitoring_digest_enabled' => true,
+                'monitoring_digest_frequency' => '',
+            ]);
+
+            foreach ([$dailyUser, $monthlyUser, $weeklyDefaultUser] as $user) {
+                Monitoring::factory()->for($user)->create();
+            }
+
+            Mail::fake();
+
+            Artisan::call('notifications:send-weekly-monitoring-digest');
+
+            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($dailyUser->email));
+            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($monthlyUser->email));
+            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($weeklyDefaultUser->email));
+        } finally {
+            Date::setTestNow();
+        }
+    }
+
+    public function test_weekly_digest_skips_monthly_frequency_when_not_first_day(): void
+    {
+        Date::setTestNow('2026-06-02 09:00:00');
+
+        try {
+            Package::factory()->create();
+            $monthlyUser = User::factory()->create([
+                'monitoring_digest_enabled' => true,
+                'monitoring_digest_frequency' => 'monthly',
+            ]);
+            Monitoring::factory()->for($monthlyUser)->create();
+
+            Mail::fake();
+
+            Artisan::call('notifications:send-weekly-monitoring-digest');
+
+            Mail::assertNothingSent();
+        } finally {
+            Date::setTestNow();
+        }
+    }
+
     public function test_does_not_send_weekly_digest_to_users_without_active_monitorings(): void
     {
         Date::setTestNow('2026-04-20 09:00:00');
