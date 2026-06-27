@@ -2,7 +2,8 @@
 alwaysApply: true
 ---
 
-# Cursor Instructions
+# Cursor Adapter
 
 Follow the canonical repository instructions in `AGENTS.md`.
 
+Use `.agent/skills/README.md` to select only relevant skills from `.agent/skills/`. Do not duplicate or contradict canonical rules. Keep edits focused, validate through the project Docker setup when possible, and report results concisely.
