@@ -51,6 +51,24 @@ class PublicFeaturePagesTest extends TestCase
         }
     }
 
+    public function test_public_feature_overview_uses_marketing_navigation_shell(): void
+    {
+        $testResponse = $this->get(route('public-features.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml(sprintf('aria-label="%s"', e(__('welcome.nav.aria'))));
+        $testResponse->assertSeeHtml(route('welcome') . '#features');
+        $testResponse->assertSeeHtml(route('public-features.index'));
+        $testResponse->assertSeeHtml(route('scribe'));
+        $testResponse->assertSeeHtml(route('welcome') . '#proof');
+        $testResponse->assertSeeHtml(route('register'));
+        $testResponse->assertSeeHtml(route('login', ['mode' => 'demo']));
+        $testResponse->assertSeeHtml(route('locale.switch', ['locale' => 'en']));
+        $testResponse->assertSeeHtml(route('locale.switch', ['locale' => 'de']));
+        $testResponse->assertSeeHtml(sprintf('<link rel="canonical" href="%s">', route('public-features.index')));
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.nav.logo_alt'))));
+    }
+
     public function test_monitoring_locations_feature_slug_redirects_to_the_standalone_page(): void
     {
         $testResponse = $this->get(route('public-features.show', 'monitoring-locations'));
