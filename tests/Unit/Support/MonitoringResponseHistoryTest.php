@@ -7,7 +7,6 @@ namespace Tests\Unit\Support;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringResponseArchived;
 use App\Support\MonitoringResponseHistory;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
@@ -15,15 +14,15 @@ class MonitoringResponseHistoryTest extends TestCase
 {
     public function test_query_for_end_date_uses_archived_rows_before_recent_window(): void
     {
-        Date::setTestNow(Carbon::parse('2026-06-27 12:00:00'));
+        Date::setTestNow(Date::parse('2026-06-27 12:00:00'));
 
         $this->assertSame(
             MonitoringResponseArchived::class,
-            MonitoringResponseHistory::queryForEndDate(Carbon::parse('2026-06-19 23:59:59'))->getModel()::class
+            MonitoringResponseHistory::queryForEndDate(Date::parse('2026-06-19 23:59:59'))->getModel()::class
         );
         $this->assertSame(
             MonitoringResponse::class,
-            MonitoringResponseHistory::queryForEndDate(Carbon::parse('2026-06-20 00:00:00'))->getModel()::class
+            MonitoringResponseHistory::queryForEndDate(Date::parse('2026-06-20 00:00:00'))->getModel()::class
         );
     }
 

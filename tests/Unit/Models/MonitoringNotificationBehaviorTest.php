@@ -28,7 +28,7 @@ class MonitoringNotificationBehaviorTest extends TestCase
     {
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Public API']);
-        $downNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
+        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'Monitoring is DOWN',
@@ -65,16 +65,16 @@ class MonitoringNotificationBehaviorTest extends TestCase
         ]);
 
         $this->assertSame('unknown', MonitoringNotification::extractStatusChangeIdentifierFromMessage('no signal'));
-        $this->assertSame('maintenance', $downNotification->statusChangeIdentifier(true));
-        $this->assertSame('notifications.status_change.down', $downNotification->statusChangeKey());
-        $this->assertTrue($downNotification->monitoring->is($monitoring));
-        $this->assertGreaterThan(0, $downNotification->states()->count());
-        $this->assertSame(__('notifications.status_messages.down', ['name' => 'Public API']), $downNotification->translated_message);
+        $this->assertSame('maintenance', $monitoringNotification->statusChangeIdentifier(true));
+        $this->assertSame('notifications.status_change.down', $monitoringNotification->statusChangeKey());
+        $this->assertTrue($monitoringNotification->monitoring->is($monitoring));
+        $this->assertGreaterThan(0, $monitoringNotification->states()->count());
+        $this->assertSame(__('notifications.status_messages.down', ['name' => 'Public API']), $monitoringNotification->translated_message);
         $this->assertSame('Status changed', $unknownNotification->translated_message);
         $this->assertSame(__('notifications.ssl_messages.expired', ['name' => 'Public API']), $sslNotification->translated_message);
         $this->assertSame(__('notifications.domain_messages.expiring', ['name' => 'Public API']), $domainNotification->translated_message);
         $this->assertSame('Plain message', $genericNotification->translated_message);
-        $this->assertNotSame('', $downNotification->created_at_for_humans);
+        $this->assertNotSame('', $monitoringNotification->created_at_for_humans);
         $this->assertSame(2, MonitoringNotification::query()->withoutGlobalScopes()->read()->count());
         $this->assertSame(3, MonitoringNotification::query()->withoutGlobalScopes()->unread()->count());
         $this->assertSame(2, MonitoringNotification::query()->withoutGlobalScopes()->statusChange()->count());
@@ -95,7 +95,7 @@ class MonitoringNotificationBehaviorTest extends TestCase
         $team->memberships()->create(['user_id' => $member->id, 'role' => 'member']);
         $monitoring = Monitoring::factory()->create(['user_id' => null, 'team_id' => $team->id]);
 
-        $notification = MonitoringNotification::query()->withoutGlobalScopes()->create([
+        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'Monitoring is up',
@@ -104,11 +104,11 @@ class MonitoringNotificationBehaviorTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('monitoring_notification_states', [
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'user_id' => $admin->id,
         ]);
         $this->assertDatabaseHas('monitoring_notification_states', [
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'user_id' => $member->id,
         ]);
     }

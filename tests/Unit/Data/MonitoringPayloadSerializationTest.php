@@ -15,7 +15,7 @@ class MonitoringPayloadSerializationTest extends TestCase
 {
     public function test_incident_payload_serializes_to_api_shape(): void
     {
-        $payload = new MonitoringIncidentPayload(
+        $monitoringIncidentPayload = new MonitoringIncidentPayload(
             downAt: '2026-06-27T08:00:00+00:00',
             upAt: null,
         );
@@ -23,16 +23,16 @@ class MonitoringPayloadSerializationTest extends TestCase
         $this->assertSame([
             'down_at' => '2026-06-27T08:00:00+00:00',
             'up_at' => null,
-        ], $payload->toArray());
-        $this->assertSame($payload->toArray(), $payload->jsonSerialize());
+        ], $monitoringIncidentPayload->toArray());
+        $this->assertSame($monitoringIncidentPayload->toArray(), $monitoringIncidentPayload->jsonSerialize());
     }
 
     public function test_uptime_calendar_payload_serializes_nested_months_and_days(): void
     {
-        $day = new MonitoringUptimeCalendarDayPayload('2026-06-27', 99.95);
-        $month = new MonitoringUptimeCalendarMonthPayload(new Collection([$day]), 99.95);
-        $payload = new MonitoringUptimeCalendarPayload(new Collection([
-            '2026-06' => $month,
+        $monitoringUptimeCalendarDayPayload = new MonitoringUptimeCalendarDayPayload('2026-06-27', 99.95);
+        $monitoringUptimeCalendarMonthPayload = new MonitoringUptimeCalendarMonthPayload(new Collection([$monitoringUptimeCalendarDayPayload]), 99.95);
+        $monitoringUptimeCalendarPayload = new MonitoringUptimeCalendarPayload(new Collection([
+            '2026-06' => $monitoringUptimeCalendarMonthPayload,
         ]));
 
         $expected = [
@@ -50,10 +50,10 @@ class MonitoringPayloadSerializationTest extends TestCase
         $this->assertSame([
             'date' => '2026-06-27',
             'uptime_percentage' => 99.95,
-        ], $day->toArray());
-        $this->assertSame($day->toArray(), $day->jsonSerialize());
-        $this->assertSame($expected['2026-06'], $month->jsonSerialize());
-        $this->assertSame($expected, $payload->toArray());
-        $this->assertSame($expected, $payload->jsonSerialize());
+        ], $monitoringUptimeCalendarDayPayload->toArray());
+        $this->assertSame($monitoringUptimeCalendarDayPayload->toArray(), $monitoringUptimeCalendarDayPayload->jsonSerialize());
+        $this->assertSame($expected['2026-06'], $monitoringUptimeCalendarMonthPayload->jsonSerialize());
+        $this->assertSame($expected, $monitoringUptimeCalendarPayload->toArray());
+        $this->assertSame($expected, $monitoringUptimeCalendarPayload->jsonSerialize());
     }
 }

@@ -106,15 +106,15 @@ class UnderCoveredCommandBehaviorTest extends TestCase
     {
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
-        $oldReadNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
+        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'Monitoring is up',
             'read' => false,
             'sent' => true,
         ]);
-        $oldReadNotification->forceFill(['created_at' => now()->subMonths(2)])->saveQuietly();
-        MonitoringNotificationState::query()->where('monitoring_notification_id', $oldReadNotification->id)->update([
+        $monitoringNotification->forceFill(['created_at' => now()->subMonths(2)])->saveQuietly();
+        MonitoringNotificationState::query()->where('monitoring_notification_id', $monitoringNotification->id)->update([
             'read_at' => now()->subMonth(),
         ]);
         $oldUnreadNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
@@ -137,7 +137,7 @@ class UnderCoveredCommandBehaviorTest extends TestCase
             ->expectsOutput('Deleted 1 old read notifications.')
             ->assertSuccessful();
 
-        $this->assertDatabaseMissing('monitoring_notifications', ['id' => $oldReadNotification->id]);
+        $this->assertDatabaseMissing('monitoring_notifications', ['id' => $monitoringNotification->id]);
         $this->assertDatabaseHas('monitoring_notifications', ['id' => $oldUnreadNotification->id]);
         $this->assertDatabaseHas('monitoring_notifications', ['id' => $recentReadNotification->id]);
     }
@@ -148,8 +148,8 @@ class UnderCoveredCommandBehaviorTest extends TestCase
             ->expectsOutput("Admin user 'admin@example.com' created successfully with password 'password'.")
             ->assertSuccessful();
 
-        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
-        $this->assertSame(UserRole::ADMIN, $admin->role);
+        $model = User::query()->where('email', 'admin@example.com')->firstOrFail();
+        $this->assertSame(UserRole::ADMIN, $model->role);
 
         $this->artisan('user:create-admin admin@example.com')
             ->expectsOutput('A user with this email already exists.')
@@ -158,8 +158,8 @@ class UnderCoveredCommandBehaviorTest extends TestCase
 
     public function test_console_kernel_registers_commands_and_accepts_empty_schedule(): void
     {
-        $kernel = app(Kernel::class);
-        $schedule = app(Schedule::class);
+        $kernel = resolve(Kernel::class);
+        $schedule = resolve(Schedule::class);
 
         $scheduleMethod = new ReflectionMethod($kernel, 'schedule');
         $scheduleMethod->invoke($kernel, $schedule);

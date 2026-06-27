@@ -41,10 +41,10 @@ class TeamServiceEdgeTest extends TestCase
         $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
         $team->memberships()->create(['user_id' => $admin->id, 'role' => TeamRole::ADMIN]);
         $team->memberships()->create(['user_id' => $member->id, 'role' => TeamRole::MEMBER]);
-        $service = app(TeamInvitationService::class);
+        $teamInvitationService = resolve(TeamInvitationService::class);
 
-        $firstInvitation = $service->invite($team, $admin, ' New.User@Example.COM ', TeamRole::MEMBER);
-        $secondInvitation = $service->invite($team, $admin, 'new.user@example.com', TeamRole::ADMIN);
+        $firstInvitation = $teamInvitationService->invite($team, $admin, ' New.User@Example.COM ', TeamRole::MEMBER);
+        $secondInvitation = $teamInvitationService->invite($team, $admin, 'new.user@example.com', TeamRole::ADMIN);
 
         $this->assertDatabaseMissing('team_invitations', ['id' => $firstInvitation->id]);
         $this->assertSame('new.user@example.com', $secondInvitation->email);
@@ -52,7 +52,7 @@ class TeamServiceEdgeTest extends TestCase
         Mail::assertSent(TeamInvitationMail::class, 2);
 
         $this->expectException(ValidationException::class);
-        $service->invite($team, $admin, 'member@example.com', TeamRole::MEMBER);
+        $teamInvitationService->invite($team, $admin, 'member@example.com', TeamRole::MEMBER);
     }
 
     public function test_accept_rejects_email_mismatch_and_accepts_matching_pending_invitation(): void
@@ -64,18 +64,18 @@ class TeamServiceEdgeTest extends TestCase
         $otherUser = User::factory()->create(['email' => 'other@example.com']);
         $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
         $team->memberships()->create(['user_id' => $admin->id, 'role' => TeamRole::ADMIN]);
-        $service = app(TeamInvitationService::class);
-        $service->invite($team, $admin, $invitedUser->email, TeamRole::MEMBER);
+        $teamInvitationService = resolve(TeamInvitationService::class);
+        $teamInvitationService->invite($team, $admin, $invitedUser->email, TeamRole::MEMBER);
         $token = $this->latestInvitationTokenFromMail();
 
         try {
-            $service->accept($token, $otherUser);
+            $teamInvitationService->accept($token, $otherUser);
             $this->fail('Expected an email mismatch validation exception.');
         } catch (ValidationException $exception) {
             $this->assertArrayHasKey('email', $exception->errors());
         }
 
-        $acceptedTeam = $service->accept($token, $invitedUser);
+        $acceptedTeam = $teamInvitationService->accept($token, $invitedUser);
 
         $this->assertTrue($acceptedTeam->is($team));
         $this->assertDatabaseHas('team_memberships', [
@@ -97,7 +97,7 @@ class TeamServiceEdgeTest extends TestCase
         $team->memberships()->create(['user_id' => $admin->id, 'role' => TeamRole::ADMIN]);
         $membership = $team->memberships()->create(['user_id' => $member->id, 'role' => TeamRole::MEMBER]);
         $monitoring = Monitoring::factory()->create(['user_id' => null, 'team_id' => $team->id]);
-        $notification = MonitoringNotification::query()->withoutGlobalScopes()->create([
+        $monitoringNotification = MonitoringNotification::query()->withoutGlobalScopes()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'Monitoring is down',
@@ -112,11 +112,11 @@ class TeamServiceEdgeTest extends TestCase
             'ssl_expiry_warning_days' => 30,
         ]);
         MonitoringNotificationState::query()->where([
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'user_id' => $member->id,
         ])->firstOrFail();
 
-        app(TeamMembershipService::class)->remove($membership);
+        resolve(TeamMembershipService::class)->remove($membership);
 
         $this->assertDatabaseMissing('team_memberships', ['id' => $membership->id]);
         $this->assertDatabaseMissing('monitoring_notification_preferences', [
@@ -124,7 +124,7 @@ class TeamServiceEdgeTest extends TestCase
             'user_id' => $member->id,
         ]);
         $this->assertDatabaseMissing('monitoring_notification_states', [
-            'monitoring_notification_id' => $notification->id,
+            'monitoring_notification_id' => $monitoringNotification->id,
             'user_id' => $member->id,
         ]);
     }
@@ -134,7 +134,7 @@ class TeamServiceEdgeTest extends TestCase
         $mail = Mail::sent(TeamInvitationMail::class)->last();
 
         $acceptUrl = $mail->content()->with['acceptUrl'];
-        $segments = explode('/', trim((string) parse_url($acceptUrl, PHP_URL_PATH), '/'));
+        $segments = explode('/', mb_trim((string) parse_url($acceptUrl, PHP_URL_PATH), '/'));
 
         return $segments[count($segments) - 2];
     }

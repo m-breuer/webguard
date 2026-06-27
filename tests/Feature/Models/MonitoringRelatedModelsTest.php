@@ -43,14 +43,14 @@ class MonitoringRelatedModelsTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $domainResult = MonitoringDomainResult::query()->create([
+        $monitoringDomainResult = MonitoringDomainResult::query()->create([
             'monitoring_id' => $monitoring->id,
             'expires_at' => '2026-07-27 00:00:00',
             'is_valid' => 1,
             'registrar' => 'Example Registrar',
             'checked_at' => '2026-06-27 00:00:00',
         ]);
-        $sslResult = MonitoringSslResult::query()->create([
+        $monitoringSslResult = MonitoringSslResult::query()->create([
             'monitoring_id' => $monitoring->id,
             'expires_at' => '2026-07-27 00:00:00',
             'is_valid' => 0,
@@ -58,19 +58,19 @@ class MonitoringRelatedModelsTest extends TestCase
             'issued_at' => '2026-01-27 00:00:00',
         ]);
 
-        $this->assertTrue($domainResult->is_valid);
-        $this->assertSame($monitoring->id, $domainResult->monitoring->id);
-        $this->assertSame($user->id, $domainResult->user->id);
-        $this->assertFalse($sslResult->is_valid);
-        $this->assertSame($monitoring->id, $sslResult->monitoring->id);
-        $this->assertSame($user->id, $sslResult->user->id);
+        $this->assertTrue($monitoringDomainResult->is_valid);
+        $this->assertSame($monitoring->id, $monitoringDomainResult->monitoring->id);
+        $this->assertSame($user->id, $monitoringDomainResult->user->id);
+        $this->assertFalse($monitoringSslResult->is_valid);
+        $this->assertSame($monitoring->id, $monitoringSslResult->monitoring->id);
+        $this->assertSame($user->id, $monitoringSslResult->user->id);
     }
 
     public function test_team_invitation_pending_state_scope_relations_and_casts(): void
     {
         $inviter = User::factory()->create();
         $team = Team::factory()->create(['created_by_user_id' => $inviter->id]);
-        $pendingInvitation = TeamInvitation::query()->create([
+        $teamInvitation = TeamInvitation::query()->create([
             'team_id' => $team->id,
             'email' => 'pending@example.com',
             'role' => TeamRole::ADMIN,
@@ -87,12 +87,12 @@ class MonitoringRelatedModelsTest extends TestCase
             'expires_at' => now()->subDay(),
         ]);
 
-        $this->assertTrue($pendingInvitation->isPending());
+        $this->assertTrue($teamInvitation->isPending());
         $this->assertFalse($expiredInvitation->isPending());
-        $this->assertSame(TeamRole::ADMIN, $pendingInvitation->role);
-        $this->assertSame($team->id, $pendingInvitation->team->id);
-        $this->assertSame($inviter->id, $pendingInvitation->invitedBy->id);
-        $this->assertTrue(TeamInvitation::query()->pending()->whereKey($pendingInvitation->id)->exists());
+        $this->assertSame(TeamRole::ADMIN, $teamInvitation->role);
+        $this->assertSame($team->id, $teamInvitation->team->id);
+        $this->assertSame($inviter->id, $teamInvitation->invitedBy->id);
+        $this->assertTrue(TeamInvitation::query()->pending()->whereKey($teamInvitation->id)->exists());
         $this->assertFalse(TeamInvitation::query()->pending()->whereKey($expiredInvitation->id)->exists());
     }
 
@@ -100,7 +100,7 @@ class MonitoringRelatedModelsTest extends TestCase
     {
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::STATUS_CHANGE,
             'message' => 'Monitoring is up',
@@ -108,22 +108,22 @@ class MonitoringRelatedModelsTest extends TestCase
             'sent' => false,
         ]);
 
-        /** @var MonitoringNotificationState $state */
-        $state = MonitoringNotificationState::query()
-            ->where('monitoring_notification_id', $notification->id)
+        /** @var MonitoringNotificationState $monitoringNotificationState */
+        $monitoringNotificationState = MonitoringNotificationState::query()
+            ->where('monitoring_notification_id', $monitoringNotification->id)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        $this->assertSame($notification->id, $state->monitoringNotification->id);
-        $this->assertSame($user->id, $state->user->id);
-        $this->assertFalse($state->isRead());
+        $this->assertSame($monitoringNotification->id, $monitoringNotificationState->monitoringNotification->id);
+        $this->assertSame($user->id, $monitoringNotificationState->user->id);
+        $this->assertFalse($monitoringNotificationState->isRead());
 
-        app(MonitoringNotificationStateService::class)->markRead($notification, $user);
-        $this->assertTrue($state->fresh()->isRead());
+        resolve(MonitoringNotificationStateService::class)->markRead($monitoringNotification, $user);
+        $this->assertTrue($monitoringNotificationState->fresh()->isRead());
 
-        $state->forceFill(['read_at' => now()])->save();
+        $monitoringNotificationState->forceFill(['read_at' => now()])->save();
 
-        $this->assertTrue($state->fresh()->isRead());
+        $this->assertTrue($monitoringNotificationState->fresh()->isRead());
     }
 
     public function test_monitoring_response_preference_and_incident_update_relations_and_casts(): void
@@ -131,14 +131,14 @@ class MonitoringRelatedModelsTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $response = MonitoringResponse::query()->create([
+        $monitoringResponse = MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP,
             'http_status_code' => '200',
             'response_time' => '123.45',
             'server_health_metrics' => ['cpu' => 20],
         ]);
-        $preference = MonitoringNotificationPreference::query()->create([
+        $monitoringNotificationPreference = MonitoringNotificationPreference::query()->create([
             'monitoring_id' => $monitoring->id,
             'user_id' => $user->id,
             'notification_on_failure' => true,
@@ -156,18 +156,18 @@ class MonitoringRelatedModelsTest extends TestCase
             'message' => 'Recovered',
         ]);
 
-        $this->assertSame(MonitoringStatus::UP, $response->status);
-        $this->assertSame(200, $response->http_status_code);
-        $this->assertSame(123.45, $response->response_time);
-        $this->assertSame(['cpu' => 20], $response->server_health_metrics);
-        $this->assertSame($monitoring->id, $response->monitoring->id);
-        $this->assertSame($user->id, $response->user->id);
+        $this->assertSame(MonitoringStatus::UP, $monitoringResponse->status);
+        $this->assertSame(200, $monitoringResponse->http_status_code);
+        $this->assertSame(123.45, $monitoringResponse->response_time);
+        $this->assertSame(['cpu' => 20], $monitoringResponse->server_health_metrics);
+        $this->assertSame($monitoring->id, $monitoringResponse->monitoring->id);
+        $this->assertSame($user->id, $monitoringResponse->user->id);
 
-        $this->assertTrue($preference->notification_on_failure);
-        $this->assertSame(['mail'], $preference->notification_channels);
-        $this->assertSame(45, $preference->ssl_expiry_warning_days);
-        $this->assertSame($monitoring->id, $preference->monitoring->id);
-        $this->assertSame($user->id, $preference->user->id);
+        $this->assertTrue($monitoringNotificationPreference->notification_on_failure);
+        $this->assertSame(['mail'], $monitoringNotificationPreference->notification_channels);
+        $this->assertSame(45, $monitoringNotificationPreference->ssl_expiry_warning_days);
+        $this->assertSame($monitoring->id, $monitoringNotificationPreference->monitoring->id);
+        $this->assertSame($user->id, $monitoringNotificationPreference->user->id);
 
         $this->assertSame(IncidentUpdateStatus::RESOLVED, $incidentUpdate->status);
         $this->assertSame($incident->id, $incidentUpdate->incident->id);

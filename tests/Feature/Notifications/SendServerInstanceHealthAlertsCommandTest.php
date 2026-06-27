@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Mockery;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -317,7 +318,7 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
             });
         Log::shouldReceive('error')
             ->once()
-            ->with('Failed to send server instance health alert.', \Mockery::on(function (array $context) use ($admin, $serverInstance): bool {
+            ->with('Failed to send server instance health alert.', Mockery::on(function (array $context) use ($admin, $serverInstance): bool {
                 return $context['server_instance_id'] === $serverInstance->id
                     && $context['server_instance_code'] === $serverInstance->code
                     && $context['health_status'] === 'stale'

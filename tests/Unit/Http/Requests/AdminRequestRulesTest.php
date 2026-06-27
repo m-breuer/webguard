@@ -37,10 +37,10 @@ class AdminRequestRulesTest extends TestCase
             ->once()
             ->andReturn(new User(['role' => UserRole::ADMIN]));
 
-        $request = new StoreUserRequest();
-        $rules = $request->rules();
+        $storeUserRequest = new StoreUserRequest();
+        $rules = $storeUserRequest->rules();
 
-        $this->assertTrue($request->authorize());
+        $this->assertTrue($storeUserRequest->authorize());
         $this->assertSame(['required', 'string', 'max:255'], $rules['name']);
         $this->assertSame(['required', 'string', 'email', 'max:255', 'unique:' . User::class], $rules['email']);
         $this->assertSame(['required', 'string', 'min:8'], $rules['password']);

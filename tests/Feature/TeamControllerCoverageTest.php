@@ -9,6 +9,7 @@ use App\Models\Package;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Factory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -88,7 +89,7 @@ class TeamControllerCoverageTest extends TestCase
             'expires_at' => now()->addDay(),
         ]);
 
-        $this->app['auth']->guard()->logout();
+        $this->app->make(Factory::class)->guard()->logout();
 
         $this->get(route('team-invitations.accept', 'accept-token'))
             ->assertRedirect(route('login'))

@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Enums\IncidentUpdateStatus;
 use App\Enums\StatusPageComponentSource;
+use App\Enums\UserRole;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
@@ -110,13 +111,13 @@ class StatusPageManagementTest extends TestCase
             'description' => 'Old description',
             'is_public' => true,
         ]);
-        $component = $statusPage->components()->create([
+        $statusPageComponent = $statusPage->components()->create([
             'name' => 'Core',
             'position' => 0,
             'source_type' => StatusPageComponentSource::MONITORING_GROUP,
             'monitoring_group_id' => $group->id,
         ]);
-        $component->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
         Incident::query()->create([
             'monitoring_id' => $monitoring->id,
             'down_at' => Date::now()->subDay(),
@@ -181,7 +182,7 @@ class StatusPageManagementTest extends TestCase
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $demoUser = User::factory()->create([
             'package_id' => $package->id,
-            'role' => \App\Enums\UserRole::DEMO,
+            'role' => UserRole::DEMO,
         ]);
         $statusPage = StatusPage::query()->create([
             'user_id' => $demoUser->id,

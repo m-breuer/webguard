@@ -25,13 +25,13 @@ class MonitoringManagementApiTest extends TestCase
         $serverInstance = $this->serverInstance('api-management-1');
         Sanctum::actingAs($user);
 
-        $createResponse = $this->postJson('/api/v1/monitorings', $this->monitoringPayload([
+        $testResponse = $this->postJson('/api/v1/monitorings', $this->monitoringPayload([
             'name' => 'API Created Check',
             'target' => 'https://created.example.test',
             'preferred_locations' => [$serverInstance->code],
         ]));
 
-        $createResponse->assertCreated();
+        $testResponse->assertCreated();
         $monitoring = Monitoring::query()->where('name', 'API Created Check')->firstOrFail();
         $this->assertSame($user->id, $monitoring->user_id);
 

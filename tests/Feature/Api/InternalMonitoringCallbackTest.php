@@ -116,11 +116,11 @@ class InternalMonitoringCallbackTest extends TestCase
     {
         Package::factory()->create();
         $user = User::factory()->create();
-        $assignedInstance = $this->serverInstance('internal-callback-assigned');
+        $serverInstance = $this->serverInstance('internal-callback-assigned');
         $otherInstance = $this->serverInstance('internal-callback-other');
         $monitoring = Monitoring::factory()->for($user)->create([
-            'preferred_location' => $assignedInstance->code,
-            'preferred_locations' => [$assignedInstance->code],
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code],
         ]);
 
         $this->withHeaders($this->instanceHeaders($otherInstance))

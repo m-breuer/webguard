@@ -277,9 +277,9 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
 
             Artisan::call('notifications:send-weekly-monitoring-digest');
 
-            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($dailyUser->email));
-            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($monthlyUser->email));
-            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $mail): bool => $mail->hasTo($weeklyDefaultUser->email));
+            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($dailyUser->email));
+            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($monthlyUser->email));
+            Mail::assertSent(WeeklyMonitoringDigestMail::class, fn (WeeklyMonitoringDigestMail $weeklyMonitoringDigestMail): bool => $weeklyMonitoringDigestMail->hasTo($weeklyDefaultUser->email));
         } finally {
             Date::setTestNow();
         }
