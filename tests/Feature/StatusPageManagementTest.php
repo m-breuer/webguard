@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\IncidentUpdateStatus;
+use App\Enums\StatusPageComponentSource;
+use App\Enums\UserRole;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
@@ -91,6 +93,107 @@ class StatusPageManagementTest extends TestCase
             'monitoring_id' => $apiMonitoring->id,
             'position' => 0,
         ]);
+    }
+
+    public function test_user_can_list_show_edit_update_and_delete_status_page(): void
+    {
+        Date::setTestNow('2026-06-27 10:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
+        $group = MonitoringGroup::factory()->for($user)->create(['name' => 'Core Group']);
+        $group->monitorings()->attach($monitoring->id);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Old Status',
+            'slug' => 'old-status',
+            'description' => 'Old description',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create([
+            'name' => 'Core',
+            'position' => 0,
+            'source_type' => StatusPageComponentSource::MONITORING_GROUP,
+            'monitoring_group_id' => $group->id,
+        ]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subDay(),
+            'up_at' => Date::now()->subHours(23),
+        ]);
+
+        $this->actingAs($user)->get(route('status-pages.index'))
+            ->assertOk()
+            ->assertSeeText('Old Status');
+
+        $this->actingAs($user)->get(route('status-pages.show', $statusPage))
+            ->assertOk()
+            ->assertSeeText('Old Status');
+
+        $this->actingAs($user)->get(route('status-pages.edit', $statusPage))
+            ->assertOk()
+            ->assertSeeText('Old Status')
+            ->assertSeeText('Primary API');
+
+        $this->actingAs($user)->put(route('status-pages.update', $statusPage), [
+            'name' => 'Updated Status',
+            'slug' => 'updated-status',
+            'description' => 'Updated description',
+            'is_public' => '0',
+            'components' => [
+                [
+                    'name' => 'Updated API',
+                    'source_type' => StatusPageComponentSource::MANUAL->value,
+                    'monitoring_ids' => [$monitoring->id],
+                ],
+                [
+                    'name' => 'Updated Group',
+                    'source_type' => StatusPageComponentSource::MONITORING_GROUP->value,
+                    'monitoring_group_id' => $group->id,
+                ],
+            ],
+        ])->assertRedirect(route('status-pages.show', $statusPage))
+            ->assertSessionHas('success', __('status_page.messages.updated'));
+
+        $this->assertDatabaseHas('status_pages', [
+            'id' => $statusPage->id,
+            'name' => 'Updated Status',
+            'slug' => 'updated-status',
+            'is_public' => false,
+        ]);
+        $this->assertDatabaseHas('status_page_components', [
+            'status_page_id' => $statusPage->id,
+            'name' => 'Updated Group',
+            'source_type' => StatusPageComponentSource::MONITORING_GROUP->value,
+            'monitoring_group_id' => $group->id,
+        ]);
+
+        $this->actingAs($user)->delete(route('status-pages.destroy', $statusPage))
+            ->assertRedirect(route('status-pages.index'))
+            ->assertSessionHas('success', __('status_page.messages.deleted'));
+
+        $this->assertDatabaseMissing('status_pages', ['id' => $statusPage->id]);
+    }
+
+    public function test_demo_user_cannot_open_mutating_status_page_screens(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $demoUser = User::factory()->create([
+            'package_id' => $package->id,
+            'role' => UserRole::DEMO,
+        ]);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $demoUser->id,
+            'name' => 'Demo Status',
+            'slug' => 'demo-status',
+            'is_public' => true,
+        ]);
+
+        $this->actingAs($demoUser)->get(route('status-pages.create'))->assertForbidden();
+        $this->actingAs($demoUser)->get(route('status-pages.edit', $statusPage))->assertForbidden();
+        $this->actingAs($demoUser)->delete(route('status-pages.destroy', $statusPage))->assertForbidden();
     }
 
     public function test_status_page_group_components_cannot_reference_another_users_groups(): void
