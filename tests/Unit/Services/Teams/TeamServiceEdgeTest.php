@@ -43,10 +43,10 @@ class TeamServiceEdgeTest extends TestCase
         $team->memberships()->create(['user_id' => $member->id, 'role' => TeamRole::MEMBER]);
         $teamInvitationService = resolve(TeamInvitationService::class);
 
-        $firstInvitation = $teamInvitationService->invite($team, $admin, ' New.User@Example.COM ', TeamRole::MEMBER);
+        $teamInvitation = $teamInvitationService->invite($team, $admin, ' New.User@Example.COM ', TeamRole::MEMBER);
         $secondInvitation = $teamInvitationService->invite($team, $admin, 'new.user@example.com', TeamRole::ADMIN);
 
-        $this->assertDatabaseMissing('team_invitations', ['id' => $firstInvitation->id]);
+        $this->assertDatabaseMissing('team_invitations', ['id' => $teamInvitation->id]);
         $this->assertSame('new.user@example.com', $secondInvitation->email);
         $this->assertSame(TeamRole::ADMIN, $secondInvitation->role);
         Mail::assertSent(TeamInvitationMail::class, 2);
