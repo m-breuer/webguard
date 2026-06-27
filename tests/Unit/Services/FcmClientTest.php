@@ -7,8 +7,8 @@ namespace Tests\Unit\Services;
 use App\Enums\NotificationEventType;
 use App\Services\Notifications\FcmClient;
 use App\Services\Notifications\NotificationPayload;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -48,7 +48,7 @@ class FcmClientTest extends TestCase
             monitoringId: '01TEST',
             monitoringName: 'API',
             monitoringTarget: 'https://example.test',
-            occurredAt: Carbon::parse('2026-06-27 08:00:00', 'UTC'),
+            occurredAt: Date::parse('2026-06-27 08:00:00', 'UTC'),
             meta: ['notification_id' => '01NOTIFICATION'],
         ));
 
@@ -56,7 +56,7 @@ class FcmClientTest extends TestCase
         Http::assertSent(fn ($request): bool => $request->url() === 'https://oauth.example.test/token'
             && data_get($request->data(), 'grant_type') === 'urn:ietf:params:oauth:grant-type:jwt-bearer'
             && is_string(data_get($request->data(), 'assertion'))
-            && substr_count((string) data_get($request->data(), 'assertion'), '.') === 2);
+            && mb_substr_count(data_get($request->data(), 'assertion'), '.') === 2);
         Http::assertSent(fn ($request): bool => $request->url() === 'https://fcm.googleapis.com/v1/projects/webguard-test/messages:send'
             && $request->hasHeader('Authorization', 'Bearer oauth-access-token')
             && data_get($request->data(), 'message.token') === 'fcm-device-token'
