@@ -21,6 +21,16 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         );
     }
 
+    public function test_scheduler_container_uses_signal_aware_schedule_loop(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('php artisan schedule:run --verbose --no-interaction', $composeConfiguration);
+        $this->assertStringContainsString('sleep 60 & wait %1', $composeConfiguration);
+        $this->assertStringNotContainsString('php artisan schedule:work --verbose --no-interaction', $composeConfiguration);
+    }
+
     public function test_internal_database_and_redis_services_are_optional_for_external_deployments(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
@@ -86,7 +96,7 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
             'APP_KEY: "${APP_KEY:?APP_KEY must be set to a persistent Laravel application key}"',
             $composeConfiguration
         );
-        $this->assertStringContainsString('COPY docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString('COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
         $this->assertStringContainsString('APP_KEY must be set to a persistent Laravel application key in production.', $appKeyEntrypoint);
         $this->assertStringContainsString('php artisan key:generate --show', $appKeyEntrypoint);
     }
@@ -185,9 +195,41 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertNotFalse($workerStageStart);
         $workerStage = mb_substr($dockerfile, $workerStageStart);
         $this->assertIsString($workerStage);
-        $this->assertStringContainsString('COPY --from=app_build', $workerStage);
+        $this->assertStringContainsString('COPY --link --from=app_build', $workerStage);
         $this->assertStringNotContainsString('frontend_build', $workerStage);
         $this->assertStringNotContainsString('bun install', $workerStage);
+        $this->assertStringNotContainsString('install-php-extensions redis', $workerStage);
+    }
+
+    public function test_production_dockerfile_uses_dependency_cache_mounts(): void
+    {
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+
+        $this->assertIsString($dockerfile);
+        $this->assertStringContainsString('# syntax=docker/dockerfile:1.7', $dockerfile);
+        $this->assertStringContainsString('COPY --from=composer:2', $dockerfile);
+        $this->assertStringContainsString('--mount=type=cache,target=/tmp/composer-cache', $dockerfile);
+        $this->assertStringContainsString('composer install --no-dev --no-autoloader', $dockerfile);
+        $this->assertStringContainsString('FROM oven/bun:1 AS frontend_build', $dockerfile);
+        $this->assertStringContainsString('--mount=type=cache,target=/tmp/bun-cache', $dockerfile);
+        $this->assertStringContainsString('COPY --link resources resources', $dockerfile);
+    }
+
+    public function test_production_dockerfile_only_compiles_required_missing_php_extensions(): void
+    {
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+
+        $this->assertIsString($dockerfile);
+        $this->assertStringContainsString('--mount=type=cache,target=/var/cache/apt', $dockerfile);
+        $this->assertStringContainsString('apt-get install -y --no-install-recommends libfreetype6-dev libjpeg62-turbo-dev libpng-dev', $dockerfile);
+        $this->assertStringContainsString('docker-php-ext-configure gd --with-freetype --with-jpeg', $dockerfile);
+        $this->assertStringContainsString('docker-php-ext-install -j"$(nproc)" gd', $dockerfile);
+        $this->assertStringNotContainsString('install-php-extensions gd', $dockerfile);
+        $this->assertStringNotContainsString('install-php-extensions bcmath gd intl pdo_mysql sockets zip redis', $dockerfile);
+        $this->assertStringNotContainsString('install-php-extensions redis', $dockerfile);
+        $this->assertStringContainsString('FROM base AS development', $dockerfile);
+        $this->assertStringContainsString('FROM base AS ci', $dockerfile);
+        $this->assertStringContainsString('install-php-extensions sockets', $dockerfile);
     }
 
     public function test_production_php_container_defaults_to_proxy_terminated_ssl(): void
@@ -196,11 +238,12 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
 
         $this->assertIsString($composeConfiguration);
         $this->assertStringContainsString('SSL_MODE: "${DOCKER_SSL_MODE:-off}"', $composeConfiguration);
+        $this->assertStringContainsString('stop_signal: SIGTERM', $composeConfiguration);
         $this->assertStringContainsString('- "8080"', $composeConfiguration);
         $this->assertStringContainsString('- "8443"', $composeConfiguration);
     }
 
-    public function test_production_php_container_generates_scribe_docs_on_startup(): void
+    public function test_production_php_container_can_generate_scribe_docs_on_startup_when_enabled(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
         $dockerfile = file_get_contents(base_path('Dockerfile'));
@@ -209,12 +252,15 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertIsString($composeConfiguration);
         $this->assertIsString($dockerfile);
         $this->assertIsString($scribeEntrypoint);
-        $this->assertStringContainsString('AUTORUN_LARAVEL_SCRIBE_GENERATE: "true"', $composeConfiguration);
-        $this->assertStringContainsString('COPY docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString(
+            'AUTORUN_LARAVEL_SCRIBE_GENERATE: "${AUTORUN_LARAVEL_SCRIBE_GENERATE:-false}"',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString('COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" scribe:generate --force', $scribeEntrypoint);
     }
 
-    public function test_production_php_container_generates_sitemap_on_startup(): void
+    public function test_production_php_container_can_generate_sitemap_on_startup_when_enabled(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
         $dockerfile = file_get_contents(base_path('Dockerfile'));
@@ -223,8 +269,11 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertIsString($composeConfiguration);
         $this->assertIsString($dockerfile);
         $this->assertIsString($sitemapEntrypoint);
-        $this->assertStringContainsString('AUTORUN_LARAVEL_SITEMAP_GENERATE: "true"', $composeConfiguration);
-        $this->assertStringContainsString('COPY docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString(
+            'AUTORUN_LARAVEL_SITEMAP_GENERATE: "${AUTORUN_LARAVEL_SITEMAP_GENERATE:-false}"',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString('COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" sitemap:generate', $sitemapEntrypoint);
     }
 

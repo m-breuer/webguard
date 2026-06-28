@@ -26,6 +26,9 @@ Schedule::command('notifications:remind-unread-weekly')->dailyAt('08:00')->witho
 // Send customers their configured monitoring performance digest.
 Schedule::command('notifications:send-weekly-monitoring-digest')->dailyAt('08:30')->withoutOverlapping();
 
+// Alert admins when scanner instances stop reporting or recover.
+Schedule::command('notifications:send-server-instance-health-alerts')->everyFiveMinutes()->withoutOverlapping();
+
 // Prune old read notifications daily.
 Schedule::command('notifications:prune-read')->dailyAt('01:00');
 

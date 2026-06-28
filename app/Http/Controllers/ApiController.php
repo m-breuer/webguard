@@ -13,6 +13,7 @@ use App\Http\Requests\Api\MonitoringUptimeCalendarRequest;
 use App\Http\Requests\Api\MonitoringUptimeSummaryRequest;
 use App\Models\Monitoring;
 use App\Services\MonitoringAvailabilityService;
+use App\Services\MonitoringBadgePayloadService;
 use App\Services\MonitoringCheckHistoryService;
 use App\Services\MonitoringDashboardPayloadService;
 use App\Services\MonitoringHeatmapService;
@@ -21,7 +22,6 @@ use App\Services\MonitoringResponseTimeService;
 use App\Services\MonitoringStatsCache;
 use App\Services\MonitoringStatusPayloadService;
 use App\Services\MonitoringUptimeCalendarService;
-use App\Services\MonitoringWidgetPayloadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
@@ -342,7 +342,7 @@ class ApiController extends Controller
     }
 
     /**
-     * Retrieves the public embeddable widget payload for a monitoring instance.
+     * Retrieves the public SLA badge payload for a monitoring instance.
      *
      * @response {
      *   "name": "Primary API",
@@ -380,16 +380,16 @@ class ApiController extends Controller
      *   }
      * }
      */
-    public function widget(
+    public function badge(
         Monitoring $monitoring,
-        MonitoringWidgetPayloadService $monitoringWidgetPayloadService
+        MonitoringBadgePayloadService $monitoringBadgePayloadService
     ): JsonResponse {
         abort_unless($monitoring->public_label_enabled, 404);
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
-            $this->monitoringStatsCache->widgetKey($monitoring),
-            fn (): array => $monitoringWidgetPayloadService->getPayload($monitoring)->toArray()
+            $this->monitoringStatsCache->badgeKey($monitoring),
+            fn (): array => $monitoringBadgePayloadService->getPayload($monitoring)->toArray()
         );
 
         return response()->json($data);
@@ -492,7 +492,7 @@ class ApiController extends Controller
     {
         $user = request()->user();
 
-        if ($user && $monitoring->user_id === $user->id) {
+        if ($user && $monitoring->isVisibleTo($user)) {
             return;
         }
 

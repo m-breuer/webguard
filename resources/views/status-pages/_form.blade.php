@@ -1,11 +1,14 @@
 @php
     $componentValues = old(
         'components',
-        isset($statusPage)
+                isset($statusPage)
             ? $statusPage->components->map(
                 fn ($component) => [
                     'name' => $component->name,
                     'description' => $component->description,
+                    'source_type' => $component->source_type->value,
+                    'monitoring_group_id' => $component->monitoring_group_id,
+                    'monitoring_group_name' => $component->monitoringGroup?->name,
                     'monitoring_ids' => $component->monitorings->pluck('id')->values()->all(),
                 ],
             )->values()->all()
@@ -30,7 +33,7 @@
             x-data="{
                 components: @js($componentValues),
                 addComponent() {
-                    this.components.push({ name: '', description: '', monitoring_ids: [] });
+                    this.components.push({ name: '', description: '', source_type: 'manual', monitoring_group_id: null, monitoring_group_name: null, monitoring_ids: [] });
                 },
                 removeComponent(index) {
                     this.components.splice(index, 1);
@@ -73,6 +76,11 @@
 
                 <template x-for="(component, index) in components" :key="index">
                     <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
+                        <input type="hidden" x-bind:name="'components[' + index + '][source_type]'"
+                            x-bind:value="component.source_type || 'manual'">
+                        <input type="hidden" x-bind:name="'components[' + index + '][monitoring_group_id]'"
+                            x-bind:value="component.monitoring_group_id || ''">
+
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <x-input-label x-bind:for="'component-name-' + index"
@@ -82,12 +90,13 @@
                                     required />
                             </div>
 
-                            <div>
+                            <div x-show="(component.source_type || 'manual') === 'manual'">
                                 <x-input-label x-bind:for="'component-monitorings-' + index"
                                     :value="__('status_page.form.monitorings')" />
                                 <select x-bind:id="'component-monitorings-' + index"
                                     x-bind:name="'components[' + index + '][monitoring_ids][]'"
-                                    x-model="component.monitoring_ids" multiple required
+                                    x-model="component.monitoring_ids" multiple
+                                    x-bind:required="(component.source_type || 'manual') === 'manual'"
                                     class="mt-1 w-full rounded-md border-gray-300 shadow-xs focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     @foreach ($monitorings as $monitoring)
                                         <option value="{{ $monitoring->id }}">
@@ -95,6 +104,16 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div x-show="component.source_type === 'monitoring_group'">
+                                <x-input-label x-bind:for="'component-group-' + index"
+                                    :value="__('status_page.form.monitoring_group')" />
+                                <x-text-input x-bind:id="'component-group-' + index" type="text"
+                                    x-bind:value="component.monitoring_group_name || ''" readonly />
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    {{ __('status_page.form.monitoring_group_source_help') }}
+                                </p>
                             </div>
                         </div>
 

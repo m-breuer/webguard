@@ -23,6 +23,38 @@
         isset($monitoring) ? ($monitoring->notification_channels ?? $enabledNotificationChannels) : $enabledNotificationChannels
     );
     $selectedNotificationChannels = is_array($selectedNotificationChannels) ? $selectedNotificationChannels : [];
+    $selectedGroupIds = old(
+        'group_ids',
+        isset($monitoring) ? $monitoring->groups->pluck('id')->all() : []
+    );
+    $selectedGroupIds = is_array($selectedGroupIds) ? $selectedGroupIds : [];
+    $selectedGroupIds = array_values(array_filter(
+        array_map(static fn (mixed $groupId): string => (string) $groupId, $selectedGroupIds),
+        static fn (string $groupId): bool => $groupId !== ''
+    ));
+    $groupOptions = collect($monitoringGroups ?? [])->map(static fn ($monitoringGroup): array => [
+        'value' => (string) $monitoringGroup->id,
+        'label' => $monitoringGroup->name,
+    ])->values();
+    $adminTeams = $adminTeams ?? collect();
+    $selectedTeamId = old('team_id', $monitoring->team_id ?? '');
+    $selectedPreferredLocations = old(
+        'preferred_locations',
+        old('preferred_location', isset($monitoring) ? $monitoring->preferredLocationCodes() : [$serverInstances->first()?->code])
+    );
+    $selectedPreferredLocations = is_array($selectedPreferredLocations)
+        ? array_values(array_filter(
+            array_map(static fn (mixed $location): string => (string) $location, $selectedPreferredLocations),
+            static fn (string $location): bool => $location !== ''
+        ))
+        : array_values(array_filter(
+            [(string) $selectedPreferredLocations],
+            static fn (string $location): bool => $location !== ''
+        ));
+    $serverInstanceOptions = collect($serverInstances ?? [])->map(static fn ($serverInstance): array => [
+        'value' => $serverInstance->code,
+        'label' => $serverInstance->code,
+    ])->values();
 @endphp
 
 @csrf
@@ -85,19 +117,82 @@
     </div>
 
     <div class="mt-4">
+        <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
+        @if (isset($monitoring))
+            <x-text-input id="team_id" class="cursor-not-allowed" :value="$monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private')" readonly />
+        @else
+            <x-select-input id="team_id" name="team_id" class="mt-1 block w-full">
+                <option value="">{{ __('team.ownership.private') }}</option>
+                @foreach ($adminTeams as $team)
+                    <option value="{{ $team->id }}" @selected($selectedTeamId === $team->id)>
+                        {{ __('team.ownership.team') }}: {{ $team->name }}
+                    </option>
+                @endforeach
+            </x-select-input>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('team.ownership.private_help') }}
+                @if ($adminTeams->isNotEmpty())
+                    {{ __('team.ownership.team_help') }}
+                @endif
+            </p>
+        @endif
+        <x-input-error :messages="$errors->get('team_id')" />
+    </div>
+
+    <div class="mt-4">
+        <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
+        <x-multi-select
+            id="group_ids"
+            name="group_ids"
+            :options="$groupOptions"
+            :selected="$selectedGroupIds"
+            :placeholder="__('monitoring.form.no_group')"
+            :search-placeholder="__('monitoring.form.search_groups')"
+            :select-all-label="__('monitoring.form.select_all_groups')"
+            :all-selected-label="__('monitoring.form.all_groups_selected')"
+            :no-options-label="__('monitoring.form.no_groups_available')"
+            :no-results-label="__('monitoring.form.no_groups_found')"
+            :remove-label="__('monitoring.form.remove_group')"
+            :clear-label="__('monitoring.form.clear_groups')" />
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.groups_help') }}
+            @if (!Auth::user()->isDemo())
+                <a href="{{ route('monitoring-groups.index') }}" class="text-purple-700 underline dark:text-purple-300">
+                    {{ __('monitoring_group.title') }}
+                </a>
+            @endif
+        </p>
+        <x-input-error :messages="$errors->get('group_ids')" />
+        <x-input-error :messages="$errors->get('group_ids.*')" />
+    </div>
+
+    <div class="mt-4">
         <x-input-label for="target" :value="__('monitoring.form.target')" />
         @if (isset($monitoring))
-            <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
-                class="cursor-not-allowed" />
-            <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                @if ($monitoring->type === MonitoringType::HEARTBEAT)
+            @if ($monitoring->type === MonitoringType::HEARTBEAT || $monitoring->type === MonitoringType::SERVER_HEALTH)
+                <x-text-input id="target" type="text" :value="$monitoring->target" readonly disabled
+                    class="cursor-not-allowed" />
+                <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    @if ($monitoring->type === MonitoringType::HEARTBEAT)
                     {{ __('monitoring.form.heartbeat_ping_url_help') }}
-                @elseif ($monitoring->type === MonitoringType::SERVER_HEALTH)
+                    @else
                     {{ __('monitoring.form.server_health_endpoint_help') }}
-                @else
-                    {{ __('monitoring.form.target_immutable_help') }}
-                @endif
-            </x-paragraph>
+                    @endif
+                </x-paragraph>
+            @else
+                <x-text-input id="target" type="text" name="target" x-model="target" required
+                    x-bind:placeholder="type === '{{ MonitoringType::HTTP->value }}' ? '{{ __('monitoring.form.placeholders.http_target') }}' :
+                    type === '{{ MonitoringType::PING->value }}' ?
+                    '{{ __('monitoring.form.placeholders.ping_target') }}' :
+                    type === '{{ MonitoringType::KEYWORD->value }}' ?
+                    '{{ __('monitoring.form.placeholders.http_target') }}' :
+                    type === '{{ MonitoringType::PORT->value }}' ?
+                    '{{ __('monitoring.form.placeholders.port_target') }}' :
+                    type === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' ?
+                    '{{ __('monitoring.form.placeholders.domain_target') }}' :
+                    type === '{{ MonitoringType::DNS_RECORD->value }}' ?
+                    '{{ __('monitoring.form.placeholders.dns_target') }}' : ''" />
+            @endif
         @else
             <div x-show="type !== '{{ $heartbeatTypeValue }}' && type !== '{{ $serverHealthTypeValue }}'">
                 <x-text-input id="target" type="text" name="target" x-model="target"
@@ -122,8 +217,8 @@
                 class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
                 {{ __('monitoring.form.server_health_target_generated') }}
             </div>
-            <x-input-error :messages="$errors->get('target')" />
         @endif
+        <x-input-error :messages="$errors->get('target')" />
     </div>
 
         </section>
@@ -329,17 +424,6 @@
                 </div>
 
                 <div class="mt-4">
-                    <x-input-label for="widget-snippet" :value="__('monitoring.detail.widget.heading')" />
-                    <x-paragraph
-                        class="text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring.detail.widget.description') }}</x-paragraph>
-                    <div class="mt-2 flex items-center space-x-2">
-                        <pre id="widget-snippet"
-                            class="flex-grow overflow-auto rounded-md border-gray-300 bg-gray-100 p-2 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"><code>&lt;div id="webguard-widget" data-monitoring="{{ $monitoring->id }}"&gt;&lt;/div&gt;
-&lt;script src="{{ route('widget.js') }}"&gt;&lt;/script&gt;</code></pre>
-                    </div>
-                </div>
-
-                <div class="mt-4">
                     <x-input-label for="sla-badge-snippet" :value="__('monitoring.detail.sla_badge.heading')" />
                     <x-paragraph
                         class="text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring.detail.sla_badge.description') }}</x-paragraph>
@@ -362,6 +446,15 @@
                 <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
             </div>
 
+    @if (isset($monitoring))
+        <input type="hidden" name="notification_on_failure" value="{{ old('notification_on_failure', $monitoring->notification_on_failure ?? true) ? '1' : '0' }}">
+        @foreach ($selectedNotificationChannels as $channel)
+            <input type="hidden" name="notification_channels[]" value="{{ $channel }}">
+        @endforeach
+        <input type="hidden" name="ssl_expiry_warning_days" value="{{ old('ssl_expiry_warning_days', $monitoring->ssl_expiry_warning_days ?? 7) }}">
+    @endif
+
+    @unless (isset($monitoring))
     <div class="mt-4">
         <x-input-label for="notification_on_failure" :value="__('monitoring.form.notification_on_failure')" />
         <label class="relative inline-flex cursor-pointer items-center">
@@ -374,6 +467,7 @@
                 class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('monitoring.form.notification_on_failure_enabled') }}</span>
         </label>
     </div>
+    @endunless
 
     <div class="mt-4">
         <x-input-label for="failure_confirmation_threshold" :value="__('monitoring.form.failure_confirmation_threshold')" />
@@ -385,6 +479,7 @@
         <x-input-error :messages="$errors->get('failure_confirmation_threshold')" />
     </div>
 
+    @unless (isset($monitoring))
     <div class="mt-4">
         <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
         @if (count($enabledNotificationChannels) > 0)
@@ -417,6 +512,7 @@
         </p>
         <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
     </div>
+    @endunless
 
         </section>
 
@@ -426,15 +522,27 @@
             </div>
 
     <div class="mt-4">
-        <x-input-label for="preferred_location" :value="__('monitoring.form.preferred_location')" />
-        <x-select-input id="preferred_location" class="mt-1 block w-full" name="preferred_location" required>
-            @foreach ($serverInstances as $instance)
-                <option value="{{ $instance->code }}" @selected(old('preferred_location', $monitoring->preferred_location ?? $serverInstances->first()?->code) === $instance->code)>
-                    {{ $instance->code }}
-                </option>
-            @endforeach
-        </x-select-input>
+        <x-input-label for="preferred_locations" :value="__('monitoring.form.preferred_location')" />
+        <x-multi-select
+            id="preferred_locations"
+            name="preferred_locations"
+            class="mt-1"
+            :options="$serverInstanceOptions"
+            :selected="$selectedPreferredLocations"
+            :placeholder="__('monitoring.form.no_preferred_locations')"
+            :search-placeholder="__('monitoring.form.search_preferred_locations')"
+            :select-all-label="__('monitoring.form.select_all_preferred_locations')"
+            :all-selected-label="__('monitoring.form.all_preferred_locations_selected')"
+            :no-options-label="__('monitoring.form.no_preferred_locations_available')"
+            :no-results-label="__('monitoring.form.no_preferred_locations_found')"
+            :remove-label="__('monitoring.form.remove_preferred_location')"
+            :clear-label="__('monitoring.form.clear_preferred_locations')" />
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('monitoring.form.preferred_locations_help') }}
+        </p>
         <x-input-error :messages="$errors->get('preferred_location')" />
+        <x-input-error :messages="$errors->get('preferred_locations')" />
+        <x-input-error :messages="$errors->get('preferred_locations.*')" />
     </div>
 
     <div class="mt-4">
@@ -447,21 +555,6 @@
             @endforeach
         </x-select-input>
         <x-input-error :messages="$errors->get('status')" />
-    </div>
-
-    <div class="mt-4">
-        <x-input-label for="maintenance_from" :value="__('monitoring.form.maintenance_from')" />
-        <x-text-input id="maintenance_from" type="datetime-local" name="maintenance_from" :value="old('maintenance_from', isset($monitoring) ? $monitoring->maintenance_from?->format('Y-m-d\TH:i') : '')" />
-        <x-input-error :messages="$errors->get('maintenance_from')" />
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('monitoring.form.maintenance_help') }}
-        </p>
-    </div>
-
-    <div class="mt-4">
-        <x-input-label for="maintenance_until" :value="__('monitoring.form.maintenance_until')" />
-        <x-text-input id="maintenance_until" type="datetime-local" name="maintenance_until" :value="old('maintenance_until', isset($monitoring) ? $monitoring->maintenance_until?->format('Y-m-d\TH:i') : '')" />
-        <x-input-error :messages="$errors->get('maintenance_until')" />
     </div>
 
         </section>

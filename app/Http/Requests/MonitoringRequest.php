@@ -7,12 +7,12 @@ namespace App\Http\Requests;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Models\Team;
 use App\Models\User;
 use App\Support\DnsRecordExpectation;
 use App\Support\HttpStatusCodeRanges;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 use JsonException;
@@ -36,7 +36,7 @@ class MonitoringRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return $this->user() !== null;
     }
 
     /**
@@ -210,6 +210,8 @@ class MonitoringRequest extends FormRequest
                 },
             ],
             'preferred_location' => ['required', 'string', Rule::exists('server_instances', 'code')->where('is_active', true)],
+            'preferred_locations' => ['required', 'array', 'min:1'],
+            'preferred_locations.*' => ['required', 'string', 'distinct', Rule::exists('server_instances', 'code')->where('is_active', true)],
             'public_label_enabled' => ['boolean'],
             'notification_on_failure' => ['boolean'],
             'notification_channels' => ['nullable', 'array'],
@@ -217,14 +219,35 @@ class MonitoringRequest extends FormRequest
                 'string',
                 Rule::in($this->notificationChannelUser()?->enabledNotificationChannelKeys() ?? []),
             ],
+            'team_id' => [
+                'nullable',
+                'string',
+                Rule::exists('teams', 'id'),
+                function ($attribute, $value, $fail): void {
+                    if (blank($value)) {
+                        return;
+                    }
+
+                    $user = $this->user();
+
+                    if (! $user || ! Team::query()->administeredBy($user)->whereKey((string) $value)->exists()) {
+                        $fail(__('team.validation.not_admin'));
+                    }
+                },
+            ],
+            'group_ids' => ['nullable', 'array'],
+            'group_ids.*' => [
+                'string',
+                Rule::exists('monitoring_groups', 'id')->where('user_id', $this->user()?->id),
+            ],
             'failure_confirmation_threshold' => ['required', 'integer', 'min:1', 'max:10'],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
-            'maintenance_from' => ['nullable', 'date'],
-            'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
         ];
 
         if ($this->isMethod('post')) {
             $rules['target'] = $this->targetRules();
+        } elseif ($this->isMethod('patch') || $this->isMethod('put')) {
+            $rules['target'] = ['sometimes', ...$this->targetRules()];
         }
 
         return $rules;
@@ -246,15 +269,20 @@ class MonitoringRequest extends FormRequest
         $httpHeaders = $this->normalizeHttpHeaders();
         $dnsRecordType = DnsRecordExpectation::normalizeRecordType($this->input('dns_record_type'));
         $dnsExpectedValues = $this->normalizeDnsExpectedValues($type, $dnsRecordType);
+        $preferredLocations = $this->normalizePreferredLocations();
 
         $prepared = [
             'type' => $type,
             'http_headers' => $httpHeaders,
             'dns_record_type' => $dnsRecordType,
             'dns_expected_values' => $dnsExpectedValues,
+            'preferred_location' => $preferredLocations[0] ?? null,
+            'preferred_locations' => $preferredLocations,
             'public_label_enabled' => $this->boolean('public_label_enabled'),
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
+            'team_id' => $this->normalizeTeamId(),
+            'group_ids' => $this->normalizeGroupIds(),
             'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 2),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
@@ -287,7 +315,54 @@ class MonitoringRequest extends FormRequest
     }
 
     /**
-     * Get validation rules for the target field during monitoring creation.
+     * @return list<string>
+     */
+    private function normalizeGroupIds(): array
+    {
+        $groupIds = $this->input('group_ids', []);
+
+        if (! is_array($groupIds)) {
+            $groupIds = [$groupIds];
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $groupId): string => (string) $groupId, $groupIds),
+            static fn (string $groupId): bool => $groupId !== ''
+        )));
+    }
+
+    private function normalizeTeamId(): ?string
+    {
+        $teamId = $this->input('team_id');
+
+        if (! is_scalar($teamId)) {
+            return null;
+        }
+
+        $teamId = mb_trim((string) $teamId);
+
+        return $teamId === '' ? null : $teamId;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizePreferredLocations(): array
+    {
+        $locations = $this->input('preferred_locations', $this->input('preferred_location', []));
+
+        if (! is_array($locations)) {
+            $locations = [$locations];
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $location): string => (string) $location, $locations),
+            static fn (string $location): bool => $location !== ''
+        )));
+    }
+
+    /**
+     * Get validation rules for the target field.
      *
      * @return array<int, ValidationRule|callable|string>
      */

@@ -12,7 +12,7 @@ Contributions are welcome. Please keep changes focused, tested, and easy to revi
    ```
 
 3. Make the change and add tests for the behavior.
-4. Run the relevant test suite.
+4. Follow the [test concept](test-concept.md) and run the relevant test suite.
 
    ```bash
    php artisan test

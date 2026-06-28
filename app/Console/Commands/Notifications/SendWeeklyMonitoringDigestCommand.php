@@ -36,7 +36,6 @@ class SendWeeklyMonitoringDigestCommand extends Command
             ->where('email', '!=', '')
             ->whereNotNull('email_verified_at')
             ->where('monitoring_digest_enabled', true)
-            ->whereHas('monitorings', fn ($builder) => $builder->active())
             ->chunkById(100, function ($users) use ($periodEnd): void {
                 foreach ($users as $user) {
                     $frequency = $user->monitoring_digest_frequency ?: 'weekly';

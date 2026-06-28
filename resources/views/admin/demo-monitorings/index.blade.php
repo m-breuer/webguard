@@ -56,7 +56,7 @@
                             </span>
                         </x-table.cell>
                         <x-table.cell>{{ ucfirst($monitoring->status->value) }}</x-table.cell>
-                        <x-table.cell>{{ $monitoring->preferred_location }}</x-table.cell>
+                        <x-table.cell>{{ implode(', ', $monitoring->preferredLocationCodes()) }}</x-table.cell>
                         <x-table.cell>{{ $monitoring->created_at?->format('Y-m-d H:i') }}</x-table.cell>
                         <x-table.cell>
                             <div class="flex items-center gap-3">

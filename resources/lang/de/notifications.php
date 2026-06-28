@@ -14,7 +14,7 @@ return [
         'heading' => 'Zustellverlauf',
     ],
     'overview' => [
-        'eyebrow' => 'Operations Inbox',
+        'eyebrow' => 'Operations-Inbox',
         'description' => 'Prüfen Sie Monitor-Vorfälle, Ablauf-Risiken und Kanalzustellungen in einer fokussierten Kommandozentrale.',
         'workflow_label' => 'Übersicht des Benachrichtigungs-Workflows',
         'workflow' => [
@@ -31,7 +31,7 @@ return [
             'audit' => [
                 'label' => 'Audit',
                 'title' => 'Kanalzustellung',
-                'description' => 'Nachvollziehen, ob Slack-, Telegram-, Discord- und Webhook-Benachrichtigungen ihr Ziel erreicht haben.',
+                'description' => 'Nachvollziehen, ob Slack-, Telegram-, Discord-, Microsoft-Teams- und Webhook-Benachrichtigungen ihr Ziel erreicht haben.',
             ],
         ],
     ],
@@ -114,7 +114,9 @@ return [
         'slack' => 'Slack',
         'telegram' => 'Telegram',
         'discord' => 'Discord',
+        'teams' => 'Microsoft Teams',
         'webhook' => 'Webhook',
+        'mobile_push' => 'Mobile Push',
     ],
     'events' => [
         'incident' => 'Vorfall',

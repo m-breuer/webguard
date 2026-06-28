@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Kostenfreies Monitoring für Websites, APIs, Server, Ports und Cronjobs',
-        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Integrationen, Widgets, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
-        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, Monitoring Widget, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
+        'description' => 'WebGuard ist eine kostenfrei nutzbare Monitoring-Software für HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand-, DNS-Eintrags-, SSL- und Domain-Ablaufprüfungen mit Gruppen, Integrationen, SLA-Badges, konfigurierbaren Alerts, Wochenberichten, Uptime-Auswertungen und öffentlichen Statusseiten.',
+        'keywords' => 'Kostenfreies Monitoring, Uptime Monitoring, Website Monitoring, Gruppen, Server-Zustand Monitoring, CPU Monitoring, RAM Monitoring, Speicher Monitoring, DNS-Eintragsmonitoring, erwartete HTTP-Statuscodes, Ping Monitoring, Keyword Monitoring, Port Monitoring, Heartbeat Monitoring, Cronjob Monitoring, Wochenbericht Monitoring, SLA Badge, REST API Monitoring, SSL Ablauf, Domain Ablauf Monitoring, Statusseite, Incident Benachrichtigung',
         'og_title' => 'WebGuard - Zuverlässigkeit transparent überwachen',
         'og_description' => 'Überwachen Sie Verfügbarkeit und Performance mit HTTP-, Ping-, Keyword-, Port-, Heartbeat-, Server-Zustand- und DNS-Checks, klaren Benachrichtigungen und transparenten Statusseiten.',
     ],
@@ -50,15 +50,43 @@ return [
     ],
 
     'feature_section' => [
-        'eyebrow' => 'Umfassende Abdeckung',
-        'title' => 'Alles, was Sie für zuverlässiges Monitoring brauchen',
-        'subtitle' => 'Die Hauptseite zeigt die Grundlagen. Jede Funktion hat zusätzlich eine öffentliche Detailseite zur Bewertung vor dem Login.',
+        'eyebrow' => 'Monitoring-Bereiche',
+        'title' => 'Finden Sie schneller die passende Unterseite',
+        'subtitle' => 'Die Startseite bleibt bewusst kurz. Vertiefende Details liegen auf fokussierten Unterseiten für Checks, Statuskommunikation und Integrationen.',
         'all_features_cta' => 'Alle Funktionen ansehen',
         'full_stack_title' => 'Alle WebGuard-Funktionen',
     ],
 
+    'feature_routes' => [
+        'website_api' => [
+            'title' => 'Website & API Monitoring',
+            'text' => 'HTTP-Checks, Keyword-Prüfungen und erwartete Statuscodes für öffentliche Endpunkte.',
+            'cta' => 'Website-Checks ansehen',
+        ],
+        'infrastructure' => [
+            'title' => 'Infrastruktur-Checks',
+            'text' => 'Ping, Ports und DNS-Einträge helfen, Netzwerk- und Service-Probleme einzugrenzen.',
+            'cta' => 'Infrastruktur prüfen',
+        ],
+        'automation' => [
+            'title' => 'Cronjobs & Alerts',
+            'text' => 'Heartbeat-Monitoring, Benachrichtigungskanäle und Wochenberichte für laufende Prozesse.',
+            'cta' => 'Automationen absichern',
+        ],
+        'status' => [
+            'title' => 'Status Pages',
+            'text' => 'Öffentliche Statusseiten, Public Labels und SLA-Badges für nachvollziehbare Kommunikation.',
+            'cta' => 'Statuskommunikation ansehen',
+        ],
+        'integrations' => [
+            'title' => 'Integrationen & API',
+            'text' => 'REST API, Server-Health-Reports und Gruppen für eigene Workflows und Teams.',
+            'cta' => 'API und Integrationen ansehen',
+        ],
+    ],
+
     'platform' => [
-        'eyebrow' => 'Öffentliches Vertrauen und Integrationen',
+        'eyebrow' => 'Statuskommunikation und Integrationen',
         'title' => 'Statuskommunikation und API-Zugriff sind sichtbare öffentliche Flächen',
         'subtitle' => 'Public Labels, Badges, Statusseiten, Benachrichtigungen und die generierte Scribe-API-Referenz sind direkt von der Marketing-Seite verlinkt.',
     ],
@@ -97,7 +125,7 @@ return [
         'server_health' => [
             'badge' => 'Server',
             'title' => 'Server-Zustand-Monitoring',
-            'text' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als down gelten.',
+            'text' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als nicht verfügbar gelten.',
         ],
         'dns_record' => [
             'badge' => 'DNS',
@@ -139,10 +167,10 @@ return [
             'title' => 'Öffentliche Statusseiten',
             'text' => 'Veröffentlichen Sie komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos und aktiven oder geplanten Wartungsfenstern.',
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Embed',
-            'title' => 'Einbettbares Status-Widget und SLA-Badge',
-            'text' => 'Binden Sie ein schlankes JavaScript-Widget oder kompaktes SLA-Badge in externe Websites, Dashboards, Footer und Kundenportale ein, damit Besucher Live-Status und Uptime-Nachweis dort sehen, wo sie arbeiten.',
+            'title' => 'SLA-Badge einbetten',
+            'text' => 'Binden Sie ein kompaktes SLA-Badge in externe Websites, Dashboards, Footer und Kundenportale ein, damit Besucher Live-Status und Uptime-Nachweis dort sehen, wo sie arbeiten.',
         ],
         'rest_api' => [
             'badge' => 'API',
@@ -155,6 +183,11 @@ return [
         'eyebrow' => 'Produktüberblick',
         'title' => 'Ein klarer Workflow für Betrieb und Monitoring',
         'subtitle' => 'Vom Dashboard über Monitor-Details bis zu öffentlichen Status-Labels bleibt der gesamte Incident-Kontext an einem Ort.',
+        'photos' => [
+            'hero_alt' => 'Violette Monitoring-Dashboard-Illustration mit Uptime-Karten und Signalverläufen',
+            'status_alt' => 'Violette Statusseiten-Illustration mit Komponenten und Benachrichtigungssignalen',
+            'workflow_alt' => 'Violetter Monitoring-Hub mit verbundenen Checks, Alerts und Integrationen',
+        ],
         'previews' => [
             'dashboard' => [
                 'title' => 'Dashboard-Übersicht',
@@ -189,7 +222,7 @@ return [
             ],
             '3' => [
                 'title' => 'Status teilen',
-                'text' => 'Nutzen Sie Status-Labels, öffentliche Statusseiten, Widgets und Uptime-Historie, um Zuverlässigkeit transparent zu kommunizieren.',
+                'text' => 'Nutzen Sie Status-Labels, öffentliche Statusseiten, SLA-Badges und Uptime-Historie, um Zuverlässigkeit transparent zu kommunizieren.',
             ],
         ],
     ],

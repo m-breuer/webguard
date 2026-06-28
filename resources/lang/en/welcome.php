@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'seo' => [
         'title' => 'WebGuard - Free Monitoring for Websites, APIs, Servers, Ports, and Cronjobs',
-        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with integrations, widgets, configurable alerts, weekly digests, uptime insights, and public status pages.',
-        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, embeddable monitoring widget, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
+        'description' => 'WebGuard is free-to-use monitoring software for HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS record, SSL, and domain expiry checks with groups, integrations, SLA badges, configurable alerts, weekly digests, uptime insights, and public status pages.',
+        'keywords' => 'free monitoring software, uptime monitoring, website monitoring, groups, server health monitoring, CPU monitoring, RAM monitoring, storage monitoring, DNS record monitoring, expected HTTP status codes, ping monitoring, keyword monitoring, port monitoring, heartbeat monitoring, cronjob monitoring, weekly monitoring digest, SLA badge, REST API monitoring, SSL expiry monitoring, domain expiry monitoring, status page, incident alerts',
         'og_title' => 'WebGuard - Monitor reliability with full transparency',
         'og_description' => 'Track availability and performance with HTTP, Ping, Keyword, Port, Heartbeat, Server Health, and DNS monitoring, clear notifications, and transparent status pages.',
     ],
@@ -50,15 +50,43 @@ return [
     ],
 
     'feature_section' => [
-        'eyebrow' => 'Complete Coverage',
-        'title' => 'Everything you need to monitor service health',
-        'subtitle' => 'The homepage gives the essentials. Each feature also has a public detail page for evaluation before signing in.',
+        'eyebrow' => 'Monitoring Areas',
+        'title' => 'Find the right feature page faster',
+        'subtitle' => 'The homepage stays intentionally short. Deeper details live on focused pages for checks, status communication, and integrations.',
         'all_features_cta' => 'Browse all features',
         'full_stack_title' => 'All WebGuard capabilities',
     ],
 
+    'feature_routes' => [
+        'website_api' => [
+            'title' => 'Website & API Monitoring',
+            'text' => 'HTTP checks, keyword validation, and expected status codes for public endpoints.',
+            'cta' => 'View website checks',
+        ],
+        'infrastructure' => [
+            'title' => 'Infrastructure Checks',
+            'text' => 'Ping, ports, and DNS records help isolate network and service problems.',
+            'cta' => 'Check infrastructure',
+        ],
+        'automation' => [
+            'title' => 'Cronjobs & Alerts',
+            'text' => 'Heartbeat monitoring, notification channels, and weekly reports for running processes.',
+            'cta' => 'Protect automations',
+        ],
+        'status' => [
+            'title' => 'Status Pages',
+            'text' => 'Public status pages, public labels, and SLA badges for clear communication.',
+            'cta' => 'View status communication',
+        ],
+        'integrations' => [
+            'title' => 'Integrations & API',
+            'text' => 'REST API, server health reports, and groups for custom workflows and teams.',
+            'cta' => 'View API and integrations',
+        ],
+    ],
+
     'platform' => [
-        'eyebrow' => 'Public Trust and Integrations',
+        'eyebrow' => 'Status Communication and Integrations',
         'title' => 'Status communication and API access are first-class public surfaces',
         'subtitle' => 'Public labels, badges, status pages, notifications, and the generated Scribe API reference are linked directly from the marketing site.',
     ],
@@ -139,10 +167,10 @@ return [
             'title' => 'Public Status Pages',
             'text' => 'Publish component-based status pages with recent incidents, manual incident updates, subscriber emails, and active or upcoming maintenance windows.',
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Embed',
-            'title' => 'Embeddable Status Widget and SLA Badge',
-            'text' => 'Add a lightweight JavaScript widget or compact SLA badge to external sites, dashboards, footers, and customer portals so visitors can see live status and uptime proof where they already work.',
+            'title' => 'Embed SLA Badge',
+            'text' => 'Add a compact SLA badge to external sites, dashboards, footers, and customer portals so visitors can see live status and uptime proof where they already work.',
         ],
         'rest_api' => [
             'badge' => 'API',
@@ -155,6 +183,11 @@ return [
         'eyebrow' => 'Product Overview',
         'title' => 'A clear workflow for operations and monitoring',
         'subtitle' => 'From dashboard summaries to monitor-level details and public labels, WebGuard keeps incident context in one place.',
+        'photos' => [
+            'hero_alt' => 'Purple monitoring dashboard illustration with uptime cards and signal trends',
+            'status_alt' => 'Purple status page illustration with components and notification signals',
+            'workflow_alt' => 'Purple monitoring hub with connected checks, alerts, and integrations',
+        ],
         'previews' => [
             'dashboard' => [
                 'title' => 'Dashboard Overview',
@@ -189,7 +222,7 @@ return [
             ],
             '3' => [
                 'title' => 'Share status',
-                'text' => 'Use status labels, public status pages, widgets, and uptime history to communicate reliability with stakeholders.',
+                'text' => 'Use status labels, public status pages, SLA badges, and uptime history to communicate reliability with stakeholders.',
             ],
         ],
     ],

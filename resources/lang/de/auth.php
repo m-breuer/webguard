@@ -59,7 +59,7 @@ return [
         'resend_button' => 'Bestätigungs-E-Mail erneut senden',
     ],
     'logout' => 'Abmelden',
-    'or_continue_with' => 'oder fahre fort mit',
+    'or_continue_with' => 'oder fortfahren mit',
     'github_login' => 'Mit GitHub anmelden',
     'auth_switch' => [
         'title' => 'Zugang wählen',

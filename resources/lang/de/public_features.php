@@ -16,8 +16,8 @@ return [
     'index' => [
         'seo' => [
             'title' => 'WebGuard Funktionen - Monitoring, Public Status, Badges und API',
-            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
-            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
+            'description' => 'Alle WebGuard Funktionen: HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL, Domain-Checks, Gruppen, Benachrichtigungen, Public Labels, Badges, Statusseiten und API-Zugriff.',
+            'keywords' => 'WebGuard Funktionen, Uptime Monitoring Funktionen, Gruppen, Public Status Labels, Monitoring Badges, API Monitoring Dokumentation',
             'og_title' => 'WebGuard Funktionen',
             'og_description' => 'Ein Überblick über Monitoring-Typen, öffentliche Statusfunktionen, Alerts, Analytics und API-Zugriff in WebGuard.',
         ],
@@ -29,7 +29,7 @@ return [
             'metrics' => [
                 '1' => ['label' => 'Monitor-Typen', 'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server, DNS'],
                 '2' => ['label' => 'Ablaufprüfungen', 'value' => 'SSL und Domains'],
-                '3' => ['label' => 'Sharing', 'value' => 'Labels, Badges, Widgets, Statusseiten'],
+                '3' => ['label' => 'Sharing', 'value' => 'Labels, Badges, Statusseiten'],
                 '4' => ['label' => 'Integrationen', 'value' => 'REST API und Webhooks'],
             ],
         ],
@@ -44,12 +44,12 @@ return [
         'operations' => [
             'eyebrow' => 'Betrieb',
             'title' => 'Aus Checks wird Incident-Kontext',
-            'text' => 'Nutzen Sie Alerts, Bestätigungsschwellen, Antwortdaten, Wartungsfenster und Wochenberichte, um Betrieb lesbar zu halten.',
+            'text' => 'Nutzen Sie Gruppen, Alerts, Bestätigungsschwellen, Antwortdaten, Wartungsfenster und Wochenberichte, um Betrieb lesbar zu halten.',
         ],
         'sharing' => [
             'eyebrow' => 'Öffentliche Kommunikation',
             'title' => 'Status teilen, ohne privaten Betrieb offenzulegen',
-            'text' => 'Veröffentlichen Sie Status-Labels, Badges, einbettbare Widgets und öffentliche Statusseiten für Kunden und Stakeholder.',
+            'text' => 'Veröffentlichen Sie Status-Labels, SLA-Badges und öffentliche Statusseiten für Kunden und Stakeholder.',
         ],
         'integrations' => [
             'eyebrow' => 'Developer Surface',
@@ -120,7 +120,7 @@ return [
         'server_health' => [
             'badge' => 'Server',
             'title' => 'Server-Zustand-Monitoring',
-            'teaser' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als down gelten.',
+            'teaser' => 'Nehmen Sie CPU-, RAM-, Speicher-, Load- und Uptime-Reports entgegen und setzen Sie pro Monitor eigene Schwellen, bevor Reports als nicht verfügbar gelten.',
             'lead' => 'Server-Zustand-Monitoring lässt Infrastruktur eigene Nutzungsmetriken an WebGuard senden und gegen monitor-spezifische Schwellen bewerten.',
             'highlights' => ['Push-Endpunkt für Server-Health-Reports', 'CPU, RAM, Speicher, Load, Uptime und Custom Metrics', 'Konfigurierbare Nutzungsschwellen pro Monitor'],
             'details' => ['Nutzen Sie Server-Zustand-Monitore, wenn Infrastruktur ihren Zustand genauer melden kann als ein externer Poll ihn ableiten könnte.', 'Jeder Monitor kann eigene Nutzungsschwellen definieren, sodass Worker, Datenbank-Hosts und kleine Utility-Server unterschiedliche Betriebsbereiche haben.', 'Die API-Referenz dokumentiert den Health-Report-Endpunkt öffentlich, damit Teams Agents und Automationen ohne Suche in Profileinstellungen anbinden können.'],
@@ -168,8 +168,17 @@ return [
             'teaser' => 'Analysieren Sie Trends, vergleichen Sie Monitor-Verhalten und berichten Sie über Zuverlässigkeit.',
             'lead' => 'Analytics machen aus Rohchecks lesbare Uptime-, Downtime-, Incident- und Antwortzeitdaten.',
             'highlights' => ['Uptime- und Downtime-Zusammenfassungen', 'Antwortzeit-Charts und einzelne Checks', 'Tägliche Aggregation für Langzeitverlauf'],
-            'details' => ['Nutzen Sie Analytics, um zu erkennen, ob Services langsamer, instabiler oder zuverlässiger werden.', 'Monitor-Details enthalten Antwortzeittrends, einzelne Checks, Incidents, Uptime-Kalender, SSL-Status und Domain-Status, wo relevant.', 'Dieselben Betriebsdaten versorgen Wochenberichte, Public Labels, Widgets und API-Nutzer.'],
+            'details' => ['Nutzen Sie Analytics, um zu erkennen, ob Services langsamer, instabiler oder zuverlässiger werden.', 'Monitor-Details enthalten Antwortzeittrends, einzelne Checks, Incidents, Uptime-Kalender, SSL-Status und Domain-Status, wo relevant.', 'Dieselben Betriebsdaten versorgen Wochenberichte, Public Labels, SLA-Badges und API-Nutzer.'],
             'seo' => ['title' => 'Uptime Analytics - WebGuard', 'description' => 'Analysieren Sie Uptime, Downtime, Antwortzeiten, Incidents und einzelne Checks in WebGuard.', 'keywords' => 'Uptime Analytics, Antwortzeit Monitoring, Downtime Reporting'],
+        ],
+        'monitoring_groups' => [
+            'badge' => 'Organisation',
+            'title' => 'Gruppen',
+            'teaser' => 'Gruppieren Sie zusammengehörige Monitore, filtern Sie große Monitoring-Listen und veröffentlichen Sie Gruppen bei Bedarf als Statusseite.',
+            'lead' => 'Gruppen halten größere Check-Portfolios lesbar, ohne Besitz oder Lifecycle einzelner Monitore zu verändern.',
+            'highlights' => ['Mehrfachzuordnung für zusammengehörige Monitore', 'Bookmarkbare Gruppenfilter im Monitoring-Index', 'Statusseiten direkt aus Gruppen erstellen'],
+            'details' => ['Nutzen Sie Gruppen für Produktbereiche, Kundenumgebungen, Infrastruktur-Ebenen oder interne Verantwortlichkeiten.', 'Ein Monitor kann mehreren Gruppen angehören, sodass ein Endpoint zum Beispiel in einer API-Gruppe und einer kundenrelevanten Service-Gruppe erscheinen kann.', 'Für öffentliche Kommunikation erstellen Sie aus einer Gruppe eine Statusseite, deren Komponente die Gruppeninhalte dynamisch übernimmt.'],
+            'seo' => ['title' => 'Gruppen - WebGuard', 'description' => 'Organisieren Sie WebGuard Monitorings mit nutzereigenen Gruppen, bookmarkbaren Filtern und Statusseiten aus Gruppen.', 'keywords' => 'Gruppen, gruppiertes Monitoring, Statusseiten aus Gruppen, Uptime Monitor Organisation'],
         ],
         'multi_location' => [
             'badge' => 'Verteilung',
@@ -225,14 +234,14 @@ return [
             'details' => ['Nutzen Sie Statusseiten, wenn Kunden einen gebrandeten Überblick über mehrere Produktkomponenten statt einzelner Monitor-Labels brauchen.', 'Komponenten können zusammengehörige Monitorings gruppieren und komplexe SaaS-Systeme während Incidents verständlicher machen.', 'Incident-Updates und Wartungskontext geben Stakeholdern einen zentralen Ort für den aktuellen Servicezustand.'],
             'seo' => ['title' => 'Öffentliche Statusseiten - WebGuard', 'description' => 'Veröffentlichen Sie komponentenbasierte Statusseiten mit Incidents, Updates, Abos und Wartungsfenstern.', 'keywords' => 'Öffentliche Statusseite, SaaS Status Page, Incident Kommunikation'],
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Badges',
-            'title' => 'Einbettbares Status-Widget und Badges',
-            'teaser' => 'Binden Sie ein schlankes JavaScript-Widget in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
-            'lead' => 'Status Badges und Widgets bringen WebGuard-Status in Websites, interne Dashboards, Dokumentation und Kundenportale.',
-            'highlights' => ['Einbettbares JavaScript-Widget', 'Nutzt öffentliche Widget-Daten aktivierter Labels', 'Zeigt Status und Uptime-Zusammenfassungen'],
-            'details' => ['Nutzen Sie das Widget, wenn Stakeholder WebGuard nicht öffnen sollen, um den Zustand eines Services zu sehen.', 'Der öffentliche Widget-Endpunkt ist nur für Monitore verfügbar, bei denen Public Labels aktiv sind. Dadurch bleibt Veröffentlichung bewusst.', 'Widgets können aktuellen Status und Uptime-Zusammenfassungen auf externen Seiten anzeigen, während WebGuard die Quelle bleibt.'],
-            'seo' => ['title' => 'Status Badges und Widgets - WebGuard', 'description' => 'Betten Sie Live-Monitoring-Status von WebGuard mit öffentlichen Widgets und Badges in externe Seiten ein.', 'keywords' => 'Status Badge, Uptime Widget, Monitoring Widget'],
+            'title' => 'SLA-Badges',
+            'teaser' => 'Binden Sie ein kompaktes SLA-Badge in externe Websites oder Dashboards ein, damit Besucher den Live-Status dort sehen, wo sie arbeiten.',
+            'lead' => 'SLA-Badges bringen WebGuard-Status in Websites, interne Dashboards, Dokumentation und Kundenportale.',
+            'highlights' => ['Einbettbares SLA-Badge-Script', 'Nutzt öffentliche Badge-Daten aktivierter Labels', 'Zeigt Status und Uptime-Zusammenfassungen'],
+            'details' => ['Nutzen Sie das SLA-Badge, wenn Stakeholder WebGuard nicht öffnen sollen, um den Zustand eines Services zu sehen.', 'Der öffentliche Badge-Endpunkt ist nur für Monitore verfügbar, bei denen Public Labels aktiv sind. Dadurch bleibt die Veröffentlichung bewusst gesteuert.', 'Badges können aktuellen Status und Uptime-Zusammenfassungen auf externen Seiten anzeigen, während WebGuard die Quelle bleibt.'],
+            'seo' => ['title' => 'SLA-Badges - WebGuard', 'description' => 'Betten Sie Live-Monitoring-Status von WebGuard mit öffentlichen SLA-Badges in externe Seiten ein.', 'keywords' => 'Status Badge, SLA Badge, Uptime Badge'],
         ],
         'rest_api' => [
             'badge' => 'API',

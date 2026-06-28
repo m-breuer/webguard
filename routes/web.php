@@ -12,8 +12,12 @@ use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\MonitoringGroupController;
 use App\Http\Controllers\MonitoringLocationsController;
+use App\Http\Controllers\MonitoringNotificationPreferenceController;
+use App\Http\Controllers\MonitoringOwnershipController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicFeatureController;
@@ -22,6 +26,10 @@ use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
 use App\Http\Controllers\StatusPageSubscriberController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TeamInvitationAcceptController;
+use App\Http\Controllers\TeamInvitationController;
+use App\Http\Controllers\TeamMemberController;
 use App\Support\SitemapPages;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
@@ -69,6 +77,8 @@ Route::get('/gdpr', [LegalController::class, 'gdpr'])
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 Route::match(['get', 'post'], '/heartbeat/{token}', HeartbeatPingController::class)->name('monitorings.heartbeat.ping');
 Route::permanentRedirect('/api/docs', '/api/reference')->name('api.docs.redirect');
+Route::get('/team-invitations/{token}/accept', TeamInvitationAcceptController::class)
+    ->name('team-invitations.accept');
 
 // Public sitemap.xml
 Route::get('/sitemap.xml', function () {
@@ -97,10 +107,6 @@ Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPage
 Route::get('/status/{statusPage:slug}', PublicStatusPageController::class)
     ->name('public-status-pages.show');
 
-Route::get('/widget.js', function () {
-    return response(file_get_contents(public_path('js/widget.js')))->header('Content-Type', 'application/javascript');
-})->name('widget.js');
-
 Route::get('/badge.js', function () {
     return response(file_get_contents(public_path('js/badge.js')))->header('Content-Type', 'application/javascript');
 })->name('badge.js');
@@ -126,6 +132,32 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     });
 
     Route::resource('monitorings', MonitoringController::class)->names('monitorings');
+    Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
+    Route::delete('/maintenance', [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
+    Route::post('/monitorings/{monitoring}/team-ownership', [MonitoringOwnershipController::class, 'moveToTeam'])
+        ->name('monitorings.team-ownership.store');
+    Route::delete('/monitorings/{monitoring}/team-ownership', [MonitoringOwnershipController::class, 'moveToPrivate'])
+        ->name('monitorings.team-ownership.destroy');
+    Route::patch('/monitorings/{monitoring}/notification-preferences', [MonitoringNotificationPreferenceController::class, 'update'])
+        ->name('monitorings.notification-preferences.update');
+    Route::resource('teams', TeamController::class)->names('teams');
+    Route::post('/teams/{team}/invitations', [TeamInvitationController::class, 'store'])
+        ->name('teams.invitations.store');
+    Route::delete('/teams/{team}/invitations/{teamInvitation}', [TeamInvitationController::class, 'destroy'])
+        ->name('teams.invitations.destroy');
+    Route::patch('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'update'])
+        ->name('teams.members.update');
+    Route::delete('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'destroy'])
+        ->name('teams.members.destroy');
+    Route::delete('/teams/{team}/leave', [TeamMemberController::class, 'leave'])
+        ->name('teams.leave');
+    Route::resource('monitoring-groups', MonitoringGroupController::class)
+        ->except(['show'])
+        ->parameters(['monitoring-groups' => 'monitoringGroup'])
+        ->names('monitoring-groups');
+    Route::post('/monitoring-groups/{monitoringGroup}/publish-status-page', [MonitoringGroupController::class, 'publishStatusPage'])
+        ->name('monitoring-groups.publish-status-page');
     Route::resource('status-pages', StatusPageController::class)
         ->parameters(['status-pages' => 'statusPage'])
         ->names('status-pages');

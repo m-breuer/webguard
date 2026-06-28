@@ -41,6 +41,7 @@ class MonitoringCardDataController extends Controller
             ->select([
                 'id',
                 'user_id',
+                'team_id',
                 'name',
                 'target',
                 'type',
@@ -48,7 +49,7 @@ class MonitoringCardDataController extends Controller
                 'maintenance_from',
                 'maintenance_until',
             ])
-            ->where('user_id', $request->user()->id)
+            ->visibleTo($request->user())
             ->whereIn('id', $requestedIds)
             ->with([
                 'latestIncident',

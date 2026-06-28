@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\MonitoringStatus;
+use App\Enums\StatusPageComponentSource;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\StatusPage;
@@ -27,10 +28,13 @@ class PublicStatusPageController extends Controller
         $statusPage->loadMissing([
             'components.monitorings' => fn ($query) => $query->withoutGlobalScope('user')
                 ->with(['latestIncident', 'latestResponseResult']),
+            'components.monitoringGroup.monitorings' => fn ($query) => $query->withoutGlobalScope('user')
+                ->with(['latestIncident', 'latestResponseResult'])
+                ->orderBy('name'),
         ]);
 
         $components = $statusPage->components->map(function (StatusPageComponent $statusPageComponent): array {
-            $monitorings = $statusPageComponent->monitorings->map(function (Monitoring $monitoring): array {
+            $monitorings = $this->componentMonitorings($statusPageComponent)->map(function (Monitoring $monitoring): array {
                 $status = $this->monitoringStatus($monitoring);
 
                 return [
@@ -115,12 +119,24 @@ class PublicStatusPageController extends Controller
     }
 
     /**
+     * @return Collection<int, Monitoring>
+     */
+    private function componentMonitorings(StatusPageComponent $statusPageComponent): Collection
+    {
+        if ($statusPageComponent->source_type === StatusPageComponentSource::MONITORING_GROUP) {
+            return $statusPageComponent->monitoringGroup?->monitorings ?? collect();
+        }
+
+        return $statusPageComponent->monitorings;
+    }
+
+    /**
      * @return Collection<int, Incident>
      */
     private function recentIncidents(StatusPage $statusPage): Collection
     {
         $monitoringIds = $statusPage->components
-            ->flatMap(static fn (StatusPageComponent $statusPageComponent): Collection => $statusPageComponent->monitorings->pluck('id'))
+            ->flatMap(fn (StatusPageComponent $statusPageComponent): Collection => $this->componentMonitorings($statusPageComponent)->pluck('id'))
             ->unique()
             ->values();
 

@@ -11,6 +11,7 @@ enum NotificationChannel: string
     case DISCORD = 'discord';
     case TEAMS = 'teams';
     case WEBHOOK = 'webhook';
+    case MOBILE_PUSH = 'mobile_push';
 
     /**
      * @return array<int, string>

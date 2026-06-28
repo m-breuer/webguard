@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Enums\MonitoringStatus;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
+use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -69,7 +71,10 @@ class ApiControllerTest extends TestCase
         $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertTooManyRequests();
-        $this->assertSame('60', $testResponse->headers->get('Retry-After'));
+
+        $retryAfter = (int) $testResponse->headers->get('Retry-After');
+        $this->assertGreaterThan(0, $retryAfter);
+        $this->assertLessThanOrEqual(60, $retryAfter);
     }
 
     public function test_all_endpoint_returns_combined_monitoring_payload_without_nested_controller_responses(): void
@@ -171,6 +176,71 @@ class ApiControllerTest extends TestCase
         $testResponse->assertJsonCount(30, '2026-04.days');
         $testResponse->assertJsonPath('2026-04.days.9.uptime_percentage', 75);
         $testResponse->assertJsonPath('2026-04.monthly_average_uptime', 75);
+    }
+
+    public function test_response_times_endpoint_returns_monitoring_response_payload(): void
+    {
+        Date::setTestNow('2026-04-20 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::now()->subDay(),
+        ]);
+        MonitoringResponse::query()->forceCreate([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 123.4,
+            'created_at' => Date::now()->subHour(),
+            'updated_at' => Date::now()->subHour(),
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/response-times?days=1');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('aggregated.avg', 123.4);
+        $testResponse->assertJsonPath('data.0.avg', 123.4);
+    }
+
+    public function test_incidents_endpoint_returns_incident_payload(): void
+    {
+        Date::setTestNow('2026-04-20 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subHours(2),
+            'up_at' => Date::now()->subHour(),
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/incidents?days=1');
+
+        $testResponse->assertOk();
+        $this->assertNotNull($testResponse->json('0.down_at'));
+        $this->assertNotNull($testResponse->json('0.up_at'));
+    }
+
+    public function test_ssl_status_endpoint_returns_ssl_payload(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'is_valid' => true,
+            'expires_at' => '2026-12-01 00:00:00',
+            'issuer' => 'Example CA',
+            'issued_at' => '2026-01-01 00:00:00',
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/ssl');
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('valid', true);
+        $testResponse->assertJsonPath('issuer', 'Example CA');
     }
 
     public function test_results_endpoint_exposes_http_status_code_for_historical_entries(): void

@@ -43,6 +43,17 @@ class NotificationsScheduleTest extends TestCase
         $this->assertTrue($event->withoutOverlapping);
     }
 
+    public function test_server_instance_health_alerts_are_scheduled_every_five_minutes_without_overlap(): void
+    {
+        /** @var Event|null $event */
+        $event = collect(resolve(Schedule::class)->events())
+            ->first(fn (Event $event): bool => str_contains((string) $event->command, 'notifications:send-server-instance-health-alerts'));
+
+        $this->assertNotNull($event);
+        $this->assertSame('*/5 * * * *', $event->expression);
+        $this->assertTrue($event->withoutOverlapping);
+    }
+
     public function test_expiry_warnings_are_scheduled_daily_without_overlap(): void
     {
         /** @var Event|null $event */

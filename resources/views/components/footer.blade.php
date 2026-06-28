@@ -9,37 +9,37 @@
                 <ul class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
                     <li>
                         <a href="{{ route('public-features.index') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
                             {{ __('public_features.footer_link') }}
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('scribe') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
                             {{ __('public_features.api_footer_link') }}
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('monitoring-locations') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
                             {{ __('monitoring_locations.footer_link') }}
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('imprint') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
                             {{ __('imprint.footer_link') }}
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('terms-of-use') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
                             {{ __('legal.terms_of_use.footer_link') }}
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('gdpr') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
                             {{ __('gdpr.footer_link') }}
                         </a>
                     </li>

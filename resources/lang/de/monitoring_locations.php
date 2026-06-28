@@ -24,7 +24,7 @@ return [
     ],
     'note' => [
         'title' => 'Warum das wichtig ist',
-        'text' => 'Wenn Quell-IPs von Ihrer Infrastruktur blockiert werden, können Checks fehlschlagen, obwohl Ihr Service erreichbar ist. Das Allow-Listing dieser IPs reduziert False Negatives.',
+        'text' => 'Wenn Quell-IPs von Ihrer Infrastruktur blockiert werden, können Checks fehlschlagen, obwohl Ihr Service erreichbar ist. Das Allow-Listing dieser IPs reduziert falsch negative Ergebnisse.',
     ],
     'guidance' => [
         'title' => 'Wichtig vor dem Aktivieren von Checks',

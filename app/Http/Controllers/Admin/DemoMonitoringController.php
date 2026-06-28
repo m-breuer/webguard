@@ -81,8 +81,10 @@ class DemoMonitoringController extends Controller
         $demoUser = $this->demoUser();
         $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
         $serverInstances = ServerInstance::query()
-            ->where('is_active', true)
-            ->orWhere('code', $monitoring->preferred_location)
+            ->where(function ($query) use ($monitoring): void {
+                $query->where('is_active', true)
+                    ->orWhereIn('code', $monitoring->preferredLocationCodes());
+            })
             ->orderBy('code')
             ->get(['code']);
 
@@ -100,7 +102,6 @@ class DemoMonitoringController extends Controller
         $demoUser = $this->demoUser();
         $monitoring = $this->demoMonitoring($demoUser, $demoMonitoring);
         $validated = $demoMonitoringRequest->validated();
-        unset($validated['target']);
 
         $validated = MonitoringPayload::prepareUpdate($validated, $monitoring);
 

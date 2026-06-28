@@ -47,12 +47,16 @@
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.4 2.5 15.6 0 18" /></svg>
     @break
 
+    @case('monitoring_groups')
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h6l2 2h8v8a2 2 0 01-2 2H6a2 2 0 01-2-2zM8 13h8M8 16h5" /></svg>
+    @break
+
     @case('public_status_pages')
     @case('public_labels')
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4zM7 10h5m-5 4h10m0-4h.01" /></svg>
     @break
 
-    @case('embeddable_widget')
+    @case('sla_badge')
     @case('rest_api')
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 8l-4 4 4 4m8-8l4 4-4 4M13 5l-2 14" /></svg>
     @break

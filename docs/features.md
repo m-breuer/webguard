@@ -18,9 +18,10 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 ## Product Surface
 
 - **Real-time dashboard:** visualize monitoring data with statistics and charts.
+- **Team collaboration:** create teams, invite registered or new users by email, assign admin/member roles, and share team-owned monitorings with read-only members.
 - **Admin panel:** manage users, subscription packages, and API usage logs.
-- **REST API:** access monitoring data programmatically and integrate WebGuard with external systems.
-- **Embeddable widget and SLA badge:** display website monitoring status on external sites with a JavaScript widget or compact SLA badge that shows live status, uptime proof, and public trust context.
+- **REST API:** access monitoring data, manage teams, and create or move team monitorings programmatically.
+- **SLA badge:** display website monitoring status on external sites with a compact SLA badge that shows live status, uptime proof, and public trust context.
 - **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers.
 - **Global language switch:** switch between supported languages from both public and authenticated top navigation.
 - **Landing navigation anchors:** landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
@@ -28,4 +29,5 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 ## Notifications
 
 - **Flexible notifications:** receive notifications for status changes, SSL expiry, and domain expiry through in-app notifications and configurable Slack, Telegram, Discord, Microsoft Teams, and webhook channels.
+- **Per-user team notifications:** each team member keeps their own notification channel choices and read state for shared team monitorings.
 - **Weekly monitoring digest:** email weekly uptime, incident, downtime, SSL, and domain expiry summaries to active users.

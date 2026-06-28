@@ -40,6 +40,19 @@ return [
         'unsubscribe_text' => 'Diese Statusupdates abbestellen',
         'salutation' => 'Vielen Dank,',
     ],
+    'server_instance_health_alert' => [
+        'subject' => 'Server-Instanz :instanceCode: :status',
+        'title' => 'Status der Server-Instanz: :status',
+        'greeting' => 'Hallo :userName,',
+        'alert_intro' => 'Die Scanner-Instanz ":instanceCode" hat aktuell den Status ":status".',
+        'recovery_intro' => 'Die Scanner-Instanz ":instanceCode" meldet sich wieder und ist jetzt erreichbar.',
+        'details' => 'IP-Adresse: :ipAddress. Letzter erfolgreicher Bericht: :lastSeenAt. Scanner-Instanzen gelten nach :staleAfterMinutes Minuten ohne erfolgreichen Bericht als nicht erreichbar.',
+        'never_seen_details' => 'IP-Adresse: :ipAddress. Bisher wurde noch kein erfolgreicher Bericht empfangen. Neue Scanner-Instanzen lösen diese Warnung nach :neverSeenAlertAfterMinutes Minuten ohne ersten erfolgreichen Bericht aus.',
+        'recovery_details' => 'IP-Adresse: :ipAddress. Letzter erfolgreicher Bericht: :lastSeenAt.',
+        'action_text' => 'Prüfen Sie die Instanz-Zuweisung und den Scanner-Prozess, damit die Monitoring-Abdeckung intakt bleibt.',
+        'button_text' => 'Server-Instanzen anzeigen',
+        'salutation' => 'Vielen Dank,',
+    ],
     'unread_notifications_reminder' => [
         'subject' => 'Aktion auf der Plattform erforderlich',
         'greeting' => 'Hallo :userName,',
@@ -73,6 +86,6 @@ return [
         'team_name' => 'Das WebGuard-Team',
         'legal' => 'Rechtliches',
         'brand_subtitle' => 'Website-, Server- & Port-Monitoring',
-        'notification_eyebrow' => 'Monitoring Update',
+        'notification_eyebrow' => 'Monitoring-Update',
     ],
 ];

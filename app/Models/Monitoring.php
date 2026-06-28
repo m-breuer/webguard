@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -34,6 +35,8 @@ use Spatie\Activitylog\Support\LogOptions;
  **/
 #[Fillable([
     'user_id',
+    'team_id',
+    'created_by_user_id',
     'name',
     'type',
     'target',
@@ -51,6 +54,7 @@ use Spatie\Activitylog\Support\LogOptions;
     'auth_password',
     'public_label_enabled',
     'preferred_location',
+    'preferred_locations',
     'notification_on_failure',
     'notification_channels',
     'failure_confirmation_threshold',
@@ -85,6 +89,22 @@ class Monitoring extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<Team, $this>
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     /**
@@ -193,6 +213,14 @@ class Monitoring extends Model
     }
 
     /**
+     * @return HasMany<MonitoringNotificationPreference, $this>
+     */
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(MonitoringNotificationPreference::class);
+    }
+
+    /**
      * @return HasMany<StatusPageSubscriber, $this>
      */
     public function statusPageSubscribers(): HasMany
@@ -215,6 +243,15 @@ class Monitoring extends Model
     {
         return $this->belongsToMany(StatusPageComponent::class, 'status_page_component_monitoring')
             ->withPivot('position')
+            ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<MonitoringGroup, $this>
+     */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(MonitoringGroup::class, 'monitoring_group_monitoring')
             ->withTimestamps();
     }
 
@@ -244,6 +281,51 @@ class Monitoring extends Model
         return $this->type === MonitoringType::SERVER_HEALTH;
     }
 
+    public function isTeamOwned(): bool
+    {
+        return $this->team_id !== null;
+    }
+
+    public function isPrivateOwned(): bool
+    {
+        return $this->user_id !== null && $this->team_id === null;
+    }
+
+    public function isVisibleTo(User $user): bool
+    {
+        if ($this->user_id === $user->id) {
+            return true;
+        }
+
+        if ($this->team_id === null) {
+            return false;
+        }
+
+        return $this->team()
+            ->whereHas('memberships', function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id);
+            })
+            ->exists();
+    }
+
+    public function isManageableBy(User $user): bool
+    {
+        if ($this->user_id === $user->id && $this->team_id === null) {
+            return true;
+        }
+
+        if ($this->team_id === null) {
+            return false;
+        }
+
+        return $this->team()
+            ->whereHas('memberships', function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id)
+                    ->where('role', TeamRole::ADMIN);
+            })
+            ->exists();
+    }
+
     /**
      * Determine if the monitoring is currently under maintenance.
      */
@@ -261,6 +343,23 @@ class Monitoring extends Model
     }
 
     /**
+     * @return list<string>
+     */
+    public function preferredLocationCodes(): array
+    {
+        $locations = is_array($this->preferred_locations) ? $this->preferred_locations : [];
+
+        if (is_string($this->preferred_location) && $this->preferred_location !== '') {
+            array_unshift($locations, $this->preferred_location);
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn (mixed $location): string => (string) $location, $locations),
+            static fn (string $location): bool => $location !== ''
+        )));
+    }
+
+    /**
      * Apply the global scope to ensure all queries are restricted to the authenticated user.
      */
     #[Override]
@@ -268,15 +367,16 @@ class Monitoring extends Model
     {
         parent::boot();
 
-        static::updating(function (self $monitoring): void {
-            if ($monitoring->isDirty('target')) {
-                $monitoring->target = (string) $monitoring->getOriginal('target');
-            }
-        });
-
         static::addGlobalScope('user', function (Builder $builder): void {
             if (Auth::check()) {
-                $builder->where('user_id', Auth::user()->id);
+                $user = Auth::user();
+
+                $builder->where(function (Builder $builder) use ($user): void {
+                    $builder->where('user_id', $user->id)
+                        ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                            $builder->where('user_id', $user->id);
+                        });
+                });
             }
         });
     }
@@ -299,6 +399,51 @@ class Monitoring extends Model
         return $builder->where('status', MonitoringLifecycleStatus::PAUSED);
     }
 
+    #[Scope]
+    protected function visibleTo(Builder $builder, User $user): Builder
+    {
+        return $builder->where(function (Builder $builder) use ($user): void {
+            $builder->where('user_id', $user->id)
+                ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                    $builder->where('user_id', $user->id);
+                });
+        });
+    }
+
+    #[Scope]
+    protected function manageableBy(Builder $builder, User $user): Builder
+    {
+        return $builder->where(function (Builder $builder) use ($user): void {
+            $builder->where(function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user->id)
+                    ->whereNull('team_id');
+            })
+                ->orWhereHas('team.memberships', function (Builder $builder) use ($user): void {
+                    $builder->where('user_id', $user->id)
+                        ->where('role', TeamRole::ADMIN);
+                });
+        });
+    }
+
+    #[Scope]
+    protected function privateOwnedBy(Builder $builder, User $user): Builder
+    {
+        return $builder->where('user_id', $user->id)
+            ->whereNull('team_id');
+    }
+
+    /**
+     * Scope a query to monitorings assigned to the given server instance code.
+     */
+    #[Scope]
+    protected function assignedToLocation(Builder $builder, string $location): Builder
+    {
+        return $builder->where(function (Builder $builder) use ($location): void {
+            $builder->where('preferred_location', $location)
+                ->orWhereJsonContains('preferred_locations', $location);
+        });
+    }
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -317,6 +462,7 @@ class Monitoring extends Model
             'public_label_enabled' => 'boolean',
             'notification_on_failure' => 'boolean',
             'preferred_location' => 'string',
+            'preferred_locations' => 'array',
             'heartbeat_interval_minutes' => 'integer',
             'heartbeat_grace_minutes' => 'integer',
             'notification_channels' => 'array',

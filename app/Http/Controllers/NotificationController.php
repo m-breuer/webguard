@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\NotificationType;
 use App\Models\MonitoringNotification;
+use App\Models\MonitoringNotificationState;
 use App\Models\NotificationChannelDelivery;
 use App\Services\NotificationBoardService;
 use Illuminate\Database\Eloquent\Builder;
@@ -38,10 +39,9 @@ class NotificationController extends Controller
         $monitoringNotification = MonitoringNotification::query()->findOrFail($notificationId);
 
         if ($monitoringNotification->type === NotificationType::STATUS_CHANGE) {
-            MonitoringNotification::query()
+            $notificationIds = MonitoringNotification::query()
                 ->where('monitoring_id', $monitoringNotification->monitoring_id)
                 ->statusChange()
-                ->unread()
                 ->where(function (Builder $builder) use ($monitoringNotification): void {
                     $builder->where('created_at', '<', $monitoringNotification->created_at)
                         ->orWhere(function (Builder $builder) use ($monitoringNotification): void {
@@ -49,10 +49,24 @@ class NotificationController extends Controller
                                 ->where('id', '<=', $monitoringNotification->id);
                         });
                 })
+                ->pluck('id');
+
+            MonitoringNotificationState::query()
+                ->where('user_id', auth()->id())
+                ->whereIn('monitoring_notification_id', $notificationIds)
+                ->update(['read_at' => now()]);
+
+            MonitoringNotification::query()
+                ->whereIn('id', $notificationIds)
                 ->update(['read' => true]);
         } else {
-            $monitoringNotification->read = true;
-            $monitoringNotification->save();
+            MonitoringNotificationState::query()
+                ->firstOrCreate([
+                    'monitoring_notification_id' => $monitoringNotification->id,
+                    'user_id' => auth()->id(),
+                ])
+                ->update(['read_at' => now()]);
+            $monitoringNotification->update(['read' => true]);
         }
 
         return back()->with('success', __('notifications.messages.notification_marked_as_read'));
@@ -60,7 +74,20 @@ class NotificationController extends Controller
 
     public function markAllAsRead(): RedirectResponse
     {
-        MonitoringNotification::query()->unread()->update(['read' => true]);
+        $notificationIds = MonitoringNotificationState::query()
+            ->where('user_id', auth()->id())
+            ->whereNull('read_at')
+            ->pluck('monitoring_notification_id');
+
+        MonitoringNotificationState::query()
+            ->where('user_id', auth()->id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        MonitoringNotification::query()
+            ->withoutGlobalScopes()
+            ->whereIn('id', $notificationIds)
+            ->update(['read' => true]);
 
         return back()->with('success', __('notifications.messages.all_notifications_marked_as_read'));
     }
@@ -196,19 +223,38 @@ class NotificationController extends Controller
         int $offset,
         int $limit
     ): array {
-        $builder = MonitoringNotification::query()->ofType($notificationType);
+        $builder = MonitoringNotification::query()
+            ->withoutGlobalScopes()
+            ->select('monitoring_notifications.*', 'monitoring_notification_states.read_at as user_read_at')
+            ->join('monitoring_notification_states', 'monitoring_notification_states.monitoring_notification_id', '=', 'monitoring_notifications.id')
+            ->join('monitorings', 'monitoring_notifications.monitoring_id', '=', 'monitorings.id')
+            ->where('monitoring_notification_states.user_id', auth()->id())
+            ->where(function ($query): void {
+                $query->where('monitorings.user_id', auth()->id())
+                    ->orWhereExists(function ($query): void {
+                        $query->selectRaw('1')
+                            ->from('team_memberships')
+                            ->whereColumn('team_memberships.team_id', 'monitorings.team_id')
+                            ->where('team_memberships.user_id', auth()->id());
+                    });
+            })
+            ->ofType($notificationType);
         if (! $showRead) {
-            $builder->unread();
+            $builder->whereNull('monitoring_notification_states.read_at');
         }
 
         $notifications = $builder
             ->with(['monitoring:id,name'])
-            ->orderBy('read')
-            ->latest('created_at')
-            ->latest('id')
+            ->orderByRaw('monitoring_notification_states.read_at is not null')
+            ->latest('monitoring_notifications.created_at')
+            ->latest('monitoring_notifications.id')
             ->offset($offset)
             ->limit($limit + 1)
             ->get();
+
+        $notifications->each(function (MonitoringNotification $monitoringNotification): void {
+            $monitoringNotification->setAttribute('read', $monitoringNotification->user_read_at !== null);
+        });
 
         $hasMore = $notifications->count() > $limit;
         if ($hasMore) {

@@ -24,14 +24,15 @@ class PublicFeatureController extends Controller
         'ssl-certificate-monitoring' => ['key' => 'ssl', 'category' => 'monitoring', 'related' => ['domain-expiration-monitoring', 'notifications', 'weekly-digest']],
         'status-code-monitoring' => ['key' => 'http_expectations', 'category' => 'monitoring', 'related' => ['http-monitoring', 'keyword-monitoring', 'response-time-uptime']],
         'response-time-uptime' => ['key' => 'stats', 'category' => 'operations', 'related' => ['http-monitoring', 'public-labels', 'weekly-digest']],
+        'monitoring-groups' => ['key' => 'monitoring_groups', 'category' => 'operations', 'related' => ['public-labels', 'public-status-pages', 'response-time-uptime']],
         'multi-location-monitoring' => ['key' => 'multi_location', 'category' => 'operations', 'related' => ['http-monitoring', 'ping-monitoring', 'monitoring-locations']],
         'notifications' => ['key' => 'notifications', 'category' => 'operations', 'related' => ['weekly-digest', 'public-labels', 'maintenance-windows']],
         'weekly-digest' => ['key' => 'weekly_digest', 'category' => 'operations', 'related' => ['notifications', 'response-time-uptime', 'ssl-certificate-monitoring']],
         'maintenance-windows' => ['key' => 'maintenance_windows', 'category' => 'operations', 'related' => ['public-labels', 'public-status-pages', 'notifications']],
-        'public-labels' => ['key' => 'public_labels', 'category' => 'sharing', 'related' => ['status-badges-widgets', 'public-status-pages', 'notifications']],
+        'public-labels' => ['key' => 'public_labels', 'category' => 'sharing', 'related' => ['status-badges', 'public-status-pages', 'notifications']],
         'public-status-pages' => ['key' => 'public_status_pages', 'category' => 'sharing', 'related' => ['public-labels', 'maintenance-windows', 'notifications']],
-        'status-badges-widgets' => ['key' => 'embeddable_widget', 'category' => 'sharing', 'related' => ['public-labels', 'api', 'public-status-pages']],
-        'api' => ['key' => 'rest_api', 'category' => 'integrations', 'related' => ['server-health-monitoring', 'status-badges-widgets', 'notifications']],
+        'status-badges' => ['key' => 'sla_badge', 'category' => 'sharing', 'related' => ['public-labels', 'api', 'public-status-pages']],
+        'api' => ['key' => 'rest_api', 'category' => 'integrations', 'related' => ['server-health-monitoring', 'status-badges', 'notifications']],
     ];
 
     /**

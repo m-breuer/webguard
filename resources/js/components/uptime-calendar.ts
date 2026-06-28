@@ -18,14 +18,16 @@ interface UptimeCalendarComponent {
     isLoading: boolean;
     calendarData: CalendarData | null;
     monitoringId: string;
+    endpoint: string | null;
     currentLocale: string;
     fetchUptimeCalendar(this: UptimeCalendarComponent): Promise<void>;
 }
 
-export default (monitoringId: string): UptimeCalendarComponent => ({
+export default (monitoringId: string, endpoint: string | null = null): UptimeCalendarComponent => ({
     isLoading: true,
     calendarData: null,
     monitoringId: monitoringId,
+    endpoint: endpoint,
     currentLocale: getCurrentDayjsLocale(),
 
     async fetchUptimeCalendar() {
@@ -38,7 +40,11 @@ export default (monitoringId: string): UptimeCalendarComponent => ({
         const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
         try {
-            const response = await fetch(`/api/monitorings/${this.monitoringId}/uptime-calendar?start_date=${formatDateForApi(startDate)}&end_date=${formatDateForApi(endDate)}`);
+            const url = new URL(this.endpoint ?? `/api/monitorings/${this.monitoringId}/uptime-calendar`, window.location.origin);
+            url.searchParams.set('start_date', formatDateForApi(startDate));
+            url.searchParams.set('end_date', formatDateForApi(endDate));
+
+            const response = await fetch(url.toString());
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }

@@ -29,6 +29,8 @@ return [
         'component_name' => 'Component name',
         'component_description' => 'Component description',
         'monitorings' => 'Monitorings',
+        'monitoring_group' => 'Monitoring group',
+        'monitoring_group_source_help' => 'This component dynamically uses the monitorings from the monitoring group.',
         'add_component' => 'Add component',
         'remove_component' => 'Remove component',
     ],
@@ -64,5 +66,6 @@ return [
     ],
     'validation' => [
         'fix_errors' => 'Please fix the highlighted status page settings.',
+        'monitoring_not_accessible' => 'The selected monitoring is not accessible.',
     ],
 ];

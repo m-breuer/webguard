@@ -16,8 +16,8 @@ return [
     'index' => [
         'seo' => [
             'title' => 'WebGuard Features - Monitoring, Public Status, Badges, and API',
-            'description' => 'Explore all WebGuard features: HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, domain checks, notifications, public labels, badges, status pages, and API access.',
-            'keywords' => 'WebGuard features, uptime monitoring features, public status labels, monitoring badges, API monitoring documentation',
+            'description' => 'Explore all WebGuard features: HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, domain checks, groups, notifications, public labels, badges, status pages, and API access.',
+            'keywords' => 'WebGuard features, uptime monitoring features, groups, public status labels, monitoring badges, API monitoring documentation',
             'og_title' => 'WebGuard Features',
             'og_description' => 'A complete overview of WebGuard monitoring types, public sharing features, alerting, analytics, and API access.',
         ],
@@ -29,7 +29,7 @@ return [
             'metrics' => [
                 '1' => ['label' => 'Monitor Types', 'value' => 'HTTP, Ping, Keyword, Port, Heartbeat, Server, DNS'],
                 '2' => ['label' => 'Expiry Checks', 'value' => 'SSL and domains'],
-                '3' => ['label' => 'Sharing', 'value' => 'Labels, badges, widgets, status pages'],
+                '3' => ['label' => 'Sharing', 'value' => 'Labels, badges, status pages'],
                 '4' => ['label' => 'Integrations', 'value' => 'REST API and webhooks'],
             ],
         ],
@@ -44,12 +44,12 @@ return [
         'operations' => [
             'eyebrow' => 'Operations',
             'title' => 'Turn checks into incident context',
-            'text' => 'Use alerts, confirmation thresholds, response data, maintenance windows, and weekly reports to keep operations readable.',
+            'text' => 'Use groups, alerts, confirmation thresholds, response data, maintenance windows, and weekly reports to keep operations readable.',
         ],
         'sharing' => [
             'eyebrow' => 'Public Communication',
             'title' => 'Share status without exposing private operations',
-            'text' => 'Publish status labels, badges, embeddable widgets, and public status pages for customers and stakeholders.',
+            'text' => 'Publish status labels, SLA badges, and public status pages for customers and stakeholders.',
         ],
         'integrations' => [
             'eyebrow' => 'Developer Surface',
@@ -168,8 +168,17 @@ return [
             'teaser' => 'Analyze trends, compare monitor behavior, and report on long-term reliability.',
             'lead' => 'Analytics turn raw checks into readable uptime, downtime, incident, and response-time context.',
             'highlights' => ['Uptime and downtime summaries', 'Response time charts and recent checks', 'Daily aggregation for long-term history'],
-            'details' => ['Use analytics to understand whether services are getting slower, flakier, or more reliable over time.', 'Monitor details include response time trends, recent individual checks, incidents, uptime calendars, SSL status, and domain status where relevant.', 'The same operational data supports weekly digests, public labels, widgets, and API consumers.'],
+            'details' => ['Use analytics to understand whether services are getting slower, flakier, or more reliable over time.', 'Monitor details include response time trends, recent individual checks, incidents, uptime calendars, SSL status, and domain status where relevant.', 'The same operational data supports weekly digests, public labels, SLA badges, and API consumers.'],
             'seo' => ['title' => 'Uptime Analytics - WebGuard', 'description' => 'Analyze uptime, downtime, response times, incidents, and recent checks in WebGuard.', 'keywords' => 'uptime analytics, response time monitoring, downtime reporting'],
+        ],
+        'monitoring_groups' => [
+            'badge' => 'Organization',
+            'title' => 'Groups',
+            'teaser' => 'Group related monitors, filter busy monitoring lists, and publish groups as status pages when needed.',
+            'lead' => 'Groups keep larger check portfolios readable without changing individual monitor ownership or lifecycle.',
+            'highlights' => ['Many-to-many grouping for related monitors', 'Bookmarkable group filters on the monitoring index', 'Create status pages directly from groups'],
+            'details' => ['Use groups for product areas, customer environments, infrastructure layers, or internal ownership boundaries.', 'A monitor can belong to multiple groups, so one endpoint can appear in both an API group and a customer-facing service group.', 'For public communication, create a status page from a group and let its component dynamically follow the group contents.'],
+            'seo' => ['title' => 'Groups - WebGuard', 'description' => 'Organize WebGuard monitorings with user-owned groups, bookmarkable filters, and group-backed status pages.', 'keywords' => 'groups, grouped monitoring, status pages from groups, uptime monitor organization'],
         ],
         'multi_location' => [
             'badge' => 'Distribution',
@@ -225,14 +234,14 @@ return [
             'details' => ['Use status pages when customers need a branded overview of multiple product components instead of individual monitor labels.', 'Components can group related monitorings, making complex SaaS systems easier to understand during incidents.', 'Incident updates and maintenance context give stakeholders a single place to check current service health.'],
             'seo' => ['title' => 'Public Status Pages - WebGuard', 'description' => 'Publish component-based public status pages with incidents, updates, subscribers, and maintenance windows.', 'keywords' => 'public status page, SaaS status page, incident communication'],
         ],
-        'embeddable_widget' => [
+        'sla_badge' => [
             'badge' => 'Badges',
-            'title' => 'Status Badges and Embeddable Status Widget',
-            'teaser' => 'Add a lightweight JavaScript widget to external sites or dashboards so visitors can see live monitoring status where they already work.',
-            'lead' => 'Status badges and widgets bring WebGuard status into websites, internal dashboards, documentation, and customer portals.',
-            'highlights' => ['Embeddable JavaScript widget', 'Uses public widget data for enabled labels', 'Shows status and uptime summaries'],
-            'details' => ['Use the widget when stakeholders should not need to open WebGuard to see whether a service is healthy.', 'The public widget endpoint is available only for monitors where public labels are enabled, keeping exposure deliberate.', 'Widgets can display current status and uptime summaries in external sites while WebGuard remains the source of truth.'],
-            'seo' => ['title' => 'Status Badges and Widgets - WebGuard', 'description' => 'Embed live WebGuard monitoring status on external sites and dashboards with public widgets and badges.', 'keywords' => 'status badge, uptime widget, embeddable monitoring widget'],
+            'title' => 'SLA Badges',
+            'teaser' => 'Add a compact SLA badge to external sites or dashboards so visitors can see live monitoring status where they already work.',
+            'lead' => 'SLA badges bring WebGuard status into websites, internal dashboards, documentation, and customer portals.',
+            'highlights' => ['Embeddable SLA badge script', 'Uses public badge data for enabled labels', 'Shows status and uptime summaries'],
+            'details' => ['Use the SLA badge when stakeholders should not need to open WebGuard to see whether a service is healthy.', 'The public badge endpoint is available only for monitors where public labels are enabled, keeping exposure deliberate.', 'Badges can display current status and uptime summaries in external sites while WebGuard remains the source of truth.'],
+            'seo' => ['title' => 'SLA Badges - WebGuard', 'description' => 'Embed live WebGuard monitoring status on external sites and dashboards with public SLA badges.', 'keywords' => 'status badge, SLA badge, uptime badge'],
         ],
         'rest_api' => [
             'badge' => 'API',

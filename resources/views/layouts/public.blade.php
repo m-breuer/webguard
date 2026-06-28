@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-confirm-title="{{ __('app.confirmation.title') }}"
+    data-confirm-confirm="{{ __('app.confirmation.confirm') }}" data-confirm-cancel="{{ __('button.cancel') }}">
 
 <head>
     <meta charset="utf-8">
@@ -55,6 +56,8 @@
 
     <main class="py-6">
         {{ $slot }}
+
+        <x-confirm-dialog />
     </main>
 
     @include('components.footer')

@@ -106,6 +106,81 @@ class DemoMonitoringAdminTest extends TestCase
         ]);
     }
 
+    public function test_create_redirects_when_demo_user_reached_monitoring_limit(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 1]);
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $demoUser = User::factory()->create([
+            'role' => UserRole::DEMO,
+            'package_id' => $package->id,
+        ]);
+        Monitoring::factory()->for($demoUser)->create();
+
+        $this->actingAs($admin)->get(route('admin.demo-monitorings.create'))
+            ->assertRedirect(route('admin.demo-monitorings.index'))
+            ->assertSessionHasErrors(['limit']);
+    }
+
+    public function test_create_redirects_when_no_active_server_instances_exist(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 5]);
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        User::factory()->create([
+            'role' => UserRole::DEMO,
+            'package_id' => $package->id,
+        ]);
+        ServerInstance::query()->update(['is_active' => false]);
+
+        $this->actingAs($admin)->get(route('admin.demo-monitorings.create'))
+            ->assertRedirect(route('admin.demo-monitorings.index'))
+            ->assertSessionHasErrors(['preferred_location']);
+    }
+
+    public function test_create_form_renders_when_demo_user_has_capacity_and_active_instances(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 5]);
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        User::factory()->create([
+            'role' => UserRole::DEMO,
+            'package_id' => $package->id,
+        ]);
+        ServerInstance::query()->create([
+            'code' => 'admin-demo-create',
+            'ip_address' => '10.0.0.12',
+            'api_key_hash' => 'secret',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.demo-monitorings.create'))
+            ->assertOk()
+            ->assertSeeText('admin-demo-create');
+    }
+
+    public function test_store_redirects_when_demo_user_reached_monitoring_limit(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 1]);
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $demoUser = User::factory()->create([
+            'role' => UserRole::DEMO,
+            'package_id' => $package->id,
+        ]);
+        Monitoring::factory()->for($demoUser)->create();
+
+        $this->actingAs($admin)->post(route('admin.demo-monitorings.store'), [
+            'name' => 'Blocked Demo Check',
+            'type' => MonitoringType::HTTP->value,
+            'target' => 'https://blocked.example.test',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'http_method' => 'get',
+            'expected_http_statuses' => '200-299',
+            'preferred_location' => 'de-1',
+            'notification_on_failure' => '1',
+            'ssl_expiry_warning_days' => 7,
+        ])->assertRedirect(route('admin.demo-monitorings.index'))
+            ->assertSessionHasErrors(['limit']);
+    }
+
     public function test_admin_can_edit_monitoring_for_demo_user(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 5]);
@@ -139,6 +214,7 @@ class DemoMonitoringAdminTest extends TestCase
         $testResponse = $this->actingAs($admin)->patch(route('admin.demo-monitorings.update', $monitoring), [
             'name' => 'Updated Demo Check',
             'type' => MonitoringType::HTTP->value,
+            'target' => 'https://updated-demo.example.test',
             'status' => MonitoringLifecycleStatus::PAUSED->value,
             'timeout' => 10,
             'http_method' => 'get',
@@ -156,7 +232,7 @@ class DemoMonitoringAdminTest extends TestCase
         $this->assertSame(MonitoringLifecycleStatus::PAUSED, $monitoring->status);
         $this->assertSame(10, $monitoring->timeout);
         $this->assertSame('200,204', $monitoring->expected_http_statuses);
-        $this->assertSame('https://original-demo.example.test', $monitoring->target);
+        $this->assertSame('https://updated-demo.example.test', $monitoring->target);
     }
 
     public function test_admin_cannot_edit_non_demo_monitoring_through_demo_management(): void

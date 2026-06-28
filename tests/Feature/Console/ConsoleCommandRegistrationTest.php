@@ -51,6 +51,10 @@ class ConsoleCommandRegistrationTest extends TestCase
                 'notifications:remind-unread-weekly',
                 'Sends email reminders to users with unread board notifications according to their profile settings.',
             ],
+            'send server instance health alerts' => [
+                'notifications:send-server-instance-health-alerts',
+                'Sends admin alerts when scanner server instances become unreachable, remain unseen, or recover.',
+            ],
             'send weekly monitoring digest' => [
                 'notifications:send-weekly-monitoring-digest',
                 'Sends weekly email summaries with uptime, incidents, downtime, and expiry warnings.',

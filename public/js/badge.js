@@ -25,6 +25,7 @@
             .wg-sla-badge {
                 box-sizing: border-box;
                 display: inline-flex;
+                flex-wrap: wrap;
                 align-items: center;
                 gap: 10px;
                 max-width: 100%;
@@ -65,6 +66,7 @@
             }
             .wg-sla-row {
                 display: flex;
+                flex-wrap: wrap;
                 align-items: center;
                 gap: 8px;
                 min-width: 0;
@@ -237,7 +239,7 @@
             return;
         }
 
-        const apiUrl = new URL(`/api/public/monitorings/${encodeURIComponent(monitoringId)}/widget`, appBaseUrl).toString();
+        const apiUrl = new URL(`/api/public/monitorings/${encodeURIComponent(monitoringId)}/badge`, appBaseUrl).toString();
 
         fetch(apiUrl)
             .then(response => {

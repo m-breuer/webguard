@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\SupportedLanguage;
+use App\Http\Controllers\PublicFeatureController;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -19,57 +20,42 @@ class WelcomePageCopyTest extends TestCase
             'english product surfaces' => [
                 'en',
                 [
-                    'Heartbeat Monitoring',
-                    'Monitor cronjobs, workers, and background processes',
-                    'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS, SSL, and domains',
-                    'Expected HTTP Status Ranges',
-                    'Define accepted status codes or ranges such as 200-299, 301, and 302',
-                    'Weekly Monitoring Digest',
-                    'weekly email summaries with uptime, incidents, longest downtime',
-                    'Domain Expiration Checks',
-                    'send proactive renewal warnings',
-                    'Server Health Monitoring',
-                    'per-monitor thresholds before health reports are marked down',
-                    'DNS Record Monitoring',
-                    'Track expected A, AAAA, CNAME, MX, TXT, NS, SOA, and CAA records',
-                    'Slack, Telegram, Discord, Microsoft Teams, webhooks',
-                    'Public Status Pages',
-                    'component-based status pages with recent incidents, manual incident updates, subscriber emails',
-                    'Embeddable Status Widget',
-                    'lightweight JavaScript widget',
-                    'compact SLA badge',
+                    'WebGuard delivers professional monitoring for teams and individual projects.',
+                    'Website & API Monitoring',
+                    'HTTP checks, keyword validation, and expected status codes',
+                    'Infrastructure Checks',
+                    'Ping, ports, and DNS records',
+                    'Cronjobs & Alerts',
+                    'Heartbeat monitoring, notification channels, and weekly reports',
+                    'Status Pages',
+                    'Public status pages, public labels, and SLA badges',
+                    'Integrations & API',
+                    'REST API, server health reports, and groups',
+                    'Status communication and API access are first-class public surfaces',
                     'REST API and Integrations',
-                    'token-based API access and the API reference',
-                    'method, header, body, auth, and status-code validation',
-                    'HTTP, Ping, Keyword, Port, Heartbeat, Server Health, DNS Record',
+                    '24/7 checks every 5 minutes',
+                ],
+                [
+                    'trusted by developers',
+                    'Trusted by developers',
                 ],
             ],
             'german product surfaces' => [
                 'de',
                 [
-                    'Heartbeat Monitoring',
-                    'Überwachen Sie Cronjobs, Worker und Hintergrundprozesse',
-                    'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS, SSL und Domains',
-                    'Erwartete HTTP-Statusbereiche',
-                    'Definieren Sie akzeptierte Statuscodes oder Bereiche wie 200-299, 301 und 302',
-                    'Wöchentlicher Monitoring-Bericht',
-                    'wöchentliche E-Mail-Zusammenfassungen mit Uptime, Incidents, längster Downtime',
-                    'Domain-Ablaufprüfungen',
-                    'proaktive Verlängerungswarnungen',
-                    'Server-Zustand-Monitoring',
-                    'pro Monitor eigene Schwellen',
-                    'DNS-Eintragsmonitoring',
-                    'A-, AAAA-, CNAME-, MX-, TXT-, NS-, SOA- und CAA-Einträge',
-                    'Slack, Telegram, Discord, Microsoft Teams, Webhooks',
-                    'Öffentliche Statusseiten',
-                    'komponentenbasierte Statusseiten mit aktuellen Incidents, manuellen Updates, E-Mail-Abos',
-                    'Einbettbares Status-Widget',
-                    'schlankes JavaScript-Widget',
-                    'kompaktes SLA-Badge',
+                    'WebGuard bietet professionelles Monitoring für Teams und Einzelprojekte.',
+                    'Website & API Monitoring',
+                    'HTTP-Checks, Keyword-Prüfungen und erwartete Statuscodes',
+                    'Infrastruktur-Checks',
+                    'Ping, Ports und DNS-Einträge',
+                    'Cronjobs & Alerts',
+                    'Heartbeat-Monitoring, Benachrichtigungskanäle und Wochenberichte',
+                    'Status Pages',
+                    'Öffentliche Statusseiten, Public Labels und SLA-Badges',
+                    'Integrationen & API',
+                    'REST API, Server-Health-Reports und Gruppen',
+                    'Statuskommunikation und API-Zugriff sind sichtbare öffentliche Flächen',
                     'REST API und Integrationen',
-                    'tokenbasierten API-Zugriff und die API-Referenz',
-                    'Methode, Headern, Body, Authentifizierung und Statuscode-Prüfung',
-                    'HTTP, Ping, Keyword, Port, Heartbeat, Server-Zustand, DNS-Eintrag',
                     'Jetzt starten',
                     'Demo-Zugang',
                     '24/7 Checks alle 5 Minuten',
@@ -79,6 +65,8 @@ class WelcomePageCopyTest extends TestCase
                     'Kostenfrei starten',
                     'Demo-Zugang nutzen',
                     'flexiblen Intervallen',
+                    'trusted by developers',
+                    'Trusted by developers',
                 ],
             ],
         ];
@@ -137,5 +125,39 @@ class WelcomePageCopyTest extends TestCase
 
         $secondResponse->assertOk();
         $secondResponse->assertSeeText('1 Minute');
+    }
+
+    public function test_welcome_page_links_each_feature_cluster_to_public_feature_pages(): void
+    {
+        $testResponse = $this->get(route('welcome'));
+
+        $testResponse->assertOk();
+
+        $expectedClusterSlugs = [
+            'http-monitoring',
+            'keyword-monitoring',
+            'status-code-monitoring',
+            'ping-monitoring',
+            'port-monitoring',
+            'dns-record-monitoring',
+            'heartbeat-monitoring',
+            'notifications',
+            'weekly-digest',
+            'public-status-pages',
+            'public-labels',
+            'status-badges',
+            'api',
+            'server-health-monitoring',
+            'monitoring-groups',
+        ];
+
+        foreach ($expectedClusterSlugs as $expectedClusterSlug) {
+            $this->assertContains($expectedClusterSlug, PublicFeatureController::slugs());
+            $testResponse->assertSeeHtml(route('public-features.show', $expectedClusterSlug));
+        }
+
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.hero_alt'))));
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.status_alt'))));
+        $testResponse->assertSeeHtml(sprintf('alt="%s"', e(__('welcome.visuals.photos.workflow_alt'))));
     }
 }
