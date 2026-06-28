@@ -18,7 +18,7 @@ return [
         'feature_pages' => 'Feature Pages',
         'api_docs' => 'API Docs',
         'proof' => 'Context',
-        'get_started' => 'Start now',
+        'get_started' => 'Register',
         'demo_access' => 'Demo access',
         'login' => 'Login',
         'dashboard' => 'Dashboard',
