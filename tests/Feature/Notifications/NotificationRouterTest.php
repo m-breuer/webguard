@@ -9,10 +9,12 @@ use App\Enums\NotificationEventType;
 use App\Models\MobilePushDevice;
 use App\Models\Package;
 use App\Models\User;
+use App\Services\Notifications\Channels\MobilePushChannelDriver;
 use App\Services\Notifications\NotificationPayload;
 use App\Services\Notifications\NotificationRouter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Tests\TestCase;
 
 class NotificationRouterTest extends TestCase
@@ -436,6 +438,146 @@ class NotificationRouterTest extends TestCase
             && $request->hasHeader('apns-push-type', 'alert')
             && data_get($request->data(), 'aps.alert.title') === 'Monitoring incident'
             && data_get($request->data(), 'monitoring_id') === '01TEST');
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'mobile_push',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::SENT->value,
+        ]);
+    }
+
+    public function test_mobile_push_driver_requires_user_context(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Mobile push user context is missing.');
+
+        resolve(MobilePushChannelDriver::class)->send(
+            new NotificationPayload(
+                eventType: NotificationEventType::INCIDENT,
+                title: 'Monitoring incident',
+                message: 'Service is down.',
+                severity: 'critical',
+                monitoringId: '01TEST',
+                monitoringName: 'API',
+                monitoringTarget: 'https://example.test',
+                occurredAt: now()
+            ),
+            []
+        );
+    }
+
+    public function test_router_revokes_invalid_mobile_push_device_when_delivery_fails(): void
+    {
+        config([
+            'services.fcm.project_id' => 'webguard-test',
+            'services.fcm.access_token' => 'test-access-token',
+        ]);
+
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'mobile_push' => [
+                    'enabled' => true,
+                ],
+            ],
+        ]);
+        $device = MobilePushDevice::factory()->for($user)->create([
+            'push_token' => 'expired-fcm-token',
+            'token_hash' => hash('sha256', 'expired-fcm-token'),
+        ]);
+
+        Http::fake([
+            'https://fcm.googleapis.com/*' => Http::response([
+                'error' => [
+                    'message' => 'Requested entity was not found',
+                ],
+            ], 404),
+        ]);
+
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch(
+            $user,
+            new NotificationPayload(
+                eventType: NotificationEventType::INCIDENT,
+                title: 'Monitoring incident',
+                message: 'Service is down.',
+                severity: 'critical',
+                monitoringId: '01TEST',
+                monitoringName: 'API',
+                monitoringTarget: 'https://example.test',
+                occurredAt: now()
+            ),
+            ['mobile_push']
+        );
+
+        $this->assertFalse($wasDelivered);
+        $this->assertFalse($device->fresh()->enabled);
+        $this->assertNotNull($device->fresh()->revoked_at);
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'user_id' => $user->id,
+            'channel' => 'mobile_push',
+            'event_type' => NotificationEventType::INCIDENT->value,
+            'status' => NotificationDeliveryStatus::FAILED->value,
+        ]);
+    }
+
+    public function test_router_keeps_mobile_push_delivery_successful_when_one_device_fails(): void
+    {
+        $privateKey = $this->test_ec_private_key();
+
+        config([
+            'services.fcm.project_id' => 'webguard-test',
+            'services.fcm.access_token' => 'test-access-token',
+            'services.apns.key_id' => 'ABC123DEFG',
+            'services.apns.team_id' => 'TEAM123456',
+            'services.apns.bundle_id' => 'dev.marcelbreuer.webguard',
+            'services.apns.private_key' => $privateKey,
+            'services.apns.environment' => 'development',
+        ]);
+
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'mobile_push' => [
+                    'enabled' => true,
+                ],
+            ],
+        ]);
+        $successfulDevice = MobilePushDevice::factory()->for($user)->create([
+            'push_token' => 'active-fcm-token',
+            'token_hash' => hash('sha256', 'active-fcm-token'),
+            'last_seen_at' => now()->subDay(),
+        ]);
+        $failedDevice = MobilePushDevice::factory()->for($user)->create([
+            'platform' => 'ios',
+            'push_provider' => 'apns',
+            'push_token' => 'bad-apns-token',
+            'token_hash' => hash('sha256', 'bad-apns-token'),
+        ]);
+
+        Http::fake([
+            'https://fcm.googleapis.com/*' => Http::response(['name' => 'projects/webguard-test/messages/123'], 200),
+            'https://api.sandbox.push.apple.com/*' => Http::response(['reason' => 'BadDeviceToken'], 400),
+        ]);
+
+        $wasDelivered = resolve(NotificationRouter::class)->dispatch(
+            $user,
+            new NotificationPayload(
+                eventType: NotificationEventType::INCIDENT,
+                title: 'Monitoring incident',
+                message: 'Service is down.',
+                severity: 'critical',
+                monitoringId: '01TEST',
+                monitoringName: 'API',
+                monitoringTarget: 'https://example.test',
+                occurredAt: now()
+            ),
+            ['mobile_push']
+        );
+
+        $this->assertTrue($wasDelivered);
+        $this->assertTrue($successfulDevice->fresh()->last_seen_at->isToday());
+        $this->assertFalse($failedDevice->fresh()->enabled);
+        $this->assertNotNull($failedDevice->fresh()->revoked_at);
         $this->assertDatabaseHas('notification_channel_deliveries', [
             'user_id' => $user->id,
             'channel' => 'mobile_push',
