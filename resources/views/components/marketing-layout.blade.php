@@ -68,9 +68,9 @@
                             class="!border-purple-600 !bg-purple-600 !text-white !normal-case !tracking-normal hover:!bg-purple-700 focus:!ring-purple-500 dark:!border-purple-400 dark:!bg-purple-400 dark:!text-slate-950 dark:hover:!bg-purple-300 dark:focus:!ring-purple-300">
                             {{ __('welcome.nav.get_started') }}
                         </x-primary-button>
-                        <x-secondary-button :href="route('login', ['mode' => 'demo'])"
+                        <x-secondary-button :href="route('login')"
                             class="!border-slate-300 !bg-white !text-slate-700 !normal-case !tracking-normal transition hover:!border-slate-400 hover:!bg-slate-100 dark:!border-slate-600 dark:!bg-slate-900/70 dark:!text-slate-100 dark:hover:!border-slate-500 dark:hover:!bg-slate-800">
-                            {{ __('welcome.nav.demo_access') }}
+                            {{ __('welcome.nav.login') }}
                         </x-secondary-button>
                     </div>
                 </x-main>

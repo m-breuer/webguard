@@ -61,8 +61,10 @@ class PublicFeaturePagesTest extends TestCase
         $testResponse->assertSeeHtml(route('public-features.index'));
         $testResponse->assertSeeHtml(route('scribe'));
         $testResponse->assertSeeHtml(route('welcome') . '#proof');
-        $testResponse->assertSeeHtml(route('register'));
-        $testResponse->assertSeeHtml(route('login', ['mode' => 'demo']));
+        $testResponse->assertSeeHtml('href="' . route('register') . '"');
+        $testResponse->assertSeeHtml('href="' . route('login') . '"');
+        $testResponse->assertSeeText(__('welcome.nav.get_started'));
+        $testResponse->assertSeeText(__('welcome.nav.login'));
         $testResponse->assertSeeHtml(route('locale.switch', ['locale' => 'en']));
         $testResponse->assertSeeHtml(route('locale.switch', ['locale' => 'de']));
         $testResponse->assertSeeHtml(sprintf('<link rel="canonical" href="%s">', route('public-features.index')));

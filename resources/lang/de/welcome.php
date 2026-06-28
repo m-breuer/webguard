@@ -18,7 +18,7 @@ return [
         'feature_pages' => 'Feature-Seiten',
         'api_docs' => 'API-Doku',
         'proof' => 'Einordnung',
-        'get_started' => 'Jetzt starten',
+        'get_started' => 'Registrieren',
         'demo_access' => 'Demo-Zugang',
         'login' => 'Anmelden',
         'dashboard' => 'Dashboard',
