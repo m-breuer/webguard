@@ -13,9 +13,9 @@ class PackageControllerTest extends TestCase
 {
     public function test_admin_can_open_package_create_form(): void
     {
-        $admin = $this->adminUser();
+        $user = $this->adminUser();
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->get(route('admin.packages.create'))
             ->assertOk()
             ->assertSeeText(__('admin.packages.create.title'))
@@ -27,9 +27,9 @@ class PackageControllerTest extends TestCase
 
     public function test_admin_can_create_package(): void
     {
-        $admin = $this->adminUser();
+        $user = $this->adminUser();
 
-        $testResponse = $this->actingAs($admin)
+        $testResponse = $this->actingAs($user)
             ->post(route('admin.packages.store'), [
                 'monitoring_limit' => 25,
                 'price' => '19.99',
@@ -48,14 +48,14 @@ class PackageControllerTest extends TestCase
 
     public function test_admin_can_edit_package(): void
     {
-        $admin = $this->adminUser();
+        $user = $this->adminUser();
         $package = Package::factory()->create([
             'monitoring_limit' => 12,
             'price' => 7.50,
             'is_selectable' => false,
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->get(route('admin.packages.edit', $package))
             ->assertOk()
             ->assertSeeText(__('admin.packages.edit.title'))
@@ -66,14 +66,14 @@ class PackageControllerTest extends TestCase
 
     public function test_admin_can_update_package(): void
     {
-        $admin = $this->adminUser();
+        $user = $this->adminUser();
         $package = Package::factory()->create([
             'monitoring_limit' => 5,
             'price' => 4.99,
             'is_selectable' => true,
         ]);
 
-        $testResponse = $this->actingAs($admin)
+        $testResponse = $this->actingAs($user)
             ->put(route('admin.packages.update', $package), [
                 'monitoring_limit' => 50,
                 'price' => '29.99',
@@ -93,10 +93,10 @@ class PackageControllerTest extends TestCase
 
     public function test_admin_can_delete_unused_package(): void
     {
-        $admin = $this->adminUser();
+        $user = $this->adminUser();
         $package = Package::factory()->create();
 
-        $testResponse = $this->actingAs($admin)
+        $testResponse = $this->actingAs($user)
             ->delete(route('admin.packages.destroy', $package));
 
         $testResponse->assertRedirect(route('admin.packages.index'));
@@ -106,11 +106,11 @@ class PackageControllerTest extends TestCase
 
     public function test_admin_cannot_delete_package_assigned_to_users(): void
     {
-        $admin = $this->adminUser();
+        $user = $this->adminUser();
         $package = Package::factory()->create();
         User::factory()->create(['package_id' => $package->id]);
 
-        $testResponse = $this->actingAs($admin)
+        $testResponse = $this->actingAs($user)
             ->delete(route('admin.packages.destroy', $package));
 
         $testResponse->assertRedirect(route('admin.packages.index'));
