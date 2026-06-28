@@ -8,19 +8,20 @@ Der Backend-Stand nach dieser Aenderung:
 
 - WebGuard ist eine Laravel-App mit REST API unter `/api/v1`.
 - API-Authentifizierung laeuft ueber Laravel Sanctum Bearer Tokens.
-- Bestehende Monitoring-Endpunkte liefern Status, Uptime, Checks, Incidents, SSL und Kalenderdaten.
+- Bestehende Monitoring-Endpunkte liefern Monitorlisten, Status, Uptime, Checks, Incidents, SSL und Kalenderdaten.
 - Benachrichtigungen werden zentral ueber `NotificationRouter` und `users.notification_channels` versendet.
 - Neuer Channel: `mobile_push`.
 - Neue API: Mobile Push Devices koennen pro Benutzer registriert, aktualisiert, gelistet und deaktiviert werden.
-- Push-Zustellung erfolgt serverseitig ueber Firebase Cloud Messaging HTTP v1.
+- Native Mobile Login API: E-Mail/Passwort Login erstellt einen Sanctum Bearer Token fuer die App.
+- Push-Zustellung erfolgt serverseitig ueber Firebase Cloud Messaging HTTP v1 oder APNs.
 
 ## MVP-Scope
 
 Die App muss im MVP:
 
-- Benutzer per bestehendem WebGuard API Token verbinden.
+- Benutzer per bestehendem WebGuard API Token oder dedizierter Mobile Login API verbinden.
 - Nach erfolgreicher Verbindung Push-Berechtigungen abfragen.
-- FCM Token an WebGuard registrieren.
+- FCM oder APNs Device Token an WebGuard registrieren.
 - Den `mobile_push` Channel automatisch aktivieren lassen.
 - Aktive Monitorings und deren Status anzeigen.
 - Incident-/Recovery-/Expiry-Pushes empfangen.
@@ -33,11 +34,14 @@ Nicht im MVP:
 - Vollstaendige Monitor-Erstellung oder Bearbeitung.
 - Paket-/Billing-Verwaltung.
 - Admin-Funktionen.
-- Native Passwort-Registrierung, sofern kein dedizierter Login-Endpunkt bereitgestellt wird.
+- Native Passwort-Registrierung.
 
 ## Authentifizierung
 
-MVP-Variante: Der Benutzer erzeugt in der WebGuard Weboberflaeche einen API Token und kopiert ihn in die App.
+Unterstuetzte Varianten:
+
+- Bestehender WebGuard API Token: Der Benutzer erzeugt in der Weboberflaeche einen API Token und kopiert ihn in die App.
+- Native Mobile Login API: Die App sendet E-Mail, Passwort und optional einen Geraetenamen an `POST /api/mobile/login` und erhaelt einen Sanctum Bearer Token.
 
 Anforderungen:
 
@@ -57,7 +61,12 @@ Content-Type: application/json
   - Push Device im Backend deaktivieren, falls noch moeglich
   - Benutzer zur Token-Eingabe fuehren
 
-Empfohlene Erweiterung nach MVP: dedizierte mobile Login-API mit E-Mail/Passwort, Token Rotation und Token Widerruf.
+Weitere Auth-Endpunkte:
+
+- `GET /api/mobile/me`: aktuelles Benutzerprofil fuer den gespeicherten Bearer Token pruefen.
+- `POST /api/mobile/logout`: aktuellen Sanctum Token widerrufen.
+
+Empfohlene Erweiterung nach MVP: Token Rotation und optionale Verwaltung aktiver App-Sessions.
 
 ## Neue Mobile Push API
 
@@ -69,7 +78,7 @@ https://<webguard-host>/api/v1
 
 ### Register Device
 
-Registriert oder aktualisiert ein FCM Device Token idempotent. Das Backend nutzt einen SHA-256 Hash des Tokens und gibt das Token nie zurueck.
+Registriert oder aktualisiert ein FCM oder APNs Device Token idempotent. Das Backend nutzt einen SHA-256 Hash des Tokens und gibt das Token nie zurueck.
 
 ```http
 POST /api/v1/mobile-push-devices
@@ -80,7 +89,8 @@ Request:
 ```json
 {
   "platform": "ios",
-  "push_token": "fcm-token",
+  "push_provider": "apns",
+  "push_token": "apns-token",
   "device_name": "iPhone 16",
   "app_version": "1.0.0",
   "locale": "de-DE",
@@ -93,7 +103,8 @@ Request:
 Felder:
 
 - `platform`: Pflicht, `ios` oder `android`
-- `push_token`: Pflicht, FCM Registration Token
+- `push_provider`: optional, `fcm` oder `apns`, default `fcm`
+- `push_token`: Pflicht, FCM Registration Token oder APNs Device Token
 - `device_name`: optional, frei lesbarer Geraetename
 - `app_version`: optional, App-Version fuer Support/Debugging
 - `locale`: optional, BCP-47 aehnlich, z. B. `de-DE`
@@ -108,7 +119,7 @@ Response `201 Created` bei neuem Device oder `200 OK` bei bestehendem Token:
   "data": {
     "id": "01J...",
     "platform": "ios",
-    "push_provider": "fcm",
+    "push_provider": "apns",
     "device_name": "iPhone 16",
     "app_version": "1.0.0",
     "locale": "de-DE",
@@ -211,6 +222,7 @@ Backend-Verhalten:
 
 Die App kann bestehende Endpunkte verwenden:
 
+- `GET /api/v1/monitorings`: paginierte Liste aller fuer den Benutzer sichtbaren privaten und Team-Monitorings
 - `GET /api/v1/monitorings/{monitoring}`: aggregierte Detaildaten
 - `GET /api/v1/monitorings/{monitoring}/status`: aktueller Status
 - `GET /api/v1/monitorings/{monitoring}/uptime-downtime?days=7`
@@ -221,13 +233,13 @@ Die App kann bestehende Endpunkte verwenden:
 - `GET /api/v1/monitorings/{monitoring}/ssl`
 - `GET /api/v1/monitorings/{monitoring}/uptime-calendar`
 
-Offen fuer die App-Umsetzung pruefen:
+Hinweis:
 
-- Es gibt aktuell keinen dedizierten externen `GET /api/v1/monitorings` Listen-Endpunkt fuer alle Benutzer-Monitorings. Falls die App eine Monitorliste ohne bekannte IDs braucht, sollte ein solcher Endpoint ergaenzt werden oder ein bestehender interner Listen-Endpunkt bewusst fuer externe Clients freigegeben werden.
+- `GET /api/v1/monitorings` unterstuetzt `per_page` mit einem Bereich von 1 bis 100 und sortiert aktuell nach Name.
 
 ## Push Payload
 
-FCM Notification:
+Mobile Push Notification:
 
 ```json
 {
@@ -236,7 +248,7 @@ FCM Notification:
 }
 ```
 
-FCM Data Payload:
+Data Payload:
 
 ```json
 {
@@ -274,14 +286,14 @@ Beim ersten App-Start nach Auth:
 
 1. API Token validieren, z. B. durch einen leichten Monitoring- oder Device-Request.
 2. OS Push Permission anfragen.
-3. FCM Token abrufen.
+3. Push Token vom Plattformdienst abrufen.
 4. `POST /api/v1/mobile-push-devices` senden.
 5. Device ID lokal speichern.
 
-Bei FCM Token Refresh:
+Bei Push Token Refresh:
 
 1. Neues Token abrufen.
-2. `POST /api/v1/mobile-push-devices` mit neuem Token senden.
+2. `POST /api/v1/mobile-push-devices` mit neuem Token und passendem `push_provider` senden.
 3. Neue Device ID lokal speichern.
 
 Bei App-Start:
@@ -350,7 +362,7 @@ Elemente:
 
 Hinweis:
 
-- Wenn noch kein externer Monitorlisten-Endpunkt existiert, braucht das Backend eine Erweiterung fuer diesen Screen.
+- Der Screen kann `GET /api/v1/monitorings` fuer die initiale Liste verwenden und Detaildaten pro Monitoring nachladen.
 
 ### Monitor List
 
@@ -405,7 +417,7 @@ Elemente:
 
 iOS:
 
-- APNs und Firebase Messaging konfigurieren.
+- APNs oder Firebase Messaging konfigurieren.
 - Notification Permission explizit anfragen.
 - Foreground Notifications anzeigen oder im App-Inbox-Bereich darstellen.
 - Deep Link Handling aus Notification Tap.
@@ -419,24 +431,24 @@ Android:
 
 ## Sicherheit und Datenschutz
 
-- FCM Token ist ein Secret-aehnlicher Identifier und darf nicht in Analytics/Logs geschrieben werden.
+- Push Token sind Secret-aehnliche Identifier und duerfen nicht in Analytics/Logs geschrieben werden.
 - API Token nur sicher speichern.
 - Keine Monitoring Secrets oder Auth Header aus WebGuard in der App anzeigen.
 - Push Payload bewusst klein halten, keine vertraulichen HTTP Bodies oder Zugangsdaten.
 - Bei Logout Backend Device deaktivieren.
-- Bei App-Deinstallation kann das Backend erst durch FCM Fehler das Device revoken; der Backend Driver deaktiviert bekannte ungueltige Tokens bei FCM-Fehlern.
+- Bei App-Deinstallation kann das Backend erst durch Provider-Fehler das Device revoken; der Backend Driver deaktiviert bekannte ungueltige Tokens bei FCM- oder APNs-Fehlern.
 
 ## Fehlerverhalten
 
 - Netzwerk offline: lokale letzte Daten anzeigen, deutlich als veraltet markieren.
 - API Rate Limit `429`: Retry-After beachten.
-- FCM Token fehlt: Push Setup als unvollstaendig anzeigen.
+- Push Token fehlt: Push Setup als unvollstaendig anzeigen.
 - Device Registration `422`: Eingabe/Plattformdaten korrigieren, nicht endlos retryen.
 - Device Registration `403`: Benutzer abmelden oder Token erneuern.
 
 ## Backend-Konfiguration fuer Push
 
-Produktiv benoetigt:
+Produktiv fuer FCM benoetigt:
 
 ```env
 FCM_PROJECT_ID=<firebase-project-id>
@@ -457,25 +469,41 @@ FCM_PROJECT_ID=<firebase-project-id>
 FCM_ACCESS_TOKEN=<short-lived-access-token>
 ```
 
+Produktiv fuer APNs benoetigt:
+
+```env
+APNS_KEY_ID=<apple-key-id>
+APNS_TEAM_ID=<apple-team-id>
+APNS_BUNDLE_ID=<ios-bundle-id>
+APNS_PRIVATE_KEY=<p8-private-key>
+APNS_ENVIRONMENT=production
+```
+
+Alternative:
+
+```env
+APNS_PRIVATE_KEY_PATH=/path/to/AuthKey.p8
+```
+
 Docker Compose reicht diese Variablen an PHP, Scheduler und Queue Worker weiter.
 
 ## Akzeptanzkriterien MVP
 
 - Ein Benutzer kann die App mit API Token verbinden.
+- Ein Benutzer kann sich alternativ ueber `POST /api/mobile/login` verbinden und ueber `POST /api/mobile/logout` abmelden.
 - App registriert ein iOS oder Android Device via `/api/v1/mobile-push-devices`.
 - WebGuard setzt `mobile_push` fuer den Benutzer automatisch aktiv.
-- Ein Statuswechsel in WebGuard loest ueber den bestehenden Notification Dispatcher eine FCM Notification aus.
+- Ein Statuswechsel in WebGuard loest ueber den bestehenden Notification Dispatcher eine Mobile Push Notification aus.
 - Push enthaelt `event_type`, `severity`, `monitoring_id`, `monitoring_name`, `monitoring_target`, `occurred_at`, `notification_id`.
 - Tippen auf Push oeffnet den passenden Monitor Detail Screen.
 - Logout deaktiviert das Device im Backend.
-- Reinstall oder Token Refresh erzeugt keine doppelten aktiven Eintraege fuer dasselbe FCM Token.
+- Reinstall oder Token Refresh erzeugt keine doppelten aktiven Eintraege fuer dasselbe Push Token.
 - App funktioniert mit deutscher und englischer Locale.
 - Keine Tokens werden in UI Logs oder Crash Reports im Klartext ausgegeben.
 
 ## Offene Backend-Folgeaufgaben
 
-- Externen Monitorlisten-Endpunkt fuer die App ergaenzen, falls nicht bereits in einem anderen Branch geplant.
-- Optional: Native Login API mit E-Mail/Passwort und Token-Erstellung.
+- Optional: Filter fuer `GET /api/v1/monitorings`, z. B. Status, Typ, Suche und Team.
 - Optional: Notification History API fuer mobile Inbox.
 - Optional: Per-Monitor Mobile-Push Auswahl direkt in der App.
 - Optional: Quiet Hours und kritische Alerts, die Quiet Hours umgehen duerfen.
