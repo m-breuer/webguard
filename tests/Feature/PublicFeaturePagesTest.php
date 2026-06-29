@@ -37,6 +37,10 @@ class PublicFeaturePagesTest extends TestCase
         $testResponse->assertSeeText(__('public_features.features.' . $feature['key'] . '.title'));
         $testResponse->assertSeeText(__('public_features.show.how_it_helps'));
         $testResponse->assertSeeHtml(sprintf('<link rel="canonical" href="%s">', route('public-features.show', $slug)));
+        $testResponse->assertSeeHtml('"@type":"DefinedTerm"');
+        $testResponse->assertSeeHtml('"@id":"' . route('public-features.show', $slug) . '#feature"');
+        $testResponse->assertSeeHtml('"name":"' . __('public_features.features.' . $feature['key'] . '.title') . '"');
+        $testResponse->assertSeeHtml('"mainEntity":{"@id":"' . route('public-features.show', $slug) . '#feature"}');
     }
 
     public function test_feature_overview_links_all_public_feature_pages_and_api_docs(): void
@@ -49,6 +53,10 @@ class PublicFeaturePagesTest extends TestCase
         foreach (PublicFeatureController::slugs() as $slug) {
             $testResponse->assertSeeHtml(route('public-features.show', $slug));
         }
+
+        $testResponse->assertSeeHtml('"@type":"ItemList"');
+        $testResponse->assertSeeHtml('"@id":"' . route('public-features.index') . '#feature-list"');
+        $testResponse->assertSeeHtml('"itemListElement":');
     }
 
     public function test_public_feature_overview_uses_marketing_navigation_shell(): void

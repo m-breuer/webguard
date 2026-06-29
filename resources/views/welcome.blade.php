@@ -21,28 +21,6 @@
     <x-slot:twitterImage>{{ Vite::asset('resources/images/landing-hero-purple.webp') }}</x-slot:twitterImage>
     <x-slot:canonical>{{ route('welcome') }}</x-slot:canonical>
 
-    <x-slot:head>
-        @php
-            $structuredData = [
-                '@context' => 'https://schema.org',
-                '@type' => 'SoftwareApplication',
-                'name' => __('app.name'),
-                'applicationCategory' => 'BusinessApplication',
-                'operatingSystem' => 'Web',
-                'description' => __('welcome.seo.description'),
-                'url' => route('welcome'),
-                'offers' => [
-                    '@type' => 'Offer',
-                    'price' => '0',
-                    'priceCurrency' => 'EUR',
-                ],
-            ];
-        @endphp
-        <script type="application/ld+json">
-            {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-        </script>
-    </x-slot:head>
-
     <main>
         <header class="border-b border-slate-200/80 bg-white dark:border-slate-800/70 dark:bg-slate-950">
             <x-main class="grid w-full gap-10 py-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-16">

@@ -10,25 +10,6 @@
     <x-slot:ogDescription>{{ __('public_features.index.seo.og_description') }}</x-slot:ogDescription>
     <x-slot:canonical>{{ route('public-features.index') }}</x-slot:canonical>
 
-    <x-slot:head>
-        @php
-            $structuredData = [
-                '@context' => 'https://schema.org',
-                '@type' => 'ItemList',
-                'name' => __('public_features.index.hero.title'),
-                'itemListElement' => $featureItems->keys()->values()->map(fn (string $slug, int $index): array => [
-                    '@type' => 'ListItem',
-                    'position' => $index + 1,
-                    'url' => route('public-features.show', $slug),
-                    'name' => __('public_features.features.' . $features[$slug]['key'] . '.title'),
-                ])->all(),
-            ];
-        @endphp
-        <script type="application/ld+json">
-            {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-        </script>
-    </x-slot:head>
-
     <main>
         <header class="border-b border-slate-200/80 dark:border-slate-800/70">
             <x-main class="grid w-full gap-10 py-14 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-20">

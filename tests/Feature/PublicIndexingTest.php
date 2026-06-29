@@ -104,9 +104,15 @@ class PublicIndexingTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('<script type="application/ld+json">');
+        $testResponse->assertSeeHtml('"@graph":');
+        $testResponse->assertSeeHtml('"@type":"Organization"');
+        $testResponse->assertSeeHtml('"@type":"WebSite"');
         $testResponse->assertSeeHtml('"@type":"SoftwareApplication"');
         $testResponse->assertSeeHtml('"applicationCategory":"BusinessApplication"');
         $testResponse->assertSeeHtml('"url":"' . route('welcome') . '"');
+        $testResponse->assertSeeHtml('"featureList":');
+        $testResponse->assertSeeHtml('"HTTP Monitoring"');
+        $testResponse->assertSeeHtml('"REST API and Integrations"');
         $testResponse->assertSeeHtml('"price":"0"');
         $testResponse->assertSeeHtml('"priceCurrency":"EUR"');
     }

@@ -4,6 +4,19 @@
     if (! in_array($theme, ['light', 'dark', 'system'], true)) {
         $theme = 'system';
     }
+
+    $seoTitle = isset($title) ? trim((string) $title) : __('app.title');
+    $seoDescription = isset($description) ? trim((string) $description) : __('app.description');
+    $seoKeywords = isset($keywords) ? trim((string) $keywords) : __('app.keywords');
+    $seoCanonical = isset($canonical) ? trim((string) $canonical) : url('/');
+    $seoOgTitle = isset($ogTitle) ? trim((string) $ogTitle) : __('app.og_title');
+    $seoOgDescription = isset($ogDescription) ? trim((string) $ogDescription) : __('app.og_description');
+    $seoOgUrl = isset($ogUrl) ? trim((string) $ogUrl) : $seoCanonical;
+    $seoOgImage = isset($ogImage) ? trim((string) $ogImage) : Vite::asset('resources/images/Logo-WebGuard.png');
+    $seoTwitterTitle = isset($twitterTitle) ? trim((string) $twitterTitle) : $seoOgTitle;
+    $seoTwitterDescription = isset($twitterDescription) ? trim((string) $twitterDescription) : $seoOgDescription;
+    $seoTwitterImage = isset($twitterImage) ? trim((string) $twitterImage) : $seoOgImage;
+    $structuredData = \App\Support\Seo\StructuredData::marketingPage($seoTitle, $seoDescription, $seoCanonical, Vite::asset('resources/images/Logo-WebGuard.png'));
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
 
@@ -14,27 +27,31 @@
 
     {!! $head ?? '' !!}
 
-    <title>{{ isset($title) ? trim($title) : __('app.title') }}</title>
+    <title>{{ $seoTitle }}</title>
 
     <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
 
-    <meta name="description" content="{{ isset($description) ? trim($description) : __('app.description') }}">
-    <meta name="keywords" content="{{ isset($keywords) ? trim($keywords) : __('app.keywords') }}">
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="keywords" content="{{ $seoKeywords }}">
     <meta name="author" content="{{ __('app.author') }}">
 
-    <meta property="og:title" content="{{ isset($ogTitle) ? trim($ogTitle) : __('app.og_title') }}">
-    <meta property="og:description" content="{{ isset($ogDescription) ? trim($ogDescription) : __('app.og_description') }}">
+    <meta property="og:title" content="{{ $seoOgTitle }}">
+    <meta property="og:description" content="{{ $seoOgDescription }}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ isset($ogUrl) ? trim($ogUrl) : url('/') }}">
-    <meta property="og:image" content="{{ isset($ogImage) ? trim($ogImage) : Vite::asset('resources/images/Logo-WebGuard.png') }}">
+    <meta property="og:url" content="{{ $seoOgUrl }}">
+    <meta property="og:image" content="{{ $seoOgImage }}">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ isset($twitterTitle) ? trim($twitterTitle) : (isset($ogTitle) ? trim($ogTitle) : __('app.og_title')) }}">
-    <meta name="twitter:description" content="{{ isset($twitterDescription) ? trim($twitterDescription) : (isset($ogDescription) ? trim($ogDescription) : __('app.og_description')) }}">
-    <meta name="twitter:image" content="{{ isset($twitterImage) ? trim($twitterImage) : (isset($ogImage) ? trim($ogImage) : Vite::asset('resources/images/Logo-WebGuard.png')) }}">
+    <meta name="twitter:title" content="{{ $seoTwitterTitle }}">
+    <meta name="twitter:description" content="{{ $seoTwitterDescription }}">
+    <meta name="twitter:image" content="{{ $seoTwitterImage }}">
 
-    <link rel="canonical" href="{{ isset($canonical) ? trim($canonical) : url('/') }}">
+    <link rel="canonical" href="{{ $seoCanonical }}">
+
+    <script type="application/ld+json">
+        {!! \App\Support\Seo\StructuredData::toJson($structuredData) !!}
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
