@@ -41,6 +41,18 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse->assertSeeHtml('href="' . route('monitorings.create') . '"');
     }
 
+    public function test_monitoring_filters_render_with_mobile_friendly_wrapping(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('class="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:grid-cols-2 md:flex md:w-auto md:flex-wrap md:justify-end md:gap-3"');
+        $testResponse->assertSeeHtml('class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto"');
+    }
+
     public function test_default_monitoring_index_reuses_paginator_total_without_extra_monitoring_count_query(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
