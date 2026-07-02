@@ -40,9 +40,9 @@
 
         <x-container class="ml-auto mr-auto" space="true">
             <form method="GET" action="{{ route('monitorings.index') }}"
-                class="md:flex-wrapflex-col flex w-full flex-wrap-reverse justify-between gap-2 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
+                class="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-start sm:gap-4">
 
-                <div class="relative w-full max-w-md">
+                <div class="relative w-full sm:max-w-md">
                     <x-text-input type="text" name="search" :value="request('search')"
                         placeholder="{{ __('search.fields.placeholder_monitoring') }}" />
                     @if (request('types'))
@@ -100,19 +100,19 @@
                         url.search = params.toString();
                         window.location.href = url.toString();
                     }
-                }" x-init="init()" class="flex flex-wrap gap-1">
+                }" x-init="init()" class="flex w-full flex-wrap gap-2">
                     @foreach (MonitoringType::cases() as $type)
                         <button type="button" @click="toggleType('{{ $type->value }}')"
                             :class="(selectedTypes.includes('{{ $type->value }}') ? 'bg-purple-500 text-white' :
                                 'bg-gray-100 text-gray-700') +
-                            ' rounded px-2 py-1  font-medium hover:bg-purple-100'">
+                            ' rounded px-2 py-1 text-sm font-medium hover:bg-purple-100'">
                             {{ __('monitoring.types.' . $type->value) }}
                         </button>
                     @endforeach
                 </div>
 
-                <div class="flex gap-3 sm:ml-auto">
-                    <div>
+                <div class="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:grid-cols-2 md:flex md:w-auto md:flex-wrap md:justify-end md:gap-3">
+                    <div class="min-w-0">
                         <div x-data="{
                             selectedStatus: '{{ request('lifecycle') ?? '' }}',
                             updateStatus() {
@@ -131,7 +131,7 @@
                         }" class="relative">
                             <label for="lifecycle-select" class="sr-only">{{ __('search.filter.lifecycle') }}</label>
                             <select id="lifecycle-select" x-model="selectedStatus" @change="updateStatus"
-                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto">
                                 <option value="">{{ __('search.filter.all') }}</option>
                                 @foreach (MonitoringLifecycleStatus::cases() as $status)
                                     <option value="{{ $status->value }}" @selected(request('lifecycle') === $status->value)>
@@ -142,7 +142,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="min-w-0">
                         <div x-data="{
                             selectedGroup: '{{ request('group_id') ?? '' }}',
                             updateGroup() {
@@ -161,7 +161,7 @@
                         }" class="relative">
                             <label for="group-select" class="sr-only">{{ __('monitoring_group.filter.label') }}</label>
                             <select id="group-select" x-model="selectedGroup" @change="updateGroup"
-                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto">
                                 <option value="">{{ __('monitoring_group.filter.all') }}</option>
                                 @foreach ($monitoringGroups as $monitoringGroup)
                                     <option value="{{ $monitoringGroup->id }}" @selected(request('group_id') === $monitoringGroup->id)>
@@ -172,7 +172,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="min-w-0">
                         <div x-data="{
                             selectedOwnership: '{{ request('ownership') ?? '' }}',
                             updateOwnership() {
@@ -191,7 +191,7 @@
                         }" class="relative">
                             <label for="ownership-select" class="sr-only">{{ __('team.ownership.select_label') }}</label>
                             <select id="ownership-select" x-model="selectedOwnership" @change="updateOwnership"
-                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto">
                                 <option value="">{{ __('search.filter.all') }}</option>
                                 <option value="private" @selected(request('ownership') === 'private')>{{ __('team.ownership.private') }}</option>
                                 <option value="team" @selected(request('ownership') === 'team')>{{ __('team.ownership.team') }}</option>
@@ -199,7 +199,7 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="min-w-0">
                         <div x-data="{
                             selectedTeam: '{{ request('team_id') ?? '' }}',
                             updateTeam() {
@@ -218,7 +218,7 @@
                         }" class="relative">
                             <label for="team-select" class="sr-only">{{ __('team.title') }}</label>
                             <select id="team-select" x-model="selectedTeam" @change="updateTeam"
-                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto">
                                 <option value="">{{ __('team.title') }}</option>
                                 @foreach ($teams as $team)
                                     <option value="{{ $team->id }}" @selected(request('team_id') === $team->id)>
@@ -229,7 +229,7 @@
                         </div>
                     </div>
 
-                    <div class="relative">
+                    <div class="relative min-w-0">
                         <div x-data="{
                             selectedSort: '{{ request('sort', 'name_asc') }}',
                             updateSort() {
@@ -245,8 +245,9 @@
                                 window.location.href = url.toString();
                             }
                         }">
-                            <select x-model="selectedSort" @change="updateSort"
-                                class="rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            <label for="sort-select" class="sr-only">{{ __('search.filter.heading') }}</label>
+                            <select id="sort-select" x-model="selectedSort" @change="updateSort"
+                                class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto">
                                 <option value="name_asc">{{ __('search.filter.name.asc') }}</option>
                                 <option value="name_desc">{{ __('search.filter.name.desc') }}</option>
                                 <option value="created_desc">{{ __('search.filter.date.desc') }}</option>
