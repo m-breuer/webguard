@@ -77,6 +77,42 @@ class ApiControllerTest extends TestCase
         $this->assertLessThanOrEqual(60, $retryAfter);
     }
 
+    public function test_api_access_tokens_are_rate_limited_and_logged(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $token = $user->createToken('api-access')->plainTextToken;
+
+        foreach (range(1, 5) as $_) {
+            $this->withToken($token)
+                ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+                ->assertOk();
+        }
+
+        $this->withToken($token)
+            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->assertTooManyRequests();
+
+        $this->assertDatabaseCount('api_logs', 5);
+    }
+
+    public function test_mobile_app_tokens_are_not_rate_limited_or_logged_as_api_usage(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $token = $user->createToken('ios-app:Marcel iPhone')->plainTextToken;
+
+        foreach (range(1, 6) as $_) {
+            $this->withToken($token)
+                ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+                ->assertOk();
+        }
+
+        $this->assertDatabaseCount('api_logs', 0);
+    }
+
     public function test_all_endpoint_returns_combined_monitoring_payload_without_nested_controller_responses(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');
