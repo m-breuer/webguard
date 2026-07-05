@@ -6,9 +6,9 @@ namespace App\Http\Requests;
 
 use App\Models\Monitoring;
 use App\Models\User;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 class MaintenanceRequest extends FormRequest
 {
