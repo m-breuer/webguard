@@ -6,10 +6,12 @@ namespace Tests\Feature;
 
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
+use App\Enums\TeamRole;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\ServerInstance;
+use App\Models\Team;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -108,6 +110,93 @@ class MaintenanceManagementTest extends TestCase
             'id' => $outsideMonitoring->id,
             'maintenance_from' => null,
             'maintenance_until' => null,
+        ]);
+    }
+
+    public function test_team_admin_can_schedule_and_clear_maintenance_for_team_monitoring(): void
+    {
+        $team = Team::factory()->create(['created_by_user_id' => $this->user->id]);
+        $team->memberships()->create([
+            'user_id' => $this->user->id,
+            'role' => TeamRole::ADMIN,
+        ]);
+        $monitoring = Monitoring::factory()->create([
+            'user_id' => null,
+            'team_id' => $team->id,
+            'created_by_user_id' => $this->user->id,
+            'name' => 'Team API',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $this->actingAs($this->user)->get(route('maintenance.index'))
+            ->assertOk()
+            ->assertSeeText('Team API');
+
+        $this->actingAs($this->user)->post(route('maintenance.store'), [
+            'scope' => 'monitoring',
+            'monitoring_id' => $monitoring->id,
+            'maintenance_from' => '2026-07-03T10:00',
+            'maintenance_until' => '2026-07-03T11:00',
+        ])->assertRedirect(route('maintenance.index'));
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'maintenance_from' => '2026-07-03 10:00:00',
+            'maintenance_until' => '2026-07-03 11:00:00',
+        ]);
+
+        $this->actingAs($this->user)->delete(route('maintenance.destroy'), [
+            'monitoring_id' => $monitoring->id,
+        ])->assertRedirect(route('maintenance.index'));
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'maintenance_from' => null,
+            'maintenance_until' => null,
+        ]);
+    }
+
+    public function test_team_member_cannot_schedule_or_clear_team_monitoring_maintenance(): void
+    {
+        $member = User::factory()->create(['package_id' => Package::factory()->create()->id]);
+        $team = Team::factory()->create(['created_by_user_id' => $this->user->id]);
+        $team->memberships()->create([
+            'user_id' => $this->user->id,
+            'role' => TeamRole::ADMIN,
+        ]);
+        $team->memberships()->create([
+            'user_id' => $member->id,
+            'role' => TeamRole::MEMBER,
+        ]);
+        $monitoring = Monitoring::factory()->create([
+            'user_id' => null,
+            'team_id' => $team->id,
+            'created_by_user_id' => $this->user->id,
+            'name' => 'Shared API',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
+        ]);
+
+        $this->actingAs($member)->get(route('maintenance.index'))
+            ->assertOk()
+            ->assertDontSeeText('Shared API');
+
+        $this->actingAs($member)->post(route('maintenance.store'), [
+            'scope' => 'monitoring',
+            'monitoring_id' => $monitoring->id,
+            'maintenance_from' => '2026-07-03T10:00',
+            'maintenance_until' => '2026-07-03T11:00',
+        ])->assertSessionHasErrors(['monitoring_id']);
+
+        $this->actingAs($member)->delete(route('maintenance.destroy'), [
+            'monitoring_id' => $monitoring->id,
+        ])->assertSessionHasErrors(['monitoring_id']);
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
         ]);
     }
 

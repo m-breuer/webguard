@@ -12,7 +12,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MaintenanceController extends Controller
@@ -23,7 +22,8 @@ class MaintenanceController extends Controller
         $user = Auth::user();
 
         return view('maintenance.index', [
-            'monitorings' => $user->monitorings()
+            'monitorings' => Monitoring::query()
+                ->manageableBy($user)
                 ->with('groups:id,name')
                 ->orderBy('name')
                 ->get(),
@@ -55,16 +55,23 @@ class MaintenanceController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         abort_if($request->user()?->isDemo(), 403);
+        /** @var User $user */
+        $user = $request->user();
 
         $validated = $request->validate([
             'monitoring_id' => [
                 'required',
                 'string',
-                Rule::exists('monitorings', 'id')->where('user_id', $request->user()?->id),
+                function ($attribute, $value, $fail) use ($user): void {
+                    if (! Monitoring::query()->manageableBy($user)->whereKey((string) $value)->exists()) {
+                        $fail(__('validation.exists', ['attribute' => __('maintenance.form.monitoring')]));
+                    }
+                },
             ],
         ]);
 
         Monitoring::query()
+            ->manageableBy($user)
             ->whereKey($validated['monitoring_id'])
             ->update([
                 'maintenance_from' => null,
@@ -77,7 +84,9 @@ class MaintenanceController extends Controller
 
     private function targetMonitorings(MaintenanceRequest $maintenanceRequest): Builder
     {
-        $query = Monitoring::query();
+        /** @var User $user */
+        $user = $maintenanceRequest->user();
+        $query = Monitoring::query()->manageableBy($user);
 
         if ($maintenanceRequest->string('scope')->toString() === 'group') {
             return $query->whereHas('groups', function ($builder) use ($maintenanceRequest): void {
