@@ -1,9 +1,11 @@
+name: ${COMPOSE_PROJECT_NAME:-webguard}
+
 x-app-environment: &app-environment
   APP_NAME: "WebGuard"
   APP_ENV: "production"
   APP_DEBUG: "false"
   APP_KEY: "${APP_KEY:?APP_KEY must be set to a persistent Laravel application key}"
-  APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"
+  APP_URL: "${APP_URL:-https://webguard.example.com}"
   APP_TIMEZONE: "Europe/Berlin"
   APP_LOCALE: "en"
   APP_FALLBACK_LOCALE: "en"
@@ -55,11 +57,10 @@ x-app-environment: &app-environment
 
 services:
   php:
-    container_name: webguard-php
     build:
       context: .
       target: production
-    image: webguard-core-php:latest
+    image: ${WEBGUARD_APP_IMAGE:-webguard-core-php:latest}
     restart: unless-stopped
     stop_signal: SIGTERM
     environment:
@@ -102,8 +103,10 @@ services:
           - webguard-api
 
   schedule:
-    container_name: webguard-schedule
-    image: webguard-core-worker:latest
+    build:
+      context: .
+      target: worker
+    image: ${WEBGUARD_WORKER_IMAGE:-webguard-core-worker:latest}
     restart: unless-stopped
     environment:
       <<: *app-environment
@@ -133,11 +136,10 @@ services:
       - webguard-network
 
   queue-default:
-    container_name: webguard-queue-default
     build:
       context: .
       target: worker
-    image: webguard-core-worker:latest
+    image: ${WEBGUARD_WORKER_IMAGE:-webguard-core-worker:latest}
     restart: unless-stopped
     environment:
       <<: *app-environment
@@ -162,7 +164,6 @@ services:
       - webguard-network
 
   mysql:
-    container_name: webguard-mysql
     profiles:
       - internal-services
     image: mysql:8.4
@@ -183,7 +184,6 @@ services:
       - webguard-network
 
   redis:
-    container_name: webguard-redis
     profiles:
       - internal-services
     image: redis:8.4-alpine
