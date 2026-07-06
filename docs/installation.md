@@ -5,8 +5,8 @@
 - PHP 8.5 or higher
 - Composer
 - Bun
-- A supported database, such as MySQL or PostgreSQL
-- Redis
+- A supported database, usually MySQL for the Docker setup
+- Redis for cache and queue processing
 
 ## Native Setup Without Docker
 
@@ -15,7 +15,7 @@ Use this setup when you prefer running services directly on your host machine.
 1. Clone the repository.
 
    ```bash
-   git clone https://github.com/m-breuer/webguard.git
+   git clone https://github.com/marcel-breuer/webguard.git
    cd webguard
    ```
 
@@ -63,40 +63,38 @@ Use this setup when you prefer running services directly on your host machine.
 
 ## Heartbeat Queue Worker
 
-In production, run a dedicated worker for the configured heartbeat queue on the standard Redis connection. If `HEARTBEAT_QUEUE` is not set, it defaults to `heartbeat`.
+In production, run a worker for the configured heartbeat queue on the standard Redis connection. If `HEARTBEAT_QUEUE` is not set, it defaults to `heartbeat`.
 
 ```bash
 php artisan queue:work redis --queue="${HEARTBEAT_QUEUE:-heartbeat}" --sleep=3 --tries=3 --max-time=3600
 ```
 
-Docker worker processes handle `default,heartbeat` by default.
+The Docker worker process handles `default,heartbeat` by default.
 
-## Docker Deployment
+## Docker Deployment Model
 
-This repository uses two Docker modes:
+This repository is platform-neutral. It does not assume a specific hosting platform. The Docker stack can be run directly through Docker Compose, an Ansible-managed server, Portainer, Docker Swarm with adapted stack files, or another reverse-proxy-based deployment environment.
 
-- `docker-compose.yml`: standard deployment stack
-- `docker-compose.override.yml`: local development additions only
+The standard deployment stack contains:
 
-The standard deployment stack always contains:
+- `php`: web runtime with the application server
+- `schedule`: Laravel scheduler process
+- `queue-default`: Redis-backed queue worker for `default,heartbeat`
 
-- `php`
-- `schedule`
-- `queue-default`
-
-The optional `internal-services` profile also adds bundled infrastructure:
+The optional `internal-services` profile also adds bundled infrastructure for local or standalone deployments:
 
 - `mysql`
 - `redis`
 
-Use `.env.example` as the starting point for `.env`.
+For production, prefer externally managed shared infrastructure if this app runs together with other projects on the same server. In that case, the production infrastructure repository should provide MySQL, Redis, Traefik, backups, and secrets, while this repository only provides the application image and local development stack.
 
-Minimum `.env` fields for production:
+## Minimum Production Environment
+
+Use `.env.example` as the starting point, but set concrete production values. Do not reference one environment variable from another inside the value because Docker Compose evaluates the environment file before the container starts.
 
 ```env
-SERVICE_URL_PHP=https://webguard.example.com
+APP_URL=https://webguard.example.com
 APP_KEY=base64:...
-WEBGUARD_NETWORK=coolify
 DOCKER_SSL_MODE=off
 
 DB_HOST=mysql
@@ -119,72 +117,77 @@ MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME=WebGuard
 ```
 
-When using Coolify, set concrete values instead of referencing another variable inside the value. For example, use `SERVICE_URL_PHP=https://webguard.example.com`, `SMTP_USERNAME=noreply@example.com`, `MAIL_FROM_NAME=WebGuard`, and `GITHUB_REDIRECT_URI=https://webguard.example.com/auth/github/callback`. Do not use values such as `APP_URL={$SERVICE_URL_PHP}` or `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
-
-For Docker deployments, use `SMTP_USERNAME` as the input variable. The Compose file passes it into the container as Laravel's `MAIL_USERNAME`. This avoids Docker Compose expanding old values such as `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` during Coolify builds.
-
-If Coolify still shows `MAIL_USERNAME`, delete it or replace it with a literal value. Do not keep `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` in Coolify; Docker Compose expands the env file before the application starts and logs a warning when the referenced value is not available at that point.
-
-For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `MAIL_ENCRYPTION=tls`.
-
-Optional:
+Optional production values:
 
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
 - `IMPRINT_*` fields for legal/imprint content
+- `FCM_*` and `APNS_*` values for push notification integrations
 
-### Build and Startup Performance
+For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `MAIL_ENCRYPTION=tls`.
 
-The production Dockerfile uses BuildKit cache mounts for Composer and Bun dependency downloads. Keep BuildKit enabled in Docker, Docker Compose, or your deployment platform so repeated builds can reuse those caches.
+## Reverse Proxy Operation
 
-The production web container keeps startup-generated artifacts off by default to make deploys and restarts faster:
+The application listens internally on port `8080` for HTTP and `8443` for optional container-level HTTPS. In normal production operation, terminate public TLS at the reverse proxy and route traffic to the `php` service on port `8080`.
+
+Recommended production setup:
+
+```text
+Internet
+  -> Traefik/Caddy/Nginx :443
+  -> webguard php service :8080
+```
+
+Set:
+
+```env
+DOCKER_SSL_MODE=off
+```
+
+Use container-level HTTPS on `8443` only when the connection between the reverse proxy and the application container must also be encrypted.
+
+## External Database and Redis
+
+For production deployments with shared infrastructure, set `DB_HOST` and `REDIS_HOST` to the service names or hostnames of the database and Redis containers reachable through the shared Docker network.
+
+Example with external services in the same Docker network:
+
+```env
+WEBGUARD_NETWORK=edge-or-data-network
+
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=webguard_core
+DB_USERNAME=webguard
+DB_PASSWORD=...
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=null
+```
+
+`WEBGUARD_NETWORK` must be the existing external Docker network shared by WebGuard, MySQL, Redis, and any `webguard-instance` containers. For a one-server setup with a central infrastructure repository, this network should be created and owned by that infrastructure repository.
+
+The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers.
+
+## Build and Startup Performance
+
+The production Dockerfile uses BuildKit cache mounts for Composer and Bun dependency downloads. Keep BuildKit enabled in Docker, Docker Compose, or the CI pipeline so repeated builds can reuse those caches.
+
+The production web container keeps startup-generated artifacts disabled by default to make deploys and restarts faster:
 
 ```env
 AUTORUN_LARAVEL_SITEMAP_GENERATE=false
 AUTORUN_LARAVEL_SCRIBE_GENERATE=false
 ```
 
-Set either value to `true` only when the container should regenerate the static sitemap or Scribe API documentation during startup. The entrypoint scripts remain installed in the image and skip work unless the matching flag is enabled.
-
-### External Database and Redis
-
-For production deployments such as Coolify, set `DB_HOST` and `REDIS_HOST` to the service names or hostnames of the database and Redis containers you want to use.
-
-Example with external services in the same Docker network:
-
-```env
-WEBGUARD_NETWORK=coolify
-
-DB_HOST=my-production-mysql
-DB_PORT=3306
-DB_DATABASE=webguard_core
-DB_USERNAME=webguard
-DB_PASSWORD=...
-
-REDIS_HOST=my-production-redis
-REDIS_PORT=6379
-REDIS_PASSWORD=null
-```
-
-`WEBGUARD_NETWORK` must be the existing external Docker network shared by WebGuard, MySQL, Redis, and any webguard-instance containers. In Coolify this is usually `coolify`; use the actual shared network name from your server if it differs.
-
-The bundled `mysql` and `redis` services are behind the `internal-services` Compose profile. Leave `COMPOSE_PROFILES` empty in Coolify when you connect external services. Set `COMPOSE_PROFILES=internal-services` only when this Compose stack should also create the bundled MySQL and Redis containers.
-
-Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
-
-For Coolify routing, assign the public domain to the `php` service in Coolify and route it to internal port `8080`; for example, use `https://webguard-test.m-breuer.dev:8080` in the Coolify domain field. Set `SERVICE_URL_PHP` to the same public URL without the internal port, for example `https://webguard-test.m-breuer.dev`, so Laravel generates correct absolute URLs.
-
-Do not add custom Traefik labels that reference `SERVICE_FQDN_PHP` or Docker Compose defaults such as `${SERVICE_FQDN_PHP:-webguard.example.com}` in Coolify. Coolify generates the proxy routing and Let's Encrypt labels from the assigned domain; shipping custom labels can leave unresolved placeholders in Traefik and cause invalid `HostSNI` or ACME identifiers.
-
-The application listens internally on `8080` for HTTP and `8443` for optional container-level HTTPS. For Coolify deployments, keep `DOCKER_SSL_MODE=off` and let Coolify/Traefik generate and terminate public TLS.
-
-If you use Coolify, Traefik, or another reverse proxy in front of the deployment, route traffic to the `php` service on `8080`. Set `DOCKER_SSL_MODE=mixed` and use `8443` only when you explicitly want encrypted traffic between the proxy and the application container.
+Set either value to `true` only when the container should regenerate the static sitemap or Scribe API documentation during startup.
 
 ## Docker Local Development
 
 The local override adds everything that should only exist during development:
 
-- Traefik
-- Bun / Vite
+- local Traefik
+- Bun/Vite dev server
 - MySQL
 - Redis
 - Mailpit
@@ -195,7 +198,7 @@ The local override adds everything that should only exist during development:
 1. Clone and enter the repository.
 
    ```bash
-   git clone https://github.com/m-breuer/webguard.git
+   git clone https://github.com/marcel-breuer/webguard.git
    cd webguard
    ```
 
@@ -237,6 +240,7 @@ The local override adds everything that should only exist during development:
 ### Local Environment Values
 
 `.env.example` is the only Docker template.
+
 Minimum `.env` fields for local Docker:
 
 ```env
@@ -326,8 +330,7 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm nod
 
 ## webguard-instance Integration With Local Docker
 
-The local stack uses the shared Docker network `webguard-network`.
-Because the local Traefik service also has the network alias `webguard.test`, other containers on the same network can reach WebGuard through the same URL as your browser.
+The local stack uses the shared Docker network `webguard-network`. Because the local Traefik service also has the network alias `webguard.test`, other containers on the same network can reach WebGuard through the same URL as your browser.
 
 That means `webguard-instance` can use either:
 
