@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Monitoring;
+use App\Models\User;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +28,6 @@ class MaintenanceRequest extends FormRequest
                 'nullable',
                 'required_if:scope,monitoring',
                 'string',
-                Rule::exists('monitorings', 'id')->where('user_id', $this->user()?->id),
             ],
             'monitoring_group_id' => [
                 'nullable',
@@ -35,6 +37,35 @@ class MaintenanceRequest extends FormRequest
             ],
             'maintenance_from' => ['required', 'date'],
             'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($this->string('scope')->toString() !== 'monitoring' || $validator->errors()->has('monitoring_id')) {
+                    return;
+                }
+
+                $user = $this->user();
+                $monitoringId = $this->string('monitoring_id')->toString();
+
+                if (! $user instanceof User || $monitoringId === '') {
+                    return;
+                }
+
+                $isManageable = Monitoring::query()
+                    ->manageableBy($user)
+                    ->whereKey($monitoringId)
+                    ->exists();
+
+                if (! $isManageable) {
+                    $validator->errors()->add('monitoring_id', __('validation.exists', [
+                        'attribute' => __('maintenance.form.monitoring'),
+                    ]));
+                }
+            },
         ];
     }
 }
