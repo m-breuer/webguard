@@ -20,17 +20,29 @@ class MaintenanceController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
+        $manageableMonitorings = ! $user->isDemo()
+            ? Monitoring::query()
+                ->manageableBy($user)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
+        $canManageMaintenance = $manageableMonitorings->isNotEmpty();
 
         return view('maintenance.index', [
             'monitorings' => Monitoring::query()
-                ->manageableBy($user)
+                ->visibleTo($user)
                 ->with('groups:id,name')
                 ->orderBy('name')
                 ->get(),
-            'monitoringGroups' => $user->monitoringGroups()
-                ->withCount('monitorings')
-                ->orderBy('name')
-                ->get(['id', 'name']),
+            'manageableMonitorings' => $manageableMonitorings,
+            'manageableMonitoringIds' => $manageableMonitorings->modelKeys(),
+            'monitoringGroups' => $canManageMaintenance
+                ? $user->monitoringGroups()
+                    ->withCount('monitorings')
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                : collect(),
+            'canManageMaintenance' => $canManageMaintenance,
         ]);
     }
 
