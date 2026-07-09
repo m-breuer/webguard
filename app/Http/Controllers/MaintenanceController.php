@@ -56,7 +56,7 @@ class MaintenanceController extends Controller
                 'none' => $monitorings->count() - $activeMaintenanceCount - $upcomingMaintenanceCount - $expiredMaintenanceCount,
             ],
             'manageableMonitorings' => $manageableMonitorings,
-            'manageableMonitoringIds' => $manageableMonitorings->modelKeys(),
+            'manageableMonitoringIds' => $manageableMonitorings->pluck('id')->all(),
             'monitoringGroups' => $canManageMaintenance
                 ? $user->monitoringGroups()
                     ->withCount('monitorings')
