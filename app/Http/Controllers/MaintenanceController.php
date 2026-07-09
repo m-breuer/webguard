@@ -7,7 +7,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\MaintenanceRequest;
 use App\Models\Monitoring;
 use App\Models\User;
+use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,10 +18,16 @@ use Illuminate\View\View;
 
 class MaintenanceController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
+        $validated = $request->validate(AsyncTable::requestRules([
+            'search' => ['nullable', 'string', 'max:100'],
+            'maintenance_status' => ['nullable', 'string', 'in:active,upcoming,expired,none'],
+            'monitoring_group_id' => ['nullable', 'string', 'exists:monitoring_groups,id'],
+        ], ['name', 'maintenance_status', 'maintenance_from', 'maintenance_until']));
+        $asyncTableOptions = AsyncTable::options($validated, 'name', 'asc', 25);
         $manageableMonitorings = ! $user->isDemo()
             ? Monitoring::query()
                 ->manageableBy($user)
@@ -45,9 +53,33 @@ class MaintenanceController extends Controller
                 && $monitoring->maintenance_from !== null
                 && ! $monitoring->maintenance_from->isFuture())
             ->count();
+        $tableQuery = Monitoring::query()
+            ->visibleTo($user)
+            ->with('groups:id,name')
+            ->when($validated['search'] ?? null, function (Builder $builder, string $search): void {
+                $builder->where(function (Builder $builder) use ($search): void {
+                    $builder->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('target', 'like', '%' . $search . '%')
+                        ->orWhereHas('groups', fn (Builder $builder): Builder => $builder->where('name', 'like', '%' . $search . '%'));
+                });
+            })
+            ->when($validated['monitoring_group_id'] ?? null, fn (Builder $builder, string $groupId): Builder => $builder->whereHas('groups', fn (Builder $builder): Builder => $builder->where('monitoring_groups.id', $groupId)));
+
+        $this->applyMaintenanceStatusFilter($tableQuery, (string) ($validated['maintenance_status'] ?? ''));
+        $this->applyMaintenanceSort($tableQuery, $asyncTableOptions->sort, $asyncTableOptions->direction);
+
+        $lengthAwarePaginator = $tableQuery->paginate($asyncTableOptions->perPage);
+
+        if ($request->expectsJson()) {
+            return AsyncTable::json($lengthAwarePaginator, 'maintenance.partials.rows', [
+                'monitorings' => $lengthAwarePaginator,
+                'canManageMaintenance' => $canManageMaintenance,
+                'manageableMonitoringIds' => $manageableMonitorings->pluck('id')->all(),
+            ]);
+        }
 
         return view('maintenance.index', [
-            'monitorings' => $monitorings,
+            'monitorings' => $lengthAwarePaginator,
             'maintenanceStats' => [
                 'total' => $monitorings->count(),
                 'active' => $activeMaintenanceCount,
@@ -57,13 +89,39 @@ class MaintenanceController extends Controller
             ],
             'manageableMonitorings' => $manageableMonitorings,
             'manageableMonitoringIds' => $manageableMonitorings->pluck('id')->all(),
-            'monitoringGroups' => $canManageMaintenance
-                ? $user->monitoringGroups()
-                    ->withCount('monitorings')
-                    ->orderBy('name')
-                    ->get(['id', 'name'])
-                : collect(),
+            'monitoringGroups' => $user->monitoringGroups()
+                ->withCount('monitorings')
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'canManageMaintenance' => $canManageMaintenance,
+            'filters' => [
+                [
+                    'name' => 'maintenance_status',
+                    'label' => __('maintenance.table.status_filter'),
+                    'placeholder' => __('search.filter.text', ['attribute' => __('maintenance.table.status_filter')]),
+                    'options' => [
+                        'active' => __('maintenance.status.active'),
+                        'upcoming' => __('maintenance.status.upcoming'),
+                        'expired' => __('maintenance.status.expired'),
+                        'none' => __('maintenance.status.none'),
+                    ],
+                ],
+                [
+                    'name' => 'monitoring_group_id',
+                    'label' => __('maintenance.table.group_filter'),
+                    'placeholder' => __('search.filter.text', ['attribute' => __('maintenance.table.group_filter')]),
+                    'options' => $user->monitoringGroups()
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all(),
+                ],
+            ],
+            'activeFilters' => [
+                'maintenance_status' => (string) ($validated['maintenance_status'] ?? ''),
+                'monitoring_group_id' => (string) ($validated['monitoring_group_id'] ?? ''),
+            ],
+            'sort' => $asyncTableOptions->sort,
+            'direction' => $asyncTableOptions->direction,
         ]);
     }
 
@@ -128,5 +186,58 @@ class MaintenanceController extends Controller
         }
 
         return $query->whereKey($maintenanceRequest->string('monitoring_id')->toString());
+    }
+
+    private function applyMaintenanceStatusFilter(Builder $builder, string $maintenanceStatus): void
+    {
+        if ($maintenanceStatus === '') {
+            return;
+        }
+
+        $now = Date::now();
+
+        match ($maintenanceStatus) {
+            'active' => $builder
+                ->whereNotNull('maintenance_from')
+                ->where('maintenance_from', '<=', $now)
+                ->where(function (Builder $builder) use ($now): void {
+                    $builder->whereNull('maintenance_until')
+                        ->orWhere('maintenance_until', '>=', $now);
+                }),
+            'upcoming' => $builder
+                ->whereNotNull('maintenance_from')
+                ->where('maintenance_from', '>', $now),
+            'expired' => $builder
+                ->whereNotNull('maintenance_from')
+                ->whereNotNull('maintenance_until')
+                ->where('maintenance_until', '<', $now),
+            'none' => $builder->whereNull('maintenance_from'),
+            default => null,
+        };
+    }
+
+    private function applyMaintenanceSort(Builder $builder, string $sort, string $direction): void
+    {
+        if ($sort === 'maintenance_status') {
+            $now = Date::now();
+            $builder
+                ->orderByRaw(
+                    "case
+                        when maintenance_from is not null and maintenance_from <= ? and (maintenance_until is null or maintenance_until >= ?) then 0
+                        when maintenance_from is not null and maintenance_from > ? then 1
+                        when maintenance_from is not null then 2
+                        else 3
+                    end {$direction}",
+                    [$now, $now, $now]
+                )
+                ->orderBy('name');
+
+            return;
+        }
+
+        $builder
+            ->orderBy($sort, $direction)
+            ->orderBy('name')
+            ->orderBy('id');
     }
 }

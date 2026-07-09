@@ -14,6 +14,7 @@ use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
 class MaintenanceManagementTest extends TestCase
@@ -77,6 +78,54 @@ class MaintenanceManagementTest extends TestCase
             'maintenance_from' => '2026-07-01 10:00:00',
             'maintenance_until' => '2026-07-01 11:00:00',
         ]);
+    }
+
+    public function test_maintenance_table_supports_filtering_search_and_sorting(): void
+    {
+        Date::setTestNow('2026-07-01 10:30:00');
+        $this->beforeApplicationDestroyed(fn (): mixed => Date::setTestNow());
+
+        $group = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
+        $activeMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Alpha Maintenance',
+            'target' => 'https://alpha-maintenance.example.test',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
+        ]);
+        $zuluMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Zulu Maintenance',
+            'target' => 'https://zulu-maintenance.example.test',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-01 09:00:00',
+            'maintenance_until' => '2026-07-01 12:00:00',
+        ]);
+        Monitoring::factory()->for($this->user)->create([
+            'name' => 'Outside Maintenance',
+            'target' => 'https://outside-maintenance.example.test',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => null,
+            'maintenance_until' => null,
+        ]);
+        $activeMonitoring->groups()->attach($group);
+        $zuluMonitoring->groups()->attach($group);
+
+        $testResponse = $this->actingAs($this->user)->getJson(route('maintenance.index', [
+            'search' => 'Maintenance',
+            'maintenance_status' => 'active',
+            'monitoring_group_id' => $group->id,
+            'sort' => 'name',
+            'direction' => 'desc',
+            'per_page' => 5,
+        ]));
+
+        $testResponse->assertOk()->assertJsonPath('pagination.total', 2);
+        $html = $testResponse->json('html');
+
+        $this->assertStringContainsString('Zulu Maintenance', $html);
+        $this->assertStringContainsString('Alpha Maintenance', $html);
+        $this->assertStringNotContainsString('Outside Maintenance', $html);
+        $this->assertLessThan(mb_strpos($html, 'Alpha Maintenance'), mb_strpos($html, 'Zulu Maintenance'));
     }
 
     public function test_user_can_schedule_maintenance_for_monitoring_group(): void
