@@ -26,6 +26,7 @@ use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
 use App\Http\Controllers\StatusPageSubscriberController;
+use App\Http\Controllers\StatusPageSubscriptionController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamInvitationAcceptController;
 use App\Http\Controllers\TeamInvitationController;
@@ -104,6 +105,15 @@ Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSub
 Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
     ->name('public-label.subscribers.destroy')
     ->scopeBindings();
+Route::post('/status/{statusPage:slug}/subscribers', [StatusPageSubscriptionController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('public-status-pages.subscribers.store');
+Route::get('/status/{statusPage:slug}/subscribers/confirm/{token}', [StatusPageSubscriptionController::class, 'confirm'])
+    ->name('public-status-pages.subscribers.confirm');
+Route::get('/status/{statusPage:slug}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'unsubscribe'])
+    ->name('public-status-pages.subscribers.unsubscribe');
+Route::delete('/status/{statusPage:slug}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'destroy'])
+    ->name('public-status-pages.subscribers.destroy');
 Route::get('/status/{statusPage:slug}', PublicStatusPageController::class)
     ->name('public-status-pages.show');
 

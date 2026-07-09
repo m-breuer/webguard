@@ -18,6 +18,12 @@
 
     <x-main>
         <div class="space-y-6">
+            @if (session('status_page_subscription_success'))
+                <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+                    {{ session('status_page_subscription_success') }}
+                </div>
+            @endif
+
             <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 @foreach ($components as $statusPageComponent)
                     <x-container id="status-page-component-{{ $statusPageComponent['model']->id }}">
@@ -64,6 +70,35 @@
                         </div>
                     </x-container>
                 @endforeach
+            </section>
+
+            <section id="status-page-subscription">
+                <x-container>
+                    <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <x-heading type="h2">{{ __('status_page.public.subscribe.heading') }}</x-heading>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('status_page.public.subscribe.description') }}
+                            </p>
+                        </div>
+
+                        <form method="POST" action="{{ route('public-status-pages.subscribers.store', $statusPage->slug) }}"
+                            class="w-full md:max-w-md">
+                            @csrf
+
+                            <x-input-label for="status-page-subscriber-email" :value="__('status_page.public.subscribe.email')" />
+                            <div class="mt-2 flex flex-col gap-3 sm:flex-row">
+                                <x-text-input id="status-page-subscriber-email" type="email" name="email"
+                                    :value="old('email')" required autocomplete="email"
+                                    :placeholder="__('status_page.public.subscribe.email_placeholder')" />
+                                <x-primary-button class="shrink-0 justify-center">
+                                    {{ __('status_page.public.subscribe.button') }}
+                                </x-primary-button>
+                            </div>
+                            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+                        </form>
+                    </div>
+                </x-container>
             </section>
 
             <section id="status-page-incidents">

@@ -7,11 +7,14 @@ namespace Tests\Feature\Notifications;
 use App\Enums\NotificationDeliveryStatus;
 use App\Enums\NotificationEventType;
 use App\Enums\NotificationType;
+use App\Mail\PublicStatusPageStatusUpdateMail;
 use App\Mail\StatusPageStatusUpdateMail;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
 use App\Models\Package;
+use App\Models\StatusPage;
 use App\Models\StatusPageSubscriber;
+use App\Models\StatusPageSubscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -193,6 +196,85 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
                 && $statusPageStatusUpdateMail->status === 'down';
         });
         Mail::assertNotSent(StatusPageStatusUpdateMail::class, fn (StatusPageStatusUpdateMail $statusPageStatusUpdateMail): bool => $statusPageStatusUpdateMail->hasTo('pending@example.com'));
+        Http::assertNothingSent();
+    }
+
+    public function test_dispatches_status_change_email_to_verified_public_component_status_page_subscribers(): void
+    {
+        Mail::fake();
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Primary API',
+            'notification_on_failure' => false,
+            'public_label_enabled' => false,
+        ]);
+        $outsideMonitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Internal Worker',
+        ]);
+
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+
+        $outsideStatusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Outside Status',
+            'slug' => 'outside-status',
+            'is_public' => true,
+        ]);
+        $outsideComponent = $outsideStatusPage->components()->create(['name' => 'Workers', 'position' => 0]);
+        $outsideComponent->monitorings()->attach($outsideMonitoring->id, ['position' => 0]);
+
+        $subscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'verified@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'verified-token',
+            'verified_at' => Date::now(),
+        ]);
+        StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'pending@example.com',
+            'confirmation_token_hash' => StatusPageSubscription::hashToken('pending-token'),
+            'unsubscribe_token' => 'pending-token',
+            'verified_at' => null,
+        ]);
+        StatusPageSubscription::query()->create([
+            'status_page_id' => $outsideStatusPage->id,
+            'email' => 'outside@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'outside-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $monitoringNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'DOWN',
+            'read' => false,
+            'sent' => false,
+        ]);
+
+        Http::fake();
+
+        Artisan::call('notifications:dispatch-status-changes');
+
+        $this->assertTrue($monitoringNotification->refresh()->sent);
+        Mail::assertSent(PublicStatusPageStatusUpdateMail::class, function (PublicStatusPageStatusUpdateMail $mail) use ($subscription, $monitoring): bool {
+            return $mail->hasTo('verified@example.com')
+                && $mail->subscription->is($subscription)
+                && $mail->monitoring->is($monitoring)
+                && $mail->status === 'down';
+        });
+        Mail::assertNotSent(PublicStatusPageStatusUpdateMail::class, fn (PublicStatusPageStatusUpdateMail $mail): bool => $mail->hasTo('pending@example.com'));
+        Mail::assertNotSent(PublicStatusPageStatusUpdateMail::class, fn (PublicStatusPageStatusUpdateMail $mail): bool => $mail->hasTo('outside@example.com'));
         Http::assertNothingSent();
     }
 }

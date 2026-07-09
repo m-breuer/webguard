@@ -42,6 +42,14 @@ class StatusPage extends Model
     }
 
     /**
+     * @return HasMany<StatusPageSubscription, $this>
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(StatusPageSubscription::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
