@@ -26,6 +26,13 @@ return [
         'heading' => 'Planned windows',
         'description' => 'Current and upcoming windows across your monitorings.',
     ],
+    'summary' => [
+        'total' => 'Total',
+    ],
+    'table' => [
+        'groups' => 'Groups',
+        'actions' => 'Actions',
+    ],
     'status' => [
         'active' => 'Active',
         'upcoming' => 'Upcoming',

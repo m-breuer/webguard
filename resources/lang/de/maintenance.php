@@ -26,6 +26,13 @@ return [
         'heading' => 'Geplante Fenster',
         'description' => 'Aktuelle und kommende Fenster über alle Ihre Überwachungen hinweg.',
     ],
+    'summary' => [
+        'total' => 'Gesamt',
+    ],
+    'table' => [
+        'groups' => 'Gruppen',
+        'actions' => 'Aktionen',
+    ],
     'status' => [
         'active' => 'Aktiv',
         'upcoming' => 'Geplant',
