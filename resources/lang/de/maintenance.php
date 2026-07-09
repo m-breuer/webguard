@@ -32,6 +32,8 @@ return [
     'table' => [
         'groups' => 'Gruppen',
         'actions' => 'Aktionen',
+        'status_filter' => 'Wartungsstatus',
+        'group_filter' => 'Monitoring-Gruppe',
     ],
     'status' => [
         'active' => 'Aktiv',
