@@ -51,6 +51,8 @@ class MaintenanceManagementTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('maintenance.title'));
+        $testResponse->assertSeeText(__('maintenance.summary.total'));
+        $testResponse->assertSeeText(__('maintenance.table.groups'));
         $testResponse->assertSeeText('Checkout API');
         $testResponse->assertSeeText('Production');
         $testResponse->assertSeeHtml('action="' . route('maintenance.store') . '"');

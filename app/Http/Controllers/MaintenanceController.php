@@ -27,13 +27,34 @@ class MaintenanceController extends Controller
                 ->get(['id', 'name'])
             : collect();
         $canManageMaintenance = $manageableMonitorings->isNotEmpty();
+        $monitorings = Monitoring::query()
+            ->visibleTo($user)
+            ->with('groups:id,name')
+            ->orderBy('name')
+            ->get();
+        $activeMaintenanceCount = $monitorings
+            ->filter(static fn (Monitoring $monitoring): bool => $monitoring->isUnderMaintenance())
+            ->count();
+        $upcomingMaintenanceCount = $monitorings
+            ->filter(static fn (Monitoring $monitoring): bool => ! $monitoring->isUnderMaintenance()
+                && $monitoring->maintenance_from !== null
+                && $monitoring->maintenance_from->isFuture())
+            ->count();
+        $expiredMaintenanceCount = $monitorings
+            ->filter(static fn (Monitoring $monitoring): bool => ! $monitoring->isUnderMaintenance()
+                && $monitoring->maintenance_from !== null
+                && ! $monitoring->maintenance_from->isFuture())
+            ->count();
 
         return view('maintenance.index', [
-            'monitorings' => Monitoring::query()
-                ->visibleTo($user)
-                ->with('groups:id,name')
-                ->orderBy('name')
-                ->get(),
+            'monitorings' => $monitorings,
+            'maintenanceStats' => [
+                'total' => $monitorings->count(),
+                'active' => $activeMaintenanceCount,
+                'upcoming' => $upcomingMaintenanceCount,
+                'expired' => $expiredMaintenanceCount,
+                'none' => $monitorings->count() - $activeMaintenanceCount - $upcomingMaintenanceCount - $expiredMaintenanceCount,
+            ],
             'manageableMonitorings' => $manageableMonitorings,
             'manageableMonitoringIds' => $manageableMonitorings->modelKeys(),
             'monitoringGroups' => $canManageMaintenance

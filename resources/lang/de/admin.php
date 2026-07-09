@@ -23,8 +23,8 @@ return [
             'description' => 'Crawler-Instanz-Codes und interne API-Schlüssel verwalten.',
         ],
         'demo_monitorings' => [
-            'heading' => 'Demo-Monitorings verwalten',
-            'description' => 'Monitorings des Demo-Benutzers anzeigen, erstellen, bearbeiten und löschen.',
+            'heading' => 'Demo-Monitorings',
+            'description' => 'Monitorings des Demo-Benutzers anzeigen.',
         ],
         'activity_logs' => [
             'heading' => 'Audit-Protokolle',
@@ -33,12 +33,8 @@ return [
     ],
     'demo_monitorings' => [
         'title' => 'Demo-Benutzer-Monitorings',
-        'actions' => [
-            'create' => 'Demo-Monitoring hinzufügen',
-        ],
         'fields' => [
             'created_at' => 'Erstellt',
-            'actions' => 'Aktionen',
         ],
         'summary' => [
             'demo_user' => 'Demo-Benutzer',
@@ -47,17 +43,6 @@ return [
         ],
         'messages' => [
             'empty' => 'Keine Monitorings für den Demo-Benutzer gefunden.',
-            'confirm_delete' => 'Möchten Sie dieses Demo-Benutzer-Monitoring wirklich löschen?',
-            'created' => 'Demo-Benutzer-Monitoring erfolgreich erstellt.',
-            'updated' => 'Demo-Benutzer-Monitoring erfolgreich aktualisiert.',
-            'deleted' => 'Demo-Benutzer-Monitoring erfolgreich gelöscht.',
-        ],
-        'create' => [
-            'title' => 'Demo-Benutzer-Monitoring erstellen',
-            'demo_user' => 'Monitoring-Besitzer',
-        ],
-        'edit' => [
-            'title' => ':monitoring bearbeiten',
         ],
     ],
     'activity_logs' => [
