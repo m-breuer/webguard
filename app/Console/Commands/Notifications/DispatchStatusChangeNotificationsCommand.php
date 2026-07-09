@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Console\Commands\Notifications;
 
 use App\Enums\NotificationEventType;
+use App\Mail\PublicStatusPageStatusUpdateMail;
 use App\Mail\StatusPageStatusUpdateMail;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
+use App\Models\StatusPage;
 use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
 use App\Services\Notifications\MonitoringNotificationStateService;
 use App\Services\Notifications\NotificationPayload;
@@ -105,6 +107,8 @@ class DispatchStatusChangeNotificationsCommand extends Command
         string $status
     ): void {
         if (! $monitoring->public_label_enabled || ! in_array($status, ['down', 'up'], true)) {
+            $this->dispatchPublicStatusPageSubscriberEmails($monitoring, $monitoringNotification, $status);
+
             return;
         }
 
@@ -114,6 +118,34 @@ class DispatchStatusChangeNotificationsCommand extends Command
                 Mail::to($subscriber->email)->send(
                     new StatusPageStatusUpdateMail($subscriber, $monitoringNotification, $status)
                 );
+            });
+
+        $this->dispatchPublicStatusPageSubscriberEmails($monitoring, $monitoringNotification, $status);
+    }
+
+    private function dispatchPublicStatusPageSubscriberEmails(
+        Monitoring $monitoring,
+        MonitoringNotification $monitoringNotification,
+        string $status
+    ): void {
+        if (! in_array($status, ['down', 'up'], true)) {
+            return;
+        }
+
+        StatusPage::query()
+            ->where('is_public', true)
+            ->whereHas('components', function ($query) use ($monitoring): void {
+                $query->whereHas('monitorings', fn ($query) => $query->whereKey($monitoring->id))
+                    ->orWhereHas('monitoringGroup.monitorings', fn ($query) => $query->whereKey($monitoring->id));
+            })
+            ->with(['subscriptions' => fn ($query) => $query->verified()])
+            ->get()
+            ->each(function (StatusPage $statusPage) use ($monitoring, $monitoringNotification, $status): void {
+                $statusPage->subscriptions->each(function ($subscription) use ($monitoring, $monitoringNotification, $status): void {
+                    Mail::to($subscription->email)->send(
+                        new PublicStatusPageStatusUpdateMail($subscription, $monitoring, $monitoringNotification, $status)
+                    );
+                });
             });
     }
 }

@@ -7,13 +7,16 @@ namespace Tests\Feature;
 use App\Enums\IncidentUpdateStatus;
 use App\Enums\StatusPageComponentSource;
 use App\Enums\UserRole;
+use App\Mail\PublicStatusPageSubscriptionConfirmationMail;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\StatusPage;
+use App\Models\StatusPageSubscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class StatusPageManagementTest extends TestCase
@@ -307,6 +310,67 @@ class StatusPageManagementTest extends TestCase
         $publicResponse->assertOk();
         $publicResponse->assertSeeText(__('status_page.incident_updates.statuses.identified'));
         $publicResponse->assertSeeText('We found a saturated database connection pool and are applying a fix.');
+    }
+
+    public function test_public_status_page_accepts_confirms_and_removes_email_subscriptions(): void
+    {
+        Mail::fake();
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+
+        $testResponse = $this->post(route('public-status-pages.subscribers.store', $statusPage->slug), [
+            'email' => 'Customer@Example.com',
+        ]);
+
+        $testResponse->assertRedirect(route('public-status-pages.show', $statusPage->slug));
+        $testResponse->assertSessionHas('status_page_subscription_success');
+
+        $subscription = StatusPageSubscription::query()->firstOrFail();
+        $this->assertSame($statusPage->id, $subscription->status_page_id);
+        $this->assertSame('customer@example.com', $subscription->email);
+        $this->assertNull($subscription->verified_at);
+        $this->assertNotNull($subscription->confirmation_token_hash);
+
+        $confirmationToken = null;
+        Mail::assertSent(PublicStatusPageSubscriptionConfirmationMail::class, function (PublicStatusPageSubscriptionConfirmationMail $mail) use (&$confirmationToken, $subscription): bool {
+            $confirmationToken = $mail->token;
+
+            return $mail->hasTo('customer@example.com') && $mail->subscription->is($subscription);
+        });
+
+        $this->get(route('public-status-pages.subscribers.confirm', [
+            'statusPage' => $statusPage->slug,
+            'token' => $confirmationToken,
+        ]))->assertRedirect(route('public-status-pages.show', $statusPage->slug));
+
+        $this->assertTrue($subscription->refresh()->isVerified());
+        $this->assertNull($subscription->confirmation_token_hash);
+
+        $unsubscribeResponse = $this->get(route('public-status-pages.subscribers.unsubscribe', [
+            'statusPage' => $statusPage->slug,
+            'token' => $subscription->unsubscribe_token,
+        ]));
+
+        $unsubscribeResponse->assertOk();
+        $unsubscribeResponse->assertSeeHtml('data-confirm-message="' . __('status_page.public.subscribe.unsubscribe_confirmation') . '"');
+
+        $this->delete(route('public-status-pages.subscribers.destroy', [
+            'statusPage' => $statusPage->slug,
+            'token' => $subscription->unsubscribe_token,
+        ]), [
+            'email' => 'CUSTOMER@example.com',
+        ])->assertRedirect(route('public-status-pages.show', $statusPage->slug));
+
+        $this->assertDatabaseMissing('status_page_subscriptions', [
+            'id' => $subscription->id,
+        ]);
     }
 
     public function test_user_cannot_add_incident_update_for_incident_outside_status_page(): void
