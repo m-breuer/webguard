@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Enums\TeamRole;
+use App\Enums\UserRole;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
@@ -156,7 +157,7 @@ class MaintenanceManagementTest extends TestCase
         ]);
     }
 
-    public function test_team_member_cannot_schedule_or_clear_team_monitoring_maintenance(): void
+    public function test_team_member_can_view_but_not_manage_team_monitoring_maintenance(): void
     {
         $member = User::factory()->create(['package_id' => Package::factory()->create()->id]);
         $team = Team::factory()->create(['created_by_user_id' => $this->user->id]);
@@ -180,7 +181,10 @@ class MaintenanceManagementTest extends TestCase
 
         $this->actingAs($member)->get(route('maintenance.index'))
             ->assertOk()
-            ->assertDontSeeText('Shared API');
+            ->assertSeeText('Shared API')
+            ->assertSeeText(__('maintenance.status.expired'))
+            ->assertDontSeeHtml('action="' . route('maintenance.store') . '"')
+            ->assertDontSeeHtml('action="' . route('maintenance.destroy') . '"');
 
         $this->actingAs($member)->post(route('maintenance.store'), [
             'scope' => 'monitoring',
@@ -192,6 +196,46 @@ class MaintenanceManagementTest extends TestCase
         $this->actingAs($member)->delete(route('maintenance.destroy'), [
             'monitoring_id' => $monitoring->id,
         ])->assertSessionHasErrors(['monitoring_id']);
+
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
+        ]);
+    }
+
+    public function test_demo_user_can_view_but_not_manage_maintenance(): void
+    {
+        $demoUser = User::factory()->create([
+            'package_id' => Package::factory()->create()->id,
+            'role' => UserRole::DEMO,
+        ]);
+        $monitoring = Monitoring::factory()->for($demoUser)->create([
+            'name' => 'Demo API',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
+        ]);
+
+        $this->actingAs($demoUser)->get(route('maintenance.index'))
+            ->assertOk()
+            ->assertSeeText('Demo API')
+            ->assertSeeText(__('maintenance.status.expired'))
+            ->assertDontSeeHtml('action="' . route('maintenance.store') . '"')
+            ->assertDontSeeHtml('action="' . route('maintenance.destroy') . '"')
+            ->assertDontSeeHtml('name="maintenance_from"')
+            ->assertDontSeeHtml('name="maintenance_until"');
+
+        $this->actingAs($demoUser)->post(route('maintenance.store'), [
+            'scope' => 'monitoring',
+            'monitoring_id' => $monitoring->id,
+            'maintenance_from' => '2026-07-03T10:00',
+            'maintenance_until' => '2026-07-03T11:00',
+        ])->assertForbidden();
+
+        $this->actingAs($demoUser)->delete(route('maintenance.destroy'), [
+            'monitoring_id' => $monitoring->id,
+        ])->assertForbidden();
 
         $this->assertDatabaseHas('monitorings', [
             'id' => $monitoring->id,
