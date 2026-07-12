@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'monitoring_id',
+    'location_code',
     'status',
     'http_status_code',
     'response_time',

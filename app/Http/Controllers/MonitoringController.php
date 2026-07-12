@@ -13,6 +13,7 @@ use App\Models\ServerInstance;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
+use App\Services\RegionalConsensusService;
 use App\Support\MonitoringPayload;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -233,7 +234,7 @@ class MonitoringController extends Controller
      * @param  Monitoring  $monitoring  The monitoring instance to display.
      * @return View The view displaying the monitoring details.
      */
-    public function show(Monitoring $monitoring): View
+    public function show(Monitoring $monitoring, RegionalConsensusService $regionalConsensusService): View
     {
         /** @var User $user */
         $user = Auth::user();
@@ -243,6 +244,9 @@ class MonitoringController extends Controller
             'monitoring' => $monitoring,
             'canManageMonitoring' => $monitoring->isManageableBy($user) && ! $user->isDemo(),
             'adminTeams' => Team::query()->administeredBy($user)->orderBy('name')->get(['teams.id', 'teams.name']),
+            'regionalConsensus' => count($monitoring->preferredLocationCodes()) > 1
+                ? $regionalConsensusService->snapshot($monitoring)
+                : null,
         ]);
     }
 

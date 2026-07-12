@@ -12,7 +12,8 @@ use App\Support\MonitoringStatusMeta;
 class MonitoringStatusPayloadService
 {
     public function __construct(
-        private readonly MonitoringStatusService $monitoringStatusService
+        private readonly MonitoringStatusService $monitoringStatusService,
+        private readonly RegionalConsensusService $regionalConsensusService
     ) {}
 
     public function getPayload(Monitoring $monitoring, bool $includeMonitoring = true): MonitoringStatusPayload
@@ -32,6 +33,9 @@ class MonitoringStatusPayloadService
             statusChangedAt: $statusSince['since'] ?? null,
             statusIdentifier: MonitoringStatusMeta::statusIdentifier($latestStatusCode, $maintenanceActive),
             statusKey: MonitoringStatusMeta::statusKey($latestStatusCode, $maintenanceActive),
+            regionalConsensus: count($monitoring->preferredLocationCodes()) > 1
+                ? $this->serializeConsensus($this->regionalConsensusService->snapshot($monitoring))
+                : null,
             monitoring: $includeMonitoring
                 ? new MonitoringSummaryPayload(
                     name: $monitoring->name,
@@ -40,5 +44,12 @@ class MonitoringStatusPayloadService
                 )
                 : null
         );
+    }
+
+    private function serializeConsensus(array $snapshot): array
+    {
+        $snapshot['status'] = $snapshot['status']->value;
+
+        return $snapshot;
     }
 }

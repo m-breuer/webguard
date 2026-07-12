@@ -109,6 +109,17 @@ return [
             'down' => 'Down',
             'unknown' => 'Unknown',
         ],
+        'regional_consensus' => [
+            'heading' => 'Regional Consensus',
+            'summary' => ':failed failed, :reporting of :total locations reporting. :required failures are required to open an incident.',
+            'statuses' => [
+                'healthy' => 'Healthy',
+                'localized' => 'Localized degradation',
+                'regional' => 'Regional outage',
+                'global' => 'Global outage',
+                'unknown' => 'Awaiting consensus',
+            ],
+        ],
         'custom_range' => [
             'heading' => 'Custom Range',
             'help' => 'Select a date range to calculate uptime and incidents for that exact period.',

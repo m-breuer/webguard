@@ -183,11 +183,11 @@ return [
         'multi_location' => [
             'badge' => 'Verteilung',
             'title' => 'Monitoring aus mehreren Regionen',
-            'teaser' => 'Regionenübergreifende Checks helfen, lokale Ausfälle zu isolieren und Fehlalarme zu reduzieren.',
-            'lead' => 'Standortbewusstes Monitoring hilft Teams zu verstehen, ob ein Incident global, regional oder quellenbezogen ist.',
-            'highlights' => ['Öffentliche Monitoring-Standorte-Seite', 'Standort- und IP-Sichtbarkeit für Allow-Lists', 'Bessere Incident-Einordnung'],
-            'details' => ['Nutzen Sie Monitoring-Standorte, wenn geschützte Systeme Source-IP-Allow-Lists brauchen oder Netzwerkpfad-Kontext wichtig ist.', 'Die öffentliche Standorte-Seite listet aktive Monitoring-Quellen und IP-Adressen, damit SaaS-Teams Zugriff vorbereiten können.', 'Standortkontext passt gut zu HTTP-, Ping- und Port-Checks, um regionale Fehler leichter zu klassifizieren.'],
-            'seo' => ['title' => 'Multi-Location Monitoring - WebGuard', 'description' => 'Nutzen Sie öffentliche Monitoring-Quellstandorte und IP-Adressen für Allow-Lists und Störungseinordnung.', 'keywords' => 'Multi Location Monitoring, Monitoring Standorte, Uptime Source IPs'],
+            'teaser' => 'Regionaler Konsens trennt lokale Quellenfehler von regionalen und globalen Ausfällen, bevor Ihr Team alarmiert wird.',
+            'lead' => 'WebGuard kombiniert aktuelle Ergebnisse aller gewählten Standorte, zeigt lokale Beeinträchtigungen sofort und öffnet erst bei einer strikten Mehrheit einen Vorfall.',
+            'highlights' => ['Statusmatrix pro Standort', 'Mehrheitsbasierte regionale Vorfälle', 'Globale Einordnung bei Ausfall aller Standorte'],
+            'details' => ['Der Fehler eines einzelnen Standorts erscheint als lokale Beeinträchtigung, ohne Vorfallbenachrichtigungen auszulösen. Das reduziert Fehlalarme durch regionale DNS-, Routing-, CDN- oder Quellenprobleme.', 'Fällt eine strikte Mehrheit aus, öffnet WebGuard einen regionalen Vorfall und speichert die betroffenen Standorte. Einstimmige Fehler erhöhen die Einordnung auf einen globalen Ausfall.', 'Die Monitoring-Detailseite zeigt verfügbare, ausgefallene und noch nicht aktuell meldende Standorte. Die Status-API stellt denselben Konsens für Integrationen bereit.'],
+            'seo' => ['title' => 'Regionales Konsens-Monitoring - WebGuard', 'description' => 'Unterscheiden Sie mit mehrheitsbasiertem Multi-Location-Monitoring lokale Beeinträchtigungen von regionalen und globalen Ausfällen.', 'keywords' => 'regionales Konsens Monitoring, Multi Location Ausfallerkennung, regionale Vorfälle'],
         ],
         'notifications' => [
             'badge' => 'Alerts',

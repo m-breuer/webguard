@@ -14,6 +14,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **Domain expiration monitoring:** track domain registration expiry and receive proactive renewal warnings before critical domains lapse.
 - **Customizable checks:** configure HTTP method, body, and headers for monitoring checks.
 - **Consecutive failure confirmation:** require multiple failed checks in a row before an incident opens, reducing noise from transient outages.
+- **Regional consensus incidents:** combine fresh results from every selected monitoring location before declaring an outage. A single failed location is shown as a localized degradation without paging users, a strict majority opens a regional incident, and unanimous failures classify the incident as global. The monitoring detail view shows the current state of every location so operators can distinguish service outages from regional DNS, routing, CDN, or probe problems.
 
 ## Product Surface
 

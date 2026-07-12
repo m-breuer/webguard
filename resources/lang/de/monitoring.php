@@ -109,6 +109,17 @@ return [
             'down' => 'Nicht verfügbar',
             'unknown' => 'Unbekannt',
         ],
+        'regional_consensus' => [
+            'heading' => 'Regionaler Konsens',
+            'summary' => ':failed fehlgeschlagen, :reporting von :total Standorten melden. :required Fehler sind nötig, um einen Vorfall zu öffnen.',
+            'statuses' => [
+                'healthy' => 'Verfügbar',
+                'localized' => 'Lokale Beeinträchtigung',
+                'regional' => 'Regionaler Ausfall',
+                'global' => 'Globaler Ausfall',
+                'unknown' => 'Konsens ausstehend',
+            ],
+        ],
         'custom_range' => [
             'heading' => 'Benutzerdefinierter Zeitraum',
             'help' => 'Wählen Sie einen Zeitraum, um Verfügbarkeit und Vorfälle für genau diesen Zeitraum zu berechnen.',

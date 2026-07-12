@@ -30,6 +30,7 @@ class MonitoringController extends Controller
             return response()->json(['message' => 'Unauthorized monitoring'], 403);
         }
 
+        $validated['location_code'] = (string) $request->attributes->get('authenticated_instance_code');
         MonitoringResponse::query()->create($validated);
 
         return response()->json(['message' => 'Monitoring response stored successfully.']);
@@ -46,6 +47,12 @@ class MonitoringController extends Controller
             return response()->json(['message' => 'Unauthorized monitoring'], 403);
         }
 
+        $monitoring = Monitoring::query()->findOrFail($validated['monitoring_id']);
+
+        if (count($monitoring->preferredLocationCodes()) > 1) {
+            return response()->json(['message' => 'Incident state is managed by regional consensus.']);
+        }
+
         Incident::query()->firstOrCreate(['monitoring_id' => $validated['monitoring_id'], 'up_at' => null], $validated);
 
         return response()->json(['message' => 'Incident stored successfully.']);
@@ -60,6 +67,10 @@ class MonitoringController extends Controller
         $validated = $request->validate([
             'up_at' => ['required', 'date'],
         ]);
+
+        if (count($monitoring->preferredLocationCodes()) > 1) {
+            return response()->json(['message' => 'Incident state is managed by regional consensus.']);
+        }
 
         $incident = Incident::query()->where('monitoring_id', $monitoring->id)
             ->whereNull('up_at')

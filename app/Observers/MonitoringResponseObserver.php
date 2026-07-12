@@ -7,6 +7,7 @@ namespace App\Observers;
 use App\Enums\MonitoringStatus;
 use App\Models\Incident;
 use App\Models\MonitoringResponse;
+use App\Services\RegionalConsensusService;
 
 class MonitoringResponseObserver
 {
@@ -16,6 +17,12 @@ class MonitoringResponseObserver
     public function created(MonitoringResponse $monitoringResponse): void
     {
         $monitoring = $monitoringResponse->monitoring;
+
+        if (count($monitoring->preferredLocationCodes()) > 1 && $monitoringResponse->location_code !== null) {
+            app(RegionalConsensusService::class)->reconcile($monitoring);
+
+            return;
+        }
 
         $threshold = max(1, (int) ($monitoring->failure_confirmation_threshold ?? 1));
         $responses = $monitoring->responseResults()->latest()

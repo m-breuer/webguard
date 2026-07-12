@@ -43,6 +43,16 @@ class PublicFeaturePagesTest extends TestCase
         $testResponse->assertSeeHtml('"mainEntity":{"@id":"' . route('public-features.show', $slug) . '#feature"}');
     }
 
+    public function test_multi_location_feature_page_describes_regional_consensus_incidents(): void
+    {
+        $testResponse = $this->get(route('public-features.show', 'multi-location-monitoring'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('WebGuard combines fresh results from every selected location');
+        $testResponse->assertSeeText('Majority-based regional incidents');
+        $testResponse->assertSeeText('Global classification when every location fails');
+    }
+
     public function test_feature_overview_links_all_public_feature_pages_and_api_docs(): void
     {
         $testResponse = $this->get(route('public-features.index'));

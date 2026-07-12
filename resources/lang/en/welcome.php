@@ -160,7 +160,7 @@ return [
         'multi_location' => [
             'badge' => 'Distribution',
             'title' => 'Monitoring from Multiple Locations',
-            'text' => 'Cross-region checks help isolate local outages and reduce false positives.',
+            'text' => 'Regional consensus uses a strict majority to separate localized degradation from regional and global outages.',
         ],
         'public_status_pages' => [
             'badge' => 'Transparency',
