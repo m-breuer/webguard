@@ -6,13 +6,17 @@ namespace Tests\Feature\Mail;
 
 use App\Enums\NotificationType;
 use App\Enums\TeamRole;
+use App\Mail\PublicStatusPageStatusUpdateMail;
+use App\Mail\PublicStatusPageSubscriptionConfirmationMail;
 use App\Mail\StatusPageStatusUpdateMail;
 use App\Mail\StatusPageSubscriptionConfirmationMail;
 use App\Mail\TeamInvitationMail;
 use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
 use App\Models\Package;
+use App\Models\StatusPage;
 use App\Models\StatusPageSubscriber;
+use App\Models\StatusPageSubscription;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
@@ -120,5 +124,81 @@ class MailableContractTest extends TestCase
             $statusPageStatusUpdateMail->content()->with['unsubscribeUrl']
         );
         $this->assertSame([], $statusPageStatusUpdateMail->attachments());
+    }
+
+    public function test_public_status_page_subscription_confirmation_mail_exposes_confirmation_contract(): void
+    {
+        $statusPage = StatusPage::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $subscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'subscriber@example.com',
+            'confirmation_token_hash' => StatusPageSubscription::hashToken('confirm-token'),
+            'unsubscribe_token' => 'unsubscribe-token',
+        ]);
+
+        $mail = new PublicStatusPageSubscriptionConfirmationMail($subscription, 'confirm-token');
+
+        $this->assertSame(__('mail.public_status_page_subscription_confirmation.subject', [
+            'statusPageName' => 'Acme Status',
+        ]), $mail->envelope()->subject);
+        $this->assertSame('mail.public-status-page-subscription-confirmation', $mail->content()->view);
+        $this->assertSame($subscription->id, $mail->content()->with['subscription']->id);
+        $this->assertSame($statusPage->id, $mail->content()->with['statusPage']->id);
+        $this->assertSame(route('public-status-pages.subscribers.confirm', [
+            'statusPage' => 'acme-status',
+            'token' => 'confirm-token',
+        ]), $mail->content()->with['confirmUrl']);
+        $this->assertSame([], $mail->attachments());
+    }
+
+    public function test_public_status_page_status_update_mail_exposes_status_and_unsubscribe_contract(): void
+    {
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $subscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'subscriber@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => now(),
+        ]);
+        $notification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::STATUS_CHANGE,
+            'message' => 'Monitoring is down',
+            'read' => false,
+            'sent' => true,
+        ]);
+
+        $mail = new PublicStatusPageStatusUpdateMail($subscription, $monitoring, $notification, 'down');
+
+        $this->assertSame(__('mail.public_status_page_status_update.subject', [
+            'statusPageName' => 'Acme Status',
+            'monitoringName' => 'Checkout API',
+            'status' => 'DOWN',
+        ]), $mail->envelope()->subject);
+        $this->assertSame('mail.public-status-page-status-update', $mail->content()->view);
+        $this->assertSame($statusPage->id, $mail->content()->with['statusPage']->id);
+        $this->assertSame($monitoring->id, $mail->content()->with['monitoring']->id);
+        $this->assertSame($notification->id, $mail->content()->with['notification']->id);
+        $this->assertSame('down', $mail->content()->with['status']);
+        $this->assertSame('DOWN', $mail->content()->with['statusLabel']);
+        $this->assertSame(route('public-status-pages.show', 'acme-status'), $mail->content()->with['statusPageUrl']);
+        $this->assertSame(route('public-status-pages.subscribers.unsubscribe', [
+            'statusPage' => 'acme-status',
+            'token' => 'unsubscribe-token',
+        ]), $mail->content()->with['unsubscribeUrl']);
+        $this->assertSame([], $mail->attachments());
     }
 }
