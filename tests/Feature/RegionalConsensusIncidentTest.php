@@ -45,9 +45,9 @@ class RegionalConsensusIncidentTest extends TestCase
         $this->assertDatabaseCount('incidents', 0);
         $this->assertDatabaseCount('monitoring_notifications', 0);
 
-        $localizedResponse = $this->actingAs($user)
+        $testResponse = $this->actingAs($user)
             ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
-        $localizedResponse->assertOk()
+        $testResponse->assertOk()
             ->assertJsonPath('status', MonitoringStatus::UNKNOWN->value)
             ->assertJsonPath('regional_consensus.status', RegionalConsensusStatus::LOCALIZED->value)
             ->assertJsonPath('regional_consensus.required_failures', 2)
@@ -80,14 +80,14 @@ class RegionalConsensusIncidentTest extends TestCase
     {
         Package::factory()->create();
         $user = User::factory()->create();
-        $first = $this->serverInstance('matrix-de-1');
+        $serverInstance = $this->serverInstance('matrix-de-1');
         $second = $this->serverInstance('matrix-us-1');
         $monitoring = Monitoring::factory()->for($user)->create([
-            'preferred_location' => $first->code,
-            'preferred_locations' => [$first->code, $second->code],
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code, $second->code],
         ]);
 
-        $this->storeResponse($first, $monitoring, MonitoringStatus::UP);
+        $this->storeResponse($serverInstance, $monitoring, MonitoringStatus::UP);
         $this->storeResponse($second, $monitoring, MonitoringStatus::DOWN);
 
         $this->actingAs($user)
@@ -95,18 +95,18 @@ class RegionalConsensusIncidentTest extends TestCase
             ->assertOk()
             ->assertSeeText(__('monitoring.detail.regional_consensus.heading'))
             ->assertSeeText(__('monitoring.detail.regional_consensus.statuses.localized'))
-            ->assertSeeText($first->code)
+            ->assertSeeText($serverInstance->code)
             ->assertSeeText($second->code);
     }
 
-    private function storeResponse(ServerInstance $serverInstance, Monitoring $monitoring, MonitoringStatus $status): void
+    private function storeResponse(ServerInstance $serverInstance, Monitoring $monitoring, MonitoringStatus $monitoringStatus): void
     {
         $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])->postJson(route('v1.internal.monitoring-responses.store'), [
             'monitoring_id' => $monitoring->id,
-            'status' => $status->value,
+            'status' => $monitoringStatus->value,
             'response_time' => 100,
         ])->assertOk();
     }

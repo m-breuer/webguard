@@ -91,9 +91,9 @@ class MonitoringStatusService
         ];
     }
 
-    private function monitoringStatus(RegionalConsensusStatus $status): MonitoringStatus
+    private function monitoringStatus(RegionalConsensusStatus $regionalConsensusStatus): MonitoringStatus
     {
-        return match ($status) {
+        return match ($regionalConsensusStatus) {
             RegionalConsensusStatus::HEALTHY => MonitoringStatus::UP,
             RegionalConsensusStatus::REGIONAL, RegionalConsensusStatus::GLOBAL => MonitoringStatus::DOWN,
             default => MonitoringStatus::UNKNOWN,

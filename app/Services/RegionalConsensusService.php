@@ -24,18 +24,18 @@ class RegionalConsensusService
         $freshAfter = Date::now()->subMinutes(max(1, (int) config('monitoring.regional_consensus_freshness_minutes', 10)));
 
         $latestByLocation = $this->latestResponsesByLocation($monitoring, $locations)
-            ->filter(static fn (MonitoringResponse $response): bool => $response->created_at->gte($freshAfter));
+            ->filter(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->created_at->gte($freshAfter));
 
         $affectedLocations = $latestByLocation
-            ->filter(static fn (MonitoringResponse $response): bool => $response->status === MonitoringStatus::DOWN)
+            ->filter(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status === MonitoringStatus::DOWN)
             ->keys()
             ->values()
             ->all();
 
-        $status = $this->classify(count($locations), count($affectedLocations), $latestByLocation->count(), $requiredFailures);
+        $regionalConsensusStatus = $this->classify(count($locations), count($affectedLocations), $latestByLocation->count(), $requiredFailures);
 
         return [
-            'status' => $status,
+            'status' => $regionalConsensusStatus,
             'total_locations' => count($locations),
             'reporting_locations' => $latestByLocation->count(),
             'required_failures' => $requiredFailures,
@@ -120,6 +120,6 @@ class RegionalConsensusService
             ->orderByDesc('id')
             ->get()
             ->unique('location_code')
-            ->keyBy(fn (MonitoringResponse $response): string => (string) $response->location_code);
+            ->keyBy(fn (MonitoringResponse $monitoringResponse): string => (string) $monitoringResponse->location_code);
     }
 }

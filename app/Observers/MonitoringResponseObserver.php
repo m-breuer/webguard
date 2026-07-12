@@ -19,7 +19,7 @@ class MonitoringResponseObserver
         $monitoring = $monitoringResponse->monitoring;
 
         if (count($monitoring->preferredLocationCodes()) > 1 && $monitoringResponse->location_code !== null) {
-            app(RegionalConsensusService::class)->reconcile($monitoring);
+            resolve(RegionalConsensusService::class)->reconcile($monitoring);
 
             return;
         }
