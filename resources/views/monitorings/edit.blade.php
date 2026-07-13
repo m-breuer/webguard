@@ -17,6 +17,8 @@
     </x-slot>
 
     <x-main>
+        @include('monitorings._ownership')
+
         <x-container>
             <form method="POST" action="{{ route('monitorings.update', $monitoring) }}">
                 @include('monitorings._form')

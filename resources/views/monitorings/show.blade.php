@@ -29,9 +29,6 @@
                     {{ __('monitoring.index.table.maintenance') }}
                 </x-badge>
             @endif
-            <x-badge type="{{ $monitoring->isTeamOwned() ? 'info' : 'success' }}">
-                {{ $monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private') }}
-            </x-badge>
         </x-heading>
 
         <div class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
@@ -51,32 +48,6 @@
                             class="block px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
                             {{ __('monitoring.actions.edit') }}
                         </a>
-                        @if (!$monitoring->isTeamOwned() && $adminTeams->isNotEmpty())
-                            <form method="POST" action="{{ route('monitorings.team-ownership.store', $monitoring) }}"
-                                class="px-4 py-2">
-                                @csrf
-                                <label for="move-team-{{ $monitoring->id }}" class="sr-only">{{ __('team.ownership.move_to_team') }}</label>
-                                <select id="move-team-{{ $monitoring->id }}" name="team_id"
-                                    class="mb-2 w-full rounded-md border border-gray-300 p-2 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                    @foreach ($adminTeams as $team)
-                                        <option value="{{ $team->id }}">{{ $team->name }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="block w-full text-left text-gray-700 hover:bg-gray-100 sm:text-right">
-                                    {{ __('team.ownership.move_to_team') }}
-                                </button>
-                            </form>
-                        @endif
-                        @if ($monitoring->isTeamOwned())
-                            <form method="POST" action="{{ route('monitorings.team-ownership.destroy', $monitoring) }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
-                                    {{ __('team.ownership.move_to_private') }}
-                                </button>
-                            </form>
-                        @endif
                         <form method="POST" action="{{ route('monitorings.destroyResults', $monitoring) }}"
                             data-confirm-message="{{ __('monitoring.actions.reset.confirmation') }}">
                             @csrf

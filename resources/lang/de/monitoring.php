@@ -213,6 +213,7 @@ return [
     'form' => [
         'sections' => [
             'basic' => 'Basisdaten',
+            'organization' => 'Eigentümerschaft und Gruppen',
             'check' => 'Prüfkonfiguration',
             'sharing' => 'Öffentliche Anzeige',
             'notifications' => 'Benachrichtigungen',

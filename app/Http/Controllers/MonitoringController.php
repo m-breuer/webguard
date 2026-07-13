@@ -238,12 +238,11 @@ class MonitoringController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $monitoring->loadMissing('domainResult', 'team');
+        $monitoring->loadMissing('domainResult');
 
         return view('monitorings.show', [
             'monitoring' => $monitoring,
             'canManageMonitoring' => $monitoring->isManageableBy($user) && ! $user->isDemo(),
-            'adminTeams' => Team::query()->administeredBy($user)->orderBy('name')->get(['teams.id', 'teams.name']),
             'regionalConsensus' => count($monitoring->preferredLocationCodes()) > 1
                 ? $regionalConsensusService->snapshot($monitoring)
                 : null,

@@ -17,6 +17,19 @@ return [
     'form' => [
         'name' => 'Name',
         'description' => 'Beschreibung',
+        'monitorings' => 'Überwachungen',
+        'no_monitorings' => 'Keine Überwachungen ausgewählt',
+        'search_monitorings' => 'Überwachungen nach Name oder Ziel suchen ...',
+        'select_all_monitorings' => 'Alle auswählen',
+        'all_monitorings_selected' => 'Alle passenden Überwachungen sind ausgewählt.',
+        'no_monitorings_available' => 'Es sind keine privaten Überwachungen vorhanden.',
+        'no_monitorings_found' => 'Keine passenden Überwachungen gefunden.',
+        'remove_monitoring' => 'Überwachung entfernen:',
+        'clear_monitorings' => 'Alle Überwachungen entfernen',
+        'monitorings_help' => 'Optional: Ordnen Sie der Gruppe beim Speichern Überwachungen zu.',
+    ],
+    'validation' => [
+        'monitoring_not_manageable' => 'Die ausgewählte Überwachung kann Ihrer Gruppe nicht zugeordnet werden.',
     ],
     'filter' => [
         'all' => 'Alle Gruppen',
