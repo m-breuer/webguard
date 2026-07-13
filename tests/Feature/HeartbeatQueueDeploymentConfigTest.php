@@ -185,6 +185,30 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringNotContainsString('{$', $environmentExample);
     }
 
+    public function test_obsolete_environment_variables_are_removed_from_environment_configuration(): void
+    {
+        foreach (['.env.example', '.env.testing', 'phpunit.xml'] as $environmentFile) {
+            $environmentConfiguration = file_get_contents(base_path($environmentFile));
+
+            $this->assertIsString($environmentConfiguration);
+
+            foreach (['BCRYPT_ROUNDS', 'BROADCAST_CONNECTION', 'VITE_APP_NAME'] as $environmentVariable) {
+                $this->assertStringNotContainsString($environmentVariable, $environmentConfiguration);
+            }
+        }
+    }
+
+    public function test_local_runtime_services_share_one_application_environment(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.override.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('x-local-app-environment: &local-app-environment', $composeConfiguration);
+        $this->assertSame(3, mb_substr_count($composeConfiguration, '<<: *local-app-environment'));
+        $this->assertSame(1, mb_substr_count($composeConfiguration, 'DB_HOST: "mysql"'));
+        $this->assertSame(1, mb_substr_count($composeConfiguration, 'MAIL_HOST: "mailpit"'));
+    }
+
     public function test_worker_image_does_not_depend_on_the_frontend_build_stage(): void
     {
         $dockerfile = file_get_contents(base_path('Dockerfile'));
