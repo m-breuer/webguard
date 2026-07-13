@@ -44,7 +44,7 @@ class StatusPageSubscriptionController extends Controller
             );
         }
 
-        return to_route('public-status-pages.show', $statusPage->slug)
+        return to_route('public-status-pages.show', $statusPage)
             ->with('status_page_subscription_success', __('status_page.public.subscribe.confirmation_sent'));
     }
 
@@ -58,7 +58,7 @@ class StatusPageSubscriptionController extends Controller
 
         $statusPageSubscription->markVerified();
 
-        return to_route('public-status-pages.show', $statusPage->slug)
+        return to_route('public-status-pages.show', $statusPage)
             ->with('status_page_subscription_success', __('status_page.public.subscribe.confirmed'));
     }
 
@@ -98,7 +98,7 @@ class StatusPageSubscriptionController extends Controller
             ->delete();
 
         $redirect = $statusPage->is_public
-            ? to_route('public-status-pages.show', $statusPage->slug)
+            ? to_route('public-status-pages.show', $statusPage)
             : redirect('/');
 
         return $redirect->with('status_page_subscription_success', __('status_page.public.subscribe.unsubscribed'));

@@ -73,7 +73,7 @@ class ComponentStatusPageTest extends TestCase
         $workerComponent = $statusPage->components()->create(['name' => 'Workers', 'position' => 1]);
         $workerComponent->monitorings()->attach($workerMonitoring->id, ['position' => 0]);
 
-        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText('Acme Status');
@@ -97,7 +97,7 @@ class ComponentStatusPageTest extends TestCase
             'is_public' => false,
         ]);
 
-        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $testResponse->assertNotFound();
     }

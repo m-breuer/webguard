@@ -21,8 +21,6 @@ return [
     ],
     'form' => [
         'name' => 'Name',
-        'slug' => 'Slug',
-        'slug_placeholder' => 'Wird aus dem Namen erzeugt, wenn leer',
         'description' => 'Beschreibung',
         'is_public' => 'Diese Statusseite veröffentlichen',
         'components' => 'Komponenten',

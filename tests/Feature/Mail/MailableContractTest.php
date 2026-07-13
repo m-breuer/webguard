@@ -150,7 +150,7 @@ class MailableContractTest extends TestCase
         $this->assertSame($statusPageSubscription->id, $publicStatusPageSubscriptionConfirmationMail->content()->with['subscription']->id);
         $this->assertSame($statusPage->id, $publicStatusPageSubscriptionConfirmationMail->content()->with['statusPage']->id);
         $this->assertSame(route('public-status-pages.subscribers.confirm', [
-            'statusPage' => 'acme-status',
+            'statusPage' => $statusPage,
             'token' => 'confirm-token',
         ]), $publicStatusPageSubscriptionConfirmationMail->content()->with['confirmUrl']);
         $this->assertSame([], $publicStatusPageSubscriptionConfirmationMail->attachments());
@@ -194,9 +194,9 @@ class MailableContractTest extends TestCase
         $this->assertSame($monitoringNotification->id, $publicStatusPageStatusUpdateMail->content()->with['notification']->id);
         $this->assertSame('down', $publicStatusPageStatusUpdateMail->content()->with['status']);
         $this->assertSame('DOWN', $publicStatusPageStatusUpdateMail->content()->with['statusLabel']);
-        $this->assertSame(route('public-status-pages.show', 'acme-status'), $publicStatusPageStatusUpdateMail->content()->with['statusPageUrl']);
+        $this->assertSame(route('public-status-pages.show', $statusPage), $publicStatusPageStatusUpdateMail->content()->with['statusPageUrl']);
         $this->assertSame(route('public-status-pages.subscribers.unsubscribe', [
-            'statusPage' => 'acme-status',
+            'statusPage' => $statusPage,
             'token' => 'unsubscribe-token',
         ]), $publicStatusPageStatusUpdateMail->content()->with['unsubscribeUrl']);
         $this->assertSame([], $publicStatusPageStatusUpdateMail->attachments());

@@ -52,7 +52,6 @@ class StatusPageController extends Controller
 
         $statusPage = $user->statusPages()->create([
             'name' => $validated['name'],
-            'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
             'is_public' => $validated['is_public'],
         ]);
@@ -98,7 +97,6 @@ class StatusPageController extends Controller
 
         $statusPage->update([
             'name' => $validated['name'],
-            'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
             'is_public' => $validated['is_public'],
         ]);

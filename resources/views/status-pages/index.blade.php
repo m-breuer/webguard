@@ -37,7 +37,7 @@
 
                             <div class="flex flex-wrap gap-2">
                                 @if ($statusPage->is_public)
-                                    <x-secondary-button :href="route('public-status-pages.show', $statusPage->slug)" target="_blank">
+                                    <x-secondary-button :href="route('public-status-pages.show', $statusPage)" target="_blank">
                                         {{ __('status_page.actions.public_page') }}
                                     </x-secondary-button>
                                 @endif

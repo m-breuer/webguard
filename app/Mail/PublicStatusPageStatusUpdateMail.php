@@ -47,9 +47,9 @@ class PublicStatusPageStatusUpdateMail extends Mailable
                 'notification' => $this->notification,
                 'status' => $this->status,
                 'statusLabel' => mb_strtoupper($this->status),
-                'statusPageUrl' => route('public-status-pages.show', $this->subscription->statusPage->slug),
+                'statusPageUrl' => route('public-status-pages.show', $this->subscription->statusPage),
                 'unsubscribeUrl' => route('public-status-pages.subscribers.unsubscribe', [
-                    'statusPage' => $this->subscription->statusPage->slug,
+                    'statusPage' => $this->subscription->statusPage,
                     'token' => $this->subscription->unsubscribe_token,
                 ]),
             ],

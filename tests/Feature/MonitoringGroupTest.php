@@ -337,7 +337,7 @@ class MonitoringGroupTest extends TestCase
         $this->assertDatabaseHas('status_pages', [
             'id' => $statusPage->id,
             'user_id' => $this->user->id,
-            'slug' => 'public-production',
+            'slug' => null,
             'is_public' => true,
         ]);
         $this->assertDatabaseHas('status_page_components', [
@@ -347,7 +347,7 @@ class MonitoringGroupTest extends TestCase
             'name' => 'Public Production',
         ]);
 
-        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $publicResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $publicResponse->assertOk();
         $publicResponse->assertSeeText('Public Production');
@@ -370,11 +370,11 @@ class MonitoringGroupTest extends TestCase
         $monitoringGroup->monitorings()->attach($initialMonitoring->id);
 
         $this->actingAs($this->user)->post(route('monitoring-groups.publish-status-page', $monitoringGroup));
-        $statusPage = StatusPage::query()->where('slug', 'production')->firstOrFail();
+        $statusPage = StatusPage::query()->where('name', 'Production')->firstOrFail();
 
         $monitoringGroup->monitorings()->attach($laterMonitoring->id);
 
-        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText('Initial API');

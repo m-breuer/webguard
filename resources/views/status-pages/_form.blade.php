@@ -39,19 +39,10 @@
                     this.components.splice(index, 1);
                 }
             }">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                    <x-input-label for="name" :value="__('status_page.form.name')" />
-                    <x-text-input id="name" name="name" type="text" :value="old('name', $statusPage->name ?? '')" required />
-                    <x-input-error :messages="$errors->get('name')" />
-                </div>
-
-                <div>
-                    <x-input-label for="slug" :value="__('status_page.form.slug')" />
-                    <x-text-input id="slug" name="slug" type="text" :value="old('slug', $statusPage->slug ?? '')"
-                        placeholder="{{ __('status_page.form.slug_placeholder') }}" />
-                    <x-input-error :messages="$errors->get('slug')" />
-                </div>
+            <div>
+                <x-input-label for="name" :value="__('status_page.form.name')" />
+                <x-text-input id="name" name="name" type="text" :value="old('name', $statusPage->name ?? '')" required />
+                <x-input-error :messages="$errors->get('name')" />
             </div>
 
             <div>

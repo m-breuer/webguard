@@ -36,7 +36,7 @@ class PublicStatusPageSubscriptionConfirmationMail extends Mailable
                 'subscription' => $this->subscription,
                 'statusPage' => $this->subscription->statusPage,
                 'confirmUrl' => route('public-status-pages.subscribers.confirm', [
-                    'statusPage' => $this->subscription->statusPage->slug,
+                    'statusPage' => $this->subscription->statusPage,
                     'token' => $this->token,
                 ]),
             ],

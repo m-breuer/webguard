@@ -17,6 +17,7 @@ use App\Models\StatusPageSubscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class StatusPageManagementTest extends TestCase
@@ -43,6 +44,100 @@ class StatusPageManagementTest extends TestCase
         $testResponse->assertSeeHtml('Workers');
         $testResponse->assertSeeHtml('Database');
         $testResponse->assertSeeText('Primary API');
+        $testResponse->assertDontSeeHtml('name="slug"');
+    }
+
+    public function test_public_status_page_urls_use_ulids_and_legacy_slugs_redirect_to_the_canonical_url(): void
+    {
+        $package = Package::factory()->create();
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $sameNameStatusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => null,
+            'is_public' => true,
+        ]);
+
+        $canonicalUrl = route('public-status-pages.show', $statusPage);
+        $sameNameCanonicalUrl = route('public-status-pages.show', $sameNameStatusPage);
+
+        $this->assertStringEndsWith('/status/' . $statusPage->id, $canonicalUrl);
+        $this->assertStringNotContainsString('acme-status', $canonicalUrl);
+        $this->assertNotSame($canonicalUrl, $sameNameCanonicalUrl);
+
+        $this->get($canonicalUrl)->assertOk()->assertSeeHtml('<link rel="canonical" href="' . $canonicalUrl . '">');
+        $this->get($sameNameCanonicalUrl)->assertOk();
+        $this->get(route('legacy-public-status-pages.show', 'acme-status'))
+            ->assertRedirect($canonicalUrl)
+            ->assertStatus(301);
+
+        $statusPage->update(['name' => 'Renamed Status']);
+
+        $this->assertSame($canonicalUrl, route('public-status-pages.show', $statusPage->refresh()));
+        $this->get($canonicalUrl)->assertOk()->assertSeeText('Renamed Status');
+    }
+
+    public function test_unknown_or_private_public_status_page_identifiers_return_not_found(): void
+    {
+        $package = Package::factory()->create();
+        $privateStatusPage = StatusPage::query()->create([
+            'user_id' => User::factory()->create(['package_id' => $package->id])->id,
+            'name' => 'Private Status',
+            'slug' => 'private-status',
+            'is_public' => false,
+        ]);
+
+        $this->get(route('public-status-pages.show', Str::ulid()->toBase32()))->assertNotFound();
+        $this->get(route('legacy-public-status-pages.show', 'unknown-status'))->assertNotFound();
+        $this->get(route('legacy-public-status-pages.show', $privateStatusPage->slug))->assertNotFound();
+    }
+
+    public function test_legacy_subscription_urls_redirect_to_ulid_routes_without_changing_request_methods(): void
+    {
+        $package = Package::factory()->create();
+        $statusPage = StatusPage::query()->create([
+            'user_id' => User::factory()->create(['package_id' => $package->id])->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'customer@example.com',
+            'confirmation_token_hash' => StatusPageSubscription::hashToken('confirm-token'),
+            'unsubscribe_token' => 'unsubscribe-token',
+        ]);
+
+        $this->post(route('legacy-public-status-pages.subscribers.store', $statusPage->slug))
+            ->assertRedirect(route('public-status-pages.subscribers.store', $statusPage))
+            ->assertStatus(307);
+        $this->get(route('legacy-public-status-pages.subscribers.confirm', [
+            'statusPageSlug' => $statusPage->slug,
+            'token' => 'confirm-token',
+        ]))->assertRedirect(route('public-status-pages.subscribers.confirm', [
+            'statusPage' => $statusPage,
+            'token' => 'confirm-token',
+        ]));
+        $this->get(route('legacy-public-status-pages.subscribers.unsubscribe', [
+            'statusPageSlug' => $statusPage->slug,
+            'token' => 'unsubscribe-token',
+        ]))->assertRedirect(route('public-status-pages.subscribers.unsubscribe', [
+            'statusPage' => $statusPage,
+            'token' => 'unsubscribe-token',
+        ]));
+        $this->delete(route('legacy-public-status-pages.subscribers.destroy', [
+            'statusPageSlug' => $statusPage->slug,
+            'token' => 'unsubscribe-token',
+        ]))->assertRedirect(route('public-status-pages.subscribers.destroy', [
+            'statusPage' => $statusPage,
+            'token' => 'unsubscribe-token',
+        ]))->assertStatus(307);
     }
 
     public function test_user_can_create_component_based_status_page(): void
@@ -54,7 +149,6 @@ class StatusPageManagementTest extends TestCase
 
         $testResponse = $this->actingAs($user)->post(route('status-pages.store'), [
             'name' => 'Acme Status',
-            'slug' => 'acme-status',
             'description' => 'Customer-facing status page',
             'is_public' => '1',
             'components' => [
@@ -75,7 +169,7 @@ class StatusPageManagementTest extends TestCase
         $this->assertDatabaseHas('status_pages', [
             'user_id' => $user->id,
             'name' => 'Acme Status',
-            'slug' => 'acme-status',
+            'slug' => null,
             'is_public' => true,
         ]);
         $this->assertDatabaseHas('status_page_components', [
@@ -142,7 +236,6 @@ class StatusPageManagementTest extends TestCase
 
         $this->actingAs($user)->put(route('status-pages.update', $statusPage), [
             'name' => 'Updated Status',
-            'slug' => 'updated-status',
             'description' => 'Updated description',
             'is_public' => '0',
             'components' => [
@@ -163,7 +256,7 @@ class StatusPageManagementTest extends TestCase
         $this->assertDatabaseHas('status_pages', [
             'id' => $statusPage->id,
             'name' => 'Updated Status',
-            'slug' => 'updated-status',
+            'slug' => 'old-status',
             'is_public' => false,
         ]);
         $this->assertDatabaseHas('status_page_components', [
@@ -223,7 +316,10 @@ class StatusPageManagementTest extends TestCase
 
         $testResponse->assertRedirect(route('status-pages.create'));
         $testResponse->assertSessionHasErrors(['components.0.monitoring_group_id']);
-        $this->assertDatabaseMissing('status_pages', ['slug' => 'acme-status']);
+        $this->assertDatabaseMissing('status_pages', [
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+        ]);
     }
 
     public function test_status_page_components_cannot_reference_another_users_monitorings(): void
@@ -249,7 +345,10 @@ class StatusPageManagementTest extends TestCase
 
         $testResponse->assertRedirect(route('status-pages.create'));
         $testResponse->assertSessionHasErrors(['components.0.monitoring_ids.0']);
-        $this->assertDatabaseMissing('status_pages', ['slug' => 'acme-status']);
+        $this->assertDatabaseMissing('status_pages', [
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+        ]);
     }
 
     public function test_user_cannot_view_another_users_status_page_management_screen(): void
@@ -305,7 +404,7 @@ class StatusPageManagementTest extends TestCase
             'message' => 'We found a saturated database connection pool and are applying a fix.',
         ]);
 
-        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $publicResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $publicResponse->assertOk();
         $publicResponse->assertSeeText(__('status_page.incident_updates.statuses.identified'));
@@ -325,11 +424,11 @@ class StatusPageManagementTest extends TestCase
             'is_public' => true,
         ]);
 
-        $testResponse = $this->post(route('public-status-pages.subscribers.store', $statusPage->slug), [
+        $testResponse = $this->post(route('public-status-pages.subscribers.store', $statusPage), [
             'email' => 'Customer@Example.com',
         ]);
 
-        $testResponse->assertRedirect(route('public-status-pages.show', $statusPage->slug));
+        $testResponse->assertRedirect(route('public-status-pages.show', $statusPage));
         $testResponse->assertSessionHas('status_page_subscription_success');
 
         $statusPageSubscription = StatusPageSubscription::query()->firstOrFail();
@@ -346,15 +445,15 @@ class StatusPageManagementTest extends TestCase
         });
 
         $this->get(route('public-status-pages.subscribers.confirm', [
-            'statusPage' => $statusPage->slug,
+            'statusPage' => $statusPage,
             'token' => $confirmationToken,
-        ]))->assertRedirect(route('public-status-pages.show', $statusPage->slug));
+        ]))->assertRedirect(route('public-status-pages.show', $statusPage));
 
         $this->assertTrue($statusPageSubscription->refresh()->isVerified());
         $this->assertNull($statusPageSubscription->confirmation_token_hash);
 
         $unsubscribeResponse = $this->get(route('public-status-pages.subscribers.unsubscribe', [
-            'statusPage' => $statusPage->slug,
+            'statusPage' => $statusPage,
             'token' => $statusPageSubscription->unsubscribe_token,
         ]));
 
@@ -362,11 +461,11 @@ class StatusPageManagementTest extends TestCase
         $unsubscribeResponse->assertSeeHtml('data-confirm-message="' . __('status_page.public.subscribe.unsubscribe_confirmation') . '"');
 
         $this->delete(route('public-status-pages.subscribers.destroy', [
-            'statusPage' => $statusPage->slug,
+            'statusPage' => $statusPage,
             'token' => $statusPageSubscription->unsubscribe_token,
         ]), [
             'email' => 'CUSTOMER@example.com',
-        ])->assertRedirect(route('public-status-pages.show', $statusPage->slug));
+        ])->assertRedirect(route('public-status-pages.show', $statusPage));
 
         $this->assertDatabaseMissing('status_page_subscriptions', [
             'id' => $statusPageSubscription->id,
