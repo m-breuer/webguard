@@ -69,6 +69,8 @@ class TermsOfUsePageTest extends TestCase
 
     public function test_footer_contains_terms_of_use_link(): void
     {
+        $this->configureImprintContact();
+
         $testResponse = $this->get(route('terms-of-use'));
 
         $testResponse->assertOk();
