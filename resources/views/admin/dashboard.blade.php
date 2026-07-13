@@ -35,13 +35,6 @@
                 </x-container>
             </a>
 
-            <a href="{{ route('admin.demo-monitorings.index') }}">
-                <x-container class="h-full">
-                    <x-heading type="h2" space="true">{{ __('admin.dashboard.demo_monitorings.heading') }}</x-heading>
-                    <x-paragraph>{{ __('admin.dashboard.demo_monitorings.description') }}</x-paragraph>
-                </x-container>
-            </a>
-
             <a href="{{ route('admin.activity-logs.index') }}">
                 <x-container class="h-full">
                     <x-heading type="h2" space="true">{{ __('admin.dashboard.activity_logs.heading') }}</x-heading>

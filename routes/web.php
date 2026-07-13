@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ApiController as AdminApiController;
-use App\Http\Controllers\Admin\DemoMonitoringController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
@@ -191,7 +190,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::resource('/packages', PackageController::class)->except(['show'])->names('packages');
         Route::resource('/server-instances', ServerInstanceController::class)->except(['show'])->names('server-instances');
         Route::resource('/apis', AdminApiController::class)->only(['index'])->names('apis');
-        Route::resource('/demo-monitorings', DemoMonitoringController::class)->only(['index'])->names('demo-monitorings');
         Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     });
 });

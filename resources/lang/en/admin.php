@@ -22,27 +22,9 @@ return [
             'heading' => 'Manage Server Instances',
             'description' => 'Manage crawler instance codes and internal API keys.',
         ],
-        'demo_monitorings' => [
-            'heading' => 'Demo Monitorings',
-            'description' => 'View monitorings for the demo user.',
-        ],
         'activity_logs' => [
             'heading' => 'Audit Logs',
             'description' => 'Review account, profile, API-token, and monitoring changes.',
-        ],
-    ],
-    'demo_monitorings' => [
-        'title' => 'Demo User Monitorings',
-        'fields' => [
-            'created_at' => 'Created',
-        ],
-        'summary' => [
-            'demo_user' => 'Demo User',
-            'monitorings' => 'Monitorings',
-            'package_limit' => 'Package Limit',
-        ],
-        'messages' => [
-            'empty' => 'No demo user monitorings found.',
         ],
     ],
     'activity_logs' => [
