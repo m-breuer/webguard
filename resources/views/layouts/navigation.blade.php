@@ -11,7 +11,7 @@
         <div class="flex h-16 justify-between">
             <div class="flex">
                 <div class="flex shrink-0 items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center">
+                    <a href="{{ route('monitorings.index') }}" class="flex items-center">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
                         <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
                             {{ __('app.name') }}

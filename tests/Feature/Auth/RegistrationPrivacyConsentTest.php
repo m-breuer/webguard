@@ -50,7 +50,7 @@ class RegistrationPrivacyConsentTest extends TestCase
             'captcha' => $this->validCaptchaValue(),
         ]);
 
-        $testResponse->assertRedirect('/dashboard');
+        $testResponse->assertRedirect('/monitorings');
         $this->assertAuthenticated();
 
         $user = User::query()->where('email', 'jane@example.test')->first();

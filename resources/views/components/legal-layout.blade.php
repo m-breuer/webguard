@@ -16,7 +16,8 @@
     $seoTwitterTitle = isset($twitterTitle) ? trim((string) $twitterTitle) : $seoOgTitle;
     $seoTwitterDescription = isset($twitterDescription) ? trim((string) $twitterDescription) : $seoOgDescription;
     $seoTwitterImage = isset($twitterImage) ? trim((string) $twitterImage) : $seoOgImage;
-    $structuredData = \App\Support\Seo\StructuredData::marketingPage($seoTitle, $seoDescription, $seoCanonical, Vite::asset('resources/images/Logo-WebGuard.png'));
+    $structuredData = \App\Support\Seo\StructuredData::legalPage($seoTitle, $seoDescription, $seoCanonical, Vite::asset('resources/images/Logo-WebGuard.png'));
+    $homeUrl = config('app.marketing_url') ?: route('login');
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
 
@@ -64,30 +65,23 @@
         </div>
 
         <header class="relative z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/80" style="z-index: 40;">
-            <nav aria-label="{{ __('welcome.nav.aria') }}">
+            <nav aria-label="{{ __('app.navigation.home') }}">
                 <x-main class="flex w-full items-center justify-between py-4">
-                    <a href="{{ route('welcome') }}" class="flex items-center gap-3">
-                        <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('welcome.nav.logo_alt') }}" class="h-9 w-9">
+                    <a href="{{ $homeUrl }}" class="flex items-center gap-3">
+                        <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('app.logo_alt') }}" class="h-9 w-9">
                         <x-span class="hidden text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:inline">{{ __('app.name') }}</x-span>
                     </a>
 
-                    <div class="hidden items-center gap-8 md:flex">
-                        <a href="{{ route('welcome') . '#features' }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.features') }}</a>
-                        <a href="{{ route('public-features.index') }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.feature_pages') }}</a>
-                        <a href="{{ route('scribe') }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.api_docs') }}</a>
-                        <a href="{{ route('welcome') . '#proof' }}" class="text-sm font-medium text-slate-700 transition hover:text-purple-700 dark:text-slate-200 dark:hover:text-purple-300">{{ __('welcome.nav.proof') }}</a>
-                    </div>
-
                     <div class="flex items-center gap-2 sm:gap-3">
-                        <x-language-switch id="language-switch-guest" variant="marketing" />
+                        <x-language-switch id="language-switch-guest" variant="legal" />
 
                         <x-primary-button :href="route('register')"
                             class="!border-purple-600 !bg-purple-600 !text-white !normal-case !tracking-normal hover:!bg-purple-700 focus:!ring-purple-500 dark:!border-purple-400 dark:!bg-purple-400 dark:!text-slate-950 dark:hover:!bg-purple-300 dark:focus:!ring-purple-300">
-                            {{ __('welcome.nav.get_started') }}
+                            {{ __('auth.auth_switch.register') }}
                         </x-primary-button>
                         <x-secondary-button :href="route('login')"
                             class="!border-slate-300 !bg-white !text-slate-700 !normal-case !tracking-normal transition hover:!border-slate-400 hover:!bg-slate-100 dark:!border-slate-600 dark:!bg-slate-900/70 dark:!text-slate-100 dark:hover:!border-slate-500 dark:hover:!bg-slate-800">
-                            {{ __('welcome.nav.login') }}
+                            {{ __('auth.auth_switch.login') }}
                         </x-secondary-button>
                     </div>
                 </x-main>

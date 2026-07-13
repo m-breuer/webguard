@@ -16,34 +16,34 @@ class LocalePreferenceTest extends TestCase
 
     public function test_anonymous_user_can_switch_locale_and_persist_it_in_cookie(): void
     {
-        $testResponse = $this->from('/')->post(route('locale.switch'), [
+        $testResponse = $this->from(route('login'))->post(route('locale.switch'), [
             'locale' => SupportedLanguage::DE->value,
         ]);
 
-        $testResponse->assertRedirect('/');
+        $testResponse->assertRedirect(route('login'));
         $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value);
 
-        $localizedPage = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value)->get('/');
+        $localizedPage = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value)->get(route('login'));
         $localizedPage->assertOk();
         $localizedPage->assertSeeHtml('lang="de"');
     }
 
     public function test_anonymous_user_can_switch_locale_via_get_link(): void
     {
-        $testResponse = $this->withHeader('referer', url('/'))
+        $testResponse = $this->withHeader('referer', route('login'))
             ->get(route('locale.switch', ['locale' => SupportedLanguage::DE->value]));
 
-        $testResponse->assertRedirect(url('/'));
+        $testResponse->assertRedirect(route('login'));
         $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value);
 
-        $localizedPage = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value)->get('/');
+        $localizedPage = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::DE->value)->get(route('login'));
         $localizedPage->assertOk();
         $localizedPage->assertSeeHtml('lang="de"');
     }
 
     public function test_language_switch_is_visible_for_guests_in_top_navigation(): void
     {
-        $testResponse = $this->get('/');
+        $testResponse = $this->get(route('login'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('id="language-switch-guest"');
@@ -96,7 +96,7 @@ class LocalePreferenceTest extends TestCase
 
     public function test_accept_language_header_is_used_when_no_user_and_no_cookie(): void
     {
-        $testResponse = $this->withHeader('Accept-Language', 'de-DE,de;q=0.9,en;q=0.8')->get('/');
+        $testResponse = $this->withHeader('Accept-Language', 'de-DE,de;q=0.9,en;q=0.8')->get(route('login'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('lang="de"');
@@ -106,7 +106,7 @@ class LocalePreferenceTest extends TestCase
     {
         $testResponse = $this->withCookie(SupportedLanguage::cookieName(), SupportedLanguage::EN->value)
             ->withHeader('Accept-Language', 'de-DE,de;q=0.9')
-            ->get('/');
+            ->get(route('login'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('lang="en"');
@@ -125,7 +125,7 @@ class LocalePreferenceTest extends TestCase
                 'password' => 'password',
             ]);
 
-        $testResponse->assertRedirect('/dashboard');
+        $testResponse->assertRedirect('/monitorings');
         $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::EN->value);
     }
 

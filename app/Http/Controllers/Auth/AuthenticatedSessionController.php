@@ -47,7 +47,7 @@ class AuthenticatedSessionController extends Controller
             $userLocale = SupportedLanguage::default()->value;
         }
 
-        return redirect()->intended(route('dashboard', absolute: false))
+        return redirect()->intended(route('monitorings.index', absolute: false))
             ->withCookie(
                 cookie(
                     SupportedLanguage::cookieName(),

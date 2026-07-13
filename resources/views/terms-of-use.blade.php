@@ -1,4 +1,4 @@
-<x-marketing-layout>
+<x-legal-layout>
     <x-slot:title>{{ __('legal.terms_of_use.seo.title') }}</x-slot:title>
     <x-slot:description>{{ __('legal.terms_of_use.seo.description') }}</x-slot:description>
     <x-slot:keywords>{{ __('legal.terms_of_use.seo.keywords') }}</x-slot:keywords>
@@ -127,4 +127,4 @@
             </section>
         </x-main>
     </main>
-</x-marketing-layout>
+</x-legal-layout>

@@ -98,7 +98,7 @@ class GdprPageTest extends TestCase
 
     public function test_footer_contains_gdpr_link(): void
     {
-        $testResponse = $this->get(route('welcome'));
+        $testResponse = $this->get(route('gdpr'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('gdpr.footer_link'));

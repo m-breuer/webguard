@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+@php
+    $homeUrl = config('app.marketing_url') ?: route('login');
+@endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-confirm-title="{{ __('app.confirmation.title') }}"
     data-confirm-confirm="{{ __('app.confirmation.confirm') }}" data-confirm-cancel="{{ __('button.cancel') }}">
 
@@ -33,7 +36,7 @@
     <nav class="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between">
-                <a href="{{ route('welcome') }}" class="flex items-center">
+                <a href="{{ $homeUrl }}" class="flex items-center">
                     <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
                     <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
                         {{ __('app.name') }}

@@ -29,6 +29,7 @@ return [
         'confirm' => 'Bestätigen',
     ],
     'navigation' => [
+        'home' => 'Hauptnavigation',
         'monitoring' => 'Monitoring',
         'workspace' => 'Workspace',
         'sections' => [
@@ -38,4 +39,7 @@ return [
         ],
     ],
     'public_status_title' => 'WebGuard Öffentlicher Status',
+    'marketing_site' => 'WebGuard-Website',
+    'api_documentation' => 'API-Dokumentation',
+    'logo_alt' => 'WebGuard-Logo',
 ];

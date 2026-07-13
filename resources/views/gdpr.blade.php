@@ -7,7 +7,7 @@
     $userRights = (array) trans('gdpr.sections.rights.items');
 @endphp
 
-<x-marketing-layout>
+<x-legal-layout>
     <x-slot:title>{{ __('gdpr.seo.title') }}</x-slot:title>
     <x-slot:description>{{ __('gdpr.seo.description') }}</x-slot:description>
     <x-slot:keywords>{{ __('gdpr.seo.keywords') }}</x-slot:keywords>
@@ -202,4 +202,4 @@
             </section>
         </x-main>
     </main>
-</x-marketing-layout>
+</x-legal-layout>

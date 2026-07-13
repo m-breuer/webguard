@@ -1,4 +1,4 @@
-<x-marketing-layout>
+<x-legal-layout>
     <x-slot:title>{{ __('imprint.seo.title') }}</x-slot:title>
     <x-slot:description>{{ __('imprint.seo.description') }}</x-slot:description>
     <x-slot:keywords>{{ __('imprint.seo.keywords') }}</x-slot:keywords>
@@ -87,4 +87,4 @@
 
         </x-main>
     </main>
-</x-marketing-layout>
+</x-legal-layout>

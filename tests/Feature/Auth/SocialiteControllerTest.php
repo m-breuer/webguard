@@ -53,7 +53,7 @@ class SocialiteControllerTest extends TestCase
             'terms' => '1',
         ]);
 
-        $consentResponse->assertRedirect(route('dashboard'));
+        $consentResponse->assertRedirect(route('monitorings.index'));
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'email' => 'test@webguard.io',
@@ -88,7 +88,7 @@ class SocialiteControllerTest extends TestCase
 
         $this->assertDatabaseCount('users', 1);
         $this->assertAuthenticatedAs($user);
-        $testResponse->assertRedirect(route('dashboard'));
+        $testResponse->assertRedirect(route('monitorings.index'));
     }
 
     public function test_handle_github_callback_for_existing_socialite_user_without_consent_redirects_to_consent(): void
@@ -136,7 +136,7 @@ class SocialiteControllerTest extends TestCase
             'terms' => '1',
         ]);
 
-        $consentResponse->assertRedirect(route('dashboard'));
+        $consentResponse->assertRedirect(route('monitorings.index'));
         $user->refresh();
         $this->assertAuthenticatedAs($user);
         $this->assertSame('12345', $user->github_id);

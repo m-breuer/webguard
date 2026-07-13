@@ -32,7 +32,7 @@ class EmailVerificationSignatureTest extends TestCase
         $testResponse = $this->actingAs($user)
             ->get('https://www.webguard.m-breuer.dev' . $relativeSignedPath);
 
-        $testResponse->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
+        $testResponse->assertRedirect(route('monitorings.index', absolute: false) . '?verified=1');
         $this->assertNotNull($user->fresh()->email_verified_at);
     }
 }

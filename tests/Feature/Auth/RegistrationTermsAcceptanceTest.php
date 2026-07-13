@@ -73,7 +73,7 @@ class RegistrationTermsAcceptanceTest extends TestCase
 
         $testResponse = $this->post('/register', $registrationData);
 
-        $testResponse->assertRedirect(route('dashboard', absolute: false));
+        $testResponse->assertRedirect(route('monitorings.index', absolute: false));
         $this->assertAuthenticated();
 
         $user = User::query()->where('email', $registrationData['email'])->first();
