@@ -16,7 +16,7 @@
         </x-secondary-button>
     </x-slot>
 
-    <x-main>
+    <x-main class="space-y-4">
         @include('monitorings._ownership')
 
         <x-container>

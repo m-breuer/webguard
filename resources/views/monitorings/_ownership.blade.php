@@ -1,4 +1,4 @@
-<x-container class="mb-4">
+<x-container>
     <div class="space-y-4">
         <div>
             <x-heading type="h2">{{ __('team.ownership.select_label') }}</x-heading>

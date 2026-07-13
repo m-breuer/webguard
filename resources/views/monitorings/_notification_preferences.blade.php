@@ -5,7 +5,7 @@
     $fieldIdPrefix = $fieldIdPrefix ?? 'monitoring_notification_preference';
 @endphp
 
-<x-container class="mb-4">
+<x-container>
     <x-heading type="h2">{{ __('team.sections.notification_preferences') }}</x-heading>
     <form method="POST" action="{{ route('monitorings.notification-preferences.update', $monitoring) }}"
         class="mt-4 space-y-4">
