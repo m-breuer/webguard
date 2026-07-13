@@ -17,6 +17,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Regional Consensus
+    |--------------------------------------------------------------------------
+    |
+    | Multi-location consensus considers only recent reports. A strict majority
+    | must report a failure before WebGuard opens an incident.
+    |
+    */
+    'regional_consensus_freshness_minutes' => (int) env('MONITORING_REGIONAL_CONSENSUS_FRESHNESS_MINUTES', 10),
+
+    /*
+    |--------------------------------------------------------------------------
     | Heartbeat Queue Name
     |--------------------------------------------------------------------------
     |

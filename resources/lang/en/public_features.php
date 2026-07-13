@@ -183,11 +183,11 @@ return [
         'multi_location' => [
             'badge' => 'Distribution',
             'title' => 'Monitoring from Multiple Locations',
-            'teaser' => 'Cross-region checks help isolate local outages and reduce false positives.',
-            'lead' => 'Location-aware monitoring helps teams understand whether an incident is global, regional, or tied to one monitoring source.',
-            'highlights' => ['Public monitoring locations page', 'Location and IP visibility for allow-lists', 'Better incident classification'],
-            'details' => ['Use monitoring locations when protected systems need source IP allow-lists or when network path context matters.', 'The public monitoring locations page lists active monitoring source locations and IP addresses so SaaS teams can prepare access rules.', 'Location context pairs well with HTTP, ping, and port checks to make regional failures easier to classify.'],
-            'seo' => ['title' => 'Multi-Location Monitoring - WebGuard', 'description' => 'Use public monitoring source locations and IP visibility for allow-lists and outage classification.', 'keywords' => 'multi-location monitoring, monitoring locations, uptime source IPs'],
+            'teaser' => 'Regional consensus distinguishes local probe failures from regional and global outages before paging your team.',
+            'lead' => 'WebGuard combines fresh results from every selected location, shows localized degradation immediately, and opens an incident only after a strict majority reports failure.',
+            'highlights' => ['Per-location status matrix', 'Majority-based regional incidents', 'Global classification when every location fails'],
+            'details' => ['A failure from one location is displayed as a localized degradation without triggering incident notifications, reducing noise from regional DNS, routing, CDN, or probe problems.', 'When a strict majority fails, WebGuard opens a regional incident and records the affected locations. Unanimous failures upgrade the classification to a global outage.', 'The monitoring detail view shows which locations are up, down, or still awaiting fresh data, while the status API exposes the same consensus snapshot for integrations.'],
+            'seo' => ['title' => 'Regional Consensus Monitoring - WebGuard', 'description' => 'Use majority-based multi-location monitoring to distinguish localized degradation from regional and global outages.', 'keywords' => 'regional consensus monitoring, multi-location outage detection, regional incident monitoring'],
         ],
         'notifications' => [
             'badge' => 'Alerts',

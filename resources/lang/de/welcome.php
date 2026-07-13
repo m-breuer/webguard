@@ -160,7 +160,7 @@ return [
         'multi_location' => [
             'badge' => 'Verteilung',
             'title' => 'Monitoring aus mehreren Regionen',
-            'text' => 'Regionenübergreifende Checks helfen, lokale Ausfälle zu isolieren und Fehlalarme zu reduzieren.',
+            'text' => 'Regionaler Konsens trennt per strikter Mehrheit lokale Beeinträchtigungen von regionalen und globalen Ausfällen.',
         ],
         'public_status_pages' => [
             'badge' => 'Transparenz',

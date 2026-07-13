@@ -5,17 +5,31 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\MonitoringStatus;
+use App\Enums\RegionalConsensusStatus;
 use App\Models\Monitoring;
 use Illuminate\Support\Facades\Date;
 
 class MonitoringStatusService
 {
+    public function __construct(
+        private readonly RegionalConsensusService $regionalConsensusService
+    ) {}
+
     /**
      * @return array{status: string, since: string|null}
      */
     public function getStatusSince(Monitoring $monitoring): array
     {
         $latest = $monitoring->latestIncident;
+
+        if (count($monitoring->preferredLocationCodes()) > 1 && ! $latest) {
+            $snapshot = $this->regionalConsensusService->snapshot($monitoring);
+
+            return [
+                'status' => $this->monitoringStatus($snapshot['status']),
+                'since' => $monitoring->latestResponseResult?->created_at->toIso8601String(),
+            ];
+        }
 
         if (! $latest) {
             return [
@@ -58,11 +72,31 @@ class MonitoringStatusService
         $cronjobInterval ??= (int) config('monitoring.interval', 5) * 60;
         $latest = $monitoring->latestResponseResult;
 
+        if (count($monitoring->preferredLocationCodes()) > 1) {
+            $snapshot = $this->regionalConsensusService->snapshot($monitoring);
+
+            return [
+                'status' => $this->monitoringStatus($snapshot['status']),
+                'checked_at' => $latest?->updated_at->toIso8601String(),
+                'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : Date::now()->addSeconds($cronjobInterval)->toIso8601String(),
+                'interval' => $cronjobInterval,
+            ];
+        }
+
         return [
             'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
             'checked_at' => $latest ? $latest->updated_at->toIso8601String() : null,
             'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : Date::now()->addSeconds($cronjobInterval)->toIso8601String(),
             'interval' => $cronjobInterval,
         ];
+    }
+
+    private function monitoringStatus(RegionalConsensusStatus $regionalConsensusStatus): MonitoringStatus
+    {
+        return match ($regionalConsensusStatus) {
+            RegionalConsensusStatus::HEALTHY => MonitoringStatus::UP,
+            RegionalConsensusStatus::REGIONAL, RegionalConsensusStatus::GLOBAL => MonitoringStatus::DOWN,
+            default => MonitoringStatus::UNKNOWN,
+        };
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\RegionalConsensusStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,6 +28,8 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'monitoring_id',
+    'consensus_status',
+    'affected_locations',
     'down_at',
     'up_at',
 
@@ -62,6 +65,8 @@ class Incident extends Model
     protected function casts(): array
     {
         return [
+            'consensus_status' => RegionalConsensusStatus::class,
+            'affected_locations' => 'array',
             'down_at' => 'datetime',
             'up_at' => 'datetime',
             'created_at' => 'datetime',

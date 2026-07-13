@@ -165,6 +165,43 @@
                 </div>
             </x-container>
 
+            @if ($regionalConsensus)
+                <x-container>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <x-heading type="h2">{{ __('monitoring.detail.regional_consensus.heading') }}</x-heading>
+                        <x-badge :type="match ($regionalConsensus['status']) {
+                            \App\Enums\RegionalConsensusStatus::HEALTHY => 'success',
+                            \App\Enums\RegionalConsensusStatus::LOCALIZED, \App\Enums\RegionalConsensusStatus::UNKNOWN => 'warning',
+                            default => 'danger',
+                        }">
+                            {{ __('monitoring.detail.regional_consensus.statuses.' . $regionalConsensus['status']->value) }}
+                        </x-badge>
+                    </div>
+                    <x-paragraph class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        {{ __('monitoring.detail.regional_consensus.summary', [
+                            'failed' => count($regionalConsensus['affected_locations']),
+                            'reporting' => $regionalConsensus['reporting_locations'],
+                            'total' => $regionalConsensus['total_locations'],
+                            'required' => $regionalConsensus['required_failures'],
+                        ]) }}
+                    </x-paragraph>
+                    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        @foreach ($regionalConsensus['locations'] as $location)
+                            <div class="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
+                                <span class="font-medium text-gray-800 dark:text-gray-100">{{ $location['code'] }}</span>
+                                <x-badge :type="match ($location['status']) {
+                                    'up' => 'success',
+                                    'down' => 'danger',
+                                    default => 'warning',
+                                }">
+                                    {{ strtoupper($location['status']) }}
+                                </x-badge>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-container>
+            @endif
+
             @if ($monitoring->type === MonitoringType::HTTP || $monitoring->type === MonitoringType::KEYWORD)
                 <x-container>
                     <x-heading type="h2">{{ __('monitoring.detail.ssl.heading') }}</x-heading>

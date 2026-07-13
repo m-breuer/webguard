@@ -52,6 +52,7 @@ class ArchiveMonitoringResponsesCommand extends Command
                         return [
                             'id' => $monitoringResponse->id,
                             'monitoring_id' => $monitoringResponse->monitoring_id,
+                            'location_code' => $monitoringResponse->location_code,
                             'status' => $status,
                             'http_status_code' => $httpStatusCode,
                             'response_time' => $monitoringResponse->response_time,
