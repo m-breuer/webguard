@@ -12,25 +12,17 @@ class LegacyPublicStatusPageController extends Controller
 {
     public function show(string $statusPageSlug): RedirectResponse
     {
-        return redirect()->route(
-            'public-status-pages.show',
-            $this->resolvePublicStatusPage($statusPageSlug),
-            301
-        );
+        return to_route('public-status-pages.show', $this->resolvePublicStatusPage($statusPageSlug), 301);
     }
 
     public function store(string $statusPageSlug): RedirectResponse
     {
-        return redirect()->route(
-            'public-status-pages.subscribers.store',
-            $this->resolvePublicStatusPage($statusPageSlug),
-            307
-        );
+        return to_route('public-status-pages.subscribers.store', $this->resolvePublicStatusPage($statusPageSlug), 307);
     }
 
     public function confirm(string $statusPageSlug, string $token): RedirectResponse
     {
-        return redirect()->route('public-status-pages.subscribers.confirm', [
+        return to_route('public-status-pages.subscribers.confirm', [
             'statusPage' => $this->resolveConfirmationStatusPage($statusPageSlug, $token),
             'token' => $token,
         ]);
@@ -38,7 +30,7 @@ class LegacyPublicStatusPageController extends Controller
 
     public function unsubscribe(string $statusPageSlug, string $token): RedirectResponse
     {
-        return redirect()->route('public-status-pages.subscribers.unsubscribe', [
+        return to_route('public-status-pages.subscribers.unsubscribe', [
             'statusPage' => $this->resolveUnsubscribeStatusPage($statusPageSlug, $token),
             'token' => $token,
         ]);
@@ -46,7 +38,7 @@ class LegacyPublicStatusPageController extends Controller
 
     public function destroy(string $statusPageSlug, string $token): RedirectResponse
     {
-        return redirect()->route('public-status-pages.subscribers.destroy', [
+        return to_route('public-status-pages.subscribers.destroy', [
             'statusPage' => $this->resolveUnsubscribeStatusPage($statusPageSlug, $token),
             'token' => $token,
         ], 307);

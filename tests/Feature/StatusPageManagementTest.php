@@ -44,7 +44,7 @@ class StatusPageManagementTest extends TestCase
         $testResponse->assertSeeHtml('Workers');
         $testResponse->assertSeeHtml('Database');
         $testResponse->assertSeeText('Primary API');
-        $testResponse->assertDontSee('name="slug"', false);
+        $testResponse->assertDontSeeHtml('name="slug"');
     }
 
     public function test_public_status_page_urls_use_ulids_and_legacy_slugs_redirect_to_the_canonical_url(): void
@@ -71,9 +71,7 @@ class StatusPageManagementTest extends TestCase
         $this->assertStringNotContainsString('acme-status', $canonicalUrl);
         $this->assertNotSame($canonicalUrl, $sameNameCanonicalUrl);
 
-        $this->get($canonicalUrl)
-            ->assertOk()
-            ->assertSee('<link rel="canonical" href="' . $canonicalUrl . '">', false);
+        $this->get($canonicalUrl)->assertOk()->assertSeeHtml('<link rel="canonical" href="' . $canonicalUrl . '">');
         $this->get($sameNameCanonicalUrl)->assertOk();
         $this->get(route('legacy-public-status-pages.show', 'acme-status'))
             ->assertRedirect($canonicalUrl)
