@@ -39,7 +39,7 @@ class MonitoringOwnershipController extends Controller
         $team = Team::query()->findOrFail($validated['team_id']);
         $monitoringOwnershipService->moveToTeam($monitoring, $team, $user);
 
-        return to_route('monitorings.show', $monitoring)
+        return to_route('monitorings.edit', $monitoring)
             ->with('success', __('team.ownership.moved_to_team'));
     }
 
@@ -54,7 +54,7 @@ class MonitoringOwnershipController extends Controller
 
         $monitoringOwnershipService->moveToPrivate($monitoring, $user);
 
-        return to_route('monitorings.show', $monitoring)
+        return to_route('monitorings.edit', $monitoring)
             ->with('success', __('team.ownership.moved_to_private'));
     }
 }
