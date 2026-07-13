@@ -243,6 +243,8 @@ If a command cannot be executed, agents MUST state why.
 
 ## Git and Change Scope
 
+- Use the connected GitHub MCP tools for GitHub issues, pull requests, reviews, labels, and other repository metadata whenever the required operation is available there. Use local `git` only for working-tree and branch operations, and use `gh` only for gaps not covered by the GitHub MCP tools.
+- Record concrete current or future work as a GitHub issue before implementation. Implementation pull requests MUST reference the relevant issue and SHOULD use a closing keyword such as `Closes #123` when merging the pull request completes that issue.
 - Keep changes limited to the task.
 - Do not perform unrelated refactors or formatting of untouched files.
 - Do not overwrite local changes you did not make.

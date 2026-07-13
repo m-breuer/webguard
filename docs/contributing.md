@@ -5,7 +5,7 @@ Contributions are welcome. Please keep changes focused, tested, and easy to revi
 ## Workflow
 
 1. Fork the repository.
-2. Create a branch for your feature or bug fix.
+2. Create or select a GitHub issue for the feature or bug fix, then create a branch for it.
 
    ```bash
    git checkout -b feature-or-bugfix-name
@@ -20,7 +20,7 @@ Contributions are welcome. Please keep changes focused, tested, and easy to revi
 
 5. Commit with a descriptive Conventional Commits message.
 6. Push the branch to your fork.
-7. Open a pull request against the original repository's `main` branch.
+7. Open a pull request against the original repository's `main` branch. Reference the issue in the pull request description and use a closing keyword such as `Closes #123` when the pull request fully resolves it.
 
 ## Expectations
 
