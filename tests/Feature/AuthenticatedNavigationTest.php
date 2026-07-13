@@ -49,7 +49,7 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertSeeText(__('admin.dashboard.packages.heading'));
         $testResponse->assertSeeText(__('admin.dashboard.instances.heading'));
         $testResponse->assertSeeText(__('admin.dashboard.apis.heading'));
-        $testResponse->assertSeeText(__('admin.dashboard.demo_monitorings.heading'));
+        $testResponse->assertDontSee('/admin/demo-monitorings');
         $testResponse->assertSeeText(__('admin.dashboard.activity_logs.heading'));
     }
 }

@@ -22,27 +22,9 @@ return [
             'heading' => 'Serverinstanzen verwalten',
             'description' => 'Crawler-Instanz-Codes und interne API-Schlüssel verwalten.',
         ],
-        'demo_monitorings' => [
-            'heading' => 'Demo-Monitorings',
-            'description' => 'Monitorings des Demo-Benutzers anzeigen.',
-        ],
         'activity_logs' => [
             'heading' => 'Audit-Protokolle',
             'description' => 'Konto-, Profil-, API-Token- und Monitoring-Änderungen prüfen.',
-        ],
-    ],
-    'demo_monitorings' => [
-        'title' => 'Demo-Benutzer-Monitorings',
-        'fields' => [
-            'created_at' => 'Erstellt',
-        ],
-        'summary' => [
-            'demo_user' => 'Demo-Benutzer',
-            'monitorings' => 'Monitorings',
-            'package_limit' => 'Paketlimit',
-        ],
-        'messages' => [
-            'empty' => 'Keine Monitorings für den Demo-Benutzer gefunden.',
         ],
     ],
     'activity_logs' => [

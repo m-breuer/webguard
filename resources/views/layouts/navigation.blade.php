@@ -114,9 +114,6 @@
                                 <x-dropdown-link :href="route('admin.apis.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('admin.apis.*')])>
                                     {{ __('admin.dashboard.apis.heading') }}
                                 </x-dropdown-link>
-                                <x-dropdown-link :href="route('admin.demo-monitorings.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('admin.demo-monitorings.*')])>
-                                    {{ __('admin.dashboard.demo_monitorings.heading') }}
-                                </x-dropdown-link>
                                 <x-dropdown-link :href="route('admin.activity-logs.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('admin.activity-logs.*')])>
                                     {{ __('admin.dashboard.activity_logs.heading') }}
                                 </x-dropdown-link>
@@ -265,9 +262,6 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.apis.index')" :active="request()->routeIs('admin.apis.*')">
                     {{ __('admin.dashboard.apis.heading') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('admin.demo-monitorings.index')" :active="request()->routeIs('admin.demo-monitorings.*')">
-                    {{ __('admin.dashboard.demo_monitorings.heading') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.activity-logs.index')" :active="request()->routeIs('admin.activity-logs.*')">
                     {{ __('admin.dashboard.activity_logs.heading') }}
