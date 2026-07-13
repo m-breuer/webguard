@@ -72,7 +72,7 @@ class PublicIndexingTest extends TestCase
             $this->assertStringContainsString($url, $sitemapContent);
         }
 
-        $this->assertSame(3, substr_count($sitemapContent, '<url>'));
+        $this->assertSame(3, mb_substr_count($sitemapContent, '<url>'));
 
         unlink($sitemapPath);
     }

@@ -18,5 +18,4 @@ class ThemePreferenceTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('data-theme="system"');
     }
-
 }
