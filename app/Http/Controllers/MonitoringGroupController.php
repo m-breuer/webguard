@@ -7,11 +7,9 @@ namespace App\Http\Controllers;
 use App\Enums\StatusPageComponentSource;
 use App\Http\Requests\MonitoringGroupRequest;
 use App\Models\MonitoringGroup;
-use App\Models\StatusPage;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MonitoringGroupController extends Controller
@@ -90,7 +88,6 @@ class MonitoringGroupController extends Controller
 
         $statusPage = $user->statusPages()->create([
             'name' => $monitoringGroup->name,
-            'slug' => $this->uniqueStatusPageSlug($monitoringGroup->name),
             'description' => $monitoringGroup->description,
             'is_public' => true,
         ]);
@@ -110,24 +107,5 @@ class MonitoringGroupController extends Controller
     private function authorizeOwner(MonitoringGroup $monitoringGroup): void
     {
         abort_unless($monitoringGroup->user_id === Auth::id(), 404);
-    }
-
-    private function uniqueStatusPageSlug(string $name): string
-    {
-        $baseSlug = Str::slug($name);
-
-        if ($baseSlug === '') {
-            $baseSlug = 'status-page';
-        }
-
-        $slug = $baseSlug;
-        $suffix = 2;
-
-        while (StatusPage::query()->where('slug', $slug)->exists()) {
-            $slug = "{$baseSlug}-{$suffix}";
-            $suffix++;
-        }
-
-        return $slug;
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\HeartbeatPingController;
+use App\Http\Controllers\LegacyPublicStatusPageController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MaintenanceController;
@@ -87,17 +88,42 @@ Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSub
 Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
     ->name('public-label.subscribers.destroy')
     ->scopeBindings();
-Route::post('/status/{statusPage:slug}/subscribers', [StatusPageSubscriptionController::class, 'store'])
+$statusPageUlidPattern = '(?i:[0-9A-HJKMNP-TV-Z]{26})';
+$legacyStatusPageSlugPattern = '(?!(?i:[0-9A-HJKMNP-TV-Z]{26}))[A-Za-z0-9_-]+';
+
+Route::post('/status/{statusPage}/subscribers', [StatusPageSubscriptionController::class, 'store'])
     ->middleware('throttle:6,1')
-    ->name('public-status-pages.subscribers.store');
-Route::get('/status/{statusPage:slug}/subscribers/confirm/{token}', [StatusPageSubscriptionController::class, 'confirm'])
-    ->name('public-status-pages.subscribers.confirm');
-Route::get('/status/{statusPage:slug}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'unsubscribe'])
-    ->name('public-status-pages.subscribers.unsubscribe');
-Route::delete('/status/{statusPage:slug}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'destroy'])
-    ->name('public-status-pages.subscribers.destroy');
-Route::get('/status/{statusPage:slug}', PublicStatusPageController::class)
-    ->name('public-status-pages.show');
+    ->name('public-status-pages.subscribers.store')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::get('/status/{statusPage}/subscribers/confirm/{token}', [StatusPageSubscriptionController::class, 'confirm'])
+    ->name('public-status-pages.subscribers.confirm')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::get('/status/{statusPage}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'unsubscribe'])
+    ->name('public-status-pages.subscribers.unsubscribe')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::delete('/status/{statusPage}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'destroy'])
+    ->name('public-status-pages.subscribers.destroy')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::get('/status/{statusPage}', PublicStatusPageController::class)
+    ->name('public-status-pages.show')
+    ->where('statusPage', $statusPageUlidPattern);
+
+Route::post('/status/{statusPageSlug}/subscribers', [LegacyPublicStatusPageController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('legacy-public-status-pages.subscribers.store')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::get('/status/{statusPageSlug}/subscribers/confirm/{token}', [LegacyPublicStatusPageController::class, 'confirm'])
+    ->name('legacy-public-status-pages.subscribers.confirm')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::get('/status/{statusPageSlug}/subscribers/unsubscribe/{token}', [LegacyPublicStatusPageController::class, 'unsubscribe'])
+    ->name('legacy-public-status-pages.subscribers.unsubscribe')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::delete('/status/{statusPageSlug}/subscribers/unsubscribe/{token}', [LegacyPublicStatusPageController::class, 'destroy'])
+    ->name('legacy-public-status-pages.subscribers.destroy')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::get('/status/{statusPageSlug}', [LegacyPublicStatusPageController::class, 'show'])
+    ->name('legacy-public-status-pages.show')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
 
 Route::get('/badge.js', function () {
     return response(file_get_contents(public_path('js/badge.js')))->header('Content-Type', 'application/javascript');

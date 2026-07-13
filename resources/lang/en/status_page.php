@@ -21,8 +21,6 @@ return [
     ],
     'form' => [
         'name' => 'Name',
-        'slug' => 'Slug',
-        'slug_placeholder' => 'Generated from the name when empty',
         'description' => 'Description',
         'is_public' => 'Publish this status page',
         'components' => 'Components',

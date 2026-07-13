@@ -7,9 +7,9 @@
                     {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
                 </x-badge>
                 @if ($statusPage->is_public)
-                    <a href="{{ route('public-status-pages.show', $statusPage->slug) }}" target="_blank"
+                    <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank"
                         class="break-all hover:text-gray-700 dark:hover:text-white">
-                        {{ route('public-status-pages.show', $statusPage->slug) }}
+                        {{ route('public-status-pages.show', $statusPage) }}
                     </a>
                 @endif
             </div>

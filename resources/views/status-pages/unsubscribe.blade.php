@@ -21,7 +21,7 @@
                 {{ __('status_page.public.subscribe.unsubscribe_description', ['email' => $subscription->email]) }}
             </p>
 
-            <form method="POST" action="{{ route('public-status-pages.subscribers.destroy', ['statusPage' => $statusPage->slug, 'token' => $token]) }}"
+            <form method="POST" action="{{ route('public-status-pages.subscribers.destroy', ['statusPage' => $statusPage, 'token' => $token]) }}"
                 class="mt-6 space-y-4"
                 data-confirm-message="{{ __('status_page.public.subscribe.unsubscribe_confirmation') }}">
                 @csrf
