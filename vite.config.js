@@ -32,12 +32,6 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.ts',
                 'resources/images/Logo-WebGuard.png',
-                'resources/images/landing-dashboard.svg',
-                'resources/images/landing-hero-purple.webp',
-                'resources/images/landing-monitoring-detail.svg',
-                'resources/images/landing-public-status.svg',
-                'resources/images/landing-status-purple.webp',
-                'resources/images/landing-integrations-purple.webp',
             ],
             refresh: true
         }),

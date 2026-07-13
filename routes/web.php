@@ -14,12 +14,10 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringGroupController;
-use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\MonitoringNotificationPreferenceController;
 use App\Http\Controllers\MonitoringOwnershipController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PublicFeatureController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
@@ -45,22 +43,7 @@ $sessionlessPublicRoutes = [
 Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
-Route::get('/', fn () => view('welcome'))
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('welcome');
-Route::get('/monitoring-locations', MonitoringLocationsController::class)
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('monitoring-locations');
-Route::get('/features', [PublicFeatureController::class, 'index'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('public-features.index');
-Route::get('/features/{feature}', [PublicFeatureController::class, 'show'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('public-features.show');
+Route::redirect('/', '/login')->name('home');
 Route::get('/imprint', [LegalController::class, 'imprint'])
     ->withoutMiddleware($sessionlessPublicRoutes)
     ->middleware('public.cache')

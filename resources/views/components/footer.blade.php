@@ -7,22 +7,18 @@
 
             <nav class="w-full sm:w-auto" aria-label="{{ __('imprint.footer_nav_aria') }}">
                 <ul class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
-                    <li>
-                        <a href="{{ route('public-features.index') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
-                            {{ __('public_features.footer_link') }}
-                        </a>
-                    </li>
+                    @if (config('app.marketing_url'))
+                        <li>
+                            <a href="{{ config('app.marketing_url') }}"
+                                class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
+                                {{ __('app.marketing_site') }}
+                            </a>
+                        </li>
+                    @endif
                     <li>
                         <a href="{{ route('scribe') }}"
                             class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
-                            {{ __('public_features.api_footer_link') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('monitoring-locations') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
-                            {{ __('monitoring_locations.footer_link') }}
+                            {{ __('app.api_documentation') }}
                         </a>
                     </li>
                     <li>

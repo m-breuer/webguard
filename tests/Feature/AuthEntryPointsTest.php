@@ -64,12 +64,9 @@ class AuthEntryPointsTest extends TestCase
         $this->get('/demo')->assertNotFound();
     }
 
-    public function test_welcome_secondary_ctas_point_to_demo_login(): void
+    public function test_root_redirects_to_login(): void
     {
-        $testResponse = $this->get(route('welcome'));
-
-        $testResponse->assertOk();
-        $testResponse->assertSeeHtml('href="' . route('login', ['mode' => 'demo']) . '"');
+        $this->get('/')->assertRedirect(route('login', absolute: false));
     }
 
     public function test_register_mode_contains_combined_legal_consent_checkbox(): void

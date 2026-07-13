@@ -4,6 +4,7 @@ x-app-environment: &app-environment
   APP_DEBUG: "false"
   APP_KEY: "${APP_KEY:?APP_KEY must be set to a persistent Laravel application key}"
   APP_URL: "${SERVICE_URL_PHP:-https://webguard.example.com}"
+  MARKETING_URL: "${MARKETING_URL:-}"
   APP_TIMEZONE: "Europe/Berlin"
   APP_LOCALE: "en"
   APP_FALLBACK_LOCALE: "en"

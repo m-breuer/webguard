@@ -130,6 +130,7 @@ For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `
 Optional:
 
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
+- `MARKETING_URL` for an optional link to a separately deployed marketing website
 - `IMPRINT_*` fields for legal/imprint content
 
 ### Build and Startup Performance
@@ -244,6 +245,7 @@ APP_NAME=WebGuard
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://webguard.test
+MARKETING_URL=
 APP_KEY=base64:...
 APP_TIMEZONE=Europe/Berlin
 APP_LOCALE=en

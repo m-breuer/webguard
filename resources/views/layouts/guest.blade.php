@@ -5,6 +5,7 @@
 <!DOCTYPE html>
 @php
     $theme = auth()->check() ? auth()->user()->theme : 'system';
+    $homeUrl = config('app.marketing_url') ?: route('login');
     if (! in_array($theme, ['light', 'dark', 'system'], true)) {
         $theme = 'system';
     }
@@ -41,7 +42,7 @@
         <nav class="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
-                    <a href="{{ route('welcome') }}" class="flex items-center">
+                    <a href="{{ $homeUrl }}" class="flex items-center">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
                         <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
                             {{ __('app.name') }}

@@ -25,7 +25,6 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **SLA badge:** display website monitoring status on external sites with a compact SLA badge that shows live status, uptime proof, and public trust context.
 - **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers.
 - **Global language switch:** switch between supported languages from both public and authenticated top navigation.
-- **Landing navigation anchors:** landing-page menu links resolve correctly to homepage sections, even when clicked from other routes.
 
 ## Notifications
 
