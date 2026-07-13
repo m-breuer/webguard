@@ -18,11 +18,11 @@ class MonitoringGroupAssignmentService
         User $user,
         array $monitoringIds
     ): void {
-        $existingIds = Monitoring::withoutGlobalScopes()
+        $existingIds = Monitoring::query()->withoutGlobalScopes()
             ->whereHas('groups', fn ($query) => $query->whereKey($monitoringGroup->id))
             ->pluck('monitorings.id');
 
-        $assignableExistingIds = Monitoring::withoutGlobalScopes()
+        $assignableExistingIds = Monitoring::query()->withoutGlobalScopes()
             ->privateOwnedBy($user)
             ->whereKey($existingIds)
             ->pluck('monitorings.id');

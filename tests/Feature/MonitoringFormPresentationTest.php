@@ -34,12 +34,12 @@ class MonitoringFormPresentationTest extends TestCase
             __('monitoring.form.sections.operations'),
         ];
 
-        $createResponse = $this->actingAs($user)->get(route('monitorings.create'));
+        $testResponse = $this->actingAs($user)->get(route('monitorings.create'));
         $editResponse = $this->actingAs($user)->get(route('monitorings.edit', $monitoring));
 
-        $createResponse->assertOk()->assertSeeInOrder($sections);
+        $testResponse->assertOk()->assertSeeInOrder($sections);
         $editResponse->assertOk()->assertSeeInOrder($sections);
-        $createResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
+        $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
         $editResponse->assertSeeHtml('href="' . route('monitorings.show', $monitoring) . '"');
     }
 
@@ -59,13 +59,13 @@ class MonitoringFormPresentationTest extends TestCase
         $monitoringGroup = MonitoringGroup::factory()->for($user)->create(['name' => 'Production']);
         $monitoring->groups()->attach($monitoringGroup);
 
-        $showResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
         $editResponse = $this->actingAs($user)->get(route('monitorings.edit', $monitoring));
 
-        $showResponse->assertOk();
-        $showResponse->assertDontSeeText(__('team.ownership.private'));
-        $showResponse->assertDontSeeText('Production');
-        $showResponse->assertDontSeeHtml('action="' . route('monitorings.team-ownership.store', $monitoring) . '"');
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeText(__('team.ownership.private'));
+        $testResponse->assertDontSeeText('Production');
+        $testResponse->assertDontSeeHtml('action="' . route('monitorings.team-ownership.store', $monitoring) . '"');
 
         $editResponse->assertOk();
         $editResponse->assertSeeText(__('team.ownership.private'));

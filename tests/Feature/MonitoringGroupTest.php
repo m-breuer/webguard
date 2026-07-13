@@ -150,11 +150,11 @@ class MonitoringGroupTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $createForm = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
 
-        $createForm->assertOk();
-        $createForm->assertSeeText('Checkout API — https://api.example.test');
-        $createForm->assertSeeHtml('name="monitoring_ids[]"');
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('Checkout API — https://api.example.test');
+        $testResponse->assertSeeHtml('name="monitoring_ids[]"');
 
         $this->actingAs($this->user)->post(route('monitoring-groups.store'), [
             'name' => 'Production',
@@ -197,9 +197,9 @@ class MonitoringGroupTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $formResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
-        $formResponse->assertDontSeeText('Foreign');
-        $formResponse->assertDontSeeText($teamMonitoring->name);
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
+        $testResponse->assertDontSeeText('Foreign');
+        $testResponse->assertDontSeeText($teamMonitoring->name);
 
         $response = $this->from(route('monitoring-groups.create'))
             ->actingAs($this->user)
@@ -224,15 +224,15 @@ class MonitoringGroupTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $response = $this->from(route('monitoring-groups.create'))
+        $testResponse = $this->from(route('monitoring-groups.create'))
             ->actingAs($this->user)
             ->post(route('monitoring-groups.store'), [
                 'name' => 'Team Services',
                 'monitoring_ids' => [$teamMonitoring->id],
             ]);
 
-        $response->assertRedirect(route('monitoring-groups.create'));
-        $response->assertSessionHasErrors(['monitoring_ids.0']);
+        $testResponse->assertRedirect(route('monitoring-groups.create'));
+        $testResponse->assertSessionHasErrors(['monitoring_ids.0']);
         $this->assertDatabaseMissing('monitoring_groups', ['name' => 'Team Services']);
     }
 
