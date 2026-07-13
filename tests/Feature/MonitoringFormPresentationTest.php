@@ -39,6 +39,8 @@ class MonitoringFormPresentationTest extends TestCase
 
         $testResponse->assertOk()->assertSeeInOrder($sections);
         $editResponse->assertOk()->assertSeeInOrder($sections);
+        $testResponse->assertSeeHtml('class="mx-auto max-w-7xl space-y-4 px-4 sm:px-6 lg:px-8"');
+        $editResponse->assertSeeHtml('class="mx-auto max-w-7xl space-y-4 px-4 sm:px-6 lg:px-8"');
         $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
         $editResponse->assertSeeHtml('href="' . route('monitorings.show', $monitoring) . '"');
     }

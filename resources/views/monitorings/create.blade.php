@@ -13,8 +13,7 @@
         </x-secondary-button>
     </x-slot>
 
-    <x-main>
-
+    <x-main class="space-y-4">
         <x-container>
             <form method="POST" action="{{ route('monitorings.store') }}">
                 @include('monitorings._form')
