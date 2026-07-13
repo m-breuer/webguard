@@ -168,14 +168,14 @@ class TeamMonitoringTest extends TestCase
 
         $this->actingAs($admin)->post(route('monitorings.team-ownership.store', $monitoring), [
             'team_id' => $team->id,
-        ])->assertRedirect(route('monitorings.show', $monitoring));
+        ])->assertRedirect(route('monitorings.edit', $monitoring));
 
         $monitoring->refresh();
         $this->assertNull($monitoring->user_id);
         $this->assertSame($team->id, $monitoring->team_id);
 
         $this->actingAs($admin)->delete(route('monitorings.team-ownership.destroy', $monitoring))
-            ->assertRedirect(route('monitorings.show', $monitoring));
+            ->assertRedirect(route('monitorings.edit', $monitoring));
 
         $monitoring->refresh();
         $this->assertSame($admin->id, $monitoring->user_id);

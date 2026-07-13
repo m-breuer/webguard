@@ -117,56 +117,6 @@
     </div>
 
     <div class="mt-4">
-        <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
-        @if (isset($monitoring))
-            <x-text-input id="team_id" class="cursor-not-allowed" :value="$monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private')" readonly />
-        @else
-            <x-select-input id="team_id" name="team_id" class="mt-1 block w-full">
-                <option value="">{{ __('team.ownership.private') }}</option>
-                @foreach ($adminTeams as $team)
-                    <option value="{{ $team->id }}" @selected($selectedTeamId === $team->id)>
-                        {{ __('team.ownership.team') }}: {{ $team->name }}
-                    </option>
-                @endforeach
-            </x-select-input>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('team.ownership.private_help') }}
-                @if ($adminTeams->isNotEmpty())
-                    {{ __('team.ownership.team_help') }}
-                @endif
-            </p>
-        @endif
-        <x-input-error :messages="$errors->get('team_id')" />
-    </div>
-
-    <div class="mt-4">
-        <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
-        <x-multi-select
-            id="group_ids"
-            name="group_ids"
-            :options="$groupOptions"
-            :selected="$selectedGroupIds"
-            :placeholder="__('monitoring.form.no_group')"
-            :search-placeholder="__('monitoring.form.search_groups')"
-            :select-all-label="__('monitoring.form.select_all_groups')"
-            :all-selected-label="__('monitoring.form.all_groups_selected')"
-            :no-options-label="__('monitoring.form.no_groups_available')"
-            :no-results-label="__('monitoring.form.no_groups_found')"
-            :remove-label="__('monitoring.form.remove_group')"
-            :clear-label="__('monitoring.form.clear_groups')" />
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('monitoring.form.groups_help') }}
-            @if (!Auth::user()->isDemo())
-                <a href="{{ route('monitoring-groups.index') }}" class="text-purple-700 underline dark:text-purple-300">
-                    {{ __('monitoring_group.title') }}
-                </a>
-            @endif
-        </p>
-        <x-input-error :messages="$errors->get('group_ids')" />
-        <x-input-error :messages="$errors->get('group_ids.*')" />
-    </div>
-
-    <div class="mt-4">
         <x-input-label for="target" :value="__('monitoring.form.target')" />
         @if (isset($monitoring))
             @if ($monitoring->type === MonitoringType::HEARTBEAT || $monitoring->type === MonitoringType::SERVER_HEALTH)
@@ -221,6 +171,62 @@
         <x-input-error :messages="$errors->get('target')" />
     </div>
 
+        </section>
+
+        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div>
+                <x-heading type="h2">{{ __('monitoring.form.sections.organization') }}</x-heading>
+            </div>
+
+            <div>
+                <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
+                @if (isset($monitoring))
+                    <x-text-input id="team_id" class="cursor-not-allowed" :value="$monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private')" readonly />
+                @else
+                    <x-select-input id="team_id" name="team_id" class="mt-1 block w-full">
+                        <option value="">{{ __('team.ownership.private') }}</option>
+                        @foreach ($adminTeams as $team)
+                            <option value="{{ $team->id }}" @selected($selectedTeamId === $team->id)>
+                                {{ __('team.ownership.team') }}: {{ $team->name }}
+                            </option>
+                        @endforeach
+                    </x-select-input>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        {{ __('team.ownership.private_help') }}
+                        @if ($adminTeams->isNotEmpty())
+                            {{ __('team.ownership.team_help') }}
+                        @endif
+                    </p>
+                @endif
+                <x-input-error :messages="$errors->get('team_id')" />
+            </div>
+
+            <div>
+                <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
+                <x-multi-select
+                    id="group_ids"
+                    name="group_ids"
+                    :options="$groupOptions"
+                    :selected="$selectedGroupIds"
+                    :placeholder="__('monitoring.form.no_group')"
+                    :search-placeholder="__('monitoring.form.search_groups')"
+                    :select-all-label="__('monitoring.form.select_all_groups')"
+                    :all-selected-label="__('monitoring.form.all_groups_selected')"
+                    :no-options-label="__('monitoring.form.no_groups_available')"
+                    :no-results-label="__('monitoring.form.no_groups_found')"
+                    :remove-label="__('monitoring.form.remove_group')"
+                    :clear-label="__('monitoring.form.clear_groups')" />
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('monitoring.form.groups_help') }}
+                    @if (!Auth::user()->isDemo())
+                        <a href="{{ route('monitoring-groups.index') }}" class="text-purple-700 underline dark:text-purple-300">
+                            {{ __('monitoring_group.title') }}
+                        </a>
+                    @endif
+                </p>
+                <x-input-error :messages="$errors->get('group_ids')" />
+                <x-input-error :messages="$errors->get('group_ids.*')" />
+            </div>
         </section>
 
         <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
@@ -559,6 +565,11 @@
 
         </section>
 
-        <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+        <div class="flex flex-wrap justify-end gap-2">
+            <x-secondary-button :href="isset($monitoring) ? route('monitorings.show', $monitoring) : route('monitorings.index')">
+                {{ __('button.cancel') }}
+            </x-secondary-button>
+            <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+        </div>
     </div>
 </div>

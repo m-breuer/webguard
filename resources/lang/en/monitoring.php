@@ -213,6 +213,7 @@ return [
     'form' => [
         'sections' => [
             'basic' => 'Basics',
+            'organization' => 'Ownership and groups',
             'check' => 'Check configuration',
             'sharing' => 'Public display',
             'notifications' => 'Notifications',
