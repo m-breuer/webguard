@@ -1,8 +1,9 @@
 @php
-    $monitoringNavActive = request()->routeIs('monitorings.*')
-        || request()->routeIs('maintenance.*')
-        || request()->routeIs('monitoring-groups.*');
-    $workspaceNavActive = request()->routeIs('teams.*') || request()->routeIs('status-pages.*');
+    $incidentsNavActive = request()->routeIs('incidents.*');
+    $statusPagesNavActive = request()->routeIs('status-pages.*');
+    $moreNavActive = request()->routeIs('maintenance.*')
+        || request()->routeIs('monitoring-groups.*')
+        || request()->routeIs('teams.*');
     $adminNavActive = request()->routeIs('admin.*');
 @endphp
 
@@ -20,15 +21,27 @@
                 </div>
 
                 <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:items-center sm:gap-2">
+                    <x-nav-link :href="route('monitorings.index')" :active="request()->routeIs('monitorings.*')">
+                        {{ __('monitoring.title') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('incidents.analytics')" :active="$incidentsNavActive">
+                        {{ __('incidents.analytics.title') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('status-pages.index')" :active="$statusPagesNavActive">
+                        {{ __('status_page.title') }}
+                    </x-nav-link>
+
                     <x-dropdown align="left" width="w-72" contentClasses="bg-white py-2 dark:bg-gray-800">
                         <x-slot name="trigger">
                             <button type="button"
                                 @class([
                                     'inline-flex h-16 items-center gap-1 border-b-2 px-2 pt-1 text-sm font-medium leading-5 transition focus:outline-hidden',
-                                    'border-purple-500 text-gray-900 dark:text-gray-100' => $monitoringNavActive,
-                                    'border-transparent text-gray-500 hover:border-purple-500 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100' => ! $monitoringNavActive,
+                                    'border-purple-500 text-gray-900 dark:text-gray-100' => $moreNavActive,
+                                    'border-transparent text-gray-500 hover:border-purple-500 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100' => ! $moreNavActive,
                                 ])>
-                                {{ __('app.navigation.monitoring') }}
+                                {{ __('app.navigation.more') }}
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                                 </svg>
@@ -39,42 +52,17 @@
                             <div class="px-4 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-gray-500">
                                 {{ __('app.navigation.sections.operations') }}
                             </div>
-                            <x-dropdown-link :href="route('monitorings.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('monitorings.*')])>
-                                {{ __('monitoring.title') }}
-                            </x-dropdown-link>
                             <x-dropdown-link :href="route('maintenance.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('maintenance.*')])>
                                 {{ __('maintenance.title') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('monitoring-groups.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('monitoring-groups.*')])>
                                 {{ __('monitoring_group.title') }}
                             </x-dropdown-link>
-                        </x-slot>
-                    </x-dropdown>
-
-                    <x-dropdown align="left" width="w-72" contentClasses="bg-white py-2 dark:bg-gray-800">
-                        <x-slot name="trigger">
-                            <button type="button"
-                                @class([
-                                    'inline-flex h-16 items-center gap-1 border-b-2 px-2 pt-1 text-sm font-medium leading-5 transition focus:outline-hidden',
-                                    'border-purple-500 text-gray-900 dark:text-gray-100' => $workspaceNavActive,
-                                    'border-transparent text-gray-500 hover:border-purple-500 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100' => ! $workspaceNavActive,
-                                ])>
-                                {{ __('app.navigation.workspace') }}
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </x-slot>
-
-                        <x-slot name="content">
-                            <div class="px-4 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-gray-500">
+                            <div class="px-4 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-gray-500">
                                 {{ __('app.navigation.sections.collaboration') }}
                             </div>
                             <x-dropdown-link :href="route('teams.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('teams.*')])>
                                 {{ __('team.title') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('status-pages.index')" @class(['bg-purple-50 text-purple-700 dark:bg-gray-700 dark:text-purple-300' => request()->routeIs('status-pages.*')])>
-                                {{ __('status_page.title') }}
                             </x-dropdown-link>
                         </x-slot>
                     </x-dropdown>
@@ -223,6 +211,10 @@
             </div>
             <x-responsive-nav-link :href="route('monitorings.index')" :active="request()->routeIs('monitorings.*')">
                 {{ __('monitoring.title') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('incidents.analytics')" :active="$incidentsNavActive">
+                {{ __('incidents.analytics.title') }}
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('maintenance.index')" :active="request()->routeIs('maintenance.*')">
