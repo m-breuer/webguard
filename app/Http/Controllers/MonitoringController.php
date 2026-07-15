@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\MonitoringLifecycleStatus;
+use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
@@ -52,6 +53,13 @@ class MonitoringController extends Controller
                     }
                 }
             }],
+            'health' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                foreach (explode(',', $value) as $status) {
+                    if (! MonitoringStatus::tryFrom($status)) {
+                        $fail(__('monitoring.validation.invalid_status', ['status' => $status]));
+                    }
+                }
+            }],
             'lifecycle' => ['nullable', 'string', Rule::enum(MonitoringLifecycleStatus::class)],
             'group_id' => [
                 'nullable',
@@ -72,6 +80,7 @@ class MonitoringController extends Controller
                 },
             ],
             'ownership' => ['nullable', 'string', Rule::in(['all', 'private', 'team'])],
+            'maintenance' => ['nullable', 'string', Rule::in(['active'])],
         ]);
 
         $query = Monitoring::query();
@@ -111,6 +120,34 @@ class MonitoringController extends Controller
             $query->whereNotNull('team_id');
         }
 
+        if ($request->filled('health')) {
+            $healthStatuses = explode(',', (string) $request->input('health'));
+
+            $query->where(function (Builder $builder) use ($healthStatuses): void {
+                if (in_array(MonitoringStatus::UP->value, $healthStatuses, true)) {
+                    $builder->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::UP));
+                }
+
+                if (in_array(MonitoringStatus::DOWN->value, $healthStatuses, true)) {
+                    $builder->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::DOWN));
+                }
+
+                if (in_array(MonitoringStatus::UNKNOWN->value, $healthStatuses, true)) {
+                    $builder->orWhereDoesntHave('latestResponseResult')
+                        ->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::UNKNOWN));
+                }
+            });
+        }
+
+        if ($request->input('maintenance') === 'active') {
+            $query->whereNotNull('maintenance_from')
+                ->where('maintenance_from', '<=', now())
+                ->where(function (Builder $builder): void {
+                    $builder->whereNull('maintenance_until')
+                        ->orWhere('maintenance_until', '>=', now());
+                });
+        }
+
         $query->orderBy('status');
 
         match ($request->input('sort')) {
@@ -126,7 +163,9 @@ class MonitoringController extends Controller
             || $request->filled('lifecycle')
             || $request->filled('group_id')
             || $request->filled('team_id')
-            || $request->filled('ownership');
+            || $request->filled('ownership')
+            || $request->filled('health')
+            || $request->filled('maintenance');
         $privateMonitoringsTotal = $currentUser->monitorings()->whereNull('team_id')->count();
         $monitoringsTotal = $hasActiveFilters
             ? Monitoring::query()->count()

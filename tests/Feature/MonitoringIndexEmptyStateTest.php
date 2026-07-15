@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\MonitoringStatus;
 use App\Enums\UserRole;
+use App\Models\Monitoring;
+use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -86,5 +89,52 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse = $this->actingAs($demoUser)->get(route('monitorings.create'));
 
         $testResponse->assertForbidden();
+    }
+
+    public function test_monitoring_index_supports_health_preset_and_exposes_operational_summary(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $downMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Down service']);
+        $healthyMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Healthy service']);
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $downMonitoring->id,
+            'status' => MonitoringStatus::DOWN,
+            'created_at' => now()->subMinute(),
+            'updated_at' => now()->subMinute(),
+        ]);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $healthyMonitoring->id,
+            'status' => MonitoringStatus::UP,
+            'created_at' => now()->subMinute(),
+            'updated_at' => now()->subMinute(),
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index', ['health' => 'down']));
+
+        $testResponse->assertOk();
+        $testResponse->assertSee('Down service');
+        $testResponse->assertDontSee('Healthy service');
+        $testResponse->assertSee(__('monitoring.index.table.summary'));
+        $testResponse->assertSee(__('monitoring.index.filters.clear'));
+    }
+
+    public function test_monitoring_index_supports_active_maintenance_preset(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $maintenanceMonitoring = Monitoring::factory()->for($user)->create([
+            'name' => 'Maintenance service',
+            'maintenance_from' => now()->subMinute(),
+            'maintenance_until' => now()->addMinute(),
+        ]);
+        Monitoring::factory()->for($user)->create(['name' => 'Regular service']);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index', ['maintenance' => 'active']));
+
+        $testResponse->assertOk();
+        $testResponse->assertSee($maintenanceMonitoring->name);
+        $testResponse->assertDontSee('Regular service');
     }
 }

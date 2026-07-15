@@ -29,6 +29,19 @@ return [
         ],
 
         'filters' => [
+            'advanced' => 'Erweiterte Filter',
+            'presets' => 'Schnellansichten',
+            'all' => 'Alle',
+            'attention' => 'Aufmerksamkeit nötig',
+            'paused' => 'Pausiert',
+            'maintenance' => 'In Wartung',
+            'active' => 'Aktive Filter',
+            'clear' => 'Alle löschen',
+            'health' => 'Gesundheit',
+            'health_up' => 'Verfügbar',
+            'health_down' => 'Nicht verfügbar',
+            'health_unknown' => 'Unbekannt',
+            'maintenance_active' => 'Wartung',
             'sort' => [
                 'name_asc' => 'Name (A-Z)',
                 'name_desc' => 'Name (Z-A)',
@@ -37,6 +50,13 @@ return [
             ],
         ],
         'table' => [
+            'summary' => 'Betriebsübersicht',
+            'summary_scope' => 'Aktuelle Ergebnisseite',
+            'summary_loading' => 'Live-Status wird geladen ...',
+            'attention' => 'Aufmerksamkeit nötig',
+            'healthy' => 'Verfügbar',
+            'paused_count' => 'Pausiert',
+            'maintenance_count' => 'In Wartung',
             'name' => 'Name',
             'target' => 'Ziel',
             'type' => 'Typ',
@@ -363,6 +383,7 @@ return [
         ],
     ],
     'validation' => [
+        'invalid_status' => 'Der ausgewählte Status ist ungültig.',
         'invalid_type' => 'Der ausgewählte Typ \':type\' ist ungültig.',
         'target_invalid_url' => 'Das :attribute muss eine gültige URL für den Typ :type sein.',
         'target_invalid_ip' => 'Das :attribute muss eine gültige IP-Adresse für den Typ :type sein.',
