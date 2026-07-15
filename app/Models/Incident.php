@@ -32,6 +32,11 @@ use Illuminate\Support\Carbon;
     'affected_locations',
     'problem_description',
     'resolution_description',
+    'incident_type',
+    'severity',
+    'affected_service',
+    'customer_impact',
+    'contributing_category',
     'down_at',
     'up_at',
 
@@ -60,6 +65,22 @@ class Incident extends Model
     }
 
     /**
+     * @return HasMany<IncidentFollowUp, $this>
+     */
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(IncidentFollowUp::class)->latest();
+    }
+
+    /**
+     * @return HasMany<IncidentTimelineEvent, $this>
+     */
+    public function timelineEvents(): HasMany
+    {
+        return $this->hasMany(IncidentTimelineEvent::class)->orderBy('occurred_at');
+    }
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @return array<string, string>
@@ -71,6 +92,10 @@ class Incident extends Model
             'affected_locations' => 'array',
             'problem_description' => 'string',
             'resolution_description' => 'string',
+            'incident_type' => \App\Enums\IncidentType::class,
+            'severity' => \App\Enums\IncidentSeverity::class,
+            'customer_impact' => \App\Enums\IncidentCustomerImpact::class,
+            'contributing_category' => \App\Enums\IncidentContributingCategory::class,
             'down_at' => 'datetime',
             'up_at' => 'datetime',
             'created_at' => 'datetime',

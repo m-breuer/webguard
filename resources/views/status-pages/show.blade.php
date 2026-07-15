@@ -16,6 +16,9 @@
         </div>
 
         <div class="ml-auto flex flex-wrap gap-2">
+            <x-secondary-button :href="route('incidents.analytics')">
+                {{ __('incidents.analytics.link') }}
+            </x-secondary-button>
             @if (!Auth::user()->isDemo())
                 <x-secondary-button :href="route('status-pages.edit', $statusPage)">
                     {{ __('button.edit') }}
@@ -88,6 +91,29 @@
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     {{ __('status_page.incident_updates.description') }}
                 </p>
+                <form method="GET" action="{{ route('status-pages.show', $statusPage) }}" class="mt-4 grid gap-3 rounded-md border border-gray-200 p-3 dark:border-gray-700 md:grid-cols-3">
+                    <div>
+                        <x-input-label for="follow-up-status-filter" :value="__('status_page.incident_follow_ups.filters.status')" />
+                        <x-select-input id="follow-up-status-filter" name="follow_up_status" class="mt-1 w-full">
+                            <option value="">{{ __('status_page.incident_follow_ups.filters.all') }}</option>
+                            @foreach ($followUpStatuses as $followUpStatus)
+                                <option value="{{ $followUpStatus->value }}" @selected($followUpFilters['status'] === $followUpStatus->value)>
+                                    {{ __('status_page.incident_follow_ups.statuses.' . $followUpStatus->value) }}
+                                </option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="follow-up-assignee-filter" :value="__('status_page.incident_follow_ups.filters.assignee')" />
+                        <x-select-input id="follow-up-assignee-filter" name="follow_up_assignee" class="mt-1 w-full">
+                            <option value="">{{ __('status_page.incident_follow_ups.filters.all') }}</option>
+                            <option value="{{ $statusPage->user_id }}" @selected($followUpFilters['assignee'] === $statusPage->user_id)>{{ $statusPage->user->name }}</option>
+                        </x-select-input>
+                    </div>
+                    <div class="flex items-end">
+                        <x-primary-button>{{ __('status_page.incident_follow_ups.filters.apply') }}</x-primary-button>
+                    </div>
+                </form>
 
                 @if ($incidents->isEmpty())
                     <p class="mt-4 text-gray-500 dark:text-gray-400">
@@ -133,6 +159,192 @@
                                                 </p>
                                             </div>
                                         @endforeach
+                                    </div>
+                                @endif
+
+                                @if (!Auth::user()->isDemo())
+                                    <form method="POST"
+                                        action="{{ route('status-pages.incident-metadata.update', [$statusPage, $incident]) }}"
+                                        class="space-y-3 rounded-md border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900 dark:bg-blue-950/20">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div>
+                                            <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                                {{ __('status_page.incident_metadata.heading') }}
+                                            </p>
+                                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                {{ __('status_page.incident_metadata.description') }}
+                                            </p>
+                                        </div>
+                                        <div class="grid gap-3 md:grid-cols-2">
+                                            <div>
+                                                <x-input-label for="incident-type-{{ $incident->id }}"
+                                                    :value="__('status_page.incident_metadata.type')" />
+                                                <x-select-input id="incident-type-{{ $incident->id }}" name="incident_type" class="mt-1 w-full">
+                                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                                    @foreach (\App\Enums\IncidentType::cases() as $incidentType)
+                                                        <option value="{{ $incidentType->value }}" @selected(old('incident_type', $incident->incident_type?->value) === $incidentType->value)>
+                                                            {{ __('incidents.types.' . $incidentType->value) }}
+                                                        </option>
+                                                    @endforeach
+                                                </x-select-input>
+                                            </div>
+                                            <div>
+                                                <x-input-label for="incident-severity-{{ $incident->id }}"
+                                                    :value="__('status_page.incident_metadata.severity')" />
+                                                <x-select-input id="incident-severity-{{ $incident->id }}" name="severity" class="mt-1 w-full">
+                                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                                    @foreach (\App\Enums\IncidentSeverity::cases() as $severity)
+                                                        <option value="{{ $severity->value }}" @selected(old('severity', $incident->severity?->value) === $severity->value)>
+                                                            {{ __('incidents.severities.' . $severity->value) }}
+                                                        </option>
+                                                    @endforeach
+                                                </x-select-input>
+                                            </div>
+                                            <div>
+                                                <x-input-label for="incident-service-{{ $incident->id }}"
+                                                    :value="__('status_page.incident_metadata.affected_service')" />
+                                                <x-text-input id="incident-service-{{ $incident->id }}" name="affected_service" class="mt-1 w-full"
+                                                    :value="old('affected_service', $incident->affected_service)" />
+                                            </div>
+                                            <div>
+                                                <x-input-label for="incident-impact-{{ $incident->id }}"
+                                                    :value="__('status_page.incident_metadata.customer_impact')" />
+                                                <x-select-input id="incident-impact-{{ $incident->id }}" name="customer_impact" class="mt-1 w-full">
+                                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                                    @foreach (\App\Enums\IncidentCustomerImpact::cases() as $impact)
+                                                        <option value="{{ $impact->value }}" @selected(old('customer_impact', $incident->customer_impact?->value) === $impact->value)>
+                                                            {{ __('incidents.customer_impacts.' . $impact->value) }}
+                                                        </option>
+                                                    @endforeach
+                                                </x-select-input>
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <x-input-label for="incident-category-{{ $incident->id }}"
+                                                    :value="__('status_page.incident_metadata.contributing_category')" />
+                                                <x-select-input id="incident-category-{{ $incident->id }}" name="contributing_category" class="mt-1 w-full">
+                                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                                    @foreach (\App\Enums\IncidentContributingCategory::cases() as $category)
+                                                        <option value="{{ $category->value }}" @selected(old('contributing_category', $incident->contributing_category?->value) === $category->value)>
+                                                            {{ __('incidents.contributing_categories.' . $category->value) }}
+                                                        </option>
+                                                    @endforeach
+                                                </x-select-input>
+                                            </div>
+                                        </div>
+                                        <x-primary-button>{{ __('status_page.incident_metadata.save') }}</x-primary-button>
+                                    </form>
+
+                                    <div class="space-y-3 rounded-md border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-900 dark:bg-amber-950/20">
+                                        <div>
+                                            <p class="text-sm font-medium text-amber-900 dark:text-amber-100">
+                                                {{ __('status_page.incident_follow_ups.heading') }}
+                                            </p>
+                                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                {{ __('status_page.incident_follow_ups.description') }}
+                                            </p>
+                                        </div>
+                                        @foreach ($incident->followUps as $followUp)
+                                            <form method="POST" action="{{ route('status-pages.incident-follow-ups.update', [$statusPage, $incident, $followUp]) }}"
+                                                class="space-y-2 rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                @csrf
+                                                @method('PATCH')
+                                                <div class="grid gap-2 md:grid-cols-2">
+                                                    <x-text-input name="title" :value="$followUp->title" class="w-full" />
+                                                    <x-select-input name="status" class="w-full">
+                                                        @foreach (\App\Enums\IncidentFollowUpStatus::cases() as $followUpStatus)
+                                                            <option value="{{ $followUpStatus->value }}" @selected($followUp->status === $followUpStatus)>
+                                                                {{ __('status_page.incident_follow_ups.statuses.' . $followUpStatus->value) }}
+                                                            </option>
+                                                        @endforeach
+                                                    </x-select-input>
+                                                    <x-text-input type="date" name="due_at" :value="$followUp->due_at?->format('Y-m-d')" class="w-full" />
+                                                    <x-text-input name="external_url" :value="$followUp->external_url" class="w-full" />
+                                                </div>
+                                                <x-textarea name="description" rows="2">{{ $followUp->description }}</x-textarea>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <x-primary-button>{{ __('status_page.incident_follow_ups.save') }}</x-primary-button>
+                                                    <button type="submit" form="delete-follow-up-{{ $followUp->id }}" class="text-sm text-red-600 hover:underline">
+                                                        {{ __('status_page.incident_follow_ups.delete') }}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                            <form id="delete-follow-up-{{ $followUp->id }}" method="POST"
+                                                action="{{ route('status-pages.incident-follow-ups.destroy', [$statusPage, $incident, $followUp]) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        @endforeach
+                                        <form method="POST" action="{{ route('status-pages.incident-follow-ups.store', [$statusPage, $incident]) }}" class="space-y-2">
+                                            @csrf
+                                            <div class="grid gap-2 md:grid-cols-2">
+                                                <x-text-input name="title" :placeholder="__('status_page.incident_follow_ups.title')" class="w-full" />
+                                                <x-text-input type="date" name="due_at" :placeholder="__('status_page.incident_follow_ups.due_at')" class="w-full" />
+                                                <x-text-input name="external_url" :placeholder="__('status_page.incident_follow_ups.external_url')" class="w-full" />
+                                                <x-select-input name="assigned_user_id" class="w-full">
+                                                    <option value="">{{ __('status_page.incident_follow_ups.unassigned') }}</option>
+                                                    <option value="{{ $statusPage->user_id }}">{{ $statusPage->user->name }}</option>
+                                                </x-select-input>
+                                            </div>
+                                            <x-textarea name="description" rows="2" :placeholder="__('status_page.incident_follow_ups.description_field')"></x-textarea>
+                                            <x-primary-button>{{ __('status_page.incident_follow_ups.add') }}</x-primary-button>
+                                        </form>
+                                    </div>
+
+                                    <div class="space-y-3 rounded-md border border-green-200 bg-green-50/50 p-3 dark:border-green-900 dark:bg-green-950/20">
+                                        <div>
+                                            <p class="text-sm font-medium text-green-900 dark:text-green-100">
+                                                {{ __('status_page.incident_timeline.heading') }}
+                                            </p>
+                                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                {{ __('status_page.incident_timeline.description') }}
+                                            </p>
+                                        </div>
+                                        @foreach ($incidentTimelines[$incident->id] ?? [] as $timelineEvent)
+                                            <div class="rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                    <p class="font-medium text-gray-900 dark:text-gray-100">{{ $timelineEvent['title'] }}</p>
+                                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ $timelineEvent['occurred_at']->toDayDateTimeString() }}</span>
+                                                </div>
+                                                <p class="mt-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                    {{ $timelineEvent['source_type'] === 'custom' ? __('status_page.incident_timeline.custom') : __('status_page.incident_timeline.automatic') }}
+                                                </p>
+                                                @if ($timelineEvent['description'])
+                                                    <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{{ $timelineEvent['description'] }}</p>
+                                                @endif
+                                                @if ($timelineEvent['id'])
+                                                    <form method="POST" action="{{ route('status-pages.incident-timeline.update', [$statusPage, $incident, $timelineEvent['id']]) }}" class="mt-3 space-y-2">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <div class="grid gap-2 md:grid-cols-2">
+                                                            <x-text-input name="title" :value="$timelineEvent['title']" class="w-full" />
+                                                            <x-text-input type="datetime-local" name="occurred_at" :value="$timelineEvent['occurred_at']->format('Y-m-d\\TH:i')" class="w-full" />
+                                                        </div>
+                                                        <x-textarea name="description" rows="2">{{ $timelineEvent['description'] }}</x-textarea>
+                                                        <div class="flex flex-wrap gap-2">
+                                                            <x-primary-button>{{ __('status_page.incident_timeline.save') }}</x-primary-button>
+                                                            <button type="submit" form="delete-timeline-{{ $timelineEvent['id'] }}" class="text-sm text-red-600 hover:underline">
+                                                                {{ __('status_page.incident_timeline.delete') }}
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                    <form id="delete-timeline-{{ $timelineEvent['id'] }}" method="POST"
+                                                        action="{{ route('status-pages.incident-timeline.destroy', [$statusPage, $incident, $timelineEvent['id']]) }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                        <form method="POST" action="{{ route('status-pages.incident-timeline.store', [$statusPage, $incident]) }}" class="space-y-2">
+                                            @csrf
+                                            <div class="grid gap-2 md:grid-cols-2">
+                                                <x-text-input name="title" :placeholder="__('status_page.incident_timeline.title')" class="w-full" />
+                                                <x-text-input type="datetime-local" name="occurred_at" class="w-full" />
+                                            </div>
+                                            <x-textarea name="description" rows="2" :placeholder="__('status_page.incident_timeline.description_field')"></x-textarea>
+                                            <x-primary-button>{{ __('status_page.incident_timeline.add') }}</x-primary-button>
+                                        </form>
                                     </div>
                                 @endif
 
