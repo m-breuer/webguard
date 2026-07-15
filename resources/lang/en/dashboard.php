@@ -1,0 +1,89 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'Operations overview',
+    'description' => 'See what needs attention and move directly to the next useful action.',
+    'open_monitorings' => 'View all monitorings',
+    'state' => [
+        'new' => [
+            'title' => 'Start monitoring your services',
+            'description' => 'Create your first monitoring to turn this page into your daily operations overview.',
+        ],
+        'healthy' => [
+            'title' => 'Everything is healthy',
+            'description' => 'Your active monitorings are reporting normally.',
+        ],
+        'degraded' => [
+            'title' => 'Action required',
+            'description' => ':count monitoring|:count monitorings currently report a problem.',
+        ],
+        'attention' => [
+            'title' => 'Some checks need attention',
+            'description' => ':count monitoring|:count monitorings have no recent usable result.',
+        ],
+    ],
+    'summary' => [
+        'total' => 'All monitorings',
+        'healthy' => 'Healthy',
+        'down' => 'Down',
+        'unknown' => 'Unknown or stale',
+        'paused' => 'Paused',
+        'maintenance' => 'In maintenance',
+    ],
+    'attention' => [
+        'heading' => 'Needs attention',
+        'description' => 'Prioritized signals from the monitorings you can access.',
+        'incident' => ':name has an open incident.',
+        'down' => ':name is currently reporting down.',
+        'unknown' => ':name has not reported a usable result yet.',
+        'stale' => ':name has not reported recently.',
+        'delivery' => ':count failed notification deliveries in the last 7 days.',
+        'open' => 'Open details',
+        'empty' => 'No active attention items. Keep an eye on the summary above.',
+    ],
+    'quick_actions' => [
+        'heading' => 'Quick actions',
+        'create' => 'Create monitoring',
+        'maintenance' => 'Schedule maintenance',
+        'incidents' => 'Review incidents',
+        'notifications' => 'Open notifications',
+        'status_pages' => 'Manage status pages',
+    ],
+    'maintenance' => [
+        'heading' => 'Maintenance windows',
+        'description' => 'Active and upcoming windows across your monitorings.',
+        'active' => 'Active',
+        'upcoming' => 'Upcoming',
+        'open' => 'Open maintenance',
+        'empty' => 'No active or upcoming maintenance windows.',
+    ],
+    'incidents' => [
+        'heading' => 'Recent incidents',
+        'description' => 'The latest incidents from monitorings you can access.',
+        'ongoing' => 'Ongoing',
+        'resolved' => 'Resolved',
+        'open' => 'Open monitoring details',
+        'empty' => 'No incidents have been recorded yet.',
+    ],
+    'trend' => [
+        'heading' => 'Reliability trend',
+        'description' => 'Aggregated uptime for the last seven days.',
+        'no_data' => 'A trend will appear after daily monitoring data is available.',
+        'uptime' => ':value% uptime',
+    ],
+    'recommended' => [
+        'label' => 'Recommended next action',
+        'create' => 'Create your first monitoring',
+        'incidents' => 'Review the open incidents',
+        'unknown' => 'Investigate unknown or stale checks',
+        'notifications' => 'Review failed notification deliveries',
+        'maintenance' => 'Review maintenance windows',
+        'monitorings' => 'Review the monitoring list',
+    ],
+    'empty' => [
+        'title' => 'Your operations overview starts here',
+        'description' => 'Once you add a monitoring, this page will summarize health, incidents, maintenance and the next action in one place.',
+    ],
+];

@@ -122,7 +122,7 @@
                 @else
                     <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach ($incidents as $incident)
-                            <div class="space-y-4 py-4">
+                            <div id="incident-{{ $incident->id }}" class="space-y-4 py-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <div>
                                         <p class="font-medium text-gray-900 dark:text-gray-100">

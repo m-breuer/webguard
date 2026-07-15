@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\IncidentAnalyticsController;
 use App\Http\Controllers\LegacyPublicStatusPageController;
@@ -145,7 +146,7 @@ Route::middleware(['auth', 'role:member,admin'])
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
 
-    Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
         Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');
@@ -192,15 +193,15 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->name('status-pages.incident-metadata.update');
     Route::post('/status-pages/{statusPage}/incidents/{incident}/follow-ups', [StatusPageIncidentFollowUpController::class, 'store'])
         ->name('status-pages.incident-follow-ups.store');
-    Route::patch('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{followUp}', [StatusPageIncidentFollowUpController::class, 'update'])
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [StatusPageIncidentFollowUpController::class, 'update'])
         ->name('status-pages.incident-follow-ups.update');
-    Route::delete('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{followUp}', [StatusPageIncidentFollowUpController::class, 'destroy'])
+    Route::delete('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [StatusPageIncidentFollowUpController::class, 'destroy'])
         ->name('status-pages.incident-follow-ups.destroy');
     Route::post('/status-pages/{statusPage}/incidents/{incident}/timeline', [StatusPageIncidentTimelineController::class, 'store'])
         ->name('status-pages.incident-timeline.store');
-    Route::patch('/status-pages/{statusPage}/incidents/{incident}/timeline/{timelineEvent}', [StatusPageIncidentTimelineController::class, 'update'])
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [StatusPageIncidentTimelineController::class, 'update'])
         ->name('status-pages.incident-timeline.update');
-    Route::delete('/status-pages/{statusPage}/incidents/{incident}/timeline/{timelineEvent}', [StatusPageIncidentTimelineController::class, 'destroy'])
+    Route::delete('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [StatusPageIncidentTimelineController::class, 'destroy'])
         ->name('status-pages.incident-timeline.destroy');
     Route::get('/incidents/analytics', [IncidentAnalyticsController::class, 'index'])
         ->name('incidents.analytics');
