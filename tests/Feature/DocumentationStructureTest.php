@@ -58,6 +58,11 @@ class DocumentationStructureTest extends TestCase
                 'Write tests',
                 'pull request',
             ],
+            'docs/releases.md' => [
+                'GitHub Actions',
+                'Conventional Commits',
+                'GitHub Releases page',
+            ],
         ];
 
         foreach ($topicsByDocument as $document => $topics) {
@@ -106,6 +111,7 @@ class DocumentationStructureTest extends TestCase
             'docs/installation.md',
             'docs/test-concept.md',
             'docs/contributing.md',
+            'docs/releases.md',
         ];
     }
 }
