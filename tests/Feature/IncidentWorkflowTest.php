@@ -44,7 +44,7 @@ class IncidentWorkflowTest extends TestCase
             ]
         )->assertRedirect(route('status-pages.show', $statusPage));
 
-        $followUp = IncidentFollowUp::query()->firstOrFail();
+        $incidentFollowUp = IncidentFollowUp::query()->firstOrFail();
         $incident->followUps()->create([
             'title' => 'Completed historical task',
             'status' => IncidentFollowUpStatus::COMPLETED,
@@ -78,7 +78,7 @@ class IncidentWorkflowTest extends TestCase
             'contributing_category' => 'dependency',
         ]);
         $this->assertDatabaseHas('incident_follow_ups', [
-            'id' => $followUp->id,
+            'id' => $incidentFollowUp->id,
             'assigned_user_id' => $user->id,
             'status' => IncidentFollowUpStatus::OPEN->value,
         ]);
@@ -105,11 +105,11 @@ class IncidentWorkflowTest extends TestCase
     public function test_owner_can_complete_reopen_and_delete_follow_ups_and_edit_timeline_events(): void
     {
         ['user' => $user, 'statusPage' => $statusPage, 'incident' => $incident] = $this->incidentWorkspace();
-        $followUp = $incident->followUps()->create([
+        $incidentFollowUp = $incident->followUps()->create([
             'title' => 'Review timeout policy',
             'status' => IncidentFollowUpStatus::OPEN,
         ]);
-        $timelineEvent = $incident->timelineEvents()->create([
+        $incidentTimelineEvent = $incident->timelineEvents()->create([
             'title' => 'Initial mitigation',
             'description' => 'Restarted the worker.',
             'occurred_at' => now()->subMinutes(10),
@@ -117,7 +117,7 @@ class IncidentWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($user)->patch(
-            route('status-pages.incident-follow-ups.update', [$statusPage, $incident, $followUp]),
+            route('status-pages.incident-follow-ups.update', [$statusPage, $incident, $incidentFollowUp]),
             [
                 'title' => 'Review timeout policy',
                 'status' => IncidentFollowUpStatus::COMPLETED->value,
@@ -125,13 +125,13 @@ class IncidentWorkflowTest extends TestCase
         )->assertRedirect(route('status-pages.show', $statusPage));
 
         $this->assertDatabaseHas('incident_follow_ups', [
-            'id' => $followUp->id,
+            'id' => $incidentFollowUp->id,
             'status' => IncidentFollowUpStatus::COMPLETED->value,
         ]);
-        $this->assertNotNull($followUp->refresh()->completed_at);
+        $this->assertNotNull($incidentFollowUp->refresh()->completed_at);
 
         $this->actingAs($user)->patch(
-            route('status-pages.incident-follow-ups.update', [$statusPage, $incident, $followUp]),
+            route('status-pages.incident-follow-ups.update', [$statusPage, $incident, $incidentFollowUp]),
             [
                 'title' => 'Review timeout policy',
                 'status' => IncidentFollowUpStatus::IN_PROGRESS->value,
@@ -139,13 +139,13 @@ class IncidentWorkflowTest extends TestCase
         )->assertRedirect(route('status-pages.show', $statusPage));
 
         $this->assertDatabaseHas('incident_follow_ups', [
-            'id' => $followUp->id,
+            'id' => $incidentFollowUp->id,
             'status' => IncidentFollowUpStatus::IN_PROGRESS->value,
             'completed_at' => null,
         ]);
 
         $this->actingAs($user)->patch(
-            route('status-pages.incident-timeline.update', [$statusPage, $incident, $timelineEvent]),
+            route('status-pages.incident-timeline.update', [$statusPage, $incident, $incidentTimelineEvent]),
             [
                 'title' => 'Worker restarted',
                 'description' => 'Restarted the affected worker and verified recovery.',
@@ -154,19 +154,19 @@ class IncidentWorkflowTest extends TestCase
         )->assertRedirect(route('status-pages.show', $statusPage));
 
         $this->assertDatabaseHas('incident_timeline_events', [
-            'id' => $timelineEvent->id,
+            'id' => $incidentTimelineEvent->id,
             'title' => 'Worker restarted',
         ]);
 
         $this->actingAs($user)->delete(
-            route('status-pages.incident-follow-ups.destroy', [$statusPage, $incident, $followUp])
+            route('status-pages.incident-follow-ups.destroy', [$statusPage, $incident, $incidentFollowUp])
         )->assertRedirect(route('status-pages.show', $statusPage));
         $this->actingAs($user)->delete(
-            route('status-pages.incident-timeline.destroy', [$statusPage, $incident, $timelineEvent])
+            route('status-pages.incident-timeline.destroy', [$statusPage, $incident, $incidentTimelineEvent])
         )->assertRedirect(route('status-pages.show', $statusPage));
 
-        $this->assertDatabaseMissing('incident_follow_ups', ['id' => $followUp->id]);
-        $this->assertDatabaseMissing('incident_timeline_events', ['id' => $timelineEvent->id]);
+        $this->assertDatabaseMissing('incident_follow_ups', ['id' => $incidentFollowUp->id]);
+        $this->assertDatabaseMissing('incident_timeline_events', ['id' => $incidentTimelineEvent->id]);
     }
 
     public function test_incident_workspace_rejects_incidents_outside_status_page(): void
