@@ -244,6 +244,32 @@ class IncidentWorkflowTest extends TestCase
             ->assertDontSeeText('Search API');
     }
 
+    public function test_incident_analytics_only_includes_incidents_for_visible_monitorings(): void
+    {
+        Date::setTestNow('2026-07-15 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $otherUser = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $otherMonitoring = Monitoring::factory()->for($otherUser)->create(['name' => 'Other API']);
+
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'affected_service' => 'Checkout API',
+            'down_at' => Date::now()->subHour(),
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $otherMonitoring->id,
+            'down_at' => Date::now()->subMinutes(30),
+        ]);
+
+        $this->actingAs($user)->get(route('incidents.analytics'))
+            ->assertOk()
+            ->assertSeeText('Checkout API')
+            ->assertDontSeeText('Other API');
+    }
+
     /**
      * @return array{user: User, statusPage: StatusPage, incident: Incident}
      */

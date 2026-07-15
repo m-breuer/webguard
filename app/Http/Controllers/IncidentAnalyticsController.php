@@ -57,6 +57,7 @@ class IncidentAnalyticsController extends Controller
     private function incidents(array $filters, int $days): Collection
     {
         $builder = Incident::query()
+            ->whereHas('monitoring')
             ->with('monitoring')
             ->whereBetween('down_at', [Date::now()->subDays($days)->startOfDay(), Date::now()->endOfDay()])
             ->latest('down_at');
