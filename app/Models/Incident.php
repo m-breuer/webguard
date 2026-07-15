@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\IncidentContributingCategory;
-use App\Enums\IncidentCustomerImpact;
-use App\Enums\IncidentSeverity;
-use App\Enums\IncidentType;
 use App\Enums\RegionalConsensusStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -81,7 +77,7 @@ class Incident extends Model
      */
     public function timelineEvents(): HasMany
     {
-        return $this->hasMany(IncidentTimelineEvent::class)->oldest('occurred_at');
+        return $this->hasMany(IncidentTimelineEvent::class)->orderBy('occurred_at');
     }
 
     /**
@@ -96,10 +92,10 @@ class Incident extends Model
             'affected_locations' => 'array',
             'problem_description' => 'string',
             'resolution_description' => 'string',
-            'incident_type' => IncidentType::class,
-            'severity' => IncidentSeverity::class,
-            'customer_impact' => IncidentCustomerImpact::class,
-            'contributing_category' => IncidentContributingCategory::class,
+            'incident_type' => \App\Enums\IncidentType::class,
+            'severity' => \App\Enums\IncidentSeverity::class,
+            'customer_impact' => \App\Enums\IncidentCustomerImpact::class,
+            'contributing_category' => \App\Enums\IncidentContributingCategory::class,
             'down_at' => 'datetime',
             'up_at' => 'datetime',
             'created_at' => 'datetime',

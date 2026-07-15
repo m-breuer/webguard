@@ -17,14 +17,14 @@ class StatusPageIncidentTimelineController extends Controller
     use InteractsWithStatusPageIncidents;
 
     public function store(
-        StoreIncidentTimelineEventRequest $storeIncidentTimelineEventRequest,
+        StoreIncidentTimelineEventRequest $request,
         StatusPage $statusPage,
         Incident $incident
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
 
         $incident->timelineEvents()->create([
-            ...$storeIncidentTimelineEventRequest->validated(),
+            ...$request->validated(),
             'source_type' => 'custom',
         ]);
 
@@ -33,15 +33,15 @@ class StatusPageIncidentTimelineController extends Controller
     }
 
     public function update(
-        UpdateIncidentTimelineEventRequest $updateIncidentTimelineEventRequest,
+        UpdateIncidentTimelineEventRequest $request,
         StatusPage $statusPage,
         Incident $incident,
-        IncidentTimelineEvent $incidentTimelineEvent
+        IncidentTimelineEvent $timelineEvent
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
-        abort_unless($incidentTimelineEvent->incident_id === $incident->id, 404);
+        abort_unless($timelineEvent->incident_id === $incident->id, 404);
 
-        $incidentTimelineEvent->update($updateIncidentTimelineEventRequest->validated());
+        $timelineEvent->update($request->validated());
 
         return to_route('status-pages.show', $statusPage)
             ->with('success', __('status_page.incident_timeline.messages.updated'));
@@ -50,12 +50,12 @@ class StatusPageIncidentTimelineController extends Controller
     public function destroy(
         StatusPage $statusPage,
         Incident $incident,
-        IncidentTimelineEvent $incidentTimelineEvent
+        IncidentTimelineEvent $timelineEvent
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
-        abort_unless($incidentTimelineEvent->incident_id === $incident->id, 404);
+        abort_unless($timelineEvent->incident_id === $incident->id, 404);
 
-        $incidentTimelineEvent->delete();
+        $timelineEvent->delete();
 
         return to_route('status-pages.show', $statusPage)
             ->with('success', __('status_page.incident_timeline.messages.deleted'));

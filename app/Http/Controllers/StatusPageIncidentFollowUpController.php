@@ -19,12 +19,12 @@ class StatusPageIncidentFollowUpController extends Controller
     use InteractsWithStatusPageIncidents;
 
     public function store(
-        StoreIncidentFollowUpRequest $storeIncidentFollowUpRequest,
+        StoreIncidentFollowUpRequest $request,
         StatusPage $statusPage,
         Incident $incident
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
-        $validated = $storeIncidentFollowUpRequest->validated();
+        $validated = $request->validated();
         $this->assertAssignedUserIsStatusPageOwner($statusPage, $validated['assigned_user_id'] ?? null);
 
         $incident->followUps()->create([
@@ -37,21 +37,21 @@ class StatusPageIncidentFollowUpController extends Controller
     }
 
     public function update(
-        UpdateIncidentFollowUpRequest $updateIncidentFollowUpRequest,
+        UpdateIncidentFollowUpRequest $request,
         StatusPage $statusPage,
         Incident $incident,
-        IncidentFollowUp $incidentFollowUp
+        IncidentFollowUp $followUp
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
-        abort_unless($incidentFollowUp->incident_id === $incident->id, 404);
+        abort_unless($followUp->incident_id === $incident->id, 404);
 
-        $validated = $updateIncidentFollowUpRequest->validated();
+        $validated = $request->validated();
         $this->assertAssignedUserIsStatusPageOwner($statusPage, $validated['assigned_user_id'] ?? null);
         $validated['completed_at'] = $validated['status'] === IncidentFollowUpStatus::COMPLETED->value
-            ? ($incidentFollowUp->completed_at ?? Date::now())
+            ? ($followUp->completed_at ?? Date::now())
             : null;
 
-        $incidentFollowUp->update($validated);
+        $followUp->update($validated);
 
         return to_route('status-pages.show', $statusPage)
             ->with('success', __('status_page.incident_follow_ups.messages.updated'));
@@ -60,12 +60,12 @@ class StatusPageIncidentFollowUpController extends Controller
     public function destroy(
         StatusPage $statusPage,
         Incident $incident,
-        IncidentFollowUp $incidentFollowUp
+        IncidentFollowUp $followUp
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
-        abort_unless($incidentFollowUp->incident_id === $incident->id, 404);
+        abort_unless($followUp->incident_id === $incident->id, 404);
 
-        $incidentFollowUp->delete();
+        $followUp->delete();
 
         return to_route('status-pages.show', $statusPage)
             ->with('success', __('status_page.incident_follow_ups.messages.deleted'));
