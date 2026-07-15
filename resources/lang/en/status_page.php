@@ -57,6 +57,18 @@ return [
             'created' => 'Incident update added successfully.',
         ],
     ],
+    'incident_review' => [
+        'heading' => 'Internal incident review',
+        'description' => 'Record what caused the incident and what fixed it. These notes stay private and are not shown on the public status page.',
+        'problem' => 'What was the problem?',
+        'problem_placeholder' => 'Describe the root cause, contributing factors, or customer impact.',
+        'resolution' => 'What fixed it?',
+        'resolution_placeholder' => 'Describe the mitigation, fix, or recovery steps.',
+        'save' => 'Save review notes',
+        'messages' => [
+            'updated' => 'Incident review notes updated successfully.',
+        ],
+    ],
     'public' => [
         'title' => ':statusPage - Status',
         'overall_status' => 'Overall status',

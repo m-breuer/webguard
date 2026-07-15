@@ -24,6 +24,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **REST API:** access monitoring data, manage teams, and create or move team monitorings programmatically.
 - **SLA badge:** display website monitoring status on external sites with a compact SLA badge that shows live status, uptime proof, and public trust context.
 - **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers.
+- **Private incident reviews:** record the problem and resolution for each status-page incident in the management interface without exposing internal notes on public status pages.
 - **Global language switch:** switch between supported languages from both public and authenticated top navigation.
 
 ## Notifications

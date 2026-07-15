@@ -138,6 +138,42 @@
 
                                 @if (!Auth::user()->isDemo())
                                     <form method="POST"
+                                        action="{{ route('status-pages.incident-review.update', [$statusPage, $incident]) }}"
+                                        class="space-y-3 rounded-md border border-purple-200 bg-purple-50/50 p-3 dark:border-purple-900 dark:bg-purple-950/20">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div>
+                                            <x-input-label for="incident-problem-{{ $incident->id }}"
+                                                :value="__('status_page.incident_review.problem')" />
+                                            <x-textarea id="incident-problem-{{ $incident->id }}" name="problem_description"
+                                                rows="3" :placeholder="__('status_page.incident_review.problem_placeholder')">{{ old('problem_description') ?: $incident->problem_description }}</x-textarea>
+                                            <x-input-error :messages="$errors->get('problem_description')" />
+                                        </div>
+                                        <div>
+                                            <x-input-label for="incident-resolution-{{ $incident->id }}"
+                                                :value="__('status_page.incident_review.resolution')" />
+                                            <x-textarea id="incident-resolution-{{ $incident->id }}" name="resolution_description"
+                                                rows="3" :placeholder="__('status_page.incident_review.resolution_placeholder')">{{ old('resolution_description') ?: $incident->resolution_description }}</x-textarea>
+                                            <x-input-error :messages="$errors->get('resolution_description')" />
+                                        </div>
+                                        <x-primary-button>{{ __('status_page.incident_review.save') }}</x-primary-button>
+                                    </form>
+                                @elseif ($incident->problem_description || $incident->resolution_description)
+                                    <div class="rounded-md border border-purple-200 bg-purple-50/50 p-3 dark:border-purple-900 dark:bg-purple-950/20">
+                                        <p class="text-sm font-medium text-purple-900 dark:text-purple-100">
+                                            {{ __('status_page.incident_review.heading') }}
+                                        </p>
+                                        @if ($incident->problem_description)
+                                            <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{{ $incident->problem_description }}</p>
+                                        @endif
+                                        @if ($incident->resolution_description)
+                                            <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{{ $incident->resolution_description }}</p>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if (!Auth::user()->isDemo())
+                                    <form method="POST"
                                         action="{{ route('status-pages.incident-updates.store', [$statusPage, $incident]) }}"
                                         class="space-y-3 rounded-md border border-gray-200 p-3 dark:border-gray-700">
                                         @csrf
