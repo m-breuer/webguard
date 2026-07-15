@@ -22,6 +22,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **Team collaboration:** create teams, invite registered or new users by email, assign admin/member roles, and share team-owned monitorings with read-only members.
 - **Admin panel:** manage users, subscription packages, and API usage logs.
 - **REST API:** access monitoring data, manage teams, and create or move team monitorings programmatically.
+- **Mobile app:** use the implemented WebGuard mobile app from the separate [WebGuard App Repository](https://github.com/marcel-breuer/webguard-app).
 - **SLA badge:** display website monitoring status on external sites with a compact SLA badge that shows live status, uptime proof, and public trust context.
 - **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers.
 - **Global language switch:** switch between supported languages from both public and authenticated top navigation.
