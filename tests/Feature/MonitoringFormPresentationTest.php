@@ -43,6 +43,8 @@ class MonitoringFormPresentationTest extends TestCase
         $editResponse->assertSeeHtml('class="mx-auto max-w-7xl space-y-4 px-4 sm:px-6 lg:px-8"');
         $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
         $editResponse->assertSeeHtml('href="' . route('monitorings.show', $monitoring) . '"');
+        $testResponse->assertSeeHtml('<details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">');
+        $testResponse->assertSee(__('monitoring.form.advanced_request_settings'));
     }
 
     public function test_assignment_indicators_and_ownership_actions_only_appear_on_edit_page(): void

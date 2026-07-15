@@ -231,6 +231,7 @@ return [
         ],
     ],
     'form' => [
+        'advanced_request_settings' => 'Advanced request settings',
         'sections' => [
             'basic' => 'Basics',
             'organization' => 'Ownership and groups',
