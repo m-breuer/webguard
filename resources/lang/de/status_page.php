@@ -57,6 +57,11 @@ return [
             'created' => 'Vorfall-Update erfolgreich hinzugefügt.',
         ],
     ],
+    'incident_workbench' => [
+        'heading' => 'Interner Response-Arbeitsbereich',
+        'description' => 'Private Klassifizierung, Auswertungsnotizen, Nachbearbeitung und Untersuchungstimeline.',
+        'public_updates' => 'Öffentliche Updates',
+    ],
     'incident_review' => [
         'heading' => 'Interne Vorfallauswertung',
         'description' => 'Dokumentieren Sie, was den Vorfall verursacht hat und was ihn behoben hat. Diese Notizen bleiben privat und erscheinen nicht auf der öffentlichen Statusseite.',
