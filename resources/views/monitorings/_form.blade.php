@@ -173,10 +173,10 @@
 
         </section>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="cursor-pointer list-none">
                 <x-heading type="h2">{{ __('monitoring.form.sections.organization') }}</x-heading>
-            </div>
+            </summary>
 
             <div>
                 <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
@@ -227,7 +227,7 @@
                 <x-input-error :messages="$errors->get('group_ids')" />
                 <x-input-error :messages="$errors->get('group_ids.*')" />
             </div>
-        </section>
+        </details>
 
         <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
             <div>
@@ -374,6 +374,12 @@
         </div>
     </template>
 
+    <details x-show="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'"
+        class="mt-4 rounded-md border border-gray-200 p-4 dark:border-gray-700">
+        <summary class="cursor-pointer font-semibold text-gray-800 dark:text-gray-100">
+            {{ __('monitoring.form.advanced_request_settings') }}
+        </summary>
+
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
             <x-input-label for="auth_username" :value="__('monitoring.form.auth_username')" />
@@ -404,12 +410,14 @@
         </div>
     </template>
 
+    </details>
+
         </section>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="cursor-pointer list-none">
                 <x-heading type="h2">{{ __('monitoring.form.sections.sharing') }}</x-heading>
-            </div>
+            </summary>
 
     <div class="mt-4">
         <x-input-label for="public_label_enabled" :value="__('monitoring.form.public_label')" />
@@ -445,12 +453,12 @@
         @endif
     </div>
 
-        </section>
+        </details>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="cursor-pointer list-none">
                 <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
-            </div>
+            </summary>
 
     @if (isset($monitoring))
         <input type="hidden" name="notification_on_failure" value="{{ old('notification_on_failure', $monitoring->notification_on_failure ?? true) ? '1' : '0' }}">
@@ -520,12 +528,12 @@
     </div>
     @endunless
 
-        </section>
+        </details>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="cursor-pointer list-none">
                 <x-heading type="h2">{{ __('monitoring.form.sections.operations') }}</x-heading>
-            </div>
+            </summary>
 
     <div class="mt-4">
         <x-input-label for="preferred_locations" :value="__('monitoring.form.preferred_location')" />
@@ -563,7 +571,7 @@
         <x-input-error :messages="$errors->get('status')" />
     </div>
 
-        </section>
+        </details>
 
         <div class="flex flex-wrap justify-end gap-2">
             <x-secondary-button :href="isset($monitoring) ? route('monitorings.show', $monitoring) : route('monitorings.index')">

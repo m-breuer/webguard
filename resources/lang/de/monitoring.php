@@ -231,6 +231,7 @@ return [
         ],
     ],
     'form' => [
+        'advanced_request_settings' => 'Erweiterte Anfrageeinstellungen',
         'sections' => [
             'basic' => 'Basisdaten',
             'organization' => 'Eigentümerschaft und Gruppen',
