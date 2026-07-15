@@ -4,6 +4,7 @@
     use App\Enums\MonitoringStatus;
 
     $monitoringIds = json_encode(collect($monitorings->items())->pluck('id'));
+    $summaryMonitoringIds = json_encode($summaryMonitoringIds);
     $monitoringNames = json_encode($monitorings->pluck('name', 'id'));
     $monitoringTargets = json_encode($monitorings->pluck('target', 'id'));
     $monitoringTypes = json_encode($monitorings->getCollection()->mapWithKeys(fn ($monitoring) => [
@@ -352,7 +353,7 @@
             </x-container>
         @endif
 
-        <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }})">
+        <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }}, {{ $summaryMonitoringIds }})">
             <x-container x-show="monitoringIds.length > 0" space="true" class="border-l-4 border-purple-500">
                 <div class="flex flex-wrap items-start justify-between gap-2">
                     <div>

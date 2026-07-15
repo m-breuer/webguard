@@ -157,6 +157,7 @@ class MonitoringController extends Controller
             default => $query->orderBy('name'),
         };
 
+        $summaryMonitoringIds = (clone $query)->pluck('id')->values();
         $lengthAwarePaginator = $query->paginate(5);
         $hasActiveFilters = $request->filled('search')
             || $request->filled('types')
@@ -185,6 +186,7 @@ class MonitoringController extends Controller
         return view('monitorings.index', [
             'currentUser' => $currentUser,
             'monitorings' => $lengthAwarePaginator,
+            'summaryMonitoringIds' => $summaryMonitoringIds,
             'monitoringsTotal' => $monitoringsTotal,
             'monitoringLimit' => $monitoringLimit,
             'privateMonitoringsTotal' => $privateMonitoringsTotal,

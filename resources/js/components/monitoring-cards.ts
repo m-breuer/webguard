@@ -9,6 +9,7 @@ interface MonitoringCardLoaderComponent {
     monitoringStatusMap: Record<string, string>;
     monitoringPublicLabelMap: Record<string, boolean>;
     maintenanceStatusMap: Record<string, boolean>;
+    summaryMonitoringIds: string[];
     hasMonitorings: boolean;
     statusMap: Record<string, string>;
     sinceMap: Record<string, string>;
@@ -33,7 +34,8 @@ export default (
     monitoringTypes: Record<string, string>,
     monitoringStatusMap: Record<string, string>,
     monitoringPublicLabelMap: Record<string, boolean>,
-    maintenanceStatusMap: Record<string, boolean>
+    maintenanceStatusMap: Record<string, boolean>,
+    summaryMonitoringIds: string[]
 ): MonitoringCardLoaderComponent => ({
     monitoringIds: monitoringIds,
     monitoringNames: monitoringNames,
@@ -42,6 +44,7 @@ export default (
     monitoringStatusMap: monitoringStatusMap,
     monitoringPublicLabelMap: monitoringPublicLabelMap,
     maintenanceStatusMap: maintenanceStatusMap,
+    summaryMonitoringIds: summaryMonitoringIds,
     hasMonitorings: monitoringIds.length > 0,
     statusMap: {} as Record<string, string>,
     sinceMap: {} as Record<string, string>,
@@ -62,13 +65,22 @@ export default (
         const query = new URLSearchParams();
 
         this.monitoringIds.forEach((id: string) => query.append('ids[]', id));
+        this.summaryMonitoringIds.forEach((id: string) => query.append('summary_ids[]', id));
 
         const response = await fetch(`/api/monitorings/card-data?${query.toString()}`).catch(() => null);
         if (!response?.ok) {
             return;
         }
 
-        const payload = await response.json() as { data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }> };
+        const payload = await response.json() as {
+            data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }>;
+            summary?: {
+                attention: number;
+                healthy: number;
+                paused: number;
+                maintenance: number;
+            };
+        };
         const cardData = payload.data ?? {};
 
         for (const monitoringId of this.monitoringIds) {
@@ -90,7 +102,15 @@ export default (
             }
         }
 
-        this.updateSummary();
+        if (payload.summary) {
+            this.attentionCount = payload.summary.attention;
+            this.healthyCount = payload.summary.healthy;
+            this.pausedCount = payload.summary.paused;
+            this.maintenanceCount = payload.summary.maintenance;
+            this.summaryReady = true;
+        } else {
+            this.updateSummary();
+        }
     },
 
     updateSummary(this: MonitoringCardLoaderComponent): void {

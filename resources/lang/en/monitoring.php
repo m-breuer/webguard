@@ -51,7 +51,7 @@ return [
         ],
         'table' => [
             'summary' => 'Operational summary',
-            'summary_scope' => 'Current result page',
+            'summary_scope' => 'All results matching the current filters',
             'summary_loading' => 'Loading live status...',
             'attention' => 'Needs attention',
             'healthy' => 'Healthy',
