@@ -13,6 +13,7 @@ Contributions are welcome. Please keep changes focused, tested, and easy to revi
 
 3. Make the change and add tests for the behavior.
 4. Follow the [test concept](test-concept.md) and run the relevant test suite.
+5. Apply the [UI quality checklist](ui-quality-checklist.md) to user-facing changes.
 
    ```bash
    php artisan test
