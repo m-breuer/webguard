@@ -29,6 +29,19 @@ return [
         ],
 
         'filters' => [
+            'advanced' => 'Advanced filters',
+            'presets' => 'Quick views',
+            'all' => 'All',
+            'attention' => 'Needs attention',
+            'paused' => 'Paused',
+            'maintenance' => 'In maintenance',
+            'active' => 'Active filters',
+            'clear' => 'Clear all',
+            'health' => 'Health',
+            'health_up' => 'Healthy',
+            'health_down' => 'Down',
+            'health_unknown' => 'Unknown',
+            'maintenance_active' => 'Maintenance',
             'sort' => [
                 'name_asc' => 'Name (A-Z)',
                 'name_desc' => 'Name (Z-A)',
@@ -37,6 +50,13 @@ return [
             ],
         ],
         'table' => [
+            'summary' => 'Operational summary',
+            'summary_scope' => 'Current result page',
+            'summary_loading' => 'Loading live status...',
+            'attention' => 'Needs attention',
+            'healthy' => 'Healthy',
+            'paused_count' => 'Paused',
+            'maintenance_count' => 'In maintenance',
             'name' => 'Name',
             'target' => 'Target',
             'type' => 'Type',
@@ -363,6 +383,7 @@ return [
         ],
     ],
     'validation' => [
+        'invalid_status' => 'The selected health status is invalid.',
         'invalid_type' => 'The selected type \':type\' is invalid.',
         'target_invalid_url' => 'The :attribute must be a valid URL for type :type.',
         'target_invalid_ip' => 'The :attribute must be a valid IP address for type :type.',

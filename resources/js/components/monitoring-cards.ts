@@ -14,7 +14,13 @@ interface MonitoringCardLoaderComponent {
     sinceMap: Record<string, string>;
     sinceDateMap: Record<string, string | null>;
     lastCheckMap: Record<string, string>;
+    summaryReady: boolean;
+    healthyCount: number;
+    attentionCount: number;
+    pausedCount: number;
+    maintenanceCount: number;
     currentLocale: string;
+    updateSummary(this: MonitoringCardLoaderComponent): void;
     updateSince(this: MonitoringCardLoaderComponent): void;
     loadAll(this: MonitoringCardLoaderComponent): Promise<void>;
     init(this: MonitoringCardLoaderComponent): void;
@@ -41,6 +47,11 @@ export default (
     sinceMap: {} as Record<string, string>,
     sinceDateMap: {} as Record<string, string | null>,
     lastCheckMap: {} as Record<string, string>,
+    summaryReady: false,
+    healthyCount: 0,
+    attentionCount: 0,
+    pausedCount: 0,
+    maintenanceCount: 0,
 
     currentLocale: getCurrentDayjsLocale(),
 
@@ -78,6 +89,16 @@ export default (
                 renderHeatmap(heatmapContainer, monitoringCardData.heatmap);
             }
         }
+
+        this.updateSummary();
+    },
+
+    updateSummary(this: MonitoringCardLoaderComponent): void {
+        this.healthyCount = this.monitoringIds.filter((id) => this.statusMap[id] === 'up').length;
+        this.attentionCount = this.monitoringIds.filter((id) => ['down', 'unknown'].includes(this.statusMap[id])).length;
+        this.pausedCount = this.monitoringIds.filter((id) => this.monitoringStatusMap[id] === 'paused').length;
+        this.maintenanceCount = this.monitoringIds.filter((id) => this.maintenanceStatusMap[id]).length;
+        this.summaryReady = true;
     },
 
     updateSince(this: MonitoringCardLoaderComponent): void {
