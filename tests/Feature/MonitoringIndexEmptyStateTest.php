@@ -142,9 +142,9 @@ class MonitoringIndexEmptyStateTest extends TestCase
             ]);
         }
 
-        $indexResponse = $this->actingAs($user)->get(route('monitorings.index'));
-        $summaryMonitoringIds = $indexResponse->viewData('summaryMonitoringIds');
-        $pageMonitoringIds = $indexResponse->viewData('monitorings')->getCollection()->pluck('id')->all();
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+        $summaryMonitoringIds = $testResponse->viewData('summaryMonitoringIds');
+        $pageMonitoringIds = $testResponse->viewData('monitorings')->getCollection()->pluck('id')->all();
 
         $this->assertCount(6, $summaryMonitoringIds);
         $this->assertCount(5, $pageMonitoringIds);
