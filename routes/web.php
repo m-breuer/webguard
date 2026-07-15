@@ -22,6 +22,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
+use App\Http\Controllers\StatusPageIncidentReviewController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
 use App\Http\Controllers\StatusPageSubscriberController;
 use App\Http\Controllers\StatusPageSubscriptionController;
@@ -181,6 +182,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->names('status-pages');
     Route::post('/status-pages/{statusPage}/incidents/{incident}/updates', [StatusPageIncidentUpdateController::class, 'store'])
         ->name('status-pages.incident-updates.store');
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/review', [StatusPageIncidentReviewController::class, 'update'])
+        ->name('status-pages.incident-review.update');
 
     Route::delete('/monitorings/{monitoring}/reset', [MonitoringController::class, 'destroyResults'])
         ->name('monitorings.destroyResults');

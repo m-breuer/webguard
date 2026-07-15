@@ -411,6 +411,85 @@ class StatusPageManagementTest extends TestCase
         $publicResponse->assertSeeText('We found a saturated database connection pool and are applying a fix.');
     }
 
+    public function test_user_can_save_private_incident_review_notes_without_exposing_them_publicly(): void
+    {
+        Date::setTestNow('2026-05-14 14:30:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $incident = Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subMinutes(20),
+            'up_at' => Date::now()->subMinutes(5),
+        ]);
+
+        $this->actingAs($user)->patch(
+            route('status-pages.incident-review.update', [$statusPage, $incident]),
+            [
+                'problem_description' => '  A connection pool exhausted its available slots.  ',
+                'resolution_description' => '  Increased the pool limit and restarted the affected worker.  ',
+            ]
+        )->assertRedirect(route('status-pages.show', $statusPage));
+
+        $this->assertDatabaseHas('incidents', [
+            'id' => $incident->id,
+            'problem_description' => 'A connection pool exhausted its available slots.',
+            'resolution_description' => 'Increased the pool limit and restarted the affected worker.',
+        ]);
+
+        $this->actingAs($user)->get(route('status-pages.show', $statusPage))
+            ->assertSeeHtml('A connection pool exhausted its available slots.')
+            ->assertSeeHtml('Increased the pool limit and restarted the affected worker.');
+
+        $this->get(route('public-status-pages.show', $statusPage))
+            ->assertOk()
+            ->assertDontSeeText('A connection pool exhausted its available slots.')
+            ->assertDontSeeText('Increased the pool limit and restarted the affected worker.');
+    }
+
+    public function test_user_cannot_update_incident_review_notes_for_an_incident_outside_status_page(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $includedMonitoring = Monitoring::factory()->for($user)->create();
+        $outsideMonitoring = Monitoring::factory()->for($user)->create();
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($includedMonitoring->id, ['position' => 0]);
+        $incident = Incident::query()->create([
+            'monitoring_id' => $outsideMonitoring->id,
+            'down_at' => now()->subMinutes(20),
+            'up_at' => now()->subMinutes(5),
+        ]);
+
+        $this->actingAs($user)->patch(
+            route('status-pages.incident-review.update', [$statusPage, $incident]),
+            [
+                'problem_description' => 'Should not be saved.',
+                'resolution_description' => 'Should not be saved either.',
+            ]
+        )->assertNotFound();
+
+        $this->assertDatabaseMissing('incidents', [
+            'id' => $incident->id,
+            'problem_description' => 'Should not be saved.',
+        ]);
+    }
+
     public function test_public_status_page_accepts_confirms_and_removes_email_subscriptions(): void
     {
         Mail::fake();

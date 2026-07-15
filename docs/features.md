@@ -26,6 +26,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **Mobile app:** use the implemented WebGuard mobile app from the separate [WebGuard App Repository](https://github.com/marcel-breuer/webguard-app).
 - **SLA badge:** display website monitoring status on external sites with a compact SLA badge that shows live status, uptime proof, and public trust context.
 - **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers. New public status page URLs use ULIDs, while legacy slug URLs remain available through compatibility routes.
+- **Private incident reviews:** record the problem and resolution for each status-page incident in the management interface without exposing internal notes on public status pages.
 - **Global language switch:** switch between supported languages from both public and authenticated top navigation.
 
 ## Notifications

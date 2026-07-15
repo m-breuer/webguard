@@ -57,6 +57,18 @@ return [
             'created' => 'Vorfall-Update erfolgreich hinzugefügt.',
         ],
     ],
+    'incident_review' => [
+        'heading' => 'Interne Vorfallauswertung',
+        'description' => 'Dokumentieren Sie, was den Vorfall verursacht hat und was ihn behoben hat. Diese Notizen bleiben privat und erscheinen nicht auf der öffentlichen Statusseite.',
+        'problem' => 'Was war das Problem?',
+        'problem_placeholder' => 'Beschreiben Sie die Ursache, beitragende Faktoren oder Auswirkungen für Kunden.',
+        'resolution' => 'Was hat es behoben?',
+        'resolution_placeholder' => 'Beschreiben Sie die Maßnahme, den Fix oder die Wiederherstellungsschritte.',
+        'save' => 'Auswertungsnotizen speichern',
+        'messages' => [
+            'updated' => 'Auswertungsnotizen zum Vorfall erfolgreich aktualisiert.',
+        ],
+    ],
     'public' => [
         'title' => ':statusPage - Status',
         'overall_status' => 'Gesamtstatus',
