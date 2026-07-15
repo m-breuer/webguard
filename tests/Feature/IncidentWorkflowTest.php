@@ -90,6 +90,8 @@ class IncidentWorkflowTest extends TestCase
 
         $this->actingAs($user)->get(route('status-pages.show', $statusPage))
             ->assertOk()
+            ->assertSee(__('status_page.incident_workbench.heading'))
+            ->assertSee(__('status_page.incident_workbench.public_updates'))
             ->assertSeeHtml('Checkout API')
             ->assertSeeHtml('Add dependency timeout coverage')
             ->assertSeeHtml('Dependency recovered')

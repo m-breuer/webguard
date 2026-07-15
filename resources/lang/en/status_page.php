@@ -57,6 +57,11 @@ return [
             'created' => 'Incident update added successfully.',
         ],
     ],
+    'incident_workbench' => [
+        'heading' => 'Internal response workbench',
+        'description' => 'Private classification, review notes, follow-ups and investigation timeline.',
+        'public_updates' => 'Public updates',
+    ],
     'incident_review' => [
         'heading' => 'Internal incident review',
         'description' => 'Record what caused the incident and what fixed it. These notes stay private and are not shown on the public status page.',

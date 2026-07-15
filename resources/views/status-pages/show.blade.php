@@ -87,7 +87,10 @@
             @endforeach
 
             <x-container>
-                <x-heading type="h2">{{ __('status_page.incident_updates.heading') }}</x-heading>
+                <div class="flex flex-wrap items-center gap-2">
+                    <x-heading type="h2">{{ __('status_page.incident_updates.heading') }}</x-heading>
+                    <x-badge type="info">{{ __('status_page.incident_workbench.public_updates') }}</x-badge>
+                </div>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     {{ __('status_page.incident_updates.description') }}
                 </p>
@@ -122,12 +125,24 @@
                 @else
                     <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
                         @foreach ($incidents as $incident)
-                            <div id="incident-{{ $incident->id }}" class="space-y-4 py-4">
+                                <div id="incident-{{ $incident->id }}" class="space-y-4 py-4">
                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                     <div>
-                                        <p class="font-medium text-gray-900 dark:text-gray-100">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="font-medium text-gray-900 dark:text-gray-100">
                                             {{ $incident->monitoring->name }}
-                                        </p>
+                                            </p>
+                                            @if ($incident->severity)
+                                                <x-badge :type="$incident->severity->badgeType()">
+                                                    {{ __('incidents.severities.' . $incident->severity->value) }}
+                                                </x-badge>
+                                            @endif
+                                            @if ($incident->customer_impact)
+                                                <x-badge type="info">
+                                                    {{ __('incidents.customer_impacts.' . $incident->customer_impact->value) }}
+                                                </x-badge>
+                                            @endif
+                                        </div>
                                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                             {{ __('monitoring.detail.incidents.incident.down_at') }}:
                                             {{ $incident->down_at->toDayDateTimeString() }}
@@ -161,6 +176,22 @@
                                         @endforeach
                                     </div>
                                 @endif
+
+                                <details class="rounded-lg border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-950/20">
+                                    <summary class="cursor-pointer list-none">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <div>
+                                                <p class="font-medium text-slate-900 dark:text-slate-100">
+                                                    {{ __('status_page.incident_workbench.heading') }}
+                                                </p>
+                                                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                                                    {{ __('status_page.incident_workbench.description') }}
+                                                </p>
+                                            </div>
+                                            <span class="text-sm font-medium text-purple-700 dark:text-purple-300">+</span>
+                                        </div>
+                                    </summary>
+                                    <div class="mt-4 space-y-4">
 
                                 @if (!Auth::user()->isDemo())
                                     <form method="POST"
@@ -347,6 +378,9 @@
                                         </form>
                                     </div>
                                 @endif
+
+                                    </div>
+                                </details>
 
                                 @if (!Auth::user()->isDemo())
                                     <form method="POST"
