@@ -32,6 +32,7 @@ return [
         'home' => 'Main navigation',
         'monitoring' => 'Monitoring',
         'workspace' => 'Workspace',
+        'more' => 'More',
         'sections' => [
             'operations' => 'Operations',
             'collaboration' => 'Collaboration',

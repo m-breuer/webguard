@@ -15,13 +15,13 @@ class StatusPageIncidentMetadataController extends Controller
     use InteractsWithStatusPageIncidents;
 
     public function update(
-        UpdateIncidentMetadataRequest $request,
+        UpdateIncidentMetadataRequest $updateIncidentMetadataRequest,
         StatusPage $statusPage,
         Incident $incident
     ): RedirectResponse {
         $this->authorizeIncident($statusPage, $incident);
 
-        $incident->update($request->validated());
+        $incident->update($updateIncidentMetadataRequest->validated());
 
         return to_route('status-pages.show', $statusPage)
             ->with('success', __('status_page.incident_metadata.messages.updated'));

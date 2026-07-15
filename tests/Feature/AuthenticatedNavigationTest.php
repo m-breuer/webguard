@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class AuthenticatedNavigationTest extends TestCase
 {
-    public function test_member_navigation_is_grouped_without_admin_links(): void
+    public function test_member_navigation_exposes_primary_destinations_without_admin_links(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
@@ -19,15 +19,17 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('app.navigation.monitoring'));
-        $testResponse->assertSeeText(__('app.navigation.workspace'));
+        $testResponse->assertSeeText(__('monitoring.title'));
+        $testResponse->assertSeeText(__('incidents.analytics.title'));
+        $testResponse->assertSeeText(__('status_page.title'));
+        $testResponse->assertSeeText(__('app.navigation.more'));
         $testResponse->assertSeeText(__('app.navigation.sections.operations'));
         $testResponse->assertSeeText(__('app.navigation.sections.collaboration'));
-        $testResponse->assertSeeText(__('monitoring.title'));
         $testResponse->assertSeeText(__('maintenance.title'));
         $testResponse->assertSeeText(__('monitoring_group.title'));
         $testResponse->assertSeeText(__('team.title'));
-        $testResponse->assertSeeText(__('status_page.title'));
+        $testResponse->assertSeeHtml('href="' . route('incidents.analytics') . '"');
+        $testResponse->assertSeeHtml('href="' . route('status-pages.index') . '"');
         $testResponse->assertDontSeeText(__('app.navigation.sections.administration'));
         $testResponse->assertDontSeeText(__('admin.dashboard.users.heading'));
     }

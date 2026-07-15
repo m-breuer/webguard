@@ -15,9 +15,9 @@ use Illuminate\View\View;
 
 class IncidentAnalyticsController extends Controller
 {
-    public function index(IncidentAnalyticsRequest $request): View
+    public function index(IncidentAnalyticsRequest $incidentAnalyticsRequest): View
     {
-        $filters = $request->validated();
+        $filters = $incidentAnalyticsRequest->validated();
         $days = (int) ($filters['days'] ?? 90);
         $incidents = $this->incidents($filters, $days);
         $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
@@ -56,22 +56,22 @@ class IncidentAnalyticsController extends Controller
      */
     private function incidents(array $filters, int $days): Collection
     {
-        $query = Incident::query()
+        $builder = Incident::query()
             ->with('monitoring')
             ->whereBetween('down_at', [Date::now()->subDays($days)->startOfDay(), Date::now()->endOfDay()])
             ->latest('down_at');
 
         foreach (['incident_type', 'severity', 'customer_impact'] as $filter) {
             if (! empty($filters[$filter])) {
-                $query->where($filter, $filters[$filter]);
+                $builder->where($filter, $filters[$filter]);
             }
         }
 
         if (! empty($filters['affected_service'])) {
-            $query->where('affected_service', 'like', '%' . $filters['affected_service'] . '%');
+            $builder->where('affected_service', 'like', '%' . $filters['affected_service'] . '%');
         }
 
-        return $query->get();
+        return $builder->get();
     }
 
     /**
