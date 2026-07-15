@@ -120,6 +120,44 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse->assertSee(__('monitoring.index.filters.clear'));
     }
 
+    public function test_operational_summary_includes_monitorings_from_all_result_pages(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitorings = Monitoring::factory()->count(6)->for($user)->sequence(
+            ['name' => 'Monitoring 1'],
+            ['name' => 'Monitoring 2'],
+            ['name' => 'Monitoring 3'],
+            ['name' => 'Monitoring 4'],
+            ['name' => 'Monitoring 5'],
+            ['name' => 'Monitoring 6'],
+        )->create();
+
+        foreach ($monitorings as $monitoring) {
+            MonitoringResponse::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'status' => $monitoring->name === 'Monitoring 6' ? MonitoringStatus::DOWN : MonitoringStatus::UP,
+                'created_at' => now()->subMinute(),
+                'updated_at' => now()->subMinute(),
+            ]);
+        }
+
+        $indexResponse = $this->actingAs($user)->get(route('monitorings.index'));
+        $summaryMonitoringIds = $indexResponse->viewData('summaryMonitoringIds');
+        $pageMonitoringIds = $indexResponse->viewData('monitorings')->getCollection()->pluck('id')->all();
+
+        $this->assertCount(6, $summaryMonitoringIds);
+        $this->assertCount(5, $pageMonitoringIds);
+
+        $this->actingAs($user)->getJson('/api/monitorings/card-data?' . http_build_query([
+            'ids' => $pageMonitoringIds,
+            'summary_ids' => $summaryMonitoringIds->all(),
+        ]))
+            ->assertOk()
+            ->assertJsonPath('summary.attention', 1)
+            ->assertJsonPath('summary.healthy', 5);
+    }
+
     public function test_monitoring_index_supports_active_maintenance_preset(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);

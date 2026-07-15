@@ -51,7 +51,7 @@ return [
         ],
         'table' => [
             'summary' => 'Betriebsübersicht',
-            'summary_scope' => 'Aktuelle Ergebnisseite',
+            'summary_scope' => 'Alle Ergebnisse der aktuellen Filter',
             'summary_loading' => 'Live-Status wird geladen ...',
             'attention' => 'Aufmerksamkeit nötig',
             'healthy' => 'Verfügbar',
