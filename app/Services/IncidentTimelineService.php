@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Incident;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class IncidentTimelineService
 {
     /**
-     * @return Collection<int, array{id: string|null, title: string, description: string|null, occurred_at: \Illuminate\Support\Carbon, source_type: string}>
+     * @return Collection<int, array{id: string|null, title: string, description: string|null, occurred_at: Carbon, source_type: string}>
      */
     public function events(Incident $incident): Collection
     {
