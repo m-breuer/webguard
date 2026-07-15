@@ -67,6 +67,8 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText(__('dashboard.summary.paused'))
             ->assertSeeText('Checkout API')
             ->assertSeeText('Unknown API')
+            ->assertSeeText(__('dashboard.attention.open'))
+            ->assertSeeText(__('dashboard.incidents.open'))
             ->assertDontSeeText('Private API')
             ->assertSeeHtml('href="' . route('monitorings.show', $down) . '"')
             ->assertSeeHtml('href="' . route('incidents.analytics') . '"');

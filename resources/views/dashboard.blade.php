@@ -139,7 +139,7 @@
                                             default => 'info',
                                         };
                                     @endphp
-                                    <div class="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <a href="{{ $itemHref }}" class="group -mx-2 flex flex-col gap-3 rounded-md px-2 py-4 transition hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:hover:bg-gray-900 sm:flex-row sm:items-center sm:justify-between">
                                         <div class="flex min-w-0 items-start gap-3">
                                             <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full {{ $itemBadge === 'danger' ? 'bg-red-500' : ($itemBadge === 'warning' ? 'bg-amber-500' : 'bg-blue-500') }}" aria-hidden="true"></span>
                                             <div class="min-w-0">
@@ -152,10 +152,10 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <a href="{{ $itemHref }}" class="shrink-0 text-sm font-semibold text-purple-600 hover:text-purple-800 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:text-purple-200">
+                                        <span class="shrink-0 text-sm font-semibold text-purple-600 group-hover:text-purple-800 dark:text-purple-300 dark:group-hover:text-purple-200">
                                             {{ __('dashboard.attention.open') }}
-                                        </a>
-                                    </div>
+                                        </span>
+                                    </a>
                                 @endforeach
                             </div>
                         @endif
@@ -199,13 +199,16 @@
                         @else
                             <div class="mt-5 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach ($recentIncidents as $incident)
-                                    <div class="flex items-center justify-between gap-3 py-4" id="incident-{{ $incident->id }}">
+                                    <a href="{{ route('monitorings.show', $incident->monitoring) }}" class="group -mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-4 transition hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:hover:bg-gray-900" id="incident-{{ $incident->id }}">
                                         <div class="min-w-0">
-                                            <a href="{{ route('monitorings.show', $incident->monitoring) }}" class="font-medium text-gray-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300">{{ $incident->monitoring->name }}</a>
+                                            <span class="font-medium text-gray-900 group-hover:text-purple-600 dark:text-gray-100 dark:group-hover:text-purple-300">{{ $incident->monitoring->name }}</span>
                                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $incident->down_at->locale(app()->getLocale())->isoFormat('L LT') }}</p>
                                         </div>
-                                        <x-badge :type="$incident->up_at ? 'success' : 'danger'">{{ $incident->up_at ? __('dashboard.incidents.resolved') : __('dashboard.incidents.ongoing') }}</x-badge>
-                                    </div>
+                                        <span class="flex shrink-0 items-center gap-2">
+                                            <x-badge :type="$incident->up_at ? 'success' : 'danger'">{{ $incident->up_at ? __('dashboard.incidents.resolved') : __('dashboard.incidents.ongoing') }}</x-badge>
+                                            <span class="hidden text-sm font-semibold text-purple-600 group-hover:text-purple-800 sm:inline dark:text-purple-300 dark:group-hover:text-purple-200">{{ __('dashboard.incidents.open') }}</span>
+                                        </span>
+                                    </a>
                                 @endforeach
                             </div>
                         @endif
