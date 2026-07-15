@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\IncidentAnalyticsController;
 use App\Http\Controllers\LegacyPublicStatusPageController;
@@ -145,7 +146,7 @@ Route::middleware(['auth', 'role:member,admin'])
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
 
-    Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
         Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');

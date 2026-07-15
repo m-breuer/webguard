@@ -71,13 +71,14 @@ class VerifiedEmailRequiredTest extends TestCase
         $this->assertTrue(Hash::check('new-password', (string) $user->fresh()->password));
     }
 
-    public function test_verified_user_can_access_protected_routes(): void
+    public function test_verified_user_can_access_dashboard_and_protected_routes(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
 
         $testResponse = $this->actingAs($user)->get(route('dashboard'));
-        $testResponse->assertRedirect(route('monitorings.index'));
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('dashboard.title'));
 
         $monitoringsResponse = $this->actingAs($user)->get(route('monitorings.index'));
         $monitoringsResponse->assertOk();
