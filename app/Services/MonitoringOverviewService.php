@@ -13,6 +13,7 @@ use App\Models\MonitoringDailyResult;
 use App\Models\NotificationChannelDelivery;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 
@@ -188,14 +189,14 @@ class MonitoringOverviewService
     }
 
     /**
-     * @param  EloquentCollection<int, Monitoring>  $monitorings
+     * @param  EloquentCollection<int, Monitoring>  $eloquentCollection
      * @return Collection<int, array{type:string,monitoring:Monitoring|null,count:int|null}>
      */
-    private function attentionItems(EloquentCollection $monitorings, int $failedDeliveryCount): Collection
+    private function attentionItems(EloquentCollection $eloquentCollection, int $failedDeliveryCount): Collection
     {
         $items = collect();
 
-        $monitorings
+        $eloquentCollection
             ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::DOWN->value)
             ->take(5)
             ->each(function (Monitoring $monitoring) use ($items): void {
@@ -206,7 +207,7 @@ class MonitoringOverviewService
                 ]);
             });
 
-        $monitorings
+        $eloquentCollection
             ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::UNKNOWN->value
                 && $monitoring->isActive())
             ->take(5)
@@ -242,21 +243,21 @@ class MonitoringOverviewService
     }
 
     /**
-     * @param  EloquentCollection<int, Monitoring>  $monitorings
+     * @param  EloquentCollection<int, Monitoring>  $eloquentCollection
      * @return list<array{date:string,label:string,uptime_percentage:float|null,has_data:bool}>
      */
-    private function trend(EloquentCollection $monitorings): array
+    private function trend(EloquentCollection $eloquentCollection): array
     {
-        $dates = collect(range(6, 0))->map(fn (int $days): \Illuminate\Support\Carbon => Date::now()->subDays($days)->startOfDay());
-        $dailyResults = $monitorings->isEmpty()
+        $dates = collect(range(6, 0))->map(fn (int $days): Carbon => Date::now()->subDays($days)->startOfDay());
+        $dailyResults = $eloquentCollection->isEmpty()
             ? collect()
             : MonitoringDailyResult::query()
-                ->whereIn('monitoring_id', $monitorings->modelKeys())
+                ->whereIn('monitoring_id', $eloquentCollection->modelKeys())
                 ->whereBetween('date', [$dates->last()->toDateString(), $dates->first()->toDateString()])
                 ->get(['date', 'uptime_minutes', 'downtime_minutes', 'unknown_minutes'])
-                ->groupBy(fn (MonitoringDailyResult $result): string => $result->date->toDateString());
+                ->groupBy(fn (MonitoringDailyResult $monitoringDailyResult): string => $monitoringDailyResult->date->toDateString());
 
-        return $dates->map(function (\Illuminate\Support\Carbon $date) use ($dailyResults): array {
+        return $dates->map(function (Carbon $date) use ($dailyResults): array {
             $rows = $dailyResults->get($date->toDateString(), collect());
             $uptimeMinutes = (int) $rows->sum('uptime_minutes');
             $downtimeMinutes = (int) $rows->sum('downtime_minutes');

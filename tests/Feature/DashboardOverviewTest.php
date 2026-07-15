@@ -57,9 +57,9 @@ class DashboardOverviewTest extends TestCase
         Monitoring::factory()->for($user)->create(['name' => 'Unknown API']);
         Monitoring::factory()->for($otherUser)->create(['name' => 'Private API']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $testResponse = $this->actingAs($user)->get(route('dashboard'));
 
-        $response->assertOk()
+        $testResponse->assertOk()
             ->assertSeeText(__('dashboard.state.degraded.title'))
             ->assertSeeText(__('dashboard.summary.healthy'))
             ->assertSeeText(__('dashboard.summary.down'))
