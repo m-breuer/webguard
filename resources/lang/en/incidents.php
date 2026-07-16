@@ -46,18 +46,21 @@ return [
         'dependency' => 'Dependency',
         'configuration' => 'Configuration',
         'other' => 'Other',
+        'unclassified' => 'Unclassified',
     ],
     'severities' => [
         'low' => 'Low',
         'medium' => 'Medium',
         'high' => 'High',
         'critical' => 'Critical',
+        'unclassified' => 'Unclassified',
     ],
     'customer_impacts' => [
         'none' => 'None',
         'degraded' => 'Degraded',
         'outage' => 'Outage',
         'unknown' => 'Unknown',
+        'unclassified' => 'Unclassified',
     ],
     'contributing_categories' => [
         'code' => 'Code',

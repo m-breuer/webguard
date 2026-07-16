@@ -46,18 +46,21 @@ return [
         'dependency' => 'Abhängigkeit',
         'configuration' => 'Konfiguration',
         'other' => 'Sonstiges',
+        'unclassified' => 'Nicht klassifiziert',
     ],
     'severities' => [
         'low' => 'Niedrig',
         'medium' => 'Mittel',
         'high' => 'Hoch',
         'critical' => 'Kritisch',
+        'unclassified' => 'Nicht klassifiziert',
     ],
     'customer_impacts' => [
         'none' => 'Keine',
         'degraded' => 'Beeinträchtigt',
         'outage' => 'Ausfall',
         'unknown' => 'Unbekannt',
+        'unclassified' => 'Nicht klassifiziert',
     ],
     'contributing_categories' => [
         'code' => 'Code',

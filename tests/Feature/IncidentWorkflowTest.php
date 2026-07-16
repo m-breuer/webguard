@@ -270,6 +270,37 @@ class IncidentWorkflowTest extends TestCase
             ->assertDontSeeText('Other API');
     }
 
+    public function test_incident_analytics_translates_unclassified_values_for_each_locale(): void
+    {
+        Date::setTestNow('2026-07-15 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+
+        foreach ([
+            ['locale' => 'en', 'label' => 'Unclassified'],
+            ['locale' => 'de', 'label' => 'Nicht klassifiziert'],
+        ] as $localizedExpectation) {
+            $user = User::factory()->create([
+                'locale' => $localizedExpectation['locale'],
+                'package_id' => $package->id,
+            ]);
+            $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+
+            Incident::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'down_at' => Date::now()->subHour(),
+                'up_at' => Date::now()->subMinutes(30),
+            ]);
+
+            $this->actingAs($user)->get(route('incidents.analytics'))
+                ->assertOk()
+                ->assertSeeText($localizedExpectation['label'])
+                ->assertDontSeeText('incidents.types.unclassified')
+                ->assertDontSeeText('incidents.severities.unclassified')
+                ->assertDontSeeText('incidents.customer_impacts.unclassified');
+        }
+    }
+
     /**
      * @return array{user: User, statusPage: StatusPage, incident: Incident}
      */
