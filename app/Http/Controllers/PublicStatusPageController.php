@@ -60,12 +60,17 @@ class PublicStatusPageController extends Controller
         });
 
         $pageStatus = $this->aggregateStatus($components->pluck('status'));
+        $hasAggregateCalendar = $components
+            ->flatMap(fn (array $component): Collection => $component['monitorings']->pluck('model'))
+            ->unique('id')
+            ->count() > 1;
 
         return view('status-pages.public-show', [
             'statusPage' => $statusPage,
             'pageStatus' => $pageStatus,
             'pageStatusBadgeType' => $this->statusBadgeType($pageStatus),
             'components' => $components,
+            'hasAggregateCalendar' => $hasAggregateCalendar,
             'incidents' => $this->recentIncidents($statusPage),
         ]);
     }

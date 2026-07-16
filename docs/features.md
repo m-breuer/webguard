@@ -25,7 +25,7 @@ WebGuard helps teams observe public websites, operational tasks, certificates, d
 - **REST API:** access monitoring data, manage teams, and create or move team monitorings programmatically.
 - **Mobile app:** use the implemented WebGuard mobile app from the separate [WebGuard App Repository](https://github.com/marcel-breuer/webguard-app).
 - **SLA badge:** display website monitoring status on external sites with a compact SLA badge that shows live status, uptime proof, and public trust context.
-- **Public status pages:** publish monitoring status, uptime, recent incidents, and active or upcoming maintenance windows for users and customers. New public status page URLs use ULIDs, while legacy slug URLs remain available through compatibility routes.
+- **Public status pages:** publish monitoring status, uptime, a calculated 30-day aggregate uptime calendar for multi-monitoring pages, recent incidents, and active or upcoming maintenance windows for users and customers. New public status page URLs use ULIDs, while legacy slug URLs remain available through compatibility routes.
 - **Private incident reviews:** record the problem and resolution for each status-page incident in the management interface without exposing internal notes on public status pages.
 - **Incident follow-ups and timelines:** track private preventive actions, owners, due dates, and custom timeline events alongside automatically collected incident activity.
 - **Incident analytics:** classify incidents by type, severity, customer impact, and affected service, then review recurrence and average recovery time for the selected period.

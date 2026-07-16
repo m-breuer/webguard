@@ -19,30 +19,38 @@ interface UptimeCalendarComponent {
     calendarData: CalendarData | null;
     monitoringId: string;
     endpoint: string | null;
+    lookbackDays: number | null;
     currentLocale: string;
     fetchUptimeCalendar(this: UptimeCalendarComponent): Promise<void>;
 }
 
-export default (monitoringId: string, endpoint: string | null = null): UptimeCalendarComponent => ({
+export default (monitoringId: string, endpoint: string | null = null, lookbackDays: number | null = null): UptimeCalendarComponent => ({
     isLoading: true,
     calendarData: null,
     monitoringId: monitoringId,
     endpoint: endpoint,
+    lookbackDays: lookbackDays,
     currentLocale: getCurrentDayjsLocale(),
 
     async fetchUptimeCalendar() {
         this.isLoading = true;
         const endDate = new Date();
         const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 11);
-        startDate.setDate(1);
+        if (this.lookbackDays !== null) {
+            startDate.setDate(startDate.getDate() - (this.lookbackDays - 1));
+        } else {
+            startDate.setMonth(startDate.getMonth() - 11);
+            startDate.setDate(1);
+        }
 
         const formatDateForApi = (date: Date) => date.toISOString().split('T')[0];
 
         try {
             const url = new URL(this.endpoint ?? `/api/monitorings/${this.monitoringId}/uptime-calendar`, window.location.origin);
-            url.searchParams.set('start_date', formatDateForApi(startDate));
-            url.searchParams.set('end_date', formatDateForApi(endDate));
+            if (this.lookbackDays === null) {
+                url.searchParams.set('start_date', formatDateForApi(startDate));
+                url.searchParams.set('end_date', formatDateForApi(endDate));
+            }
 
             const response = await fetch(url.toString());
             if (!response.ok) {

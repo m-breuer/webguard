@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Mobile\MobileAuthController;
 use App\Http\Controllers\Api\ServerHealthReportController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\PublicStatusPageUptimeCalendarController;
 use App\Http\Middleware\TrackApiUsage;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,8 @@ Route::get('/public/monitorings/{monitoring}/badge', [ApiController::class, 'bad
     ->name('public.monitorings.badge');
 Route::get('/public/monitorings/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar'])
     ->name('public.monitorings.uptime-calendar');
+Route::get('/public/status-pages/{statusPage}/uptime-calendar', PublicStatusPageUptimeCalendarController::class)
+    ->name('public.status-pages.uptime-calendar');
 
 Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
     ->middleware('throttle:60,1')
