@@ -73,6 +73,31 @@
                 @endforeach
             </section>
 
+            @if ($hasAggregateCalendar)
+                <section id="status-page-uptime-calendar">
+                    <div class="mb-4">
+                        <x-heading type="h2">{{ __('status_page.public.calendar.heading') }}</x-heading>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            {{ __('status_page.public.calendar.description') }}
+                        </p>
+                    </div>
+
+                    <div x-data="uptimeCalendar('{{ $statusPage->id }}', @js(route('public.status-pages.uptime-calendar', $statusPage)), 30)" x-init="fetchUptimeCalendar">
+                        <template x-if="isLoading">
+                            <x-container>
+                                <p>{{ __('calendar.loading') }}</p>
+                            </x-container>
+                        </template>
+
+                        <template x-if="!isLoading && calendarData">
+                            <div x-data="{ data: calendarData }">
+                                @include('components.monitoring-calendar')
+                            </div>
+                        </template>
+                    </div>
+                </section>
+            @endif
+
             <section id="status-page-subscription">
                 <x-container>
                     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

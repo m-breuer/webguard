@@ -139,6 +139,10 @@ return [
         'title' => ':statusPage - Status',
         'overall_status' => 'Gesamtstatus',
         'recent_incidents' => 'Letzte Vorfälle',
+        'calendar' => [
+            'heading' => 'Aggregierte Verfügbarkeit',
+            'description' => 'Zusammengefasste Verfügbarkeit aller auf dieser Statusseite angezeigten Dienste der letzten 30 Tage.',
+        ],
         'subscribe' => [
             'button' => 'Abonnieren',
             'confirmation_sent' => 'Falls erforderlich, haben wir eine Bestätigungs-E-Mail zum Abschließen des Abonnements gesendet.',

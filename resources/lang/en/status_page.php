@@ -139,6 +139,10 @@ return [
         'title' => ':statusPage - Status',
         'overall_status' => 'Overall status',
         'recent_incidents' => 'Recent Incidents',
+        'calendar' => [
+            'heading' => 'Aggregated uptime',
+            'description' => 'Combined uptime for all services shown on this status page over the last 30 days.',
+        ],
         'subscribe' => [
             'button' => 'Subscribe',
             'confirmation_sent' => 'If needed, we sent a confirmation email to finish the subscription.',
