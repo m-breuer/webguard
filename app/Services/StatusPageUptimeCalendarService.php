@@ -8,6 +8,7 @@ use App\Data\MonitoringUptimeCalendarDayPayload;
 use App\Data\MonitoringUptimeCalendarMonthPayload;
 use App\Data\MonitoringUptimeCalendarPayload;
 use App\Enums\StatusPageComponentSource;
+use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
@@ -27,7 +28,7 @@ final class StatusPageUptimeCalendarService
         ]);
 
         $monitoringIds = $statusPage->components
-            ->flatMap(fn (StatusPageComponent $component): Collection => $this->componentMonitorings($component)->pluck('id'))
+            ->flatMap(fn (StatusPageComponent $statusPageComponent): Collection => $this->componentMonitorings($statusPageComponent)->pluck('id'))
             ->unique()
             ->values();
 
@@ -39,7 +40,7 @@ final class StatusPageUptimeCalendarService
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->select(['monitoring_id', 'date', 'uptime_minutes', 'downtime_minutes'])
             ->get()
-            ->groupBy(fn (MonitoringDailyResult $result): string => Date::parse($result->date)->toDateString());
+            ->groupBy(fn (MonitoringDailyResult $monitoringDailyResult): string => Date::parse($monitoringDailyResult->date)->toDateString());
 
         $dailyUptimeData = [];
         $monthlyMinutes = [];
@@ -102,7 +103,7 @@ final class StatusPageUptimeCalendarService
     }
 
     /**
-     * @return Collection<int, \App\Models\Monitoring>
+     * @return Collection<int, Monitoring>
      */
     private function componentMonitorings(StatusPageComponent $statusPageComponent): Collection
     {
