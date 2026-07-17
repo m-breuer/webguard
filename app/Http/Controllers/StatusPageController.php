@@ -87,7 +87,7 @@ class StatusPageController extends Controller
         }
 
         $openIncidentId = request()->string('incident_id')->toString();
-        if (! $incidents->contains(fn (Incident $incident): bool => $incident->id === $openIncidentId)) {
+        if ($incidents->doesntContain(fn (Incident $incident): bool => $incident->id === $openIncidentId)) {
             $openIncidentId = null;
         }
 

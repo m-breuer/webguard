@@ -41,12 +41,12 @@ class PublicStatusPageCalendarTest extends TestCase
             'is_public' => true,
         ]);
 
-        $manualComponent = $statusPage->components()->create([
+        $statusPageComponent = $statusPage->components()->create([
             'name' => 'API',
             'position' => 0,
             'source_type' => StatusPageComponentSource::MANUAL,
         ]);
-        $manualComponent->monitorings()->attach($firstMonitoring->id, ['position' => 0]);
+        $statusPageComponent->monitorings()->attach($firstMonitoring->id, ['position' => 0]);
 
         $monitoringGroup = MonitoringGroup::factory()->for($user)->create();
         $monitoringGroup->monitorings()->attach([$firstMonitoring->id, $secondMonitoring->id]);
@@ -61,10 +61,10 @@ class PublicStatusPageCalendarTest extends TestCase
         $this->createDailyResult($secondMonitoring, '2026-07-15', 180, 60);
         $dailyResultCount = MonitoringDailyResult::query()->count();
 
-        $response = $this->getJson(route('public.status-pages.uptime-calendar', $statusPage));
+        $testResponse = $this->getJson(route('public.status-pages.uptime-calendar', $statusPage));
 
-        $response->assertOk();
-        $calendar = $response->json();
+        $testResponse->assertOk();
+        $calendar = $testResponse->json();
 
         $this->assertArrayHasKey('2026-06', $calendar);
         $this->assertArrayHasKey('2026-07', $calendar);
@@ -105,12 +105,12 @@ class PublicStatusPageCalendarTest extends TestCase
             'slug' => 'customer-status',
             'is_public' => true,
         ]);
-        $component = $statusPage->components()->create([
+        $statusPageComponent = $statusPage->components()->create([
             'name' => 'Services',
             'position' => 0,
             'source_type' => StatusPageComponentSource::MANUAL,
         ]);
-        $component->monitorings()->attach([
+        $statusPageComponent->monitorings()->attach([
             $firstMonitoring->id => ['position' => 0],
             $secondMonitoring->id => ['position' => 1],
         ]);

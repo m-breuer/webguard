@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 return [
     'title' => 'Operations overview',
+    'greeting' => 'Good morning, :name',
     'description' => 'See what needs attention and move directly to the next useful action.',
+    'view_all' => 'View all',
     'open_monitorings' => 'View all monitorings',
     'state' => [
         'new' => [
@@ -53,6 +55,10 @@ return [
         'notifications' => 'Open notifications',
         'status_pages' => 'Manage status pages',
     ],
+    'next_action' => [
+        'heading' => 'Next best action',
+        'description' => 'One clear move to keep your operations moving forward.',
+    ],
     'maintenance' => [
         'heading' => 'Maintenance windows',
         'description' => 'Active and upcoming windows across your monitorings.',
@@ -72,6 +78,7 @@ return [
     'trend' => [
         'heading' => 'Reliability trend',
         'description' => 'Aggregated uptime for the last seven days.',
+        'period' => 'Last 7 days',
         'no_data' => 'A trend will appear after daily monitoring data is available.',
         'uptime' => ':value% uptime',
     ],

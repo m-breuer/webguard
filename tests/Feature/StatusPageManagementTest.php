@@ -387,7 +387,7 @@ class StatusPageManagementTest extends TestCase
             'down_at' => Date::now()->subMinutes(20),
         ]);
 
-        $response = $this->actingAs($user)
+        $testResponse = $this->actingAs($user)
             ->get(route('status-pages.show', [
                 'statusPage' => $statusPage,
                 'incident_id' => $incident->id,
@@ -395,9 +395,9 @@ class StatusPageManagementTest extends TestCase
 
         $this->assertMatchesRegularExpression(
             '/<details id="incident-workbench-' . $incident->id . '"\s+open\s+class=/',
-            $response->getContent()
+            $testResponse->getContent()
         );
-        $response->assertOk()->assertSeeText(__('status_page.incident_workbench.heading'));
+        $testResponse->assertOk()->assertSeeText(__('status_page.incident_workbench.heading'));
     }
 
     public function test_user_can_add_manual_incident_update_to_status_page_incident(): void
