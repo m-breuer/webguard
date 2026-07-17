@@ -51,7 +51,7 @@ class SocialiteConsentController extends Controller
 
         Auth::login($user);
 
-        return to_route('monitorings.index');
+        return to_route('dashboard');
     }
 
     private function hasPendingConsent(Request $request): bool

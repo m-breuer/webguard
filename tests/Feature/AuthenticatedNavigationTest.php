@@ -19,6 +19,7 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
+        $testResponse->assertSeeText(__('dashboard.title'));
         $testResponse->assertSeeText(__('monitoring.title'));
         $testResponse->assertSeeText(__('incidents.analytics.title'));
         $testResponse->assertSeeText(__('status_page.title'));
@@ -30,6 +31,7 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertSeeText(__('team.title'));
         $testResponse->assertSeeHtml('href="' . route('incidents.analytics') . '"');
         $testResponse->assertSeeHtml('href="' . route('status-pages.index') . '"');
+        $testResponse->assertSeeHtml('<a href="' . route('dashboard') . '" class="flex items-center">');
         $testResponse->assertDontSeeText(__('app.navigation.sections.administration'));
         $testResponse->assertDontSeeText(__('admin.dashboard.users.heading'));
     }

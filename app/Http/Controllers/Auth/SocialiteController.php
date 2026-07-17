@@ -57,7 +57,7 @@ class SocialiteController extends Controller
                 $this->clearPendingConsentState($request);
                 Auth::login($user);
 
-                return to_route('monitorings.index');
+                return to_route('dashboard');
             }
 
             $request->session()->put(self::SESSION_PENDING_EXISTING_USER_ID, $user->id);

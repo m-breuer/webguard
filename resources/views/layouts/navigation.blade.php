@@ -12,7 +12,7 @@
         <div class="flex h-16 justify-between">
             <div class="flex">
                 <div class="flex shrink-0 items-center">
-                    <a href="{{ route('monitorings.index') }}" class="flex items-center">
+                    <a href="{{ route('dashboard') }}" class="flex items-center">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
                         <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
                             {{ __('app.name') }}
@@ -21,6 +21,10 @@
                 </div>
 
                 <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:items-center sm:gap-2">
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        {{ __('dashboard.title') }}
+                    </x-nav-link>
+
                     <x-nav-link :href="route('monitorings.index')" :active="request()->routeIs('monitorings.*')">
                         {{ __('monitoring.title') }}
                     </x-nav-link>
@@ -209,6 +213,9 @@
             <div class="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.08em] text-gray-400">
                 {{ __('app.navigation.sections.operations') }}
             </div>
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                {{ __('dashboard.title') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('monitorings.index')" :active="request()->routeIs('monitorings.*')">
                 {{ __('monitoring.title') }}
             </x-responsive-nav-link>
