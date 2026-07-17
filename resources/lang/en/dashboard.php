@@ -41,6 +41,8 @@ return [
         'stale' => ':name has not reported recently.',
         'delivery' => ':count failed notification deliveries in the last 7 days.',
         'open' => 'Open details',
+        'open_incident' => 'Open incident workspace',
+        'status_page' => 'Response workspace: :name',
         'empty' => 'No active attention items. Keep an eye on the summary above.',
     ],
     'quick_actions' => [

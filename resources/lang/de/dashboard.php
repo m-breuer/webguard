@@ -41,6 +41,8 @@ return [
         'stale' => ':name hat kürzlich kein Ergebnis gemeldet.',
         'delivery' => ':count fehlgeschlagene Benachrichtigungszustellungen in den letzten 7 Tagen.',
         'open' => 'Details öffnen',
+        'open_incident' => 'Incident-Arbeitsbereich öffnen',
+        'status_page' => 'Response-Arbeitsbereich: :name',
         'empty' => 'Keine aktiven Aufmerksamkeitspunkte. Behalte die Übersicht oben im Blick.',
     ],
     'quick_actions' => [

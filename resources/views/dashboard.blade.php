@@ -121,9 +121,16 @@
                             <div class="mt-5 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach ($attentionItems as $item)
                                     @php
+                                        $itemStatusPage = $item['statusPage'] ?? null;
+                                        $itemIncident = $item['monitoring']?->latestIncident;
                                         $itemHref = $item['type'] === 'delivery'
                                             ? route('notifications.index')
-                                            : route('monitorings.show', $item['monitoring']);
+                                            : ($itemStatusPage && $itemIncident
+                                                ? route('status-pages.show', [
+                                                    'statusPage' => $itemStatusPage,
+                                                    'incident_id' => $itemIncident->id,
+                                                ]) . '#incident-workbench-' . $itemIncident->id
+                                                : route('monitorings.show', $item['monitoring']));
                                         $itemText = match ($item['type']) {
                                             'incident' => __('dashboard.attention.incident', ['name' => $item['monitoring']->name]),
                                             'down' => __('dashboard.attention.down', ['name' => $item['monitoring']->name]),
@@ -138,6 +145,9 @@
                                             'stale' => 'warning',
                                             default => 'info',
                                         };
+                                        $itemAction = $itemStatusPage && $itemIncident
+                                            ? __('dashboard.attention.open_incident')
+                                            : __('dashboard.attention.open');
                                     @endphp
                                     <a href="{{ $itemHref }}" class="group -mx-2 flex flex-col gap-3 rounded-md px-2 py-4 transition hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:hover:bg-gray-900 sm:flex-row sm:items-center sm:justify-between">
                                         <div class="flex min-w-0 items-start gap-3">
@@ -150,10 +160,15 @@
                                                 @if ($item['monitoring'])
                                                     <p class="mt-1 break-all text-sm text-gray-500 dark:text-gray-400">{{ $item['monitoring']->target }}</p>
                                                 @endif
+                                                @if ($itemStatusPage && $itemIncident)
+                                                    <p class="mt-1 text-sm text-purple-700 dark:text-purple-300">
+                                                        {{ __('dashboard.attention.status_page', ['name' => $itemStatusPage->name]) }}
+                                                    </p>
+                                                @endif
                                             </div>
                                         </div>
                                         <span class="shrink-0 text-sm font-semibold text-purple-600 group-hover:text-purple-800 dark:text-purple-300 dark:group-hover:text-purple-200">
-                                            {{ __('dashboard.attention.open') }}
+                                            {{ $itemAction }}
                                         </span>
                                     </a>
                                 @endforeach

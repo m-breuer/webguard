@@ -7,10 +7,12 @@ namespace App\Services;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\NotificationDeliveryStatus;
+use App\Enums\StatusPageComponentSource;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\NotificationChannelDelivery;
+use App\Models\StatusPage;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
@@ -91,7 +93,11 @@ class MonitoringOverviewService
             ->sortBy('maintenance_from')
             ->values();
 
-        $attentionItems = $this->attentionItems($monitorings, $failedDeliveryCount);
+        $attentionItems = $this->attentionItems(
+            $monitorings,
+            $failedDeliveryCount,
+            $this->statusPagesByMonitoringId($user)
+        );
         $overallState = $this->overallState($summary);
 
         return [
@@ -190,20 +196,28 @@ class MonitoringOverviewService
 
     /**
      * @param  EloquentCollection<int, Monitoring>  $eloquentCollection
-     * @return Collection<int, array{type:string,monitoring:Monitoring|null,count:int|null}>
+     * @param  Collection<string, StatusPage>  $statusPagesByMonitoringId
+     * @return Collection<int, array{type:string,monitoring:Monitoring|null,count:int|null,statusPage:StatusPage|null}>
      */
-    private function attentionItems(EloquentCollection $eloquentCollection, int $failedDeliveryCount): Collection
-    {
+    private function attentionItems(
+        EloquentCollection $eloquentCollection,
+        int $failedDeliveryCount,
+        Collection $statusPagesByMonitoringId
+    ): Collection {
         $items = collect();
 
         $eloquentCollection
             ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::DOWN->value)
             ->take(5)
-            ->each(function (Monitoring $monitoring) use ($items): void {
+            ->each(function (Monitoring $monitoring) use ($items, $statusPagesByMonitoringId): void {
+                $isOpenIncident = $monitoring->latestIncident?->up_at === null
+                    && $monitoring->latestIncident !== null;
+
                 $items->push([
-                    'type' => $monitoring->latestIncident?->up_at === null && $monitoring->latestIncident !== null ? 'incident' : 'down',
+                    'type' => $isOpenIncident ? 'incident' : 'down',
                     'monitoring' => $monitoring,
                     'count' => null,
+                    'statusPage' => $isOpenIncident ? $statusPagesByMonitoringId->get($monitoring->id) : null,
                 ]);
             });
 
@@ -215,6 +229,7 @@ class MonitoringOverviewService
                 'type' => $monitoring->latestResponseResult === null ? 'unknown' : 'stale',
                 'monitoring' => $monitoring,
                 'count' => null,
+                'statusPage' => null,
             ]));
 
         if ($failedDeliveryCount > 0) {
@@ -222,10 +237,37 @@ class MonitoringOverviewService
                 'type' => 'delivery',
                 'monitoring' => null,
                 'count' => $failedDeliveryCount,
+                'statusPage' => null,
             ]);
         }
 
         return $items;
+    }
+
+    /**
+     * @return Collection<string, StatusPage>
+     */
+    private function statusPagesByMonitoringId(User $user): Collection
+    {
+        $statusPages = $user->statusPages()->with([
+            'components.monitorings',
+            'components.monitoringGroup.monitorings',
+        ])->get();
+        $statusPagesByMonitoringId = collect();
+
+        foreach ($statusPages as $statusPage) {
+            foreach ($statusPage->components as $component) {
+                $monitorings = $component->source_type === StatusPageComponentSource::MONITORING_GROUP
+                    ? $component->monitoringGroup?->monitorings ?? new EloquentCollection()
+                    : $component->monitorings;
+
+                foreach ($monitorings as $monitoring) {
+                    $statusPagesByMonitoringId->put($monitoring->id, $statusPage);
+                }
+            }
+        }
+
+        return $statusPagesByMonitoringId;
     }
 
     private function isStale(Monitoring $monitoring): bool

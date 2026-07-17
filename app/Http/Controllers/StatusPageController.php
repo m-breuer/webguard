@@ -86,9 +86,15 @@ class StatusPageController extends Controller
             });
         }
 
+        $openIncidentId = request()->string('incident_id')->toString();
+        if (! $incidents->contains(fn (Incident $incident): bool => $incident->id === $openIncidentId)) {
+            $openIncidentId = null;
+        }
+
         return view('status-pages.show', [
             'statusPage' => $statusPage,
             'incidents' => $incidents,
+            'openIncidentId' => $openIncidentId,
             'incidentTimelines' => $incidents->mapWithKeys(
                 fn (Incident $incident) => [$incident->id => $this->incidentTimelineService->events($incident)]
             ),
