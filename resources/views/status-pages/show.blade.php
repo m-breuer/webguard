@@ -177,7 +177,7 @@
                                     </div>
                                 @endif
 
-                                <details class="rounded-lg border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-950/20">
+                                <details id="incident-workbench-{{ $incident->id }}" @if ($openIncidentId === $incident->id || $incident->up_at === null) open @endif class="rounded-lg border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-950/20">
                                     <summary class="cursor-pointer list-none">
                                         <div class="flex flex-wrap items-center justify-between gap-2">
                                             <div>

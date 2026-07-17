@@ -7,12 +7,14 @@ namespace Tests\Feature;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\NotificationDeliveryStatus;
+use App\Enums\StatusPageComponentSource;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\NotificationChannelDelivery;
 use App\Models\Package;
+use App\Models\StatusPage;
 use App\Models\User;
 use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
@@ -89,6 +91,39 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText(__('dashboard.state.healthy.title'))
             ->assertSeeText(__('dashboard.attention.empty'))
             ->assertDontSeeText(__('dashboard.attention.incident', ['name' => $monitoring->name]));
+    }
+
+    public function test_open_incident_attention_item_links_to_the_matching_status_page_workbench(): void
+    {
+        Date::setTestNow('2026-07-15 12:00:00');
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $incident = Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subMinutes(20),
+        ]);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Customer Status',
+            'is_public' => true,
+        ]);
+        $statusPage->components()->create([
+            'name' => 'API',
+            'position' => 0,
+            'source_type' => StatusPageComponentSource::MANUAL,
+        ])->monitorings()->attach($monitoring->id, ['position' => 0]);
+
+        $incidentWorkspaceUrl = route('status-pages.show', [
+            'statusPage' => $statusPage,
+            'incident_id' => $incident->id,
+        ]) . '#incident-workbench-' . $incident->id;
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeHtml('href="' . $incidentWorkspaceUrl . '"')
+            ->assertSeeText(__('dashboard.attention.open_incident'))
+            ->assertSeeText(__('dashboard.attention.status_page', ['name' => $statusPage->name]));
     }
 
     public function test_dashboard_includes_maintenance_delivery_and_reliability_context(): void

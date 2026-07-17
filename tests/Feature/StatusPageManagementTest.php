@@ -368,6 +368,38 @@ class StatusPageManagementTest extends TestCase
         $testResponse->assertNotFound();
     }
 
+    public function test_open_incident_context_expands_the_internal_response_workbench(): void
+    {
+        Date::setTestNow('2026-05-14 14:30:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'API', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $incident = Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::now()->subMinutes(20),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('status-pages.show', [
+                'statusPage' => $statusPage,
+                'incident_id' => $incident->id,
+            ]));
+
+        $this->assertMatchesRegularExpression(
+            '/<details id="incident-workbench-' . $incident->id . '"\s+open\s+class=/',
+            $response->getContent()
+        );
+        $response->assertOk()->assertSeeText(__('status_page.incident_workbench.heading'));
+    }
+
     public function test_user_can_add_manual_incident_update_to_status_page_incident(): void
     {
         Date::setTestNow('2026-05-14 14:30:00');
