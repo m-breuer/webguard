@@ -39,7 +39,7 @@ class UnderCoveredAuthControllerTest extends TestCase
 
         $this->actingAs($user)->post(route('password.confirm'), [
             'password' => 'secret-password',
-        ])->assertRedirect(route('monitorings.index', absolute: false));
+        ])->assertRedirect(route('dashboard', absolute: false));
 
         $this->assertNotNull(session('auth.password_confirmed_at'));
     }
@@ -51,7 +51,7 @@ class UnderCoveredAuthControllerTest extends TestCase
         $verifiedUser = User::factory()->create();
         $this->actingAs($verifiedUser)
             ->post(route('verification.send'))
-            ->assertRedirect(route('monitorings.index', absolute: false));
+            ->assertRedirect(route('dashboard', absolute: false));
 
         $unverifiedUser = User::factory()->unverified()->create();
         $this->actingAs($unverifiedUser)
@@ -68,7 +68,7 @@ class UnderCoveredAuthControllerTest extends TestCase
         $verifiedUser = User::factory()->create();
         $this->actingAs($verifiedUser)
             ->get(route('verification.notice'))
-            ->assertRedirect(route('monitorings.index', absolute: false));
+            ->assertRedirect(route('dashboard', absolute: false));
 
         $unverifiedUser = User::factory()->unverified()->create();
         $this->actingAs($unverifiedUser)
@@ -84,7 +84,7 @@ class UnderCoveredAuthControllerTest extends TestCase
 
         $this->actingAs($unverifiedUser)
             ->get($verificationUrl)
-            ->assertRedirect(route('monitorings.index', absolute: false) . '?verified=1');
+            ->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
 
         $this->assertTrue($unverifiedUser->refresh()->hasVerifiedEmail());
         Event::assertDispatched(Verified::class);
@@ -98,7 +98,7 @@ class UnderCoveredAuthControllerTest extends TestCase
 
         $this->actingAs($verifiedUser)
             ->get($alreadyVerifiedUrl)
-            ->assertRedirect(route('monitorings.index', absolute: false) . '?verified=1');
+            ->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
     }
 
     public function test_demo_login_credentials_returns_not_found_without_demo_user(): void

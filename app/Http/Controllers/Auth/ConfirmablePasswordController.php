@@ -50,6 +50,6 @@ class ConfirmablePasswordController extends Controller
 
         $request->session()->put('auth.password_confirmed_at', Date::now()->getTimestamp());
 
-        return redirect()->intended(route('monitorings.index', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 }

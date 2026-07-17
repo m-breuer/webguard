@@ -125,7 +125,7 @@ class LocalePreferenceTest extends TestCase
                 'password' => 'password',
             ]);
 
-        $testResponse->assertRedirect('/monitorings');
+        $testResponse->assertRedirect('/dashboard');
         $testResponse->assertCookie(SupportedLanguage::cookieName(), SupportedLanguage::EN->value);
     }
 

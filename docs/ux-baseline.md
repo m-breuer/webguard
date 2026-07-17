@@ -1,6 +1,6 @@
 # UX Baseline: Operations-First WebGuard UI
 
-This document records the repository-grounded baseline for issue [#442](https://github.com/marcel-breuer/webguard/issues/442), which is the research prerequisite for the UI epic [#441](https://github.com/marcel-breuer/webguard/issues/441).
+This document records the repository-grounded baseline for issue [#442](https://github.com/marcel-breuer/webguard/issues/442), which is the research prerequisite for the UI epic [#441](https://github.com/marcel-breuer/webguard/issues/441). The measurements capture the pre-change state used to choose the first #441 implementation slice; subsequent implementation PRs may reduce the friction described here.
 
 ## Scope and method
 

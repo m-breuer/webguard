@@ -32,7 +32,7 @@ class AuditLogTest extends TestCase
             'captcha' => $this->validCaptchaValue(),
         ]);
 
-        $testResponse->assertRedirect(route('monitorings.index', absolute: false));
+        $testResponse->assertRedirect(route('dashboard', absolute: false));
 
         $model = User::query()->where('email', 'audit-registration@example.test')->firstOrFail();
         $activity = Activity::query()
