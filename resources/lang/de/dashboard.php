@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 return [
     'title' => 'Betriebsübersicht',
+    'greeting' => 'Guten Morgen, :name',
     'description' => 'Sieh sofort, was Aufmerksamkeit braucht, und öffne direkt die nächste sinnvolle Aktion.',
+    'view_all' => 'Alle anzeigen',
     'open_monitorings' => 'Alle Monitorings anzeigen',
     'state' => [
         'new' => [
@@ -53,6 +55,10 @@ return [
         'notifications' => 'Benachrichtigungen öffnen',
         'status_pages' => 'Statusseiten verwalten',
     ],
+    'next_action' => [
+        'heading' => 'Nächster sinnvoller Schritt',
+        'description' => 'Eine klare nächste Aktion, damit dein Betrieb reibungslos weiterläuft.',
+    ],
     'maintenance' => [
         'heading' => 'Wartungsfenster',
         'description' => 'Aktive und bevorstehende Fenster deiner Monitorings.',
@@ -72,6 +78,7 @@ return [
     'trend' => [
         'heading' => 'Zuverlässigkeitstrend',
         'description' => 'Aggregierte Verfügbarkeit der letzten sieben Tage.',
+        'period' => 'Letzte 7 Tage',
         'no_data' => 'Der Trend erscheint, sobald tägliche Monitoringdaten vorhanden sind.',
         'uptime' => ':value % Verfügbarkeit',
     ],

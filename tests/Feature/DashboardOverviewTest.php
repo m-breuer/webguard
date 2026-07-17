@@ -62,6 +62,8 @@ class DashboardOverviewTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('dashboard'));
 
         $testResponse->assertOk()
+            ->assertSeeText(__('dashboard.greeting', ['name' => $user->name]))
+            ->assertSeeText(__('dashboard.next_action.heading'))
             ->assertSeeText(__('dashboard.state.degraded.title'))
             ->assertSeeText(__('dashboard.summary.healthy'))
             ->assertSeeText(__('dashboard.summary.down'))

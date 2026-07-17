@@ -56,4 +56,20 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertDontSee('/admin/demo-monitorings');
         $testResponse->assertSeeText(__('admin.dashboard.activity_logs.heading'));
     }
+
+    public function test_desktop_navigation_uses_full_height_purple_underlines_for_active_and_hover_states(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertSeeHtml(
+            '<a class="inline-flex h-16 items-center px-2 pt-1 border-b-2 border-purple-500'
+        );
+        $testResponse->assertSeeHtml(
+            '<a class="inline-flex h-16 items-center px-2 pt-1 border-b-2 border-transparent'
+        );
+        $testResponse->assertSeeHtml('hover:border-purple-500');
+    }
 }
