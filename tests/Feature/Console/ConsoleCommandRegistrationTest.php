@@ -63,6 +63,10 @@ class ConsoleCommandRegistrationTest extends TestCase
                 'sitemap:generate',
                 'Generate the sitemap.',
             ],
+            'generate robots.txt' => [
+                'robots:generate',
+                'Generate robots.txt.',
+            ],
             'create admin user' => [
                 'user:create-admin',
                 'Create a new admin user with a default password.',
