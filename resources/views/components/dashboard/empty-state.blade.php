@@ -1,5 +1,6 @@
 @props([
     'canCreateMonitoring',
+    'modal' => false,
 ])
 
 <section class="overflow-hidden rounded-3xl border border-purple-200 bg-white shadow-sm dark:border-purple-900/60 dark:bg-gray-800">
@@ -9,7 +10,8 @@
             <x-heading type="h2">{{ __('dashboard.empty.title') }}</x-heading>
             <p class="mt-4 max-w-xl text-base leading-7 text-gray-600 dark:text-gray-300">{{ __('dashboard.empty.description') }}</p>
             @if ($canCreateMonitoring)
-                <x-dashboard.action-link href="{{ route('monitorings.create') }}" variant="solid" class="mt-7 w-max">
+                <x-dashboard.action-link href="{{ route('monitorings.create') }}" variant="solid" class="mt-7 w-max"
+                    :modal-name="$modal ? 'monitoring-form-modal' : null">
                     {{ __('dashboard.quick_actions.create') }}
                 </x-dashboard.action-link>
             @endif

@@ -273,6 +273,10 @@ class IncidentWorkflowTest extends TestCase
             ->assertSeeText(__('incidents.analytics.overview.status_pages'))
             ->assertSeeText('Customer-facing')
             ->assertSeeText('Customer Status')
+            ->assertSeeHtml('data-form-modal-name="monitoring-group-form-modal"')
+            ->assertSeeHtml('data-form-modal-name="status-page-form-modal"')
+            ->assertSeeHtml('data-form-modal="monitoring-group-form-modal"')
+            ->assertSeeHtml('data-form-modal="status-page-form-modal"')
             ->assertSeeHtml('href="' . route('monitorings.index', ['group_id' => $monitoringGroup->id]) . '"')
             ->assertSeeHtml('href="' . route('status-pages.show', $statusPage) . '"');
     }

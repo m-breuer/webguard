@@ -28,6 +28,17 @@
     </x-slot>
 
     <x-main>
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
+            <x-form-modal name="status-page-form-modal" title="{{ __('status_page.title') }}"
+                description="{{ __('status_page.form.components') }}" max-width="5xl">
+                <div class="p-6" x-ref="content">
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                </div>
+            </x-form-modal>
+        </div>
+
         <div id="service-operations" class="space-y-6">
             <nav aria-label="{{ __('incidents.analytics.overview.tabs.overview') }}" class="overflow-x-auto">
                 <div class="flex min-w-max items-center gap-1 border-b border-gray-200 dark:border-gray-700">
@@ -86,7 +97,8 @@
                             </div>
                         </div>
 
-                        <x-primary-button :href="route('status-pages.create')">
+                        <x-primary-button :href="route('status-pages.create')"
+                            data-form-modal-trigger data-form-modal-name="status-page-form-modal">
                             {{ __('incidents.analytics.overview.create_status_page') }}
                         </x-primary-button>
                     </div>
@@ -109,7 +121,8 @@
                         <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                             <p>{{ __('incidents.analytics.overview.empty_groups') }}</p>
                             @if (!Auth::user()->isDemo())
-                                <x-secondary-button :href="route('monitoring-groups.create')" class="mt-4">
+                                <x-secondary-button :href="route('monitoring-groups.create')" class="mt-4"
+                                    data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
                                     {{ __('button.create') }}
                                 </x-secondary-button>
                             @endif
@@ -143,7 +156,8 @@
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                                         @if (!Auth::user()->isDemo())
-                                            <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)">
+                                            <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)"
+                                                data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
                                                 {{ __('button.edit') }}
                                             </x-secondary-button>
                                         @endif
@@ -172,7 +186,8 @@
                         <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                             <p>{{ __('incidents.analytics.overview.empty_status_pages') }}</p>
                             @if (!Auth::user()->isDemo())
-                                <x-secondary-button :href="route('status-pages.create')" class="mt-4">
+                                <x-secondary-button :href="route('status-pages.create')" class="mt-4"
+                                    data-form-modal-trigger data-form-modal-name="status-page-form-modal">
                                     {{ __('button.create') }}
                                 </x-secondary-button>
                             @endif
@@ -406,6 +421,17 @@
                     <p class="mt-3">{{ __('incidents.analytics.definitions') }}</p>
                 </details>
             </section>
+        </div>
+
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
+            <x-form-modal name="monitoring-group-form-modal" title="{{ __('monitoring_group.title') }}"
+                description="{{ __('monitoring_group.form.monitorings') }}" max-width="3xl">
+                <div class="p-6" x-ref="content">
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                </div>
+            </x-form-modal>
         </div>
     </x-main>
 </x-app-layout>

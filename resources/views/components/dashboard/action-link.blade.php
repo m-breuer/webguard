@@ -2,6 +2,7 @@
     'href',
     'variant' => 'quiet',
     'label' => null,
+    'modalName' => null,
 ])
 
 @php
@@ -12,7 +13,17 @@
     };
 @endphp
 
-<a href="{{ $href }}" {{ $attributes->class($classes) }}>
+@php
+    $attributes = $attributes->class($classes);
+    if ($modalName !== null) {
+        $attributes = $attributes->merge([
+            'data-form-modal-trigger' => true,
+            'data-form-modal-name' => $modalName,
+        ]);
+    }
+@endphp
+
+<a href="{{ $href }}" {{ $attributes }}>
     <span>{{ $slot->isNotEmpty() ? $slot : $label }}</span>
     <x-dashboard.chevron class="h-4 w-4 shrink-0 {{ $variant === 'list' ? 'text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-purple-600' : '' }}" />
 </a>

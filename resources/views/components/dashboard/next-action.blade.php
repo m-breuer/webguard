@@ -19,7 +19,8 @@
     </div>
 
     <p class="mt-4 text-sm leading-6 text-gray-600 dark:text-gray-300">{{ __('dashboard.next_action.description') }}</p>
-    <x-dashboard.action-link :href="$recommendedHref" variant="solid" class="mt-6">
+    <x-dashboard.action-link :href="$recommendedHref" variant="solid" class="mt-6"
+        :modal-name="$recommendedAction === 'create' ? 'monitoring-form-modal' : null">
         {{ __('dashboard.recommended.label') }}
     </x-dashboard.action-link>
 
@@ -28,7 +29,8 @@
         <div class="mt-3 grid gap-1 sm:grid-cols-2 xl:grid-cols-1">
             @foreach ($quickActions as $action)
                 @if ($action['visible'])
-                    <x-dashboard.action-link :href="$action['href']" variant="list">
+                    <x-dashboard.action-link :href="$action['href']" variant="list"
+                        :modal-name="$action['key'] === 'create' ? 'monitoring-form-modal' : null">
                         {{ __('dashboard.quick_actions.' . $action['key']) }}
                     </x-dashboard.action-link>
                 @endif
