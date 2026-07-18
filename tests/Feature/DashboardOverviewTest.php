@@ -65,6 +65,8 @@ class DashboardOverviewTest extends TestCase
 
         $testResponse->assertOk()
             ->assertSeeText(__('dashboard.greeting', ['name' => $user->name]))
+            ->assertSeeText(__('dashboard.signal_room.heading'))
+            ->assertSeeText(__('dashboard.signal_room.service_landscape'))
             ->assertSeeText(__('dashboard.next_action.heading'))
             ->assertSeeText(__('dashboard.state.degraded.title'))
             ->assertSeeText(__('dashboard.summary.healthy'))
@@ -72,6 +74,8 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText(__('dashboard.summary.unknown'))
             ->assertSeeText(__('dashboard.summary.paused'))
             ->assertSeeText('Checkout API')
+            ->assertSeeText(__('dashboard.signal_room.statuses.down'))
+            ->assertSeeHtml('x-data="signalRoom(')
             ->assertSeeText('Unknown API')
             ->assertSeeText(__('dashboard.attention.open'))
             ->assertSeeText(__('dashboard.incidents.open'))

@@ -59,7 +59,14 @@
         @if ($summary['total'] === 0)
             <x-dashboard.empty-state :can-create-monitoring="$canCreateMonitoring" modal />
         @else
-            <div class="space-y-6">
+            <x-dashboard.signal-room
+                :services="$signalRoomServices"
+                :summary="$summary"
+                :overall-state="$overallState"
+                :can-create-monitoring="$canCreateMonitoring"
+            />
+
+            <div class="mt-10 space-y-6">
                 <section class="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
                     <x-dashboard.health-summary
                         :summary="$summary"
