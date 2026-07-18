@@ -37,12 +37,14 @@
             </x-container>
         </div>
 
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
         <x-async-table id="admin-server-instances-table" :endpoint="route('admin.server-instances.index')"
             :paginator="$instances" :filters="$filters" :initial-filters="$activeFilters" :initial-sort="$sort"
             :initial-direction="$direction"
             search-placeholder="{{ __('search.fields.placeholder', ['attribute' => __('admin.server_instances.title')]) }}">
             <x-slot name="actions">
-                <x-primary-button :href="route('admin.server-instances.create')" class="sm:ml-auto">
+                <x-primary-button :href="route('admin.server-instances.create')" class="sm:ml-auto"
+                    data-form-modal-trigger data-form-modal-name="admin-server-instance-form-modal">
                     {{ __('button.create') }}
                 </x-primary-button>
             </x-slot>
@@ -66,5 +68,28 @@
                 ])
             </x-slot>
         </x-async-table>
+
+        <x-form-modal name="admin-server-instance-form-modal" title="{{ __('admin.server_instances.title') }}"
+            :show="in_array($modalForm, ['admin-server-instance-create', 'admin-server-instance-edit'], true)">
+            <div class="p-6" x-ref="content">
+                @if ($modalForm === 'admin-server-instance-create')
+                    @include('admin.server-instances._modal-form', [
+                        'action' => route('admin.server-instances.store'),
+                        'modalForm' => 'admin-server-instance-create',
+                    ])
+                @elseif ($modalForm === 'admin-server-instance-edit' && $modalInstance)
+                    @include('admin.server-instances._modal-form', [
+                        'action' => route('admin.server-instances.update', $modalInstance),
+                        'instance' => $modalInstance,
+                        'modalForm' => 'admin-server-instance-edit',
+                    ])
+                @else
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                @endif
+            </div>
+        </x-form-modal>
+        </div>
     </x-main>
 </x-app-layout>

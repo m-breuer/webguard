@@ -37,4 +37,18 @@ class UpdateUserRequest extends FormRequest
             'package_id' => ['required', 'exists:packages,id'],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'admin-user-edit') {
+            $user = $this->route('user');
+
+            return route('admin.users.index', [
+                'modal' => 'admin-user-edit',
+                'user' => is_object($user) ? $user->getRouteKey() : $user,
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }

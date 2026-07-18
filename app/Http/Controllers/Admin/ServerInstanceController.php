@@ -71,6 +71,10 @@ class ServerInstanceController extends Controller
         $healthCounts = $summaryInstances
             ->map(fn (ServerInstance $serverInstance): string => $serverInstance->healthStatus())
             ->countBy();
+        $modalForm = $request->string('modal')->toString();
+        $modalInstance = $modalForm === 'admin-server-instance-edit' && $request->filled('server_instance')
+            ? ServerInstance::query()->findOrFail($request->string('server_instance')->toString())
+            : null;
 
         return view('admin.server-instances.index', [
             'instances' => $lengthAwarePaginator,
@@ -110,6 +114,8 @@ class ServerInstanceController extends Controller
                 'stale_instances' => (int) $healthCounts->get('stale', 0),
                 'total_monitorings' => (int) $summaryMonitoringCounts->sum(),
             ],
+            'modalForm' => $modalForm,
+            'modalInstance' => $modalInstance,
         ]);
     }
 

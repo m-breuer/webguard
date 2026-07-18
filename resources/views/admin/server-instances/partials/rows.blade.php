@@ -61,7 +61,8 @@
         <x-table.cell>{{ $instance->created_at->format('d.m.Y') }}</x-table.cell>
         <x-table.cell>{{ $instance->updated_at->format('d.m.Y') }}</x-table.cell>
         <x-table.cell>
-            <a href="{{ route('admin.server-instances.edit', $instance) }}" class="text-purple-600 hover:underline">
+            <a href="{{ route('admin.server-instances.edit', $instance) }}" class="text-purple-600 hover:underline"
+                data-form-modal-trigger data-form-modal-name="admin-server-instance-form-modal">
                 {{ __('button.edit') }}
             </a>
             <form action="{{ route('admin.server-instances.destroy', $instance) }}" method="POST" class="inline"

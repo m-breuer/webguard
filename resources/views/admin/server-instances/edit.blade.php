@@ -1,3 +1,10 @@
+@if (request()->boolean('modal'))
+    @include('admin.server-instances._modal-form', [
+        'action' => route('admin.server-instances.update', $instance),
+        'instance' => $instance,
+        'modalForm' => 'admin-server-instance-edit',
+    ])
+@else
 <x-app-layout>
     <x-slot name="header">
         <x-heading type="h1">
@@ -18,3 +25,4 @@
         </x-container>
     </x-main>
 </x-app-layout>
+@endif
