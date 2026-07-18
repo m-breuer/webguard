@@ -66,6 +66,14 @@
                 :can-create-monitoring="$canCreateMonitoring"
             />
 
+            <x-dashboard.signal-room-context
+                :attention-items="$attentionItems"
+                :maintenance-monitorings="$maintenanceMonitorings"
+                :failed-delivery-count="$failedDeliveryCount"
+                :status-pages="$statusPages"
+                :can-manage-maintenance="$canManageMaintenance"
+            />
+
             <div class="mt-10 space-y-6">
                 <section class="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
                     <x-dashboard.health-summary
