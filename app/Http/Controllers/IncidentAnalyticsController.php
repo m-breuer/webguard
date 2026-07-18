@@ -7,16 +7,28 @@ namespace App\Http\Controllers;
 use App\Enums\IncidentCustomerImpact;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentType;
+use App\Enums\MonitoringStatus;
+use App\Enums\StatusPageComponentSource;
 use App\Http\Requests\IncidentAnalyticsRequest;
 use App\Models\Incident;
-use Illuminate\Database\Eloquent\Collection;
+use App\Models\Monitoring;
+use App\Models\MonitoringGroup;
+use App\Models\StatusPage;
+use App\Models\StatusPageComponent;
+use App\Services\MonitoringOverviewService;
+use App\Services\MonitoringStatusService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\View\View;
 
 class IncidentAnalyticsController extends Controller
 {
-    public function index(IncidentAnalyticsRequest $incidentAnalyticsRequest): View
-    {
+    public function index(
+        IncidentAnalyticsRequest $incidentAnalyticsRequest,
+        MonitoringOverviewService $monitoringOverviewService,
+        MonitoringStatusService $monitoringStatusService
+    ): View {
         $filters = $incidentAnalyticsRequest->validated();
         $days = (int) ($filters['days'] ?? 90);
         $incidents = $this->incidents($filters, $days);
@@ -24,6 +36,24 @@ class IncidentAnalyticsController extends Controller
         $durations = $resolvedIncidents->map(
             static fn (Incident $incident): int => (int) $incident->down_at->diffInMinutes($incident->up_at)
         );
+        $monitoringGroups = $incidentAnalyticsRequest->user()
+            ->monitoringGroups()
+            ->withCount('monitorings')
+            ->with(['monitorings.latestResponseResult', 'monitorings.latestIncident'])
+            ->orderBy('name')
+            ->get();
+        $statusPages = $incidentAnalyticsRequest->user()
+            ->statusPages()
+            ->withCount('components')
+            ->with([
+                'components.monitorings.latestResponseResult',
+                'components.monitorings.latestIncident',
+                'components.monitoringGroup.monitorings.latestResponseResult',
+                'components.monitoringGroup.monitorings.latestIncident',
+            ])
+            ->latest()
+            ->get();
+        $overview = $monitoringOverviewService->overview($incidentAnalyticsRequest->user());
 
         return view('incidents.analytics', [
             'filters' => [
@@ -47,14 +77,29 @@ class IncidentAnalyticsController extends Controller
             'incidentTypes' => IncidentType::cases(),
             'severities' => IncidentSeverity::cases(),
             'customerImpacts' => IncidentCustomerImpact::cases(),
+            'monitoringGroups' => $monitoringGroups->map(fn (MonitoringGroup $monitoringGroup): array => [
+                'model' => $monitoringGroup,
+                'summary' => $this->summarizeMonitorings($monitoringGroup->monitorings, $monitoringStatusService),
+            ]),
+            'statusPages' => $statusPages->map(function (StatusPage $statusPage) use ($monitoringStatusService): array {
+                $monitorings = $this->statusPageMonitorings($statusPage);
+
+                return [
+                    'model' => $statusPage,
+                    'summary' => $this->summarizeMonitorings($monitorings, $monitoringStatusService),
+                ];
+            }),
+            'serviceSummary' => $overview['summary'],
+            'overallState' => $overview['overallState'],
+            'incidentTrend' => $this->incidentTrend($incidents, $days),
         ]);
     }
 
     /**
      * @param  array<string, mixed>  $filters
-     * @return Collection<int, Incident>
+     * @return EloquentCollection<int, Incident>
      */
-    private function incidents(array $filters, int $days): Collection
+    private function incidents(array $filters, int $days): EloquentCollection
     {
         $builder = Incident::query()
             ->whereHas('monitoring')
@@ -76,14 +121,119 @@ class IncidentAnalyticsController extends Controller
     }
 
     /**
-     * @param  Collection<int, Incident>  $incidents
-     * @return \Illuminate\Support\Collection<string, int>
+     * @param  EloquentCollection<int, Incident>  $eloquentCollection
+     * @return Collection<string, int>
      */
-    private function groupCounts(Collection $incidents, callable $keyResolver): \Illuminate\Support\Collection
+    private function groupCounts(EloquentCollection $eloquentCollection, callable $keyResolver): Collection
     {
-        return $incidents
+        return $eloquentCollection
             ->groupBy($keyResolver)
             ->map(static fn (Collection $group): int => $group->count())
             ->sortDesc();
+    }
+
+    /**
+     * @param  Collection<int, Monitoring>  $monitorings
+     * @return array{total:int,healthy:int,down:int,attention:int,state:string}
+     */
+    private function summarizeMonitorings(Collection $monitorings, MonitoringStatusService $monitoringStatusService): array
+    {
+        $states = $monitorings->map(
+            fn (Monitoring $monitoring): string => $this->monitoringState($monitoring, $monitoringStatusService)
+        );
+        $down = $states->filter(static fn (string $state): bool => $state === MonitoringStatus::DOWN->value)->count();
+        $healthy = $states->filter(static fn (string $state): bool => $state === MonitoringStatus::UP->value)->count();
+        $attention = $states->filter(
+            static fn (string $state): bool => in_array($state, ['unknown', 'paused', 'maintenance'], true)
+        )->count();
+
+        return [
+            'total' => $states->count(),
+            'healthy' => $healthy,
+            'down' => $down,
+            'attention' => $attention,
+            'state' => $states->isEmpty() ? 'new' : ($down > 0 ? 'degraded' : ($attention > 0 ? 'attention' : 'healthy')),
+        ];
+    }
+
+    private function monitoringState(Monitoring $monitoring, MonitoringStatusService $monitoringStatusService): string
+    {
+        if ($monitoring->isPaused()) {
+            return 'paused';
+        }
+
+        if ($monitoring->isUnderMaintenance()) {
+            return 'maintenance';
+        }
+
+        if ($monitoring->latestIncident !== null && $monitoring->latestIncident->up_at === null) {
+            return MonitoringStatus::DOWN->value;
+        }
+
+        $status = $monitoringStatusService->getStatusNow($monitoring)['status'];
+
+        return $status instanceof MonitoringStatus ? $status->value : (string) $status;
+    }
+
+    /**
+     * @return Collection<int, Monitoring>
+     */
+    private function statusPageMonitorings(StatusPage $statusPage): Collection
+    {
+        return $statusPage->components
+            ->flatMap(static function (StatusPageComponent $statusPageComponent): Collection {
+                if ($statusPageComponent->source_type === StatusPageComponentSource::MONITORING_GROUP) {
+                    return $statusPageComponent->monitoringGroup?->monitorings ?? collect();
+                }
+
+                return $statusPageComponent->monitorings;
+            })
+            ->unique('id')
+            ->values();
+    }
+
+    /**
+     * @return array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}
+     */
+    private function incidentTrend(EloquentCollection $eloquentCollection, int $days): array
+    {
+        $pointCount = $days >= 90 ? 10 : 7;
+        $bucketDays = max(1, (int) ceil($days / $pointCount));
+        $periodStart = Date::now()->subDays($days - 1)->startOfDay();
+        $now = Date::now();
+        $points = collect();
+
+        for ($index = 0; $index < $pointCount; $index++) {
+            $bucketStart = $periodStart->copy()->addDays($index * $bucketDays);
+
+            if ($bucketStart->isAfter($now)) {
+                break;
+            }
+
+            $bucketEnd = $bucketStart->copy()->addDays($bucketDays - 1)->endOfDay();
+            $bucketEnd = $bucketEnd->isAfter($now) ? $now : $bucketEnd;
+            $count = $eloquentCollection->filter(
+                static fn (Incident $incident): bool => $incident->down_at->betweenIncluded($bucketStart, $bucketEnd)
+            )->count();
+
+            $points->push([
+                'label' => $bucketStart->locale(app()->getLocale())->isoFormat('D. MMM'),
+                'count' => $count,
+            ]);
+        }
+
+        $max = max(1, (int) $points->max('count'));
+        $lastIndex = max(1, $points->count() - 1);
+
+        return [
+            'points' => $points->values()->map(
+                static fn (array $point, int $index): array => [
+                    ...$point,
+                    'x' => round(($index / $lastIndex) * 100, 2),
+                    'y' => round(78 - (($point['count'] / $max) * 58), 2),
+                ]
+            )->all(),
+            'max' => $max,
+        ];
     }
 }
