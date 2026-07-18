@@ -67,6 +67,8 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText(__('dashboard.greeting', ['name' => $user->name]))
             ->assertSeeText(__('dashboard.signal_room.heading'))
             ->assertSeeText(__('dashboard.signal_room.service_landscape'))
+            ->assertSeeText(__('dashboard.signal_room.context.heading'))
+            ->assertSeeText(__('dashboard.signal_room.context.surfaces_heading'))
             ->assertSeeText(__('dashboard.next_action.heading'))
             ->assertSeeText(__('dashboard.state.degraded.title'))
             ->assertSeeText(__('dashboard.summary.healthy'))

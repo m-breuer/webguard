@@ -30,6 +30,7 @@ class MonitoringOverviewService
      *     attentionItems: Collection<int, array{type:string,monitoring:Monitoring|null,count:int|null}>,
      *     recentIncidents: EloquentCollection<int, Incident>,
      *     maintenanceMonitorings: Collection<int, Monitoring>,
+     *     statusPages: EloquentCollection<int, StatusPage>,
      *     trend: list<array{date:string,label:string,uptime_percentage:float|null,has_data:bool}>,
      *     failedDeliveryCount: int,
      *     recommendedAction: string,
@@ -134,6 +135,11 @@ class MonitoringOverviewService
                 ->limit(5)
                 ->get(),
             'maintenanceMonitorings' => $maintenanceMonitorings,
+            'statusPages' => $user->statusPages()
+                ->withCount('components')
+                ->latest()
+                ->limit(4)
+                ->get(),
             'trend' => $this->trend($monitorings),
             'failedDeliveryCount' => $failedDeliveryCount,
             'recommendedAction' => $this->recommendedAction($summary, $failedDeliveryCount, $maintenanceMonitorings->isNotEmpty()),
