@@ -121,12 +121,12 @@ class IncidentAnalyticsController extends Controller
     }
 
     /**
-     * @param  EloquentCollection<int, Incident>  $incidents
+     * @param  EloquentCollection<int, Incident>  $eloquentCollection
      * @return Collection<string, int>
      */
-    private function groupCounts(EloquentCollection $incidents, callable $keyResolver): Collection
+    private function groupCounts(EloquentCollection $eloquentCollection, callable $keyResolver): Collection
     {
-        return $incidents
+        return $eloquentCollection
             ->groupBy($keyResolver)
             ->map(static fn (Collection $group): int => $group->count())
             ->sortDesc();
@@ -181,12 +181,12 @@ class IncidentAnalyticsController extends Controller
     private function statusPageMonitorings(StatusPage $statusPage): Collection
     {
         return $statusPage->components
-            ->flatMap(static function (StatusPageComponent $component): Collection {
-                if ($component->source_type === StatusPageComponentSource::MONITORING_GROUP) {
-                    return $component->monitoringGroup?->monitorings ?? collect();
+            ->flatMap(static function (StatusPageComponent $statusPageComponent): Collection {
+                if ($statusPageComponent->source_type === StatusPageComponentSource::MONITORING_GROUP) {
+                    return $statusPageComponent->monitoringGroup?->monitorings ?? collect();
                 }
 
-                return $component->monitorings;
+                return $statusPageComponent->monitorings;
             })
             ->unique('id')
             ->values();
@@ -195,7 +195,7 @@ class IncidentAnalyticsController extends Controller
     /**
      * @return array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}
      */
-    private function incidentTrend(EloquentCollection $incidents, int $days): array
+    private function incidentTrend(EloquentCollection $eloquentCollection, int $days): array
     {
         $pointCount = $days >= 90 ? 10 : 7;
         $bucketDays = max(1, (int) ceil($days / $pointCount));
@@ -212,7 +212,7 @@ class IncidentAnalyticsController extends Controller
 
             $bucketEnd = $bucketStart->copy()->addDays($bucketDays - 1)->endOfDay();
             $bucketEnd = $bucketEnd->isAfter($now) ? $now : $bucketEnd;
-            $count = $incidents->filter(
+            $count = $eloquentCollection->filter(
                 static fn (Incident $incident): bool => $incident->down_at->betweenIncluded($bucketStart, $bucketEnd)
             )->count();
 
