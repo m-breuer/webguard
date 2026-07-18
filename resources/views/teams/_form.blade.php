@@ -2,6 +2,9 @@
 @if (isset($team))
     @method('PATCH')
 @endif
+@if (!empty($modal))
+    <input type="hidden" name="modal_form" value="{{ $modalForm }}">
+@endif
 
 <div class="space-y-4">
     <div>
@@ -17,7 +20,15 @@
         <x-input-error :messages="$errors->get('description')" />
     </div>
 
-    <x-primary-button>
-        {{ __('button.save') }}
-    </x-primary-button>
+    <div class="flex flex-wrap items-center gap-3">
+        <x-primary-button>
+            {{ __('button.save') }}
+        </x-primary-button>
+
+        @if (!empty($modal))
+            <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'team-form-modal')">
+                {{ __('button.cancel') }}
+            </x-secondary-button>
+        @endif
+    </div>
 </div>

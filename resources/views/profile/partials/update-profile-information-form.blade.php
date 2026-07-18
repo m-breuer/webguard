@@ -16,6 +16,9 @@
     <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
         @csrf
         @method('patch')
+        @if (!empty($modal))
+            <input type="hidden" name="modal_form" value="profile-information">
+        @endif
 
         <section class="space-y-4">
             <div>
@@ -261,7 +264,15 @@
             </div>
         </section>
 
-        <x-primary-button>{{ __('button.update') }}</x-primary-button>
+        <div class="flex flex-wrap items-center gap-3">
+            <x-primary-button>{{ __('button.update') }}</x-primary-button>
+
+            @if (!empty($modal))
+                <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'profile-information-form-modal')">
+                    {{ __('button.cancel') }}
+                </x-secondary-button>
+            @endif
+        </div>
     </form>
 
     @foreach ($notificationChannelKeys as $notificationChannelKey)

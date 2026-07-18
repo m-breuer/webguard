@@ -62,7 +62,7 @@ export default (): FormModalLoader => ({
         }
 
         const requestUrl = new URL(url, window.location.origin);
-        requestUrl.searchParams.set('modal', '1');
+        requestUrl.searchParams.set('modal', trigger.dataset.formModalParam ?? '1');
         this.content = '';
         this.error = '';
         this.loading = true;

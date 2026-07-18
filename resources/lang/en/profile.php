@@ -141,6 +141,7 @@ return [
     'actions' => [
         'update_password' => 'Update Password',
         'update_profile' => 'Update Profile',
+        'open_full_page' => 'Open full-page editor',
         'delete_account' => 'Delete Account',
         'send_verification_email' => 'Click here to re-send the verification email',
     ],

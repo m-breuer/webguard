@@ -141,6 +141,7 @@ return [
     'actions' => [
         'update_password' => 'Passwort aktualisieren',
         'update_profile' => 'Profil aktualisieren',
+        'open_full_page' => 'Editor als vollständige Seite öffnen',
         'delete_account' => 'Konto löschen',
         'send_verification_email' => 'Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden',
     ],

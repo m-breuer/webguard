@@ -109,6 +109,15 @@ class ProfileRequest extends FormRequest
         ]);
     }
 
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'profile-information') {
+            return route('profile.edit', ['modal' => 'profile-information']);
+        }
+
+        return parent::getRedirectUrl();
+    }
+
     private function normalizeNullableFrequency(string $key): ?string
     {
         $value = $this->input($key);
