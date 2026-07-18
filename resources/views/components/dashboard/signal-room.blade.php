@@ -18,6 +18,7 @@
 
 <section
     x-data="signalRoom({ services: @js($services), initialServiceId: @js($initialServiceId) })"
+    data-signal-room
     class="space-y-5"
 >
     <div class="flex flex-col gap-5 rounded-3xl border border-purple-100 bg-white p-6 shadow-sm dark:border-purple-900/50 dark:bg-gray-800 sm:p-7 lg:flex-row lg:items-end lg:justify-between">
@@ -63,6 +64,7 @@
             @foreach (['all', 'attention', 'maintenance', 'paused'] as $filter)
                 <button
                     type="button"
+                    data-signal-filter="{{ $filter }}"
                     role="tab"
                     :aria-selected="activeFilter === '{{ $filter }}'"
                     @click="activeFilter = '{{ $filter }}'"
@@ -100,6 +102,7 @@
                                 @endphp
                                 <button
                                     type="button"
+                                    data-signal-service="{{ $service['id'] }}"
                                     @click="selectService(@js($service['id']))"
                                     @class([
                                         'group flex w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-start transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
@@ -134,9 +137,9 @@
         </aside>
     </div>
 
-    <div x-show="mobileDetailOpen" x-cloak class="lg:hidden">
+    <div data-signal-mobile-sheet x-show="mobileDetailOpen" x-cloak class="lg:hidden">
         <div class="fixed inset-0 z-40 bg-gray-950/35" aria-hidden="true" @click="closeDetail()"></div>
-        <div class="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] overflow-y-auto rounded-t-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800" role="dialog" aria-modal="true" aria-label="{{ __('dashboard.signal_room.heading') }}">
+        <div data-signal-mobile-detail class="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] overflow-y-auto rounded-t-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800" role="dialog" aria-modal="true" aria-label="{{ __('dashboard.signal_room.heading') }}">
             <x-dashboard.signal-room-detail mobile />
         </div>
     </div>

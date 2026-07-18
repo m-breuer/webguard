@@ -1,7 +1,7 @@
 @props(['mobile' => false])
 
 <template x-for="service in services" :key="service.id">
-    <div x-show="selectedServiceId === service.id" x-cloak class="p-5 sm:p-6">
+    <div data-signal-detail x-show="selectedServiceId === service.id" x-cloak class="p-5 sm:p-6">
         <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
                 <p class="text-[11px] font-black uppercase tracking-[0.18em] text-purple-600 dark:text-purple-300">{{ __('dashboard.signal_room.tabs.signal') }}</p>

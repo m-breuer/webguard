@@ -15,8 +15,8 @@
         <a href="{{ route('incidents.analytics') }}" class="text-sm font-bold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">{{ __('dashboard.signal_room.context.open_workspace') }}</a>
     </div>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)_minmax(18rem,0.85fr)]">
-        <article class="rounded-3xl border border-red-100 bg-white p-5 shadow-sm dark:border-red-900/50 dark:bg-gray-800 sm:p-6">
+    <div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)_minmax(18rem,0.85fr)]">
+        <article class="min-w-0 rounded-3xl border border-red-100 bg-white p-5 shadow-sm dark:border-red-900/50 dark:bg-gray-800 sm:p-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-extrabold text-gray-950 dark:text-white">{{ __('dashboard.signal_room.context.attention_heading') }}</p>
@@ -55,7 +55,7 @@
             @endif
         </article>
 
-        <article class="rounded-3xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-900/50 dark:bg-gray-800 sm:p-6">
+        <article class="min-w-0 rounded-3xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-900/50 dark:bg-gray-800 sm:p-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-extrabold text-gray-950 dark:text-white">{{ __('dashboard.signal_room.context.maintenance_heading') }}</p>
@@ -78,7 +78,7 @@
             <a href="{{ route('maintenance.index') }}" class="mt-4 inline-flex text-sm font-bold text-purple-700 hover:text-purple-900 dark:text-purple-300">{{ $canManageMaintenance ? __('dashboard.signal_room.context.open_maintenance') : __('dashboard.signal_room.context.view_maintenance') }}</a>
         </article>
 
-        <article class="rounded-3xl border border-blue-100 bg-white p-5 shadow-sm dark:border-blue-900/50 dark:bg-gray-800 sm:p-6">
+        <article class="min-w-0 rounded-3xl border border-blue-100 bg-white p-5 shadow-sm dark:border-blue-900/50 dark:bg-gray-800 sm:p-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-extrabold text-gray-950 dark:text-white">{{ __('dashboard.signal_room.context.surfaces_heading') }}</p>

@@ -53,8 +53,19 @@ export default (config: SignalRoomConfig): SignalRoomComponent => ({
         updateViewport();
         mediaQuery.addEventListener('change', this.resizeHandler);
 
+        const keydownHandler = (event: KeyboardEvent): void => {
+            if (event.key === 'Escape') {
+                this.closeDetail();
+            }
+        };
+
+        window.addEventListener('keydown', keydownHandler);
+        document.addEventListener('keydown', keydownHandler);
+
         (this as any).$el.addEventListener('alpine:destroy', () => {
             mediaQuery.removeEventListener('change', this.resizeHandler);
+            window.removeEventListener('keydown', keydownHandler);
+            document.removeEventListener('keydown', keydownHandler);
         });
     },
 
