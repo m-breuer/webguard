@@ -28,6 +28,9 @@
         @isset($method)
             @method($method)
         @endisset
+        @if (isset($modal) && $modal)
+            <input type="hidden" name="modal_form" value="status-page-{{ isset($statusPage) ? 'edit' : 'create' }}">
+        @endif
 
         <div class="space-y-6"
             x-data="{
@@ -128,7 +131,11 @@
                 <x-primary-button>
                     {{ $submitLabel }}
                 </x-primary-button>
-                <x-secondary-button :href="route('status-pages.index')">
+                <x-secondary-button
+                    :href="isset($modal) && $modal ? null : route('status-pages.index')"
+                    type="button"
+                    x-on:click="$dispatch('close-form-modal', 'status-page-form-modal')"
+                >
                     {{ __('button.cancel') }}
                 </x-secondary-button>
             </div>

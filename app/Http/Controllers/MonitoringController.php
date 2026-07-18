@@ -38,8 +38,10 @@ class MonitoringController extends Controller
      * @param  Request  $request  The HTTP request instance.
      * @return View The view displaying the list of monitorings.
      */
-    public function index(Request $request): View
-    {
+    public function index(
+        Request $request,
+        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver
+    ): View {
         /** @var User $currentUser */
         $currentUser = $request->user()->loadMissing('package');
 
@@ -182,6 +184,39 @@ class MonitoringController extends Controller
         $maintenanceStatusMap = $lengthAwarePaginator->getCollection()->mapWithKeys(function ($monitoring) {
             return [$monitoring->id => $monitoring->isUnderMaintenance()];
         });
+        $modalForm = $request->string('modal')->toString();
+        $modalMonitoring = null;
+        $modalFormData = [];
+
+        if ($modalForm === 'monitoring-create') {
+            $modalFormData = [
+                'types' => MonitoringType::cases(),
+                'serverInstances' => ServerInstance::query()->active()->orderBy('code')->get(['code']),
+                'enabledNotificationChannels' => $currentUser->enabledNotificationChannelKeys(),
+                'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
+                'adminTeams' => $currentUser->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
+            ];
+        } elseif ($modalForm === 'monitoring-edit' && $request->filled('monitoring')) {
+            $modalMonitoring = Monitoring::query()->findOrFail($request->string('monitoring')->toString());
+            abort_unless($modalMonitoring->isManageableBy($currentUser), 403);
+            $modalMonitoring->loadMissing('groups', 'team');
+            $modalFormData = [
+                'types' => MonitoringType::cases(),
+                'serverInstances' => ServerInstance::query()
+                    ->where(function ($query) use ($modalMonitoring): void {
+                        $query->where('is_active', true)
+                            ->orWhereIn('code', $modalMonitoring->preferredLocationCodes());
+                    })
+                    ->orderBy('code')
+                    ->get(['code']),
+                'enabledNotificationChannels' => $currentUser->enabledNotificationChannelKeys(),
+                'monitoringGroups' => $modalMonitoring->isPrivateOwned()
+                    ? $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name'])
+                    : collect(),
+                'adminTeams' => $currentUser->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
+                'notificationPreference' => $monitoringNotificationPreferenceResolver->preferenceFor($modalMonitoring, $currentUser),
+            ];
+        }
 
         return view('monitorings.index', [
             'currentUser' => $currentUser,
@@ -194,6 +229,9 @@ class MonitoringController extends Controller
             'maintenanceStatusMap' => $maintenanceStatusMap,
             'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
             'teams' => Team::query()->visibleTo($currentUser)->orderBy('name')->get(['id', 'name']),
+            'modalForm' => $modalForm,
+            'modalMonitoring' => $modalMonitoring,
+            'modalFormData' => $modalFormData,
         ]);
     }
 

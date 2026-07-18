@@ -4,6 +4,10 @@
     use App\Enums\HttpMethod;
 @endphp
 
+@if (request()->boolean('modal'))
+    @include('monitorings._modal-form', ['action' => route('monitorings.update', $monitoring)])
+@else
+
 <x-app-layout>
     <x-slot name="header">
         <x-heading>
@@ -28,6 +32,7 @@
         @include('monitorings._notification_preferences', ['fieldIdPrefix' => 'edit_notification_preference'])
     </x-main>
 </x-app-layout>
+@endif
 <script>
     function copyToClipboard(elementId) {
         const element = document.getElementById(elementId);

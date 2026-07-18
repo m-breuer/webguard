@@ -3,6 +3,10 @@
     use App\Enums\MonitoringLifecycleStatus;
 @endphp
 
+@if (request()->boolean('modal'))
+    @include('monitorings._modal-form', ['action' => route('monitorings.store')])
+@else
+
 <x-app-layout>
     <x-slot name="header">
         <x-heading type="h1">
@@ -21,3 +25,4 @@
         </x-container>
     </x-main>
 </x-app-layout>
+@endif

@@ -23,11 +23,29 @@ class MonitoringGroupController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        $modalForm = request()->string('modal')->toString();
+        $modalMonitoringGroup = null;
+        $modalMonitorings = collect();
+
+        if ($modalForm === 'monitoring-group-create') {
+            $modalMonitorings = $this->assignableMonitorings($user);
+        } elseif ($modalForm === 'monitoring-group-edit' && request()->filled('monitoring_group')) {
+            $modalMonitoringGroup = MonitoringGroup::query()->findOrFail(request()->string('monitoring_group')->toString());
+            $this->authorizeOwner($modalMonitoringGroup);
+            $modalMonitoringGroup->load([
+                'monitorings' => fn ($query) => $query->privateOwnedBy($user),
+            ]);
+            $modalMonitorings = $this->assignableMonitorings($user);
+        }
+
         return view('monitoring-groups.index', [
             'monitoringGroups' => $user->monitoringGroups()
                 ->withCount('monitorings')
                 ->orderBy('name')
                 ->paginate(10),
+            'modalForm' => $modalForm,
+            'modalMonitoringGroup' => $modalMonitoringGroup,
+            'modalMonitorings' => $modalMonitorings,
         ]);
     }
 

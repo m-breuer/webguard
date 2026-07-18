@@ -31,7 +31,7 @@
             @endif
         </x-heading>
 
-        <div class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
 
             @if ($canManageMonitoring)
                 <div class="relative" x-data="{ open: false }">
@@ -45,6 +45,7 @@
                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                         class="absolute z-10 mt-2 min-w-full rounded-md bg-white shadow-lg" style="display: none">
                         <a href="{{ route('monitorings.edit', ['monitoring' => $monitoring->id]) }}"
+                            data-form-modal-trigger data-form-modal-name="monitoring-form-modal"
                             class="block px-4 py-2 text-left text-gray-700 hover:bg-gray-100 sm:text-right">
                             {{ __('monitoring.actions.edit') }}
                         </a>
@@ -73,6 +74,15 @@
             <x-secondary-button :href="route('monitorings.index')">
                 {{ __('button.back') }}
             </x-secondary-button>
+
+            <x-form-modal name="monitoring-form-modal" title="{{ __('monitoring.title') }}"
+                description="{{ __('monitoring.form.sections.basic') }}" max-width="6xl">
+                <div class="p-6" x-ref="content">
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                </div>
+            </x-form-modal>
         </div>
     </x-slot>
 

@@ -22,13 +22,15 @@
         </x-heading>
 
         @if ($canCreateMonitoring)
-            <x-primary-button :href="route('monitorings.create')" class="sm:ml-auto">
+            <x-primary-button :href="route('monitorings.create')" class="sm:ml-auto"
+                data-form-modal-trigger data-form-modal-name="monitoring-form-modal">
                 {{ __('button.create') }}
             </x-primary-button>
         @endif
     </x-slot>
 
     <x-main>
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
         <x-container class="sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4" space="true">
             <x-paragraph>
                 <b>{{ __('monitoring.index.total.current') }}</b>: {{ $monitoringsTotal }}
@@ -394,7 +396,7 @@
                         {{ __('monitoring.no_monitoring.text') }}
                     </x-paragraph>
                     @if ($canCreateMonitoring)
-                        <x-primary-button :href="route('monitorings.create')">
+                        <x-primary-button :href="route('monitorings.create')" data-form-modal-trigger data-form-modal-name="monitoring-form-modal">
                             {{ __('button.create') }}
                         </x-primary-button>
                     @endif
@@ -462,6 +464,11 @@
                                     class="focus:outline-hidden inline-flex w-max cursor-pointer items-center rounded-md border border-purple-500 bg-white px-4 py-2 font-semibold uppercase tracking-widest text-purple-600 transition duration-150 ease-in-out hover:bg-purple-50 focus:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:bg-purple-100 dark:bg-gray-700 dark:text-purple-300">
                                     {{ __('button.show') }}
                                 </a>
+                                <a href="#" x-bind:href="'/monitorings/' + id + '/edit'"
+                                    data-form-modal-trigger data-form-modal-name="monitoring-form-modal"
+                                    class="focus:outline-hidden inline-flex w-max cursor-pointer items-center rounded-md border border-purple-500 bg-white px-4 py-2 font-semibold uppercase tracking-widest text-purple-600 transition duration-150 ease-in-out hover:bg-purple-50 focus:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:bg-purple-100 dark:bg-gray-700 dark:text-purple-300">
+                                    {{ __('button.edit') }}
+                                </a>
                             </div>
                         </div>
                     </x-container>
@@ -469,6 +476,29 @@
             </template>
 
             {{ $monitorings->withQueryString()->links() }}
+
+            <x-form-modal name="monitoring-form-modal" title="{{ __('monitoring.title') }}"
+                description="{{ __('monitoring.form.sections.basic') }}" max-width="6xl"
+                :show="in_array($modalForm, ['monitoring-create', 'monitoring-edit'], true)">
+                <div class="p-6" x-ref="content">
+                    @if ($modalForm === 'monitoring-create')
+                        @include('monitorings._modal-form', array_merge($modalFormData, [
+                            'action' => route('monitorings.store'),
+                            'modal' => true,
+                        ]))
+                    @elseif ($modalForm === 'monitoring-edit' && $modalMonitoring)
+                        @include('monitorings._modal-form', array_merge($modalFormData, [
+                            'action' => route('monitorings.update', $modalMonitoring),
+                            'monitoring' => $modalMonitoring,
+                            'modal' => true,
+                        ]))
+                    @else
+                        <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                        <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                        <div x-html="content"></div>
+                    @endif
+                </div>
+            </x-form-modal>
         </div>
     </x-main>
 

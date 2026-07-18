@@ -77,6 +77,24 @@ class StatusPageRequest extends FormRequest
         });
     }
 
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'status-page-create') {
+            return route('status-pages.index', ['modal' => 'status-page-create']);
+        }
+
+        if ($this->input('modal_form') === 'status-page-edit') {
+            $statusPage = $this->route('statusPage');
+
+            return route('status-pages.index', [
+                'modal' => 'status-page-edit',
+                'status_page' => is_object($statusPage) ? $statusPage->getRouteKey() : $statusPage,
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge([
