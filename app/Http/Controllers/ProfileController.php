@@ -36,9 +36,13 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
+        $modalForm = $request->input('modal');
+        $isProfileInformationForm = $modalForm === 'profile-information';
+        $isPasswordForm = $modalForm === 'profile-password';
         $showNotificationChannelsHint = false;
 
-        if ($user && ! $user->hasEnabledNotificationChannels() && $user->notification_channels_hint_seen_at === null) {
+        if (($request->boolean('full') || $isProfileInformationForm) && $user
+            && ! $user->hasEnabledNotificationChannels() && $user->notification_channels_hint_seen_at === null) {
             $user->forceFill([
                 'notification_channels_hint_seen_at' => now(),
             ])->save();
@@ -46,10 +50,22 @@ class ProfileController extends Controller
             $showNotificationChannelsHint = true;
         }
 
+        if ($request->ajax() && ($isProfileInformationForm || $isPasswordForm)) {
+            return view($isProfileInformationForm
+                ? 'profile.partials.update-profile-information-form'
+                : 'profile.partials.update-password-form', [
+                    'user' => $user,
+                    'showNotificationChannelsHint' => $showNotificationChannelsHint,
+                    'modal' => true,
+                ]);
+        }
+
         return view('profile.edit', [
             'user' => $user,
             'token' => $user?->currentAccessToken(),
             'showNotificationChannelsHint' => $showNotificationChannelsHint,
+            'fullPage' => $request->boolean('full'),
+            'modalForm' => $modalForm,
         ]);
     }
 

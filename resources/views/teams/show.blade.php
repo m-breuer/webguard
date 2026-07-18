@@ -11,9 +11,11 @@
             @endif
         </div>
 
-        <div class="ml-auto flex flex-wrap gap-2">
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}"
+            class="ml-auto flex flex-wrap gap-2">
             @if ($isTeamAdmin)
-                <x-secondary-button :href="route('teams.edit', $team)">
+                <x-secondary-button :href="route('teams.edit', $team)"
+                    data-form-modal-trigger data-form-modal-name="team-form-modal">
                     {{ __('team.actions.edit') }}
                 </x-secondary-button>
                 <form method="POST" action="{{ route('teams.destroy', $team) }}"
@@ -35,6 +37,15 @@
             <x-secondary-button :href="route('teams.index')">
                 {{ __('button.back') }}
             </x-secondary-button>
+
+            <x-form-modal name="team-form-modal" title="{{ __('team.edit.title', ['team' => $team->name]) }}"
+                description="{{ __('team.title') }}" max-width="3xl">
+                <div class="p-6" x-ref="content">
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                </div>
+            </x-form-modal>
         </div>
     </x-slot>
 

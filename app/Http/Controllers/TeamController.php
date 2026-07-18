@@ -14,10 +14,19 @@ use Illuminate\View\View;
 
 class TeamController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, TeamMembershipService $teamMembershipService): View
     {
         /** @var User $user */
         $user = $request->user();
+        $modalForm = $request->input('modal');
+        $modalTeam = null;
+
+        if ($modalForm === 'team-create') {
+            abort_if($user->isDemo(), 403);
+        } elseif ($modalForm === 'team-edit' && $request->filled('team')) {
+            $modalTeam = Team::query()->findOrFail($request->string('team')->toString());
+            $teamMembershipService->assertAdmin($modalTeam, $user);
+        }
 
         return view('teams.index', [
             'teams' => Team::query()
@@ -25,12 +34,21 @@ class TeamController extends Controller
                 ->withCount(['memberships', 'monitorings'])
                 ->orderBy('name')
                 ->paginate(10),
+            'modalForm' => $modalForm,
+            'modalTeam' => $modalTeam,
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         abort_if(auth()->user()->isDemo(), 403);
+
+        if ($request->boolean('modal')) {
+            return view('teams._modal-form', [
+                'action' => route('teams.store'),
+                'modalForm' => 'team-create',
+            ]);
+        }
 
         return view('teams.create');
     }
@@ -60,11 +78,19 @@ class TeamController extends Controller
         ]);
     }
 
-    public function edit(Team $team, TeamMembershipService $teamMembershipService): View
+    public function edit(Request $request, Team $team, TeamMembershipService $teamMembershipService): View
     {
         /** @var User $user */
         $user = auth()->user();
         $teamMembershipService->assertAdmin($team, $user);
+
+        if ($request->boolean('modal')) {
+            return view('teams._modal-form', [
+                'action' => route('teams.update', $team),
+                'team' => $team,
+                'modalForm' => 'team-edit',
+            ]);
+        }
 
         return view('teams.edit', ['team' => $team]);
     }
