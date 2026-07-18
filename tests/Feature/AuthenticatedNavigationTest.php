@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class AuthenticatedNavigationTest extends TestCase
 {
-    public function test_member_navigation_exposes_primary_destinations_without_admin_links(): void
+    public function test_member_navigation_exposes_signal_room_and_secondary_workspace_destinations_without_admin_links(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
@@ -19,24 +19,21 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('dashboard.title'));
+        $testResponse->assertSeeText(__('app.navigation.signal_room'));
         $testResponse->assertSeeText(__('monitoring.title'));
         $testResponse->assertSeeText(__('incidents.analytics.title'));
         $testResponse->assertSeeText(__('status_page.title'));
-        $testResponse->assertSeeText(__('app.navigation.more'));
-        $testResponse->assertSeeText(__('app.navigation.sections.operations'));
-        $testResponse->assertSeeText(__('app.navigation.sections.collaboration'));
         $testResponse->assertSeeText(__('maintenance.title'));
         $testResponse->assertSeeText(__('monitoring_group.title'));
         $testResponse->assertSeeText(__('team.title'));
         $testResponse->assertSeeHtml('href="' . route('incidents.analytics') . '"');
         $testResponse->assertSeeHtml('href="' . route('status-pages.index') . '"');
-        $testResponse->assertSeeHtml('<a href="' . route('dashboard') . '" class="flex items-center">');
+        $testResponse->assertSeeHtml('href="' . route('dashboard') . '"');
         $testResponse->assertDontSeeText(__('app.navigation.sections.administration'));
         $testResponse->assertDontSeeText(__('admin.dashboard.users.heading'));
     }
 
-    public function test_admin_navigation_exposes_administration_group(): void
+    public function test_admin_navigation_exposes_administration_links_from_the_account_menu(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $admin = User::factory()->create([
@@ -57,19 +54,15 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertSeeText(__('admin.dashboard.activity_logs.heading'));
     }
 
-    public function test_desktop_navigation_uses_full_height_purple_underlines_for_active_and_hover_states(): void
+    public function test_desktop_navigation_uses_the_signal_room_rail(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
 
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
-        $testResponse->assertSeeHtml(
-            '<a class="inline-flex h-16 items-center px-2 pt-1 border-b-2 border-purple-500'
-        );
-        $testResponse->assertSeeHtml(
-            '<a class="inline-flex h-16 items-center px-2 pt-1 border-b-2 border-transparent'
-        );
-        $testResponse->assertSeeHtml('hover:border-purple-500');
+        $testResponse->assertSeeHtml('lg:fixed');
+        $testResponse->assertSeeHtml('bg-purple-950');
+        $testResponse->assertSeeHtml(__('app.navigation.signal_room'));
     }
 }

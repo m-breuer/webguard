@@ -43,27 +43,29 @@
 </head>
 
 <body
-    class="flex min-h-screen flex-col justify-start bg-gray-100 font-sans antialiased dark:bg-gray-900 dark:text-gray-100">
+    class="flex min-h-screen flex-col justify-start bg-slate-50 font-sans antialiased dark:bg-slate-950 dark:text-gray-100">
     @include('layouts.navigation')
 
-    @isset($header)
-        <header class="bg-white shadow-sm dark:bg-gray-700">
-            <x-main>
-                <x-flex class="py-6 sm:items-center sm:justify-between">
-                    {{ $header }}
-                </x-flex>
-            </x-main>
-        </header>
-    @endisset
+    <div class="min-h-screen lg:ps-64">
+        @isset($header)
+            <header class="border-b border-purple-100/80 bg-white/95 shadow-sm dark:border-purple-900/50 dark:bg-slate-900/95">
+                <x-main>
+                    <x-flex class="py-6 sm:items-center sm:justify-between">
+                        {{ $header }}
+                    </x-flex>
+                </x-main>
+            </header>
+        @endisset
 
-    <main class="py-6">
-        {{ $slot }}
+        <main class="py-6">
+            {{ $slot }}
 
-        @include('components.toast')
-        <x-confirm-dialog />
-    </main>
+            @include('components.toast')
+            <x-confirm-dialog />
+        </main>
 
-    @include('components.footer')
+        @include('components.footer')
+    </div>
 
     @stack('scripts')
 </body>
