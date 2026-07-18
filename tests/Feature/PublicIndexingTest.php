@@ -77,14 +77,29 @@ class PublicIndexingTest extends TestCase
         unlink($sitemapPath);
     }
 
-    public function test_application_robots_file_advertises_its_sitemap_without_marketing_sitemap(): void
+    public function test_robots_command_generates_the_configured_sitemap_url(): void
     {
-        $robotsContent = file_get_contents(public_path('robots.txt'));
+        $robotsPath = public_path('robots.txt');
+        $originalRobotsContent = file_get_contents($robotsPath);
 
-        $this->assertIsString($robotsContent);
-        $this->assertStringContainsString('User-agent: *', $robotsContent);
-        $this->assertStringContainsString('Sitemap: https://webguard.marcel-breuer.dev/sitemap.xml', $robotsContent);
-        $this->assertStringNotContainsString('webguard.m-breuer.dev', $robotsContent);
+        $this->assertIsString($originalRobotsContent);
+
+        config()->set('app.url', 'https://configured.example.test');
+
+        try {
+            $this->artisan('robots:generate')->assertSuccessful();
+
+            $robotsContent = file_get_contents($robotsPath);
+
+            $this->assertIsString($robotsContent);
+            $this->assertSame(
+                "User-agent: *\nAllow: /\n\nSitemap: https://configured.example.test/sitemap.xml\n",
+                $robotsContent
+            );
+            $this->assertStringNotContainsString('webguard.marcel-breuer.dev', $robotsContent);
+        } finally {
+            file_put_contents($robotsPath, $originalRobotsContent);
+        }
     }
 
     public function test_removed_marketing_routes_are_not_served_by_core(): void
