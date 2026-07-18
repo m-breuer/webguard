@@ -35,4 +35,13 @@ class StoreUserRequest extends FormRequest
             'role' => ['required', Rule::enum(UserRole::class)],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'admin-user-create') {
+            return route('admin.users.index', ['modal' => 'admin-user-create']);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }

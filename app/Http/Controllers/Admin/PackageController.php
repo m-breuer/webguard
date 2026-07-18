@@ -52,6 +52,11 @@ class PackageController extends Controller
             return AsyncTable::json($lengthAwarePaginator, 'admin.packages.partials.rows', ['packages' => $lengthAwarePaginator]);
         }
 
+        $modalForm = $request->string('modal')->toString();
+        $modalPackage = $modalForm === 'admin-package-edit' && $request->filled('package')
+            ? Package::query()->withoutGlobalScope('selectable')->findOrFail($request->string('package')->toString())
+            : null;
+
         return view('admin.packages.index', [
             'packages' => $lengthAwarePaginator,
             'filters' => [
@@ -70,6 +75,8 @@ class PackageController extends Controller
             ],
             'sort' => $asyncTableOptions->sort,
             'direction' => $asyncTableOptions->direction,
+            'modalForm' => $modalForm,
+            'modalPackage' => $modalPackage,
         ]);
     }
 

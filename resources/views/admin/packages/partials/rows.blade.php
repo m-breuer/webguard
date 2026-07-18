@@ -10,7 +10,8 @@
             @endif
         </x-table.cell>
         <x-table.cell>
-            <a href="{{ route('admin.packages.edit', $package) }}" class="text-purple-600 hover:underline">
+            <a href="{{ route('admin.packages.edit', $package) }}" class="text-purple-600 hover:underline"
+                data-form-modal-trigger data-form-modal-name="admin-package-form-modal">
                 {{ __('button.edit') }}
             </a>
             <form action="{{ route('admin.packages.destroy', $package) }}" method="POST" class="inline"

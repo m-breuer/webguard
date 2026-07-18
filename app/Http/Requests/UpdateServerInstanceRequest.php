@@ -32,4 +32,18 @@ class UpdateServerInstanceRequest extends FormRequest
             'is_active' => ['boolean'],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'admin-server-instance-edit') {
+            $instance = $this->route('server_instance');
+
+            return route('admin.server-instances.index', [
+                'modal' => 'admin-server-instance-edit',
+                'server_instance' => is_object($instance) ? $instance->getRouteKey() : $instance,
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }

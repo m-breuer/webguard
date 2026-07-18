@@ -18,7 +18,8 @@
         <x-table.cell>
             <div class="flex items-center gap-3">
                 <a href="{{ route('admin.users.edit', $user) }}"
-                    class="inline-flex min-h-10 items-center text-purple-600 hover:underline">
+                    class="inline-flex min-h-10 items-center text-purple-600 hover:underline"
+                    data-form-modal-trigger data-form-modal-name="admin-user-form-modal">
                     {{ __('button.edit') }}
                 </a>
                 @if ($user->id !== auth()->id())

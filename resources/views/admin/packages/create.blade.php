@@ -1,3 +1,9 @@
+@if (request()->boolean('modal'))
+    @include('admin.packages._modal-form', [
+        'action' => route('admin.packages.store'),
+        'modalForm' => 'admin-package-create',
+    ])
+@else
 <x-app-layout>
     <x-slot name="header">
         <x-heading type="h1">
@@ -17,3 +23,4 @@
         </x-container>
     </x-main>
 </x-app-layout>
+@endif

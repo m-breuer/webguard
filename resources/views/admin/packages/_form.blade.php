@@ -1,4 +1,7 @@
 @csrf
+@if (isset($modalForm))
+    <input type="hidden" name="modal_form" value="{{ $modalForm }}">
+@endif
 
 <div>
     <x-input-label for="monitoring_limit" :value="__('admin.packages.fields.monitoring_limit')" />
@@ -29,4 +32,9 @@
     <x-primary-button class="ms-4">
         {{ isset($package) ? __('button.update') : __('button.create') }}
     </x-primary-button>
+    @if (isset($modalForm))
+        <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'admin-package-form-modal')">
+            {{ __('button.cancel') }}
+        </x-secondary-button>
+    @endif
 </div>

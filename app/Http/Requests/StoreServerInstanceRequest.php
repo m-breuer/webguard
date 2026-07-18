@@ -27,4 +27,13 @@ class StoreServerInstanceRequest extends FormRequest
             'is_active' => ['boolean'],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'admin-server-instance-create') {
+            return route('admin.server-instances.index', ['modal' => 'admin-server-instance-create']);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }
