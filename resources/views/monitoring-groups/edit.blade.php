@@ -1,3 +1,6 @@
+@if (request()->boolean('modal'))
+    @include('monitoring-groups._modal-form', ['action' => route('monitoring-groups.update', $monitoringGroup)])
+@else
 <x-app-layout>
     <x-slot name="header">
         <x-heading type="h1">{{ __('monitoring_group.edit.title', ['group' => $monitoringGroup->name]) }}</x-heading>
@@ -15,3 +18,4 @@
         </x-container>
     </x-main>
 </x-app-layout>
+@endif

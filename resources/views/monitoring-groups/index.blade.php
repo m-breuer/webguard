@@ -3,19 +3,21 @@
         <x-heading type="h1">{{ __('monitoring_group.title') }}</x-heading>
 
         @if (!Auth::user()->isDemo())
-            <x-primary-button :href="route('monitoring-groups.create')" class="sm:ml-auto">
+            <x-primary-button :href="route('monitoring-groups.create')" class="sm:ml-auto"
+                data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
                 {{ __('button.create') }}
             </x-primary-button>
         @endif
     </x-slot>
 
     <x-main>
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
         @if ($monitoringGroups->isEmpty())
             <x-container class="text-center">
                 <x-heading type="h2">{{ __('monitoring_group.empty.title') }}</x-heading>
                 <x-paragraph space="true">{{ __('monitoring_group.empty.text') }}</x-paragraph>
                 @if (!Auth::user()->isDemo())
-                    <x-primary-button :href="route('monitoring-groups.create')">
+            <x-primary-button :href="route('monitoring-groups.create')" data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
                         {{ __('button.create') }}
                     </x-primary-button>
                 @endif
@@ -45,7 +47,7 @@
                                             {{ __('monitoring_group.actions.publish_status_page') }}
                                         </x-secondary-button>
                                     </form>
-                                    <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)">
+                                    <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)" data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
                                         {{ __('button.edit') }}
                                     </x-secondary-button>
                                     <form method="POST" action="{{ route('monitoring-groups.destroy', $monitoringGroup) }}"
@@ -67,5 +69,31 @@
                 {{ $monitoringGroups->links() }}
             </div>
         @endif
+
+        <x-form-modal name="monitoring-group-form-modal" title="{{ __('monitoring_group.title') }}"
+            description="{{ __('monitoring_group.form.monitorings') }}" max-width="3xl"
+            :show="in_array($modalForm, ['monitoring-group-create', 'monitoring-group-edit'], true)">
+            <div class="p-6" x-ref="content">
+                @if ($modalForm === 'monitoring-group-create')
+                    @include('monitoring-groups._modal-form', [
+                        'action' => route('monitoring-groups.store'),
+                        'monitorings' => $modalMonitorings,
+                        'modal' => true,
+                    ])
+                @elseif ($modalForm === 'monitoring-group-edit' && $modalMonitoringGroup)
+                    @include('monitoring-groups._modal-form', [
+                        'action' => route('monitoring-groups.update', $modalMonitoringGroup),
+                        'monitoringGroup' => $modalMonitoringGroup,
+                        'monitorings' => $modalMonitorings,
+                        'modal' => true,
+                    ])
+                @else
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                @endif
+            </div>
+        </x-form-modal>
+        </div>
     </x-main>
 </x-app-layout>

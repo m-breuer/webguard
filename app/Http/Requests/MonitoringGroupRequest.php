@@ -49,6 +49,24 @@ class MonitoringGroupRequest extends FormRequest
         ];
     }
 
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'monitoring-group-create') {
+            return route('monitoring-groups.index', ['modal' => 'monitoring-group-create']);
+        }
+
+        if ($this->input('modal_form') === 'monitoring-group-edit') {
+            $monitoringGroup = $this->route('monitoringGroup');
+
+            return route('monitoring-groups.index', [
+                'modal' => 'monitoring-group-edit',
+                'monitoring_group' => is_object($monitoringGroup) ? $monitoringGroup->getRouteKey() : $monitoringGroup,
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
+
     protected function prepareForValidation(): void
     {
         $description = mb_trim((string) $this->input('description', ''));

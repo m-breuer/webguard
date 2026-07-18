@@ -13,6 +13,7 @@ return [
     'messages' => [
         'copied_to_clipboard' => 'In die Zwischenablage kopiert!',
         'loading' => 'Wird geladen...',
+        'form_modal_load_error' => 'Das Formular konnte nicht geladen werden. Bitte verwenden Sie stattdessen den Link zur vollständigen Seite.',
     ],
     'multi_select' => [
         'placeholder' => 'Optionen auswählen',

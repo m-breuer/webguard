@@ -13,6 +13,7 @@ return [
     'messages' => [
         'copied_to_clipboard' => 'Copied to clipboard!',
         'loading' => 'Loading...',
+        'form_modal_load_error' => 'The form could not be loaded. Please use the full-page link instead.',
     ],
     'multi_select' => [
         'placeholder' => 'Select options',

@@ -15,12 +15,13 @@
             </div>
         </div>
 
-        <div class="ml-auto flex flex-wrap gap-2">
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="ml-auto flex flex-wrap gap-2">
             <x-secondary-button :href="route('incidents.analytics')">
                 {{ __('incidents.analytics.link') }}
             </x-secondary-button>
             @if (!Auth::user()->isDemo())
-                <x-secondary-button :href="route('status-pages.edit', $statusPage)">
+                <x-secondary-button :href="route('status-pages.edit', $statusPage)"
+                    data-form-modal-trigger data-form-modal-name="status-page-form-modal">
                     {{ __('button.edit') }}
                 </x-secondary-button>
                 <form method="POST" action="{{ route('status-pages.destroy', $statusPage) }}"
@@ -35,6 +36,15 @@
             <x-secondary-button :href="route('status-pages.index')">
                 {{ __('button.back') }}
             </x-secondary-button>
+
+            <x-form-modal name="status-page-form-modal" title="{{ __('status_page.title') }}"
+                description="{{ __('status_page.form.components') }}" max-width="5xl">
+                <div class="p-6" x-ref="content">
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                </div>
+            </x-form-modal>
         </div>
     </x-slot>
 

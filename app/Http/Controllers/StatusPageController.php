@@ -29,12 +29,30 @@ class StatusPageController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
+        $modalForm = request()->string('modal')->toString();
+        $modalStatusPage = null;
+        $modalMonitorings = collect();
+        $modalDefaultComponents = [];
+
+        if ($modalForm === 'status-page-create') {
+            $modalMonitorings = $this->monitoringOptions();
+            $modalDefaultComponents = $this->defaultComponents();
+        } elseif ($modalForm === 'status-page-edit' && request()->filled('status_page')) {
+            $modalStatusPage = StatusPage::query()->findOrFail(request()->string('status_page')->toString());
+            $this->authorizeOwner($modalStatusPage);
+            $this->loadStatusPageComponents($modalStatusPage);
+            $modalMonitorings = $this->monitoringOptions();
+        }
 
         return view('status-pages.index', [
             'statusPages' => $user->statusPages()
                 ->withCount('components')
                 ->latest()
                 ->paginate(10),
+            'modalForm' => $modalForm,
+            'modalStatusPage' => $modalStatusPage,
+            'modalMonitorings' => $modalMonitorings,
+            'modalDefaultComponents' => $modalDefaultComponents,
         ]);
     }
 

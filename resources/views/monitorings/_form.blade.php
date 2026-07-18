@@ -574,7 +574,11 @@
         </details>
 
         <div class="flex flex-wrap justify-end gap-2">
-            <x-secondary-button :href="isset($monitoring) ? route('monitorings.show', $monitoring) : route('monitorings.index')">
+            <x-secondary-button
+                :href="isset($modal) && $modal ? null : (isset($monitoring) ? route('monitorings.show', $monitoring) : route('monitorings.index'))"
+                type="button"
+                x-on:click="$dispatch('close-form-modal', 'monitoring-form-modal')"
+            >
                 {{ __('button.cancel') }}
             </x-secondary-button>
             <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>

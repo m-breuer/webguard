@@ -16,6 +16,7 @@ import uptimeCalendar from './components/uptime-calendar';
 import demoLogin from './components/demoLogin';
 import asyncTable from './components/async-table';
 import confirmDialog, { registerConfirmableForms } from './components/confirm-dialog';
+import formModalLoader from './components/form-modal-loader';
 
 const decodeImprintPayload = (payload: string): string => {
     try {
@@ -67,6 +68,7 @@ Alpine.data('uptimeCalendar', uptimeCalendar);
 Alpine.data('demoLogin', demoLogin);
 Alpine.data('asyncTable', asyncTable);
 Alpine.data('confirmDialog', confirmDialog);
+Alpine.data('formModalLoader', formModalLoader);
 
 window.Alpine = Alpine;
 window.Chart = Chart;
