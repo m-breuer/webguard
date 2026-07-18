@@ -30,6 +30,8 @@ class DashboardOverviewTest extends TestCase
             ->assertOk()
             ->assertSeeText(__('dashboard.empty.title'))
             ->assertSeeText(__('dashboard.empty.description'))
+            ->assertSeeHtml('data-form-modal-name="monitoring-form-modal"')
+            ->assertSeeHtml('data-form-modal="monitoring-form-modal"')
             ->assertSeeHtml('href="' . route('monitorings.create') . '"');
     }
 
