@@ -1,148 +1,411 @@
+@php
+    $healthState = $overallState;
+    $healthTitle = __('incidents.analytics.overview.health.' . $healthState);
+    $healthType = match ($healthState) {
+        'healthy' => 'success',
+        'degraded' => 'danger',
+        'attention' => 'warning',
+        default => 'info',
+    };
+    $statusBadgeType = static fn (string $state): string => match ($state) {
+        'healthy' => 'success',
+        'degraded' => 'danger',
+        'attention' => 'warning',
+        default => 'info',
+    };
+    $trendPoints = collect($incidentTrend['points']);
+    $trendLine = $trendPoints->map(fn (array $point): string => $point['x'] . ',' . $point['y'])->implode(' ');
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div>
             <x-heading type="h1">{{ __('incidents.analytics.title') }}</x-heading>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.description') }}</p>
+            <p class="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-400">
+                {{ __('incidents.analytics.description') }}
+            </p>
         </div>
-        <x-secondary-button :href="route('status-pages.index')">
-            {{ __('button.back') }}
-        </x-secondary-button>
     </x-slot>
 
     <x-main>
-        <div class="space-y-4">
-            <x-container>
-                <form method="GET" action="{{ route('incidents.analytics') }}" class="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-                    <div>
-                        <x-input-label for="days" :value="__('incidents.analytics.filters.period')" />
-                        <x-select-input id="days" name="days" class="mt-1 w-full">
-                            @foreach ([30, 90, 365] as $days)
-                                <option value="{{ $days }}" @selected($filters['days'] === $days)>
-                                    {{ __('incidents.analytics.filters.days_' . $days) }}
-                                </option>
-                            @endforeach
-                        </x-select-input>
-                    </div>
-                    <div>
-                        <x-input-label for="incident_type" :value="__('incidents.analytics.filters.type')" />
-                        <x-select-input id="incident_type" name="incident_type" class="mt-1 w-full">
-                            <option value="">{{ __('incidents.analytics.filters.all') }}</option>
-                            @foreach ($incidentTypes as $type)
-                                <option value="{{ $type->value }}" @selected($filters['incident_type'] === $type->value)>
-                                    {{ __('incidents.types.' . $type->value) }}
-                                </option>
-                            @endforeach
-                        </x-select-input>
-                    </div>
-                    <div>
-                        <x-input-label for="severity" :value="__('incidents.analytics.filters.severity')" />
-                        <x-select-input id="severity" name="severity" class="mt-1 w-full">
-                            <option value="">{{ __('incidents.analytics.filters.all') }}</option>
-                            @foreach ($severities as $severity)
-                                <option value="{{ $severity->value }}" @selected($filters['severity'] === $severity->value)>
-                                    {{ __('incidents.severities.' . $severity->value) }}
-                                </option>
-                            @endforeach
-                        </x-select-input>
-                    </div>
-                    <div>
-                        <x-input-label for="customer_impact" :value="__('incidents.analytics.filters.customer_impact')" />
-                        <x-select-input id="customer_impact" name="customer_impact" class="mt-1 w-full">
-                            <option value="">{{ __('incidents.analytics.filters.all') }}</option>
-                            @foreach ($customerImpacts as $impact)
-                                <option value="{{ $impact->value }}" @selected($filters['customer_impact'] === $impact->value)>
-                                    {{ __('incidents.customer_impacts.' . $impact->value) }}
-                                </option>
-                            @endforeach
-                        </x-select-input>
-                    </div>
-                    <div>
-                        <x-input-label for="affected_service" :value="__('incidents.analytics.filters.affected_service')" />
-                        <x-text-input id="affected_service" name="affected_service" :value="$filters['affected_service']" class="mt-1 w-full" />
-                    </div>
-                    <div class="md:col-span-2 lg:col-span-5">
-                        <x-primary-button>{{ __('incidents.analytics.filters.apply') }}</x-primary-button>
-                    </div>
-                </form>
-            </x-container>
+        <div id="service-operations" class="space-y-6">
+            <nav aria-label="{{ __('incidents.analytics.overview.tabs.overview') }}" class="overflow-x-auto">
+                <div class="flex min-w-max items-center gap-1 border-b border-gray-200 dark:border-gray-700">
+                    <a href="{{ route('incidents.analytics') }}#overview"
+                        class="border-b-2 border-purple-500 px-3 py-3 text-sm font-semibold text-purple-700 dark:text-purple-300"
+                        aria-current="page">
+                        {{ __('incidents.analytics.overview.tabs.overview') }}
+                    </a>
+                    <a href="{{ route('monitoring-groups.index') }}"
+                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        {{ __('incidents.analytics.overview.tabs.groups') }}
+                    </a>
+                    <a href="{{ route('status-pages.index') }}"
+                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        {{ __('incidents.analytics.overview.tabs.status_pages') }}
+                    </a>
+                    <a href="#incident-analytics"
+                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        {{ __('incidents.analytics.overview.tabs.analytics') }}
+                    </a>
+                </div>
+            </nav>
 
-            <div class="grid gap-4 md:grid-cols-4">
-                @foreach ([
-                    ['label' => __('incidents.analytics.metrics.total'), 'value' => $totalCount],
-                    ['label' => __('incidents.analytics.metrics.resolved'), 'value' => $resolvedCount],
-                    ['label' => __('incidents.analytics.metrics.open'), 'value' => $openCount],
-                    ['label' => __('incidents.analytics.metrics.mttr'), 'value' => $mttrMinutes === null ? __('incidents.analytics.metrics.not_available') : __('incidents.analytics.metrics.minutes', ['value' => $mttrMinutes])],
-                ] as $metric)
-                    <x-container>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $metric['label'] }}</p>
-                        <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $metric['value'] }}</p>
-                    </x-container>
-                @endforeach
+            <section id="overview" aria-labelledby="service-health-heading">
+                <x-container class="overflow-hidden">
+                    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex items-start gap-4">
+                            <span class="mt-1 inline-flex h-4 w-4 shrink-0 rounded-full {{ $healthType === 'success' ? 'bg-green-500' : ($healthType === 'danger' ? 'bg-red-500' : ($healthType === 'warning' ? 'bg-yellow-400' : 'bg-blue-500')) }}"
+                                aria-hidden="true"></span>
+                            <div>
+                                <h2 id="service-health-heading" class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ $healthTitle }}
+                                </h2>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    {{ __('incidents.analytics.overview.health.updated') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4 lg:min-w-[34rem]">
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">{{ __('dashboard.summary.total') }}</p>
+                                <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $serviceSummary['total'] }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">{{ __('dashboard.summary.healthy') }}</p>
+                                <p class="mt-1 text-lg font-semibold text-green-600 dark:text-green-400">{{ $serviceSummary['healthy'] }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">{{ __('dashboard.summary.down') }}</p>
+                                <p class="mt-1 text-lg font-semibold text-red-600 dark:text-red-400">{{ $serviceSummary['down'] }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400">{{ __('dashboard.summary.unknown') }}</p>
+                                <p class="mt-1 text-lg font-semibold text-yellow-600 dark:text-yellow-400">{{ $serviceSummary['unknown'] }}</p>
+                            </div>
+                        </div>
+
+                        <x-primary-button :href="route('status-pages.create')">
+                            {{ __('incidents.analytics.overview.create_status_page') }}
+                        </x-primary-button>
+                    </div>
+                </x-container>
+            </section>
+
+            <div class="grid gap-6 lg:grid-cols-5">
+                <x-container class="overflow-hidden lg:col-span-3" id="monitoring-groups">
+                    <div class="flex items-start justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <div>
+                            <x-heading type="h2">{{ __('incidents.analytics.overview.groups') }}</x-heading>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring_group.empty.text') }}</p>
+                        </div>
+                        <a href="{{ route('monitoring-groups.index') }}" class="shrink-0 text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
+                            {{ __('incidents.analytics.overview.view_all_groups') }}
+                        </a>
+                    </div>
+
+                    @if ($monitoringGroups->isEmpty())
+                        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <p>{{ __('incidents.analytics.overview.empty_groups') }}</p>
+                            @if (!Auth::user()->isDemo())
+                                <x-secondary-button :href="route('monitoring-groups.create')" class="mt-4">
+                                    {{ __('button.create') }}
+                                </x-secondary-button>
+                            @endif
+                        </div>
+                    @else
+                        <div class="mt-2 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach ($monitoringGroups as $group)
+                                @php
+                                    $monitoringGroup = $group['model'];
+                                    $groupSummary = $group['summary'];
+                                @endphp
+                                <div class="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <a href="{{ route('monitorings.index', ['group_id' => $monitoringGroup->id]) }}" class="truncate font-semibold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">
+                                                {{ $monitoringGroup->name }}
+                                            </a>
+                                            <x-badge :type="$statusBadgeType($groupSummary['state'])">
+                                                {{ __('incidents.analytics.overview.status.' . $groupSummary['state']) }}
+                                            </x-badge>
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                            {{ trans_choice('monitoring_group.monitorings_count', $groupSummary['total'], ['count' => $groupSummary['total']]) }}
+                                            <span class="mx-1">·</span>
+                                            {{ $groupSummary['healthy'] }} {{ __('dashboard.summary.healthy') }}
+                                            @if ($groupSummary['down'] > 0)
+                                                <span class="mx-1">·</span>
+                                                {{ $groupSummary['down'] }} {{ __('dashboard.summary.down') }}
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                        @if (!Auth::user()->isDemo())
+                                            <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)">
+                                                {{ __('button.edit') }}
+                                            </x-secondary-button>
+                                        @endif
+                                        <a href="{{ route('monitorings.index', ['group_id' => $monitoringGroup->id]) }}" class="text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
+                                            {{ __('incidents.analytics.overview.view_group') }}
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </x-container>
+
+                <x-container class="overflow-hidden lg:col-span-2" id="status-pages">
+                    <div class="flex items-start justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <div>
+                            <x-heading type="h2">{{ __('incidents.analytics.overview.status_pages') }}</x-heading>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('status_page.empty.text') }}</p>
+                        </div>
+                        <a href="{{ route('status-pages.index') }}" class="shrink-0 text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
+                            {{ __('incidents.analytics.overview.view_all_status_pages') }}
+                        </a>
+                    </div>
+
+                    @if ($statusPages->isEmpty())
+                        <div class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                            <p>{{ __('incidents.analytics.overview.empty_status_pages') }}</p>
+                            @if (!Auth::user()->isDemo())
+                                <x-secondary-button :href="route('status-pages.create')" class="mt-4">
+                                    {{ __('button.create') }}
+                                </x-secondary-button>
+                            @endif
+                        </div>
+                    @else
+                        <div class="mt-2 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach ($statusPages as $statusPageSummary)
+                                @php
+                                    $statusPage = $statusPageSummary['model'];
+                                    $statusPageHealth = $statusPageSummary['summary'];
+                                @endphp
+                                <div class="flex flex-col gap-3 py-4">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <a href="{{ route('status-pages.show', $statusPage) }}" class="truncate font-semibold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">
+                                                {{ $statusPage->name }}
+                                            </a>
+                                            <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                                <x-badge :type="$statusPage->is_public ? 'success' : 'warning'">
+                                                    {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
+                                                </x-badge>
+                                                <span>{{ trans_choice('status_page.components_count', $statusPage->components_count, ['count' => $statusPage->components_count]) }}</span>
+                                            </div>
+                                        </div>
+                                        <span class="inline-flex shrink-0 items-center gap-1 text-sm font-medium {{ $statusPageHealth['state'] === 'healthy' ? 'text-green-600 dark:text-green-400' : ($statusPageHealth['state'] === 'degraded' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400') }}">
+                                            <span class="h-2 w-2 rounded-full bg-current" aria-hidden="true"></span>
+                                            {{ __('incidents.analytics.overview.status.' . $statusPageHealth['state']) }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
+                                        <span>
+                                            {{ $statusPageHealth['total'] }} {{ __('incidents.analytics.overview.services') }}
+                                            <span class="mx-1">·</span>
+                                            {{ $statusPageHealth['down'] }} {{ __('dashboard.summary.down') }}
+                                        </span>
+                                        <a href="{{ route('status-pages.show', $statusPage) }}" class="font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
+                                            {{ __('incidents.analytics.overview.view_status_page') }}
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </x-container>
             </div>
 
-            <x-container>
-                <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('incidents.analytics.definitions') }}</p>
-            </x-container>
+            <section id="incident-analytics" aria-labelledby="incident-analytics-heading" class="scroll-mt-6 space-y-4">
+                <x-container>
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <x-heading type="h2" id="incident-analytics-heading">{{ __('incidents.analytics.sections.recent') }}</x-heading>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.definitions') }}</p>
+                        </div>
+                        <form method="GET" action="{{ route('incidents.analytics') }}" class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-4xl lg:grid-cols-5">
+                            <div>
+                                <x-input-label for="days" :value="__('incidents.analytics.filters.period')" />
+                                <x-select-input id="days" name="days" class="mt-1 w-full">
+                                    @foreach ([30, 90, 365] as $daysOption)
+                                        <option value="{{ $daysOption }}" @selected($filters['days'] === $daysOption)>
+                                            {{ __('incidents.analytics.filters.days_' . $daysOption) }}
+                                        </option>
+                                    @endforeach
+                                </x-select-input>
+                            </div>
+                            <div>
+                                <x-input-label for="incident_type" :value="__('incidents.analytics.filters.type')" />
+                                <x-select-input id="incident_type" name="incident_type" class="mt-1 w-full">
+                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                    @foreach ($incidentTypes as $type)
+                                        <option value="{{ $type->value }}" @selected($filters['incident_type'] === $type->value)>
+                                            {{ __('incidents.types.' . $type->value) }}
+                                        </option>
+                                    @endforeach
+                                </x-select-input>
+                            </div>
+                            <div>
+                                <x-input-label for="severity" :value="__('incidents.analytics.filters.severity')" />
+                                <x-select-input id="severity" name="severity" class="mt-1 w-full">
+                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                    @foreach ($severities as $severity)
+                                        <option value="{{ $severity->value }}" @selected($filters['severity'] === $severity->value)>
+                                            {{ __('incidents.severities.' . $severity->value) }}
+                                        </option>
+                                    @endforeach
+                                </x-select-input>
+                            </div>
+                            <div>
+                                <x-input-label for="customer_impact" :value="__('incidents.analytics.filters.customer_impact')" />
+                                <x-select-input id="customer_impact" name="customer_impact" class="mt-1 w-full">
+                                    <option value="">{{ __('incidents.analytics.filters.all') }}</option>
+                                    @foreach ($customerImpacts as $impact)
+                                        <option value="{{ $impact->value }}" @selected($filters['customer_impact'] === $impact->value)>
+                                            {{ __('incidents.customer_impacts.' . $impact->value) }}
+                                        </option>
+                                    @endforeach
+                                </x-select-input>
+                            </div>
+                            <div class="flex items-end">
+                                <x-primary-button class="w-full justify-center">{{ __('incidents.analytics.filters.apply') }}</x-primary-button>
+                            </div>
+                            <div class="sm:col-span-2 lg:col-span-5">
+                                <x-input-label for="affected_service" :value="__('incidents.analytics.filters.affected_service')" />
+                                <x-text-input id="affected_service" name="affected_service" :value="$filters['affected_service']" class="mt-1 w-full" />
+                            </div>
+                        </form>
+                    </div>
+                </x-container>
 
-            <div class="grid gap-4 lg:grid-cols-2">
-                @foreach ([
-                    ['title' => __('incidents.analytics.sections.by_type'), 'items' => $byType, 'translation' => 'incidents.types.'],
-                    ['title' => __('incidents.analytics.sections.by_severity'), 'items' => $bySeverity, 'translation' => 'incidents.severities.'],
-                    ['title' => __('incidents.analytics.sections.by_impact'), 'items' => $byImpact, 'translation' => 'incidents.customer_impacts.'],
-                    ['title' => __('incidents.analytics.sections.by_service'), 'items' => $byService, 'translation' => null],
-                    ['title' => __('incidents.analytics.sections.recurrence'), 'items' => $repeatServices, 'translation' => null],
-                ] as $section)
-                    <x-container>
-                        <x-heading type="h2">{{ $section['title'] }}</x-heading>
-                        @if ($section['items']->isEmpty())
-                            <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.empty') }}</p>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    @foreach ([
+                        ['label' => __('incidents.analytics.metrics.total'), 'value' => $totalCount, 'class' => 'text-gray-900 dark:text-gray-100'],
+                        ['label' => __('incidents.analytics.metrics.resolved'), 'value' => $resolvedCount, 'class' => 'text-green-600 dark:text-green-400'],
+                        ['label' => __('incidents.analytics.metrics.open'), 'value' => $openCount, 'class' => 'text-red-600 dark:text-red-400'],
+                        ['label' => __('incidents.analytics.metrics.mttr'), 'value' => $mttrMinutes === null ? __('incidents.analytics.metrics.not_available') : __('incidents.analytics.metrics.minutes', ['value' => $mttrMinutes]), 'class' => 'text-gray-900 dark:text-gray-100'],
+                    ] as $metric)
+                        <x-container>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $metric['label'] }}</p>
+                            <p class="mt-2 text-2xl font-semibold {{ $metric['class'] }}">{{ $metric['value'] }}</p>
+                        </x-container>
+                    @endforeach
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-3">
+                    <x-container class="lg:col-span-2">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <x-heading type="h2">{{ __('incidents.analytics.overview.trend') }}</x-heading>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.filters.days_' . $filters['days']) }}</p>
+                            </div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $incidentTrend['max'] }} {{ __('incidents.analytics.metrics.total') }}</span>
+                        </div>
+
+                        @if ($trendPoints->isEmpty() || $totalCount === 0)
+                            <p class="mt-8 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.overview.trend_empty') }}</p>
                         @else
-                            <dl class="mt-3 divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach ($section['items'] as $key => $count)
-                                    <div class="flex items-center justify-between gap-3 py-2 text-sm">
-                                        <dt class="text-gray-700 dark:text-gray-300">
-                                            {{ $section['translation'] ? __($section['translation'] . $key) : $key }}
-                                        </dt>
-                                        <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $count }}</dd>
-                                    </div>
-                                @endforeach
-                            </dl>
+                            <div class="mt-6">
+                                <svg viewBox="0 0 100 86" class="h-56 w-full overflow-visible" role="img" aria-label="{{ __('incidents.analytics.overview.trend') }}">
+                                    <line x1="0" y1="20" x2="100" y2="20" class="stroke-gray-200 dark:stroke-gray-700" stroke-dasharray="1 2" />
+                                    <line x1="0" y1="49" x2="100" y2="49" class="stroke-gray-200 dark:stroke-gray-700" stroke-dasharray="1 2" />
+                                    <line x1="0" y1="78" x2="100" y2="78" class="stroke-gray-300 dark:stroke-gray-600" />
+                                    <polyline points="0,78 {{ $trendLine }} 100,78" fill="rgba(124, 58, 237, 0.08)" class="stroke-none" />
+                                    <polyline points="{{ $trendLine }}" fill="none" class="stroke-purple-600 dark:stroke-purple-400" stroke-width="1.3" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" />
+                                    @foreach ($trendPoints as $point)
+                                        <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="1.5" class="fill-purple-600 dark:fill-purple-400" />
+                                    @endforeach
+                                </svg>
+                                <div class="mt-2 flex justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    @foreach ($trendPoints as $point)
+                                        <span>{{ $point['label'] }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
                         @endif
                     </x-container>
-                @endforeach
-            </div>
 
-            <x-container>
-                <x-heading type="h2">{{ __('incidents.analytics.sections.recent') }}</x-heading>
-                @if ($incidents->isEmpty())
-                    <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.empty') }}</p>
-                @else
-                    <div class="mt-3 overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead>
-                                <tr class="text-left text-gray-500 dark:text-gray-400">
-                                    <th class="px-3 py-2">{{ __('status_page.incident_metadata.type') }}</th>
-                                    <th class="px-3 py-2">{{ __('status_page.incident_metadata.severity') }}</th>
-                                    <th class="px-3 py-2">{{ __('status_page.incident_metadata.affected_service') }}</th>
-                                    <th class="px-3 py-2">{{ __('monitoring.detail.incidents.incident.down_at') }}</th>
-                                    <th class="px-3 py-2">{{ __('monitoring.detail.incidents.incident.up_at') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach ($incidents as $incident)
-                                    <tr>
-                                        <td class="px-3 py-2">{{ $incident->incident_type ? __('incidents.types.' . $incident->incident_type->value) : __('incidents.analytics.unclassified') }}</td>
-                                        <td class="px-3 py-2">{{ $incident->severity ? __('incidents.severities.' . $incident->severity->value) : __('incidents.analytics.unclassified') }}</td>
-                                        <td class="px-3 py-2">{{ $incident->affected_service ?: $incident->monitoring->name }}</td>
-                                        <td class="px-3 py-2">{{ $incident->down_at->toDayDateTimeString() }}</td>
-                                        <td class="px-3 py-2">{{ $incident->up_at?->toDayDateTimeString() ?? __('incidents.analytics.metrics.not_available') }}</td>
-                                    </tr>
+                    <x-container>
+                        <x-heading type="h2">{{ __('incidents.analytics.overview.recurring') }}</x-heading>
+                        @if ($repeatServices->isEmpty())
+                            <p class="mt-6 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.overview.recurring_empty') }}</p>
+                        @else
+                            <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach ($repeatServices->take(5) as $service => $count)
+                                    <div class="flex items-center justify-between gap-3 py-3 text-sm">
+                                        <span class="truncate text-gray-700 dark:text-gray-300">{{ $service }}</span>
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $count }}</span>
+                                    </div>
                                 @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            </x-container>
+                            </div>
+                        @endif
+                    </x-container>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                    @foreach ([
+                        ['title' => __('incidents.analytics.sections.by_type'), 'items' => $byType, 'translation' => 'incidents.types.'],
+                        ['title' => __('incidents.analytics.sections.by_severity'), 'items' => $bySeverity, 'translation' => 'incidents.severities.'],
+                        ['title' => __('incidents.analytics.sections.by_impact'), 'items' => $byImpact, 'translation' => 'incidents.customer_impacts.'],
+                    ] as $section)
+                        <x-container>
+                            <x-heading type="h2">{{ $section['title'] }}</x-heading>
+                            @if ($section['items']->isEmpty())
+                                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.empty') }}</p>
+                            @else
+                                <dl class="mt-3 divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach ($section['items'] as $key => $count)
+                                        <div class="flex items-center justify-between gap-3 py-2 text-sm">
+                                            <dt class="text-gray-700 dark:text-gray-300">{{ __($section['translation'] . $key) }}</dt>
+                                            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $count }}</dd>
+                                        </div>
+                                    @endforeach
+                                </dl>
+                            @endif
+                        </x-container>
+                    @endforeach
+                </div>
+
+                <x-container>
+                    <x-heading type="h2">{{ __('incidents.analytics.sections.recent') }}</x-heading>
+                    @if ($incidents->isEmpty())
+                        <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.empty') }}</p>
+                    @else
+                        <div class="mt-4 overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                                <thead>
+                                    <tr class="text-left text-gray-500 dark:text-gray-400">
+                                        <th class="px-3 py-2">{{ __('status_page.incident_metadata.type') }}</th>
+                                        <th class="px-3 py-2">{{ __('status_page.incident_metadata.severity') }}</th>
+                                        <th class="px-3 py-2">{{ __('status_page.incident_metadata.affected_service') }}</th>
+                                        <th class="px-3 py-2">{{ __('monitoring.detail.incidents.incident.down_at') }}</th>
+                                        <th class="px-3 py-2">{{ __('monitoring.detail.incidents.incident.up_at') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach ($incidents as $incident)
+                                        <tr>
+                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->incident_type ? __('incidents.types.' . $incident->incident_type->value) : __('incidents.analytics.unclassified') }}</td>
+                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->severity ? __('incidents.severities.' . $incident->severity->value) : __('incidents.analytics.unclassified') }}</td>
+                                            <td class="px-3 py-2">{{ $incident->affected_service ?: $incident->monitoring->name }}</td>
+                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->down_at->toDayDateTimeString() }}</td>
+                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->up_at?->toDayDateTimeString() ?? __('incidents.analytics.metrics.not_available') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </x-container>
+
+                <details class="rounded-lg border border-gray-200 bg-white px-6 py-4 text-sm text-gray-600 shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    <summary class="cursor-pointer font-semibold text-gray-900 dark:text-gray-100">{{ __('incidents.analytics.overview.definitions_toggle') }}</summary>
+                    <p class="mt-3">{{ __('incidents.analytics.definitions') }}</p>
+                </details>
+            </section>
         </div>
     </x-main>
 </x-app-layout>

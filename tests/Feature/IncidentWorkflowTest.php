@@ -6,9 +6,11 @@ namespace Tests\Feature;
 
 use App\Enums\IncidentFollowUpStatus;
 use App\Enums\IncidentSeverity;
+use App\Enums\StatusPageComponentSource;
 use App\Models\Incident;
 use App\Models\IncidentFollowUp;
 use App\Models\Monitoring;
+use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\StatusPage;
 use App\Models\User;
@@ -242,6 +244,37 @@ class IncidentWorkflowTest extends TestCase
             ->assertSeeText('30 min')
             ->assertSeeText('Checkout API')
             ->assertDontSeeText('Search API');
+    }
+
+    public function test_incident_analytics_presents_monitoring_groups_and_status_pages_together(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $monitoringGroup = MonitoringGroup::factory()->for($user)->create(['name' => 'Customer-facing']);
+        $monitoringGroup->monitorings()->attach($monitoring->id);
+
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Customer Status',
+            'slug' => 'customer-status',
+            'is_public' => true,
+        ]);
+        $statusPage->components()->create([
+            'monitoring_group_id' => $monitoringGroup->id,
+            'name' => 'Customer-facing',
+            'position' => 0,
+            'source_type' => StatusPageComponentSource::MONITORING_GROUP,
+        ]);
+
+        $this->actingAs($user)->get(route('incidents.analytics'))
+            ->assertOk()
+            ->assertSeeText(__('incidents.analytics.overview.groups'))
+            ->assertSeeText(__('incidents.analytics.overview.status_pages'))
+            ->assertSeeText('Customer-facing')
+            ->assertSeeText('Customer Status')
+            ->assertSeeHtml('href="' . route('monitorings.index', ['group_id' => $monitoringGroup->id]) . '"')
+            ->assertSeeHtml('href="' . route('status-pages.show', $statusPage) . '"');
     }
 
     public function test_incident_analytics_only_includes_incidents_for_visible_monitorings(): void
