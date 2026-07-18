@@ -31,6 +31,7 @@ return [
     ],
     'navigation' => [
         'home' => 'Hauptnavigation',
+        'signal_room' => 'Signal Room',
         'monitoring' => 'Monitoring',
         'workspace' => 'Workspace',
         'more' => 'Mehr',
