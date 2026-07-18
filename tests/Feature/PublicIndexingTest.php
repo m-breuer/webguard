@@ -77,13 +77,14 @@ class PublicIndexingTest extends TestCase
         unlink($sitemapPath);
     }
 
-    public function test_application_robots_file_does_not_advertise_a_marketing_sitemap(): void
+    public function test_application_robots_file_advertises_its_sitemap_without_marketing_sitemap(): void
     {
         $robotsContent = file_get_contents(public_path('robots.txt'));
 
         $this->assertIsString($robotsContent);
         $this->assertStringContainsString('User-agent: *', $robotsContent);
-        $this->assertStringNotContainsString('Sitemap:', $robotsContent);
+        $this->assertStringContainsString('Sitemap: https://webguard.marcel-breuer.dev/sitemap.xml', $robotsContent);
+        $this->assertStringNotContainsString('webguard.m-breuer.dev', $robotsContent);
     }
 
     public function test_removed_marketing_routes_are_not_served_by_core(): void

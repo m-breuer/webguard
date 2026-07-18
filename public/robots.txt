@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://webguard.marcel-breuer.dev/sitemap.xml
