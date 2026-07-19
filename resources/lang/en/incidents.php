@@ -48,6 +48,17 @@ return [
             'recurring_empty' => 'No recurring services in this period.',
             'definitions_toggle' => 'Show definitions',
         ],
+        'table' => [
+            'status' => 'Status',
+            'monitoring' => 'Monitoring',
+            'root_cause' => 'Root cause',
+            'started' => 'Started',
+            'resolved' => 'Resolved',
+            'duration' => 'Duration',
+            'resolved_state' => 'Resolved',
+            'open_state' => 'Open',
+            'ongoing' => 'Ongoing',
+        ],
         'filters' => [
             'period' => 'Period',
             'type' => 'Type',

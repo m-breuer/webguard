@@ -223,11 +223,16 @@ class StatusPageManagementTest extends TestCase
 
         $this->actingAs($user)->get(route('status-pages.index'))
             ->assertOk()
-            ->assertSeeText('Old Status');
+            ->assertSeeText('Old Status')
+            ->assertSeeHtml('data-status-page-overview')
+            ->assertSeeHtml('data-status-page-row');
 
         $this->actingAs($user)->get(route('status-pages.show', $statusPage))
             ->assertOk()
-            ->assertSeeText('Old Status');
+            ->assertSeeText('Old Status')
+            ->assertSeeHtml('data-status-page-detail-header')
+            ->assertSeeHtml('data-status-page-detail-layout')
+            ->assertSeeHtml('data-status-page-context-rail');
 
         $this->actingAs($user)->get(route('status-pages.edit', $statusPage))
             ->assertOk()

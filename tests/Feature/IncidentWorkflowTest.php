@@ -243,6 +243,8 @@ class IncidentWorkflowTest extends TestCase
             ->assertSeeText('Average MTTR')
             ->assertSeeText('30 min')
             ->assertSeeText('Checkout API')
+            ->assertSeeHtml('data-incident-overview-table')
+            ->assertSeeText(__('incidents.analytics.table.root_cause'))
             ->assertDontSeeText('Search API');
     }
 
