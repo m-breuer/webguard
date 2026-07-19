@@ -1,35 +1,58 @@
 @php
     use App\Enums\MonitoringType;
     use App\Enums\MonitoringStatus;
+
+    $latestStatus = $monitoring->latestResponseResult?->status;
+    $statusTone = match ($latestStatus?->value) {
+        'up' => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700 dark:text-emerald-300', 'label' => __('monitoring.detail.availability.up')],
+        'down' => ['dot' => 'bg-red-500', 'text' => 'text-red-700 dark:text-red-300', 'label' => __('monitoring.detail.availability.down')],
+        default => ['dot' => 'bg-amber-500', 'text' => 'text-amber-700 dark:text-amber-300', 'label' => __('monitoring.detail.availability.unknown')],
+    };
+    $notificationChannels = $monitoring->notification_channels ?? [];
+    $statusPages = $monitoring->statusPageComponents
+        ->map(fn ($component) => $component->statusPage)
+        ->filter()
+        ->unique('id')
+        ->values();
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <x-heading type="h1" class="flex flex-wrap items-baseline">
-            {{ $monitoring->name }}:
-            <x-span class="ml-2 {{ $monitoring->isHeartbeat() ? 'break-all text-sm sm:text-base' : '' }}">{{ $monitoring->target }}</x-span>
-            <x-span class="ml-2 text-gray-500">({{ strtoupper($monitoring->type->value) }})</x-span>
-            @if ($monitoring->public_label_enabled)
-                <a href="{{ route('public-label', $monitoring) }}" target="_blank"
-                    class="ml-2 text-gray-400 hover:text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="h-5 w-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" />
-                    </svg>
-                </a>
-            @endif
-            @if ($monitoring->isPaused())
-                <x-badge type="warning">
-                    {{ __('monitoring.index.table.paused') }}
-                </x-badge>
-            @endif
-            @if ($monitoring->isUnderMaintenance())
-                <x-badge type="info">
-                    {{ __('monitoring.index.table.maintenance') }}
-                </x-badge>
-            @endif
-        </x-heading>
+        <div data-monitoring-detail-header class="space-y-4">
+            <a href="{{ route('monitorings.index') }}"
+                class="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-purple-700 dark:text-gray-400 dark:hover:text-purple-300">
+                <span aria-hidden="true">←</span>
+                {{ __('monitoring.detail.back_to_overview') }}
+            </a>
+
+            <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.14em]">
+                        <span class="rounded-full bg-purple-50 px-2.5 py-1 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                            {{ __('monitoring.types.' . $monitoring->type->value) }}
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 {{ $statusTone['text'] }} dark:bg-gray-800">
+                            <span class="h-2 w-2 rounded-full {{ $statusTone['dot'] }}"></span>
+                            {{ $statusTone['label'] }}
+                        </span>
+                        @if ($monitoring->isPaused())
+                            <span class="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">{{ __('monitoring.index.table.paused') }}</span>
+                        @elseif ($monitoring->isUnderMaintenance())
+                            <span class="rounded-full bg-purple-50 px-2.5 py-1 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">{{ __('monitoring.index.table.maintenance') }}</span>
+                        @endif
+                    </div>
+                    <x-heading type="h1" class="mt-3 break-words">{{ $monitoring->name }}</x-heading>
+                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+                        <span class="max-w-full break-all">{{ $monitoring->target }}</span>
+                        @if ($monitoring->public_label_enabled)
+                            <a href="{{ route('public-label', $monitoring) }}" target="_blank" rel="noopener"
+                                class="inline-flex shrink-0 items-center gap-1 font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
+                                {{ __('monitoring.detail.open_public_label') }}
+                                <span aria-hidden="true">↗</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
 
         <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
 
@@ -71,10 +94,6 @@
                 </div>
             @endif
 
-            <x-secondary-button :href="route('monitorings.index')">
-                {{ __('button.back') }}
-            </x-secondary-button>
-
             <x-form-modal name="monitoring-form-modal" title="{{ __('monitoring.title') }}"
                 description="{{ __('monitoring.form.sections.basic') }}" max-width="6xl">
                 <div class="p-6" x-ref="content">
@@ -83,6 +102,7 @@
                     <div x-html="content"></div>
                 </div>
             </x-form-modal>
+        </div>
         </div>
     </x-slot>
 
@@ -110,42 +130,40 @@
         checkResponseTimeUnavailable: '{{ __('monitoring.detail.checks.response_time_unavailable') }}',
     })">
 
-        <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <x-container>
-                <x-heading type="h2">{{ __('monitoring.detail.current_status') }}</x-heading>
-
-                <div class="mt-1">
-                    <div x-show="status"
-                        :class="status === 'up' ? 'text-green-500' : (status === 'down' ? 'text-red-500' :
-                            'text-yellow-500')">
-                        <div>
-                            <x-span x-text="status === 'up' ? '🟢' : (status === 'down' ? '🔴' : '🟡')"></x-span>
-                            <x-span x-text="status ? status.toUpperCase() : ''" class="font-bold"></x-span>
-                            <template x-if="statusCode !== null">
-                                <x-span class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400"
-                                    x-text="'HTTP ' + statusCode"></x-span>
-                            </template>
-                        </div>
-                        <x-paragraph x-show="since" x-text="'{{ __('monitoring.index.table.since') }} ' + since"
-                            class="text-gray-400">
-                        </x-paragraph>
-                        <template x-if="lastCheckedAt">
-                            <x-paragraph x-text="'{{ __('monitoring.detail.last_check') }} ' + lastCheckedAtHuman"
-                                class="text-gray-400"></x-paragraph>
-                        </template>
-                        <template x-if="intervalHuman">
-                            <x-paragraph x-text="'{{ __('monitoring.detail.interval') }} ' + intervalHuman"
-                                class="text-gray-400"></x-paragraph>
-                        </template>
-                    </div>
-                    <template x-if="!status">
-                        <div x-transition.opacity>
-                            <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
-                        </div>
-                    </template>
+        <section data-monitoring-summary class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3" aria-label="{{ __('monitoring.detail.summary_heading') }}">
+            <x-container class="!rounded-2xl !border-gray-200 !shadow-sm dark:!border-gray-700">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.summary.current_status') }}</p>
+                <div class="mt-3 flex items-center gap-3">
+                    <span class="h-3 w-3 rounded-full" :class="status === 'up' ? 'bg-emerald-500' : (status === 'down' ? 'bg-red-500' : 'bg-amber-500')"></span>
+                    <span class="text-xl font-black text-gray-950 dark:text-white" x-text="status ? status.toUpperCase() : '—'"></span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400" x-text="statusCode ? 'HTTP ' + statusCode : ''"></span>
                 </div>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-show="since" x-text="'{{ __('monitoring.index.table.since') }} ' + since"></p>
             </x-container>
 
+            <x-container class="!rounded-2xl !border-gray-200 !shadow-sm dark:!border-gray-700">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.summary.last_check') }}</p>
+                <p class="mt-3 text-xl font-black text-gray-950 dark:text-white" x-text="lastCheckedAtHuman || '—'"></p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-text="intervalHuman ? '{{ __('monitoring.detail.interval') }} ' + intervalHuman : '{{ __('monitoring.detail.summary.waiting_for_check') }}'"></p>
+            </x-container>
+
+            <x-container class="!rounded-2xl !border-gray-200 !shadow-sm dark:!border-gray-700">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.summary.last_24_hours') }}</p>
+                    <span class="text-sm font-black text-purple-700 dark:text-purple-300" x-text="uptimeStats['1']?.uptime?.percentage !== null && uptimeStats['1']?.uptime?.percentage !== undefined ? uptimeStats['1'].uptime.percentage.toFixed(2) + '%' : '—'"></span>
+                </div>
+                <div class="mt-4 flex h-8 items-end gap-1" aria-hidden="true">
+                    <template x-for="(dataPoint, index) in heatmap" :key="'summary-' + index">
+                        <span class="min-w-0 flex-1 rounded-full" :class="dataPoint.uptime > dataPoint.downtime ? 'bg-emerald-400' : (dataPoint.uptime < dataPoint.downtime ? 'bg-red-400' : 'bg-gray-300 dark:bg-gray-600')" :style="`height: ${dataPoint.uptime === dataPoint.downtime ? 35 : 100}%`"></span>
+                    </template>
+                </div>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-text="uptimeStats['1']?.downtime ? uptimeStats['1'].downtime.incidents_count + ' {{ __('monitoring.detail.incidents.heading') }}, ' + uptimeStats['1'].downtime.human_readable + ' {{ __('monitoring.detail.downtime') }}' : '{{ __('monitoring.detail.summary.no_incidents') }}'"></p>
+            </x-container>
+        </section>
+
+        <div data-monitoring-detail-layout class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div class="min-w-0 space-y-6">
+        <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             @if ($regionalConsensus)
                 <x-container>
                     <div class="flex flex-wrap items-center justify-between gap-2">
@@ -312,48 +330,9 @@
                 </x-container>
             @endif
 
-            <x-container>
-                <x-heading type="h2">{{ __('monitoring.detail.last_24_hours') }}</x-heading>
-                <div id="heatmap">
-                    <div class="flex gap-0.5">
-                        <template x-if="loading">
-                            <template x-for="n in 24" :key="n">
-                                <div class="rounded-xs h-6 w-3 animate-pulse bg-gray-300 dark:bg-gray-400"></div>
-                            </template>
-                        </template>
-                        <template x-if="!loading">
-                            <template x-for="(dataPoint, index) in heatmap" :key="index">
-                                <div class="rounded-xs h-6 w-3"
-                                    :class="{
-                                        'bg-green-500': dataPoint.uptime > dataPoint.downtime,
-                                        'bg-red-500': dataPoint.uptime < dataPoint.downtime,
-                                        'dark:bg-gray-400 bg-gray-300': dataPoint.uptime === dataPoint.downtime
-                                    }">
-                                </div>
-                            </template>
-                        </template>
-                    </div>
-                </div>
-
-                <div class="mt-2 flex items-center gap-4">
-                    <div class="flex items-center gap-1">
-                        <div class="rounded-xs h-3 w-3 bg-green-500"></div>
-                        <x-span>{{ __('monitoring.detail.availability.up') }}</x-span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <div class="rounded-xs h-3 w-3 bg-red-500"></div>
-                        <x-span>{{ __('monitoring.detail.availability.down') }}</x-span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <div class="rounded-xs h-3 w-3 bg-gray-300"></div>
-                        <x-span>{{ __('monitoring.detail.availability.unknown') }}</x-span>
-                    </div>
-                </div>
-            </x-container>
-
-            @foreach (['7' => 'Last 7 days', '30' => 'Last 30 days', '90' => 'Last 90 days'] as $key => $label)
+            @foreach (['7' => 'monitoring.detail.uptime_periods.last_7', '30' => 'monitoring.detail.uptime_periods.last_30', '90' => 'monitoring.detail.uptime_periods.last_90'] as $key => $label)
                 <x-container id="uptime-card-{{ $key }}">
-                    <x-heading type="h2" class="capitalize">{{ $label }}</x-heading>
+                    <x-heading type="h2" class="capitalize">{{ __($label) }}</x-heading>
                     <x-paragraph class="text-2xl font-bold text-purple-600"
                         x-text="uptimeStats['{{ $key }}']?.has_data && uptimeStats['{{ $key }}']?.uptime?.percentage !== null
                             ? uptimeStats['{{ $key }}'].uptime.percentage.toFixed(2) + '%'
@@ -639,6 +618,120 @@
                     </div>
                 </div>
             </template>
+        </div>
+
+            </div>
+
+            <aside data-monitoring-context-rail class="space-y-4 lg:sticky lg:top-6 lg:self-start">
+                <x-dashboard.panel :heading="__('monitoring.detail.context.ownership')" :description="__('monitoring.detail.context.ownership_description')">
+                    <div class="space-y-4 p-5">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.context.owner') }}</p>
+                            <p class="mt-1 font-bold text-gray-950 dark:text-white">{{ $monitoring->team?->name ?? $monitoring->user?->name ?? __('monitoring.detail.context.unknown') }}</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->team_id ? __('monitoring.detail.context.team') : __('monitoring.detail.context.private') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.context.groups') }}</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @forelse ($monitoring->groups as $group)
+                                    <span class="rounded-full bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">{{ $group->name }}</span>
+                                @empty
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.no_groups') }}</span>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </x-dashboard.panel>
+
+                <x-dashboard.panel :heading="__('monitoring.detail.context.domain_ssl')">
+                    <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                        @if ($monitoring->sslResult)
+                            <div class="p-5">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-sm font-bold text-gray-950 dark:text-white">{{ __('monitoring.detail.ssl.heading') }}</p>
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $monitoring->sslResult->is_valid ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->sslResult->expires_at ? __('monitoring.detail.context.valid_until', ['date' => $monitoring->sslResult->expires_at->locale(app()->getLocale())->isoFormat('L')]) : __('monitoring.detail.context.no_expiry') }}</p>
+                            </div>
+                        @endif
+                        @if ($monitoring->domainResult)
+                            <div class="p-5">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-sm font-bold text-gray-950 dark:text-white">{{ __('monitoring.detail.domain.heading') }}</p>
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $monitoring->domainResult->is_valid ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->domainResult->expires_at ? __('monitoring.detail.context.valid_until', ['date' => $monitoring->domainResult->expires_at->locale(app()->getLocale())->isoFormat('L')]) : __('monitoring.detail.context.no_expiry') }}</p>
+                            </div>
+                        @endif
+                        @if (! $monitoring->sslResult && ! $monitoring->domainResult)
+                            <p class="p-5 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.not_available') }}</p>
+                        @endif
+                    </div>
+                </x-dashboard.panel>
+
+                <x-dashboard.panel :heading="__('monitoring.detail.context.regions')">
+                    <div class="flex flex-wrap gap-2 p-5">
+                        @forelse ($monitoring->preferredLocationCodes() as $location)
+                            <span class="inline-flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-800 dark:bg-gray-900/60 dark:text-gray-200">
+                                <span class="h-2 w-2 rounded-full bg-purple-500"></span>
+                                {{ $location }}
+                            </span>
+                        @empty
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.no_regions') }}</span>
+                        @endforelse
+                    </div>
+                </x-dashboard.panel>
+
+                <x-dashboard.panel :heading="__('monitoring.detail.context.maintenance')">
+                    <div class="p-5">
+                        @if ($monitoring->maintenance_from)
+                            <p class="font-bold text-gray-950 dark:text-white">{{ $monitoring->isUnderMaintenance() ? __('monitoring.detail.context.maintenance_active') : __('monitoring.detail.context.maintenance_scheduled') }}</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->maintenance_from->locale(app()->getLocale())->isoFormat('L LT') }}@if ($monitoring->maintenance_until) – {{ $monitoring->maintenance_until->locale(app()->getLocale())->isoFormat('L LT') }}@endif</p>
+                        @else
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.no_maintenance') }}</p>
+                        @endif
+                    </div>
+                </x-dashboard.panel>
+
+                <x-dashboard.panel :heading="__('monitoring.detail.context.notifications')">
+                    <div class="space-y-4 p-5">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.context.recipients') }}</p>
+                            <div class="mt-2 space-y-2">
+                                @foreach ($notificationRecipients as $recipient)
+                                    <div class="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 text-xs font-black text-purple-700 dark:bg-purple-950/50 dark:text-purple-300">{{ mb_strtoupper(mb_substr($recipient->name, 0, 1)) }}</span>
+                                        <span class="truncate">{{ $recipient->name }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.context.channels') }}</p>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @forelse ($notificationChannels as $channel)
+                                    <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300">{{ __('notifications.channels.' . $channel) }}</span>
+                                @empty
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.no_channels') }}</span>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </x-dashboard.panel>
+
+                <x-dashboard.panel :heading="__('monitoring.detail.context.status_pages')">
+                    <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                        @forelse ($statusPages as $statusPage)
+                            <a href="{{ route('status-pages.show', $statusPage) }}" class="flex items-center justify-between gap-3 p-5 text-sm transition hover:bg-purple-50 dark:hover:bg-purple-950/20">
+                                <span class="min-w-0 truncate font-bold text-gray-900 dark:text-white">{{ $statusPage->name }}</span>
+                                <span class="shrink-0 text-xs font-semibold text-purple-700 dark:text-purple-300">{{ $statusPage->is_public ? __('monitoring.detail.context.public') : __('monitoring.detail.context.private') }}</span>
+                            </a>
+                        @empty
+                            <p class="p-5 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.no_status_pages') }}</p>
+                        @endforelse
+                    </div>
+                </x-dashboard.panel>
+            </aside>
         </div>
     </x-main>
 </x-app-layout>
