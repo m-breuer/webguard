@@ -1,13 +1,11 @@
 @php
-    $workspaceNavActive = request()->routeIs('monitorings.*')
+    $monitoringNavActive = request()->routeIs('monitorings.*')
         || request()->routeIs('incidents.*')
-        || request()->routeIs('maintenance.*')
         || request()->routeIs('monitoring-groups.*')
-        || request()->routeIs('status-pages.*')
-        || request()->routeIs('teams.*');
+        || request()->routeIs('status-pages.*');
 @endphp
 
-<nav x-data="{ open: false, workspaceOpen: false }"
+<nav x-data="{ open: false }"
     class="relative z-40 border-b border-purple-900/40 bg-purple-950 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:overflow-y-auto lg:border-b-0">
     <div class="flex min-h-16 items-center justify-between px-4 lg:min-h-screen lg:h-auto lg:flex-col lg:items-stretch lg:px-3 lg:py-5">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl px-2 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-purple-300">
@@ -17,7 +15,7 @@
             <span class="text-lg font-bold tracking-tight text-white">{{ __('app.name') }}</span>
         </a>
 
-        <div class="hidden flex-1 pt-12 lg:block">
+        <div data-primary-navigation class="hidden flex-1 pt-12 lg:block">
             <a href="{{ route('dashboard') }}"
                 @class([
                     'flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
@@ -30,44 +28,24 @@
                 <span>{{ __('app.navigation.signal_room') }}</span>
             </a>
 
-            <div data-workspace-navigation class="mt-5">
-                <button type="button" @click="workspaceOpen = ! workspaceOpen"
+            <div class="mt-5">
+                <a href="{{ route('monitorings.index') }}"
                     @class([
-                        'flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
-                        'border-purple-700 bg-purple-900/70 text-white' => $workspaceNavActive,
-                        'border-transparent text-purple-100 hover:border-purple-700 hover:bg-purple-900/70 hover:text-white' => ! $workspaceNavActive,
+                        'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
+                        'border-purple-400/50 bg-purple-700 text-white shadow-lg shadow-purple-950/20' => $monitoringNavActive,
+                        'border-transparent text-purple-100 hover:border-purple-700 hover:bg-purple-900/70 hover:text-white' => ! $monitoringNavActive,
                     ])>
                     <span class="flex items-center gap-3">
                         <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5A2.5 2.5 0 0 1 6.5 4h4A2.5 2.5 0 0 1 13 6.5v4a2.5 2.5 0 0 1-2.5 2.5h-4A2.5 2.5 0 0 1 4 10.5v-4Zm7 7A2.5 2.5 0 0 1 13.5 11h4a2.5 2.5 0 0 1 2.5 2.5v4a2.5 2.5 0 0 1-2.5 2.5h-4a2.5 2.5 0 0 1-2.5-2.5v-4Z" />
                         </svg>
-                        <span>{{ __('app.navigation.workspace') }}</span>
+                        <span>{{ __('app.navigation.monitoring') }}</span>
                     </span>
-                    <svg class="h-4 w-4 transition" :class="{ 'rotate-180': workspaceOpen }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <svg class="hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                     </svg>
-                </button>
+                </a>
 
-                <div x-cloak x-show="workspaceOpen || {{ $workspaceNavActive ? 'true' : 'false' }}" x-transition class="mt-3 space-y-2 border-s border-purple-800 ps-3">
-                    <a href="{{ route('monitorings.index') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('monitorings.*')])>
-                        {{ __('monitoring.title') }}
-                    </a>
-                    <a href="{{ route('incidents.analytics') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('incidents.*')])>
-                        {{ __('incidents.analytics.title') }}
-                    </a>
-                    <a href="{{ route('maintenance.index') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('maintenance.*')])>
-                        {{ __('maintenance.title') }}
-                    </a>
-                    <a href="{{ route('monitoring-groups.index') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('monitoring-groups.*')])>
-                        {{ __('monitoring_group.title') }}
-                    </a>
-                    <a href="{{ route('status-pages.index') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('status-pages.*')])>
-                        {{ __('status_page.title') }}
-                    </a>
-                    <a href="{{ route('teams.index') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('teams.*')])>
-                        {{ __('team.title') }}
-                    </a>
-                </div>
             </div>
         </div>
 
@@ -142,13 +120,8 @@
         <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.signal_room') }}</p>
         <a href="{{ route('dashboard') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('dashboard'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('dashboard')])>{{ __('app.navigation.signal_room') }}</a>
 
-        <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.workspace') }}</p>
-        <a href="{{ route('monitorings.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('monitorings.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('monitorings.*')])>{{ __('monitoring.title') }}</a>
-        <a href="{{ route('incidents.analytics') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('incidents.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('incidents.*')])>{{ __('incidents.analytics.title') }}</a>
-        <a href="{{ route('maintenance.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('maintenance.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('maintenance.*')])>{{ __('maintenance.title') }}</a>
-        <a href="{{ route('monitoring-groups.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('monitoring-groups.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('monitoring-groups.*')])>{{ __('monitoring_group.title') }}</a>
-        <a href="{{ route('status-pages.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('status-pages.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('status-pages.*')])>{{ __('status_page.title') }}</a>
-        <a href="{{ route('teams.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('teams.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('teams.*')])>{{ __('team.title') }}</a>
+        <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.monitoring') }}</p>
+        <a href="{{ route('monitorings.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => $monitoringNavActive, 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! $monitoringNavActive])>{{ __('app.navigation.monitoring') }}</a>
 
         @if (Auth::user()->isAdmin())
             <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.administration') }}</p>

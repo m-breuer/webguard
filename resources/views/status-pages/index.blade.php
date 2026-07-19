@@ -1,13 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <x-heading type="h1">{{ __('status_page.title') }}</x-heading>
-
-        @if (!Auth::user()->isDemo())
-            <x-primary-button :href="route('status-pages.create')" class="sm:ml-auto"
-                data-form-modal-trigger data-form-modal-name="status-page-form-modal">
-                {{ __('button.create') }}
-            </x-primary-button>
-        @endif
+        <x-monitoring-operations-header>
+            @if (!Auth::user()->isDemo())
+                <x-slot name="actions">
+                    <x-primary-button :href="route('status-pages.create')"
+                        data-form-modal-trigger data-form-modal-name="status-page-form-modal">
+                        {{ __('button.create') }}
+                    </x-primary-button>
+                </x-slot>
+            @endif
+        </x-monitoring-operations-header>
     </x-slot>
 
     <x-main>

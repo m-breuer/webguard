@@ -43,13 +43,12 @@ it('supports desktop service selection and keeps the Signal Room inside the view
         ->assertVisible('aside [data-signal-detail]')
         ->assertScript(<<<'JS'
 function () {
-    const workspace = document.querySelector('[data-workspace-navigation]');
-    const utilities = document.querySelector('[data-navigation-utilities]');
-    if (!workspace || !utilities) {
+    const primaryNavigation = document.querySelector('[data-primary-navigation]');
+    if (!primaryNavigation) {
         return false;
     }
 
-    return utilities.getBoundingClientRect().top - workspace.getBoundingClientRect().bottom >= 24;
+    return primaryNavigation.querySelectorAll('a').length === 2;
 }
 JS, true)
         ->assertScript(<<<'JS'
