@@ -74,5 +74,7 @@ class MonitoringFormPresentationTest extends TestCase
         $editResponse->assertOk();
         $editResponse->assertSeeText(__('team.ownership.private'));
         $editResponse->assertSeeText('Production');
+        $editResponse->assertSeeHtml('data-monitoring-ownership-status');
+        $editResponse->assertSeeHtml('data-monitoring-ownership-badge');
     }
 }
