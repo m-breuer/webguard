@@ -5,8 +5,9 @@
     $fieldIdPrefix = $fieldIdPrefix ?? 'monitoring_notification_preference';
 @endphp
 
-<x-container>
-    <x-heading type="h2">{{ __('team.sections.notification_preferences') }}</x-heading>
+<section class="rounded-lg border border-gray-200 bg-gray-50/70 p-4 shadow-none dark:border-gray-700 dark:bg-gray-900/30 sm:p-5"
+    data-monitoring-notification-preferences>
+    <x-heading type="h3">{{ __('team.sections.notification_preferences') }}</x-heading>
     <form method="POST" action="{{ route('monitorings.notification-preferences.update', $monitoring) }}"
         class="mt-4 space-y-4">
         @csrf
@@ -45,8 +46,8 @@
             <x-input-error :messages="$errors->get('ssl_expiry_warning_days')" />
         </div>
 
-        <x-primary-button>
+        <x-secondary-button>
             {{ __('button.save') }}
-        </x-primary-button>
+        </x-secondary-button>
     </form>
-</x-container>
+</section>

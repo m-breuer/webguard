@@ -26,7 +26,7 @@
     ));
 @endphp
 
-<div {{ $attributes->class('relative') }}
+<div {{ $attributes->class('relative')->merge(['data-select-control' => 'multi']) }}
     x-data="{
         open: false,
         query: '',
@@ -94,12 +94,12 @@
         <input type="hidden" name="{{ $inputName }}" :value="value">
     </template>
 
-    <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition focus-within:border-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-purple-500/30 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+    <div class="flex min-h-11 w-full items-center gap-2 rounded-md border border-purple-200 bg-purple-50/40 px-3 py-2 text-sm shadow-sm transition focus-within:border-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-purple-500/30 dark:border-purple-800 dark:bg-purple-950/30 dark:text-gray-100"
         x-on:click="open = true; $nextTick(() => $refs.search?.focus())"
         x-bind:class="{ 'border-purple-500 ring-2 ring-purple-500/30': open }">
         <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <template x-for="option in selectedOptions" :key="option.value">
-                <span class="inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 px-2 py-1 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                <span class="inline-flex max-w-full items-center gap-1 rounded-md bg-purple-100 px-2 py-1 font-medium text-purple-800 dark:bg-purple-900/70 dark:text-purple-100">
                     <span class="truncate" x-text="option.label"></span>
                     <button type="button"
                         class="rounded-sm px-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700 focus:bg-gray-200 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100 dark:focus:bg-gray-700"
@@ -119,7 +119,7 @@
                 x-bind:aria-expanded="open.toString()">
         </div>
 
-        <div class="flex shrink-0 items-center gap-2 text-gray-500 dark:text-gray-400">
+        <div class="flex shrink-0 items-center gap-2 text-purple-600 dark:text-purple-300">
             <button type="button" x-cloak x-show="selected.length > 0"
                 class="rounded-sm px-1 text-lg leading-none hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500/30 dark:hover:text-gray-100"
                 x-on:click.stop="clear()"
@@ -138,7 +138,7 @@
     </div>
 
     <div id="{{ $fieldId }}_options" x-cloak x-show="open" x-transition x-on:click.outside="open = false"
-        class="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900"
+        class="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-purple-200 bg-white py-1 text-sm shadow-lg dark:border-purple-800 dark:bg-gray-900"
         role="listbox"
         aria-multiselectable="true">
         <button type="button"
