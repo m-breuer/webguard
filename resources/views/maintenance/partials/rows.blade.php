@@ -9,7 +9,7 @@
         <x-table.cell>
             @if ($monitoring->isUnderMaintenance())
                 <x-badge type="info">{{ __('maintenance.status.active') }}</x-badge>
-            @elseif ($monitoring->maintenance_from && $monitoring->maintenance_from->isFuture())
+            @elseif ($monitoring->hasUpcomingMaintenance())
                 <x-badge type="warning">{{ __('maintenance.status.upcoming') }}</x-badge>
             @elseif ($monitoring->maintenance_from)
                 <x-badge type="neutral">{{ __('maintenance.status.expired') }}</x-badge>
@@ -17,9 +17,9 @@
                 <x-badge type="success">{{ __('maintenance.status.none') }}</x-badge>
             @endif
         </x-table.cell>
-        <x-table.cell>{{ $monitoring->maintenance_from?->format('Y-m-d H:i') ?? '-' }}</x-table.cell>
+        <x-table.cell>{{ data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'starts_at')?->format('Y-m-d H:i') ?? ($monitoring->maintenance_from?->format('Y-m-d H:i') ?? '-') }}</x-table.cell>
         <x-table.cell>
-            {{ $monitoring->maintenance_until?->format('Y-m-d H:i') ?? ($monitoring->maintenance_from ? __('maintenance.status.open_ended') : '-') }}
+            {{ data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'ends_at')?->format('Y-m-d H:i') ?? ($monitoring->maintenance_until?->format('Y-m-d H:i') ?? ($monitoring->maintenance_from ? __('maintenance.status.open_ended') : '-')) }}
         </x-table.cell>
         <x-table.cell>
             @if ($monitoring->groups->isNotEmpty())

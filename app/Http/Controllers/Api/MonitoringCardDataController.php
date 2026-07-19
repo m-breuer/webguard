@@ -64,6 +64,7 @@ class MonitoringCardDataController extends Controller
                 'heartbeat_grace_minutes',
                 'heartbeat_last_ping_at',
             ])
+            ->withMaintenanceWindowState()
             ->visibleTo($request->user())
             ->whereIn('id', $allRequestedIds)
             ->with([

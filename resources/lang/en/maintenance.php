@@ -9,6 +9,11 @@ return [
         'description' => 'Plan a maintenance window for one monitoring or apply the same window to every monitoring in a group.',
     ],
     'form' => [
+        'mode' => 'Window type',
+        'modes' => [
+            'one_off' => 'One-off',
+            'recurring' => 'Recurring',
+        ],
         'scope' => 'Apply to',
         'scopes' => [
             'monitoring' => 'Single monitoring',
@@ -20,7 +25,25 @@ return [
         'select_group' => 'Select group',
         'from' => 'Maintenance from',
         'until' => 'Maintenance until',
+        'recurring_starts_at' => 'First occurrence',
+        'recurrence' => 'Repeats',
+        'recurrences' => [
+            'weekly' => 'Weekly',
+            'monthly' => 'Monthly',
+        ],
+        'duration' => 'Duration (minutes)',
+        'repeat_until' => 'Repeat until',
+        'timezone' => 'Timezone',
+        'recurring' => 'Recurring maintenance window',
         'help' => 'During the maintenance window, checks are skipped and the status is reported as UNKNOWN. Leave the end empty for an open-ended window.',
+    ],
+    'recurring' => [
+        'heading' => 'Recurring windows',
+        'description' => 'Repeating maintenance schedules remain active until disabled or their end date is reached.',
+        'target' => 'Target',
+        'schedule' => 'Schedule',
+        'timezone' => 'Timezone',
+        'starts' => 'First occurrence',
     ],
     'windows' => [
         'heading' => 'Planned windows',
@@ -46,10 +69,13 @@ return [
         'schedule' => 'Schedule maintenance',
         'clear' => 'Clear maintenance',
         'clear_confirmation' => 'Clear this maintenance window?',
+        'clear_recurring_confirmation' => 'Disable this recurring maintenance window?',
     ],
     'messages' => [
         'scheduled' => 'Maintenance was scheduled for :count monitoring.|Maintenance was scheduled for :count monitorings.',
         'cleared' => 'Maintenance window was cleared.',
+        'recurring_scheduled' => 'Recurring maintenance window was scheduled.',
+        'recurring_cleared' => 'Recurring maintenance window was disabled.',
     ],
     'empty' => [
         'title' => 'No monitorings yet',
