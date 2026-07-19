@@ -31,8 +31,15 @@ return [
     ],
     'navigation' => [
         'home' => 'Main navigation',
+        'dashboard' => 'Dashboard',
         'signal_room' => 'Signal Room',
         'monitoring' => 'Monitoring',
+        'monitorings' => 'Monitorings',
+        'monitoring_groups' => 'Groups',
+        'status_pages' => 'Status pages',
+        'incidents' => 'Incident analysis',
+        'maintenance' => 'Maintenance',
+        'teams' => 'Teams',
         'workspace' => 'Workspace',
         'more' => 'More',
         'sections' => [

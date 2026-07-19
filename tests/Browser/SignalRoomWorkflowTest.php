@@ -48,16 +48,42 @@ function () {
         return false;
     }
 
-    return primaryNavigation.querySelectorAll('[data-primary-destination]').length === 2
+    return primaryNavigation.querySelectorAll('[data-primary-destination]').length === 1
+        && primaryNavigation.querySelector('[data-secondary-navigation]') !== null
         && primaryNavigation.querySelector('[data-notifications-navigation]') !== null;
 }
 JS, true)
         ->assertScript(<<<'JS'
 function () {
     const detail = document.querySelector('aside [data-signal-detail]');
-    return detail !== null
+        return detail !== null
         && detail.textContent.includes('Payments API')
         && detail.textContent.includes('128 ms');
+}
+JS, true)
+        ->click('aside [data-signal-tab="checks"]')
+        ->assertScript(<<<'JS'
+function () {
+    const detail = document.querySelector('aside [data-signal-detail]');
+    const tab = detail?.querySelector('[data-signal-tab="checks"]');
+    const panel = detail?.querySelector('[data-signal-tab-panel="checks"]');
+
+    return tab?.getAttribute('aria-selected') === 'true'
+        && panel !== null
+        && getComputedStyle(panel).display !== 'none'
+        && panel.textContent.includes('128 ms');
+}
+JS, true)
+        ->click('aside [data-signal-tab="incidents"]')
+        ->assertScript(<<<'JS'
+function () {
+    const detail = document.querySelector('aside [data-signal-detail]');
+    const tab = detail?.querySelector('[data-signal-tab="incidents"]');
+    const panel = detail?.querySelector('[data-signal-tab-panel="incidents"]');
+
+    return tab?.getAttribute('aria-selected') === 'true'
+        && panel !== null
+        && getComputedStyle(panel).display !== 'none';
 }
 JS, true)
         ->assertScript(<<<'JS'
@@ -171,10 +197,33 @@ function () {
     }
 
     const menuRect = menu.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
     const railRect = rail.getBoundingClientRect();
 
     return menuRect.left >= railRect.left
-        && menuRect.right <= railRect.right;
+        && menuRect.right <= railRect.right
+        && menuRect.bottom <= triggerRect.top;
+}
+JS, true)
+        ->click('#language-switch-desktop')
+        ->click('#profile-menu-desktop')
+        ->assertScript(<<<'JS'
+function () {
+    const trigger = document.querySelector('#profile-menu-desktop');
+    const menu = trigger?.closest('[x-data]')?.querySelector('.absolute');
+    const rail = document.querySelector('nav');
+
+    if (!trigger || !menu || !rail || getComputedStyle(menu).display === 'none') {
+        return false;
+    }
+
+    const menuRect = menu.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+    const railRect = rail.getBoundingClientRect();
+
+    return menuRect.left >= railRect.left
+        && menuRect.right <= railRect.right
+        && menuRect.bottom <= triggerRect.top;
 }
 JS, true)
         ->assertNoJavaScriptErrors();

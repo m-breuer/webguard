@@ -59,7 +59,7 @@ class LocalePreferenceTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('id="language-switch-desktop"');
         $testResponse->assertSeeHtml('id="language-switch-mobile"');
-        $testResponse->assertSeeHtml('ltr:origin-top-left rtl:origin-top-right start-0');
+        $testResponse->assertSeeHtml('ltr:origin-bottom-left rtl:origin-bottom-right start-0');
     }
 
     public function test_authenticated_user_locale_in_database_overrides_cookie_value(): void
