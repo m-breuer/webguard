@@ -8,8 +8,8 @@
 @endphp
 
 <nav x-data="{ open: false, workspaceOpen: false }"
-    class="relative z-40 border-b border-purple-900/40 bg-purple-950 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:border-b-0">
-    <div class="flex h-16 items-center justify-between px-4 lg:flex-col lg:items-stretch lg:px-3 lg:py-5">
+    class="relative z-40 border-b border-purple-900/40 bg-purple-950 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:overflow-y-auto lg:border-b-0">
+    <div class="flex min-h-16 items-center justify-between px-4 lg:min-h-screen lg:h-auto lg:flex-col lg:items-stretch lg:px-3 lg:py-5">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl px-2 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-purple-300">
             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1.5 shadow-sm">
                 <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('app.logo_alt') }}" class="h-full w-full object-contain">
@@ -30,7 +30,7 @@
                 <span>{{ __('app.navigation.signal_room') }}</span>
             </a>
 
-            <div class="mt-5">
+            <div data-workspace-navigation class="mt-5">
                 <button type="button" @click="workspaceOpen = ! workspaceOpen"
                     @class([
                         'flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
@@ -48,7 +48,7 @@
                     </svg>
                 </button>
 
-                <div x-cloak x-show="workspaceOpen || {{ $workspaceNavActive ? 'true' : 'false' }}" x-transition class="mt-2 space-y-1 border-s border-purple-800 ps-3">
+                <div x-cloak x-show="workspaceOpen || {{ $workspaceNavActive ? 'true' : 'false' }}" x-transition class="mt-3 space-y-2 border-s border-purple-800 ps-3">
                     <a href="{{ route('monitorings.index') }}" @class(['block rounded-lg px-3 py-2 text-sm text-purple-100 transition hover:bg-purple-900/70 hover:text-white' => true, 'bg-purple-800 text-white' => request()->routeIs('monitorings.*')])>
                         {{ __('monitoring.title') }}
                     </a>
@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <div class="hidden space-y-3 lg:block">
+        <div data-navigation-utilities class="mt-6 hidden space-y-4 lg:block">
             <div class="flex items-center gap-2">
                 <a id="notifications-bell-desktop" href="{{ route('notifications.index') }}"
                     aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"

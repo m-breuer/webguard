@@ -43,6 +43,17 @@ it('supports desktop service selection and keeps the Signal Room inside the view
         ->assertVisible('aside [data-signal-detail]')
         ->assertScript(<<<'JS'
 function () {
+    const workspace = document.querySelector('[data-workspace-navigation]');
+    const utilities = document.querySelector('[data-navigation-utilities]');
+    if (!workspace || !utilities) {
+        return false;
+    }
+
+    return utilities.getBoundingClientRect().top - workspace.getBoundingClientRect().bottom >= 24;
+}
+JS, true)
+        ->assertScript(<<<'JS'
+function () {
     const detail = document.querySelector('aside [data-signal-detail]');
     return detail !== null
         && detail.textContent.includes('Payments API')
