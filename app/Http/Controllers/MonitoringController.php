@@ -325,11 +325,25 @@ class MonitoringController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $monitoring->loadMissing('domainResult');
+        $monitoring->loadMissing([
+            'domainResult',
+            'groups',
+            'latestIncident',
+            'latestResponseResult',
+            'sslResult',
+            'statusPageComponents.statusPage',
+            'team.users',
+            'user',
+        ]);
+
+        $notificationRecipients = $monitoring->team_id !== null
+            ? ($monitoring->team?->users ?? collect())
+            : collect([$monitoring->user ?? $user]);
 
         return view('monitorings.show', [
             'monitoring' => $monitoring,
             'canManageMonitoring' => $monitoring->isManageableBy($user) && ! $user->isDemo(),
+            'notificationRecipients' => $notificationRecipients,
             'regionalConsensus' => count($monitoring->preferredLocationCodes()) > 1
                 ? $regionalConsensusService->snapshot($monitoring)
                 : null,
