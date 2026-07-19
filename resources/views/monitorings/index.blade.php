@@ -356,126 +356,130 @@
         @endif
 
         <div x-data="monitoringCardLoader({{ $monitoringIds }}, {{ $monitoringNames }}, {{ $monitoringTargets }}, {{ $monitoringTypes }}, {{ $monitoringStatusMap }}, {{ $monitoringPublicLabelMap }}, {{ $maintenanceStatusMap }}, {{ $summaryMonitoringIds }})">
-            <x-container x-show="monitoringIds.length > 0" space="true" class="border-l-4 border-purple-500">
-                <div class="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                        <x-heading type="h2">{{ __('monitoring.index.table.summary') }}</x-heading>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.index.table.summary_scope') }}</p>
+            <div x-show="monitoringIds.length > 0" class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                <div class="min-w-0 space-y-6">
+                    <section class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="flex flex-col gap-4 border-b border-gray-200 px-5 py-5 dark:border-gray-700 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <x-heading type="h2">{{ __('monitoring.index.workspace.active') }}</x-heading>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.index.workspace.subtitle') }}</p>
+                            </div>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                {{ __('monitoring.index.total.current') }}: {{ $monitoringsTotal }}
+                                @if ($currentUser->isMember())
+                                    <span class="text-gray-400">·</span> {{ __('monitoring.index.workspace.capacity', ['current' => $privateMonitoringsTotal, 'limit' => $monitoringLimit]) }}
+                                @endif
+                            </p>
+                        </div>
+
+                        <div class="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_11rem_7rem_auto] gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-500 lg:grid">
+                            <span>{{ __('monitoring.index.table.name') }}</span>
+                            <span>{{ __('monitoring.index.workspace.target') }}</span>
+                            <span>{{ __('monitoring.index.workspace.history') }}</span>
+                            <span>{{ __('monitoring.index.workspace.status') }}</span>
+                            <span class="sr-only">{{ __('monitoring.index.workspace.actions') }}</span>
+                        </div>
+
+                        <template x-for="id in monitoringIds" :key="id" x-cloak>
+                            <article class="group border-b border-gray-100 px-5 py-4 last:border-b-0 hover:bg-purple-50/30 dark:border-gray-700 dark:hover:bg-purple-950/20">
+                                <div class="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_11rem_7rem_auto] lg:items-center">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-gray-300" :class="{
+                                                'bg-emerald-500': statusMap[id] === '{{ MonitoringStatus::UP->value }}',
+                                                'bg-red-500': statusMap[id] === '{{ MonitoringStatus::DOWN->value }}',
+                                                'bg-amber-500': statusMap[id] === '{{ MonitoringStatus::UNKNOWN->value }}' || !statusMap[id]
+                                            }" aria-hidden="true"></span>
+                                            <a href="#" x-bind:href="'/monitorings/' + id" class="truncate font-semibold text-gray-900 hover:text-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-100 dark:hover:text-purple-300" x-text="monitoringNames[id] ?? '{{ __('monitoring.general.monitoring_id') }}'.replace(':id', id)"></a>
+                                        </div>
+                                        <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                            <span class="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-200" x-text="monitoringTypes[id]"></span>
+                                            <template x-if="monitoringPublicLabelMap[id]">
+                                                <a x-bind:href="'/label/' + id" target="_blank" class="text-purple-600 hover:text-purple-800 dark:text-purple-300" aria-label="{{ __('monitoring.index.workspace.view') }}">
+                                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" /></svg>
+                                                </a>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div class="min-w-0">
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400 lg:hidden">{{ __('monitoring.index.workspace.target') }}</p>
+                                        <p class="truncate text-sm text-gray-600 dark:text-gray-300" x-text="monitoringTargets[id]"></p>
+                                        <p class="mt-1 text-xs text-gray-400" x-show="sinceMap[id]" x-text="sinceMap[id] ? '{{ __('monitoring.index.table.since') }} ' + sinceMap[id] : ''"></p>
+                                    </div>
+
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400 lg:hidden">{{ __('monitoring.index.workspace.history') }}</p>
+                                        <div :id="'monitoring-heatmap-' + id" class="flex gap-0.5" :aria-label="'{{ __('monitoring.index.workspace.history') }}'"><template x-for="i in 24" :key="i"><span class="h-6 w-2.5 animate-pulse rounded-xs bg-gray-200 dark:bg-gray-600"></span></template></div>
+                                    </div>
+
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400 lg:hidden">{{ __('monitoring.index.workspace.status') }}</p>
+                                        <span class="inline-flex items-center gap-1.5 text-sm font-semibold" :class="{
+                                            'text-emerald-600 dark:text-emerald-400': statusMap[id] === '{{ MonitoringStatus::UP->value }}',
+                                            'text-red-600 dark:text-red-400': statusMap[id] === '{{ MonitoringStatus::DOWN->value }}',
+                                            'text-amber-600 dark:text-amber-400': statusMap[id] === '{{ MonitoringStatus::UNKNOWN->value }}' || !statusMap[id]
+                                        }">
+                                            <span x-text="statusMap[id] === '{{ MonitoringStatus::UP->value }}' ? '{{ __('monitoring.index.filters.health_up') }}' : (statusMap[id] === '{{ MonitoringStatus::DOWN->value }}' ? '{{ __('monitoring.index.filters.health_down') }}' : '{{ __('monitoring.index.filters.health_unknown') }}')"></span>
+                                        </span>
+                                        <div class="mt-1 flex flex-wrap gap-1">
+                                            <template x-if="monitoringStatusMap && monitoringStatusMap[id] === 'paused'"><x-badge type="warning">{{ __('monitoring.index.table.paused') }}</x-badge></template>
+                                            <template x-if="maintenanceStatusMap && maintenanceStatusMap[id]"><x-badge type="info">{{ __('monitoring.index.table.maintenance') }}</x-badge></template>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 lg:justify-end">
+                                        <a href="#" x-bind:href="'/monitorings/' + id" class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-purple-300 hover:text-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:text-gray-200 dark:hover:border-purple-500 dark:hover:text-purple-300">{{ __('monitoring.index.workspace.view') }}</a>
+                                        <a href="#" x-bind:href="'/monitorings/' + id + '/edit'" data-form-modal-trigger data-form-modal-name="monitoring-form-modal" class="inline-flex items-center rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">{{ __('button.edit') }}</a>
+                                    </div>
+                                </div>
+                            </article>
+                        </template>
+                    </section>
+
+                    <div class="flex justify-center">
+                        {{ $monitorings->withQueryString()->links() }}
                     </div>
-                    <p x-show="!summaryReady" class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ __('monitoring.index.table.summary_loading') }}
-                    </p>
                 </div>
 
-                <div class="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    <div class="rounded-lg bg-red-50 p-3 dark:bg-red-950/30">
-                        <p class="text-sm text-red-700 dark:text-red-300">{{ __('monitoring.index.table.attention') }}</p>
-                        <p class="mt-1 text-2xl font-bold text-red-800 dark:text-red-200" x-text="summaryReady ? attentionCount : '—'"></p>
-                    </div>
-                    <div class="rounded-lg bg-green-50 p-3 dark:bg-green-950/30">
-                        <p class="text-sm text-green-700 dark:text-green-300">{{ __('monitoring.index.table.healthy') }}</p>
-                        <p class="mt-1 text-2xl font-bold text-green-800 dark:text-green-200" x-text="summaryReady ? healthyCount : '—'"></p>
-                    </div>
-                    <div class="rounded-lg bg-yellow-50 p-3 dark:bg-yellow-950/30">
-                        <p class="text-sm text-yellow-700 dark:text-yellow-300">{{ __('monitoring.index.table.paused_count') }}</p>
-                        <p class="mt-1 text-2xl font-bold text-yellow-800 dark:text-yellow-200" x-text="summaryReady ? pausedCount : '—'"></p>
-                    </div>
-                    <div class="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/30">
-                        <p class="text-sm text-blue-700 dark:text-blue-300">{{ __('monitoring.index.table.maintenance_count') }}</p>
-                        <p class="mt-1 text-2xl font-bold text-blue-800 dark:text-blue-200" x-text="summaryReady ? maintenanceCount : '—'"></p>
-                    </div>
-                </div>
-            </x-container>
+                <aside class="space-y-4 lg:sticky lg:top-6 lg:self-start" aria-label="{{ __('monitoring.index.table.summary') }}">
+                    <section class="rounded-2xl border border-purple-200 bg-purple-50 p-5 shadow-sm dark:border-purple-900/60 dark:bg-purple-950/30">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-purple-600 dark:text-purple-300">{{ __('monitoring.index.workspace.all_systems') }}</p>
+                                <p class="mt-2 text-lg font-bold text-gray-900 dark:text-gray-100" x-text="summaryReady ? (attentionCount > 0 ? '{{ __('monitoring.index.workspace.attention_state') }}' : '{{ __('monitoring.index.workspace.operational') }}') : '{{ __('monitoring.index.table.summary_loading') }}'"></p>
+                            </div>
+                            <span class="mt-1 h-3 w-3 rounded-full bg-gray-300" :class="attentionCount > 0 ? 'bg-red-500' : 'bg-emerald-500'" aria-hidden="true"></span>
+                        </div>
+                        <div class="mt-5 grid grid-cols-2 gap-3 border-t border-purple-200 pt-4 dark:border-purple-900/60">
+                            <div><p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" x-text="summaryReady ? healthyCount : '—'"></p><p class="text-xs text-gray-500 dark:text-gray-400">{{ __('monitoring.index.table.healthy') }}</p></div>
+                            <div><p class="text-2xl font-bold text-red-600 dark:text-red-400" x-text="summaryReady ? attentionCount : '—'"></p><p class="text-xs text-gray-500 dark:text-gray-400">{{ __('monitoring.index.table.attention') }}</p></div>
+                        </div>
+                    </section>
 
-            <div x-show="monitoringIds.length === 0">
+                    <a href="{{ route('incidents.analytics') }}" class="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-purple-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700">
+                        <div class="flex items-center justify-between gap-3"><span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ __('monitoring.index.workspace.open_incidents') }}</span><span class="rounded-full bg-red-50 px-2.5 py-1 text-sm font-bold text-red-700 dark:bg-red-950/40 dark:text-red-300">{{ $openIncidentCount }}</span></div>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.description') }}</p>
+                        <span class="mt-4 inline-flex items-center text-sm font-semibold text-purple-700 dark:text-purple-300">{{ __('monitoring.index.workspace.view') }} <span class="ml-1" aria-hidden="true">→</span></span>
+                    </a>
+
+                    <a href="{{ route('status-pages.index') }}" class="block rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-purple-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700">
+                        <div class="flex items-center justify-between gap-3"><span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ __('monitoring.index.workspace.status_pages') }}</span><span class="rounded-full bg-purple-50 px-2.5 py-1 text-sm font-bold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">{{ $statusPageCount }}</span></div>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.overview.status_pages') }}</p>
+                        <span class="mt-4 inline-flex items-center text-sm font-semibold text-purple-700 dark:text-purple-300">{{ __('monitoring.index.workspace.manage') }} <span class="ml-1" aria-hidden="true">→</span></span>
+                    </a>
+                </aside>
+            </div>
+
+            <div x-show="monitoringIds.length === 0" x-cloak>
                 <x-container class="text-center">
-                    <x-heading type="h2">
-                        {{ __('monitoring.no_monitoring.title') }}
-                    </x-heading>
-                    <x-paragraph space="true">
-                        {{ __('monitoring.no_monitoring.text') }}
-                    </x-paragraph>
+                    <x-heading type="h2">{{ __('monitoring.no_monitoring.title') }}</x-heading>
+                    <x-paragraph space="true">{{ __('monitoring.no_monitoring.text') }}</x-paragraph>
                     @if ($canCreateMonitoring)
-                        <x-primary-button :href="route('monitorings.create')" data-form-modal-trigger data-form-modal-name="monitoring-form-modal">
-                            {{ __('button.create') }}
-                        </x-primary-button>
+                        <x-primary-button :href="route('monitorings.create')" data-form-modal-trigger data-form-modal-name="monitoring-form-modal">{{ __('button.create') }}</x-primary-button>
                     @endif
                 </x-container>
             </div>
-
-            <template x-for="id in monitoringIds" :key="id" x-cloak>
-
-                <div>
-
-                    <x-container space="true" class="monitoring-card">
-                        <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-3">
-                            <div class="space-y-1">
-                                <x-heading type="h2"
-                                    x-text="monitoringNames[id] ?? '{{ __('monitoring.general.monitoring_id') }}'.replace(':id', id)"></x-heading>
-                                <x-paragraph space="true" class="inline-flex items-center">
-                                    <x-span x-text="monitoringTargets[id]"></x-span>
-                                    <x-span x-text="'(' + monitoringTypes[id] + ')'" class="ml-2"></x-span>
-                                    <template x-if="monitoringPublicLabelMap[id]">
-                                        <a x-bind:href="'/label/' + id" target="_blank"
-                                            class="ml-2 text-gray-400 hover:text-gray-500">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-.75.75H13.5a.75.75 0 0 1-.75-.75Z" />
-                                            </svg>
-                                        </a>
-                                    </template>
-                                </x-paragraph>
-                                <div :id="'status-since-' + id">
-                                    <div x-show="statusMap[id]" class="flex items-center gap-1">
-                                        <x-span
-                                            x-text="statusMap[id] === '{{ MonitoringStatus::UP->value }}' ? '🟢' : (statusMap[id] === '{{ MonitoringStatus::DOWN->value }}' ? '🔴' : '🟡')"></x-span>
-                                        <x-span x-text="statusMap[id]?.toUpperCase()"></x-span>
-                                        <x-span class="ml-1"
-                                            x-text="sinceMap[id] ? '{{ __('monitoring.index.table.since') }} ' + sinceMap[id] : ''"></x-span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="self-center">
-                                <div :id="'monitoring-heatmap-' + id" class="flex gap-0.5 md:justify-center">
-                                    <template x-for="i in 24" :key="i">
-                                        <div class="h-6 w-3 animate-pulse rounded-sm bg-gray-300 dark:bg-gray-400">
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <template x-if="monitoringStatusMap && monitoringStatusMap[id] === 'paused'">
-                                    <div class="mt-1 sm:text-center">
-                                        <x-badge type="warning">
-                                            {{ __('monitoring.index.table.paused') }}
-                                        </x-badge>
-                                    </div>
-                                </template>
-                                <template x-if="maintenanceStatusMap && maintenanceStatusMap[id]">
-                                    <div class="mt-1 sm:text-center">
-                                        <x-badge type="info">
-                                            {{ __('monitoring.index.table.maintenance') }}
-                                        </x-badge>
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="flex flex-wrap justify-start gap-2 self-center md:justify-end">
-                                <a href="#" x-bind:href="'/monitorings/' + id"
-                                    class="focus:outline-hidden inline-flex w-max cursor-pointer items-center rounded-md border border-purple-500 bg-white px-4 py-2 font-semibold uppercase tracking-widest text-purple-600 transition duration-150 ease-in-out hover:bg-purple-50 focus:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:bg-purple-100 dark:bg-gray-700 dark:text-purple-300">
-                                    {{ __('button.show') }}
-                                </a>
-                                <a href="#" x-bind:href="'/monitorings/' + id + '/edit'"
-                                    data-form-modal-trigger data-form-modal-name="monitoring-form-modal"
-                                    class="focus:outline-hidden inline-flex w-max cursor-pointer items-center rounded-md border border-purple-500 bg-white px-4 py-2 font-semibold uppercase tracking-widest text-purple-600 transition duration-150 ease-in-out hover:bg-purple-50 focus:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:bg-purple-100 dark:bg-gray-700 dark:text-purple-300">
-                                    {{ __('button.edit') }}
-                                </a>
-                            </div>
-                        </div>
-                    </x-container>
-                </div>
-            </template>
-
-            {{ $monitorings->withQueryString()->links() }}
 
             <x-form-modal name="monitoring-form-modal" title="{{ __('monitoring.title') }}"
                 description="{{ __('monitoring.form.sections.basic') }}" max-width="6xl"

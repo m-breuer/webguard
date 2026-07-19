@@ -9,6 +9,7 @@ use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
 use App\Models\Team;
@@ -184,6 +185,11 @@ class MonitoringController extends Controller
         $maintenanceStatusMap = $lengthAwarePaginator->getCollection()->mapWithKeys(function ($monitoring) {
             return [$monitoring->id => $monitoring->isUnderMaintenance()];
         });
+        $openIncidentCount = Incident::query()
+            ->whereNull('up_at')
+            ->whereHas('monitoring')
+            ->count();
+        $statusPageCount = $currentUser->statusPages()->count();
         $modalForm = $request->string('modal')->toString();
         $modalMonitoring = null;
         $modalFormData = [];
@@ -227,6 +233,8 @@ class MonitoringController extends Controller
             'privateMonitoringsTotal' => $privateMonitoringsTotal,
             'canCreateMonitoring' => $canCreateMonitoring,
             'maintenanceStatusMap' => $maintenanceStatusMap,
+            'openIncidentCount' => $openIncidentCount,
+            'statusPageCount' => $statusPageCount,
             'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
             'teams' => Team::query()->visibleTo($currentUser)->orderBy('name')->get(['id', 'name']),
             'modalForm' => $modalForm,
