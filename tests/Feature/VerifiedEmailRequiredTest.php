@@ -78,7 +78,7 @@ class VerifiedEmailRequiredTest extends TestCase
 
         $testResponse = $this->actingAs($user)->get(route('dashboard'));
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('dashboard.title'));
+        $testResponse->assertSeeText(__('dashboard.greeting', ['name' => $user->name]));
 
         $monitoringsResponse = $this->actingAs($user)->get(route('monitorings.index'));
         $monitoringsResponse->assertOk();

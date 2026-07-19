@@ -209,14 +209,14 @@
 
             <section id="incident-analytics" aria-labelledby="incident-analytics-heading" class="scroll-mt-6 space-y-4">
                 <x-container>
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div class="space-y-5">
                         <div>
                             <x-heading type="h2" id="incident-analytics-heading">{{ __('incidents.analytics.sections.recent') }}</x-heading>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.definitions') }}</p>
                         </div>
-                        <form method="GET" action="{{ route('incidents.analytics') }}" class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-4xl lg:grid-cols-5">
-                            <div>
-                                <x-input-label for="days" :value="__('incidents.analytics.filters.period')" />
+                        <form method="GET" action="{{ route('incidents.analytics') }}" class="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
+                            <div class="min-w-0">
+                                <x-input-label for="days" class="leading-5" :value="__('incidents.analytics.filters.period')" />
                                 <x-select-input id="days" name="days" class="mt-1 w-full">
                                     @foreach ([30, 90, 365] as $daysOption)
                                         <option value="{{ $daysOption }}" @selected($filters['days'] === $daysOption)>
@@ -225,8 +225,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div>
-                                <x-input-label for="incident_type" :value="__('incidents.analytics.filters.type')" />
+                            <div class="min-w-0">
+                                <x-input-label for="incident_type" class="leading-5" :value="__('incidents.analytics.filters.type')" />
                                 <x-select-input id="incident_type" name="incident_type" class="mt-1 w-full">
                                     <option value="">{{ __('incidents.analytics.filters.all') }}</option>
                                     @foreach ($incidentTypes as $type)
@@ -236,8 +236,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div>
-                                <x-input-label for="severity" :value="__('incidents.analytics.filters.severity')" />
+                            <div class="min-w-0">
+                                <x-input-label for="severity" class="leading-5" :value="__('incidents.analytics.filters.severity')" />
                                 <x-select-input id="severity" name="severity" class="mt-1 w-full">
                                     <option value="">{{ __('incidents.analytics.filters.all') }}</option>
                                     @foreach ($severities as $severity)
@@ -247,8 +247,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div>
-                                <x-input-label for="customer_impact" :value="__('incidents.analytics.filters.customer_impact')" />
+                            <div class="min-w-0">
+                                <x-input-label for="customer_impact" class="leading-5" :value="__('incidents.analytics.filters.customer_impact')" />
                                 <x-select-input id="customer_impact" name="customer_impact" class="mt-1 w-full">
                                     <option value="">{{ __('incidents.analytics.filters.all') }}</option>
                                     @foreach ($customerImpacts as $impact)
@@ -258,8 +258,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div class="flex items-end">
-                                <x-primary-button class="w-full justify-center">{{ __('incidents.analytics.filters.apply') }}</x-primary-button>
+                            <div class="flex items-end sm:col-span-2 sm:justify-end">
+                                <x-primary-button class="w-full justify-center whitespace-nowrap sm:w-auto">{{ __('incidents.analytics.filters.apply') }}</x-primary-button>
                             </div>
                             <div class="sm:col-span-2 lg:col-span-5">
                                 <x-input-label for="affected_service" :value="__('incidents.analytics.filters.affected_service')" />

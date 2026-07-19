@@ -31,14 +31,14 @@ it('supports desktop service selection and keeps the Signal Room inside the view
         'response_time' => 128,
     ]);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/dashboard')
         ->resize(1280, 800);
 
-    $page->assertVisible('[data-signal-room]')
+    $webpage->assertVisible('[data-signal-room]')
         ->assertVisible('[data-signal-service="' . $monitoring->id . '"]')
         ->assertVisible('aside [data-signal-detail]')
         ->assertScript(<<<'JS'
@@ -114,14 +114,14 @@ it('supports mobile filtering, service details and Escape to close the detail sh
     ]);
     $unknown = Monitoring::factory()->for($user)->create(['name' => 'Unknown Search Service']);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/dashboard')
         ->resize(390, 640);
 
-    $page->click('[data-signal-filter="attention"]')
+    $webpage->click('[data-signal-filter="attention"]')
         ->assertScript(<<<JS
 function () {
     const service = document.querySelector('[data-signal-service="{$healthy->id}"]');
@@ -143,10 +143,10 @@ function () {
         && document.body.scrollWidth <= document.body.clientWidth;
 }
 JS, true);
-    $page->keys('input[type="search"]', 'Escape');
-    $page->wait(0.2);
+    $webpage->keys('input[type="search"]', 'Escape');
+    $webpage->wait(0.2);
 
-    $page->assertScript(<<<'JS'
+    $webpage->assertScript(<<<'JS'
 function () {
     const sheet = document.querySelector('[data-signal-mobile-sheet]');
     return sheet !== null && getComputedStyle(sheet).display === 'none';
@@ -179,7 +179,7 @@ it('keeps the desktop language menu within the navigation rail', function (): vo
         'password' => Hash::make('password'),
     ]);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')

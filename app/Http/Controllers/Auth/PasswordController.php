@@ -19,14 +19,14 @@ class PasswordController extends Controller
     /**
      * Update the user's password.
      *
-     * @param  Request  $request  The HTTP request instance containing the new password data.
+     * @param  Request  $updatePasswordRequest  The HTTP request instance containing the new password data.
      * @return RedirectResponse A redirect response after updating the password.
      */
-    public function update(UpdatePasswordRequest $request): RedirectResponse
+    public function update(UpdatePasswordRequest $updatePasswordRequest): RedirectResponse
     {
-        $validated = $request->validated();
+        $validated = $updatePasswordRequest->validated();
 
-        $request->user()->update([
+        $updatePasswordRequest->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
 

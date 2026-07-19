@@ -22,19 +22,19 @@ it('opens the dashboard monitoring create actions in a responsive modal', functi
         'password' => Hash::make('password'),
     ]);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]');
 
     foreach ([[1280, 800], [390, 640]] as $widthHeight) {
         [$width, $height] = $widthHeight;
-        $page->navigate('/dashboard')->resize($width, $height);
+        $webpage->navigate('/dashboard')->resize($width, $height);
 
         $trigger = 'a[data-form-modal-name="monitoring-form-modal"][href$="/monitorings/create"]';
         $modal = '[data-form-modal="monitoring-form-modal"]';
 
-        $page->assertCount($trigger, 1)
+        $webpage->assertCount($trigger, 1)
             ->click($trigger)
             ->wait(1)
             ->waitForText(__('monitoring.form.sections.basic'))
@@ -52,7 +52,7 @@ JS, true)
             ->assertNoJavaScriptErrors();
 
         if ($width === 390) {
-            $page->assertScript(<<<'JS'
+            $webpage->assertScript(<<<'JS'
 function () {
     const scrollRegion = document.querySelector('[data-form-modal="monitoring-form-modal"] .min-h-0.overflow-y-auto');
 
@@ -62,8 +62,8 @@ function () {
 JS, true);
         }
 
-        $page->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
-        $page->assertMissing($modal);
+        $webpage->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
+        $webpage->assertMissing($modal);
     }
 });
 
@@ -89,21 +89,21 @@ it('opens service operations status page and monitoring group modals responsivel
         'is_public' => true,
     ]);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]');
 
     foreach ([[1280, 800], [390, 640]] as $widthHeight) {
         [$width, $height] = $widthHeight;
-        $page->navigate('/incidents/analytics')->resize($width, $height);
+        $webpage->navigate('/incidents/analytics')->resize($width, $height);
 
         $statusTrigger = 'a[data-form-modal-name="status-page-form-modal"][href$="/status-pages/create"]';
         $statusModal = '[data-form-modal="status-page-form-modal"]';
         $groupTrigger = 'a[data-form-modal-name="monitoring-group-form-modal"][href$="/monitoring-groups/' . $group->getRouteKey() . '/edit"]';
         $groupModal = '[data-form-modal="monitoring-group-form-modal"]';
 
-        $page->assertCount($statusTrigger, 1)
+        $webpage->assertCount($statusTrigger, 1)
             ->click($statusTrigger)
             ->wait(1)
             ->waitForText(__('status_page.form.name'))
@@ -117,8 +117,8 @@ function () {
         && document.body.scrollWidth <= document.body.clientWidth;
 }
 JS, true);
-        $page->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
-        $page->assertMissing($statusModal)
+        $webpage->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
+        $webpage->assertMissing($statusModal)
             ->click($groupTrigger)
             ->wait(1)
             ->waitForText(__('monitoring_group.form.name'))
@@ -134,7 +134,7 @@ function () {
 JS, true)
             ->assertNoJavaScriptErrors();
 
-        $page->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
-        $page->assertMissing($groupModal);
+        $webpage->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
+        $webpage->assertMissing($groupModal);
     }
 });
