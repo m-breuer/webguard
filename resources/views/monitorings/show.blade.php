@@ -630,7 +630,7 @@
 
                     <div class="pt-5 text-center" x-show="recentChecksHasMore">
                         <button type="button" @click="loadMoreChecks()"
-                            class="inline-flex items-center rounded-md border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold uppercase text-emerald-700 shadow-sm transition duration-150 hover:border-emerald-300 hover:bg-emerald-50 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-800 dark:bg-gray-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                            class="inline-flex items-center rounded-md border border-purple-200 bg-white px-4 py-2 text-sm font-semibold uppercase text-purple-700 shadow-sm transition duration-150 hover:border-purple-300 hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-purple-800 dark:bg-gray-800 dark:text-purple-300 dark:hover:bg-purple-950/40"
                             x-bind:disabled="recentChecksLoadingMore"
                             x-bind:class="{ 'opacity-60 cursor-not-allowed': recentChecksLoadingMore }">
                             <span
