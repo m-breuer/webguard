@@ -48,7 +48,8 @@ function () {
         return false;
     }
 
-    return primaryNavigation.querySelectorAll('a').length === 2;
+    return primaryNavigation.querySelectorAll('[data-primary-destination]').length === 2
+        && primaryNavigation.querySelector('[data-notifications-navigation]') !== null;
 }
 JS, true)
         ->assertScript(<<<'JS'

@@ -205,7 +205,7 @@ class NotificationPaginationStateTest extends TestCase
         $sectionResponse->assertJsonPath('count', 0);
     }
 
-    public function test_notifications_navigation_uses_bell_icon_before_language_switch(): void
+    public function test_notifications_navigation_uses_a_labeled_rail_section_and_preserves_mobile_bell(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -213,6 +213,8 @@ class NotificationPaginationStateTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
+        $testResponse->assertSeeText(__('notifications.title'));
+        $testResponse->assertSeeHtml('data-notifications-navigation');
         $testResponse->assertSeeHtml('id="notifications-bell-desktop"');
         $testResponse->assertSeeHtml('id="notifications-bell-mobile"');
         $testResponse->assertSeeHtml('href="' . route('notifications.index') . '"');
@@ -221,9 +223,9 @@ class NotificationPaginationStateTest extends TestCase
 
         $content = $testResponse->getContent() ?? '';
 
-        $this->assertLessThan(
-            mb_strpos($content, 'id="language-switch-desktop"'),
-            mb_strpos($content, 'id="notifications-bell-desktop"'),
+        $this->assertTrue(
+            mb_strpos($content, 'data-primary-navigation') < mb_strpos($content, 'data-notifications-navigation')
+            && mb_strpos($content, 'data-notifications-navigation') < mb_strpos($content, 'data-navigation-utilities'),
         );
         $this->assertLessThan(
             mb_strpos($content, 'id="language-switch-mobile"'),

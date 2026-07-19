@@ -16,7 +16,7 @@
         </a>
 
         <div data-primary-navigation class="hidden flex-1 pt-12 lg:block">
-            <a href="{{ route('dashboard') }}"
+            <a data-primary-destination href="{{ route('dashboard') }}"
                 @class([
                     'flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
                     'border-purple-400/50 bg-purple-700 text-white shadow-lg shadow-purple-950/20' => request()->routeIs('dashboard'),
@@ -28,8 +28,26 @@
                 <span>{{ __('app.navigation.signal_room') }}</span>
             </a>
 
+            <div data-notifications-navigation class="mt-5 space-y-2">
+                <p class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('notifications.title') }}</p>
+                <a id="notifications-bell-desktop" href="{{ route('notifications.index') }}"
+                    aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"
+                    @class([
+                        'relative inline-flex h-10 w-10 items-center justify-center rounded-xl border transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
+                        'border-purple-300 bg-purple-800 text-white' => request()->routeIs('notifications.*'),
+                        'border-purple-800 text-purple-100 hover:border-purple-600 hover:bg-purple-900' => ! request()->routeIs('notifications.*'),
+                    ])>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a2.75 2.75 0 0 1-5.714 0m11.104-2.108c-1.086-1.3-1.747-2.95-1.747-4.755V9.5a6.5 6.5 0 0 0-13 0v.719c0 1.805-.661 3.455-1.747 4.755A1.25 1.25 0 0 0 4.713 17h14.574a1.25 1.25 0 0 0 .96-2.026Z" />
+                    </svg>
+                    @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                        <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
+                    @endif
+                </a>
+            </div>
+
             <div class="mt-5">
-                <a href="{{ route('monitorings.index') }}"
+                <a data-primary-destination href="{{ route('monitorings.index') }}"
                     @class([
                         'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
                         'border-purple-400/50 bg-purple-700 text-white shadow-lg shadow-purple-950/20' => $monitoringNavActive,
@@ -51,20 +69,6 @@
 
         <div data-navigation-utilities class="mt-6 hidden space-y-4 lg:block">
             <div class="flex items-center gap-2">
-                <a id="notifications-bell-desktop" href="{{ route('notifications.index') }}"
-                    aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"
-                    @class([
-                        'relative inline-flex h-10 w-10 items-center justify-center rounded-xl border transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
-                        'border-purple-300 bg-purple-800 text-white' => request()->routeIs('notifications.*'),
-                        'border-purple-800 text-purple-100 hover:border-purple-600 hover:bg-purple-900' => ! request()->routeIs('notifications.*'),
-                    ])>
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a2.75 2.75 0 0 1-5.714 0m11.104-2.108c-1.086-1.3-1.747-2.95-1.747-4.755V9.5a6.5 6.5 0 0 0-13 0v.719c0 1.805-.661 3.455-1.747 4.755A1.25 1.25 0 0 0 4.713 17h14.574a1.25 1.25 0 0 0 .96-2.026Z" />
-                    </svg>
-                    @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
-                        <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
-                    @endif
-                </a>
                 <x-language-switch id="language-switch-desktop" />
             </div>
 
