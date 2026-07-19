@@ -69,7 +69,7 @@
 
         <div data-navigation-utilities class="mt-6 hidden space-y-4 lg:block">
             <div class="flex items-center gap-2">
-                <x-language-switch id="language-switch-desktop" />
+                <x-language-switch id="language-switch-desktop" align="left" />
             </div>
 
             <x-dropdown align="right" width="48" contentClasses="bg-white py-2 dark:bg-slate-900">

@@ -139,3 +139,43 @@ function () {
 JS, true)
         ->assertNoJavaScriptErrors();
 });
+
+it('keeps the desktop language menu within the navigation rail', function (): void {
+    if (! file_exists(public_path('build/manifest.json'))) {
+        $this->markTestSkipped('Browser test requires built Vite assets in public/build.');
+    }
+
+    $this->withVite();
+
+    $package = Package::factory()->create(['monitoring_limit' => 10]);
+    $user = User::factory()->create([
+        'package_id' => $package->id,
+        'password' => Hash::make('password'),
+    ]);
+
+    $page = visit('/login')
+        ->type('email', $user->email)
+        ->type('password', 'password')
+        ->press('form[action$="/login"] button[type="submit"]')
+        ->navigate('/dashboard')
+        ->resize(1280, 800)
+        ->click('#language-switch-desktop')
+        ->assertScript(<<<'JS'
+function () {
+    const trigger = document.querySelector('#language-switch-desktop');
+    const menu = trigger?.closest('[x-data]')?.querySelector('.absolute');
+    const rail = document.querySelector('nav');
+
+    if (!trigger || !menu || !rail || getComputedStyle(menu).display === 'none') {
+        return false;
+    }
+
+    const menuRect = menu.getBoundingClientRect();
+    const railRect = rail.getBoundingClientRect();
+
+    return menuRect.left >= railRect.left
+        && menuRect.right <= railRect.right;
+}
+JS, true)
+        ->assertNoJavaScriptErrors();
+});
