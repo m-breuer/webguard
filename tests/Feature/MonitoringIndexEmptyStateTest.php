@@ -56,6 +56,22 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse->assertSeeHtml('class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto"');
     }
 
+    public function test_monitoring_index_uses_the_operations_workspace_layout(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->for($user)->create(['name' => 'Operations service']);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSee(__('monitoring.index.workspace.active'));
+        $testResponse->assertSee(__('monitoring.index.workspace.open_incidents'));
+        $testResponse->assertSee(__('monitoring.index.workspace.status_pages'));
+        $testResponse->assertSeeHtml('href="' . route('incidents.analytics') . '"');
+        $testResponse->assertSeeHtml('href="' . route('status-pages.index') . '"');
+    }
+
     public function test_default_monitoring_index_reuses_paginator_total_without_extra_monitoring_count_query(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
