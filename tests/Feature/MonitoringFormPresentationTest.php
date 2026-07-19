@@ -76,5 +76,9 @@ class MonitoringFormPresentationTest extends TestCase
         $editResponse->assertSeeText('Production');
         $editResponse->assertSeeHtml('data-monitoring-ownership-status');
         $editResponse->assertSeeHtml('data-monitoring-ownership-badge');
+        $editResponse->assertSeeHtml('data-monitoring-form-actions');
+        $editResponse->assertSeeHtml('data-monitoring-notification-preferences');
+        $editResponse->assertSeeHtml('data-select-control="native"');
+        $editResponse->assertSeeHtml('data-select-control="multi"');
     }
 }
