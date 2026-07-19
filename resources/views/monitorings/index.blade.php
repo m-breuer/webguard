@@ -150,7 +150,7 @@
                     @endforeach
                 </div>
 
-                <div class="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:grid-cols-2 md:flex md:w-auto md:flex-wrap md:justify-end md:gap-3">
+                <div class="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 md:flex md:w-auto md:flex-wrap md:gap-3">
                     <div class="min-w-0">
                         <div x-data="{
                             selectedStatus: '{{ request('lifecycle') ?? '' }}',

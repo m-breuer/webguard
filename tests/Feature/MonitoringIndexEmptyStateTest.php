@@ -52,7 +52,7 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml('class="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:grid-cols-2 md:flex md:w-auto md:flex-wrap md:justify-end md:gap-3"');
+        $testResponse->assertSeeHtml('class="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 md:flex md:w-auto md:flex-wrap md:gap-3"');
         $testResponse->assertSeeHtml('class="w-full rounded-md border border-gray-300 p-2 pr-8 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 md:w-auto"');
     }
 
