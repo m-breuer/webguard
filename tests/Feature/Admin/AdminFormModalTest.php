@@ -17,7 +17,7 @@ class AdminFormModalTest extends TestCase
         $admin = $this->adminUser();
         $user = User::factory()->create();
         $package = Package::factory()->create(['is_selectable' => false]);
-        $instance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'modal-instance',
             'ip_address' => '10.0.0.10',
             'api_key_hash' => 'secret',
@@ -40,7 +40,7 @@ class AdminFormModalTest extends TestCase
             ->get(route('admin.server-instances.index'))
             ->assertOk()
             ->assertSeeHtml('data-form-modal-name="admin-server-instance-form-modal"')
-            ->assertSeeHtml('href="' . route('admin.server-instances.edit', $instance) . '"');
+            ->assertSeeHtml('href="' . route('admin.server-instances.edit', $serverInstance) . '"');
     }
 
     public function test_admin_can_load_create_and_edit_forms_as_modal_fragments(): void
@@ -48,7 +48,7 @@ class AdminFormModalTest extends TestCase
         $admin = $this->adminUser();
         $user = User::factory()->unverified()->create();
         $package = Package::factory()->create(['is_selectable' => false]);
-        $instance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'modal-fragment-instance',
             'ip_address' => '10.0.0.11',
             'api_key_hash' => 'secret',
@@ -61,7 +61,7 @@ class AdminFormModalTest extends TestCase
             [route('admin.packages.create', ['modal' => 1]), 'admin-package-create'],
             [route('admin.packages.edit', ['package' => $package, 'modal' => 1]), 'admin-package-edit'],
             [route('admin.server-instances.create', ['modal' => 1]), 'admin-server-instance-create'],
-            [route('admin.server-instances.edit', ['server_instance' => $instance, 'modal' => 1]), 'admin-server-instance-edit'],
+            [route('admin.server-instances.edit', ['server_instance' => $serverInstance, 'modal' => 1]), 'admin-server-instance-edit'],
         ];
 
         foreach ($modalRoutes as [$route, $modalForm]) {
@@ -82,7 +82,7 @@ class AdminFormModalTest extends TestCase
         $admin = $this->adminUser();
         $user = User::factory()->create();
         $package = Package::factory()->create(['is_selectable' => false]);
-        $instance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'modal-validation-instance',
             'ip_address' => '10.0.0.12',
             'api_key_hash' => 'secret',
@@ -140,15 +140,15 @@ class AdminFormModalTest extends TestCase
             ->assertSessionHasErrors('ip_address');
 
         $this->actingAs($admin)
-            ->put(route('admin.server-instances.update', $instance), [
-                'code' => $instance->code,
+            ->put(route('admin.server-instances.update', $serverInstance), [
+                'code' => $serverInstance->code,
                 'ip_address' => 'not-an-ip',
                 'api_key' => '',
                 'modal_form' => 'admin-server-instance-edit',
             ])
             ->assertRedirect(route('admin.server-instances.index', [
                 'modal' => 'admin-server-instance-edit',
-                'server_instance' => $instance,
+                'server_instance' => $serverInstance,
             ]));
     }
 

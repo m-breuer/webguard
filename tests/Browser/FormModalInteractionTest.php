@@ -33,7 +33,7 @@ it('keeps the user monitoring modal usable on desktop and mobile', function (): 
         'preferred_location' => $instanceCode,
     ]);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
@@ -41,10 +41,10 @@ it('keeps the user monitoring modal usable on desktop and mobile', function (): 
 
     foreach ([[1280, 800], [390, 640]] as $iteration => [$width, $height]) {
         if ($iteration > 0) {
-            $page->navigate('/monitorings');
+            $webpage->navigate('/monitorings');
         }
 
-        $page->resize($width, $height);
+        $webpage->resize($width, $height);
 
         $trigger = 'header [data-form-modal-name="monitoring-form-modal"]';
         $modal = '[data-form-modal="monitoring-form-modal"]';
@@ -52,9 +52,9 @@ it('keeps the user monitoring modal usable on desktop and mobile', function (): 
         $nameField = $modal . ' [x-ref="content"] form input[name="name"]';
         $targetField = $modal . ' [x-ref="content"] form input[name="target"]';
 
-        $page->assertCount($trigger, 1)
+        $webpage->assertCount($trigger, 1)
             ->click($trigger);
-        expect($page->script(<<<'JS'
+        expect($webpage->script(<<<'JS'
 async function () {
     const loader = document.querySelector('[x-data="formModalLoader()"]');
     const startedAt = Date.now();
@@ -66,7 +66,7 @@ async function () {
     return loader !== null && window.Alpine.$data(loader)?.loading === false;
 }
 JS))->toBeTrue();
-        $page->waitForText(__('monitoring.form.sections.basic'))
+        $webpage->waitForText(__('monitoring.form.sections.basic'))
             ->assertVisible($modal)
             ->assertScript(<<<'JS'
 function () {
@@ -80,7 +80,7 @@ function () {
 JS, true);
 
         if ($width === 390) {
-            $page->assertScript(<<<'JS'
+            $webpage->assertScript(<<<'JS'
 function () {
     const scrollRegion = document.querySelector('[data-form-modal="monitoring-form-modal"] .min-h-0.overflow-y-auto');
 
@@ -91,23 +91,23 @@ function () {
 JS, true);
         }
 
-        $page->clear($nameField)
+        $webpage->clear($nameField)
             ->press($submit)
             ->assertVisible($modal);
-        $page->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
-        $page->assertMissing($modal)
+        $webpage->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
+        $webpage->assertMissing($modal)
             ->assertScript(<<<'JS'
 function () {
     return document.activeElement === document.querySelector('header [data-form-modal-name="monitoring-form-modal"]');
 }
 JS, true);
-        $page->navigate('/monitorings?modal=monitoring-create')
+        $webpage->navigate('/monitorings?modal=monitoring-create')
             ->waitForText(__('monitoring.form.sections.basic'))
             ->assertVisible($modal)
             ->assertCount($nameField, 1)
             ->fill($nameField, 'Browser modal ' . Str::lower(Str::random(8)))
             ->fill($targetField, 'https://example.com');
-        $page->assertScript(<<<'JS'
+        $webpage->assertScript(<<<'JS'
 function () {
     const modal = document.querySelector('[data-form-modal="monitoring-form-modal"]');
     const form = modal?.querySelector('[x-ref="content"] form');
@@ -117,7 +117,7 @@ function () {
     return Boolean(name && type === 'http' && target === 'https://example.com' && form?.checkValidity());
 }
 JS, true);
-        $page->press($submit)
+        $webpage->press($submit)
             ->waitForText(__('monitoring.messages.created'))
             ->assertNoJavaScriptErrors();
     }
@@ -139,7 +139,7 @@ it('opens the admin package edit form in a focused responsive modal', function (
         'password' => Hash::make('password'),
     ]);
 
-    $page = visit('/login')
+    $webpage = visit('/login')
         ->type('email', $admin->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
@@ -147,15 +147,15 @@ it('opens the admin package edit form in a focused responsive modal', function (
 
     foreach ([[1280, 800], [390, 640]] as $iteration => [$width, $height]) {
         if ($iteration > 0) {
-            $page->navigate('/admin/packages');
+            $webpage->navigate('/admin/packages');
         }
 
-        $page->resize($width, $height);
+        $webpage->resize($width, $height);
 
         $editTrigger = 'a[data-form-modal-name="admin-package-form-modal"][href$="/packages/' . $package->getRouteKey() . '/edit"]';
         $modal = '[data-form-modal="admin-package-form-modal"]';
 
-        $page->assertCount($editTrigger, 1)
+        $webpage->assertCount($editTrigger, 1)
             ->click($editTrigger)
             ->waitForText(__('admin.packages.fields.monitoring_limit'))
             ->assertVisible($modal)
@@ -169,8 +169,8 @@ function () {
         && document.body.scrollWidth <= document.body.clientWidth;
 }
 JS, true);
-        $page->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
-        $page->assertMissing($modal)
+        $webpage->script("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));");
+        $webpage->assertMissing($modal)
             ->assertNoJavaScriptErrors();
     }
 });

@@ -29,7 +29,7 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertSeeHtml('href="' . route('dashboard') . '"');
         $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
         $testResponse->assertSeeHtml('data-secondary-navigation');
-        $this->assertSame(1, substr_count($testResponse->getContent() ?? '', 'data-primary-destination'));
+        $this->assertSame(1, mb_substr_count($testResponse->getContent() ?? '', 'data-primary-destination'));
         $testResponse->assertDontSeeText(__('app.navigation.signal_room'));
         $testResponse->assertDontSeeText(__('app.navigation.workspace'));
         $testResponse->assertDontSeeHtml('data-workspace-navigation');
