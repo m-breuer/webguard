@@ -19,12 +19,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <x-heading type="h1">{{ __('incidents.analytics.title') }}</x-heading>
-            <p class="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-400">
-                {{ __('incidents.analytics.description') }}
-            </p>
-        </div>
+        <x-monitoring-operations-header />
     </x-slot>
 
     <x-main>
@@ -40,28 +35,6 @@
         </div>
 
         <div id="service-operations" class="space-y-6">
-            <nav aria-label="{{ __('incidents.analytics.overview.tabs.overview') }}" class="overflow-x-auto">
-                <div class="flex min-w-max items-center gap-1 border-b border-gray-200 dark:border-gray-700">
-                    <a href="{{ route('incidents.analytics') }}#overview"
-                        class="border-b-2 border-purple-500 px-3 py-3 text-sm font-semibold text-purple-700 dark:text-purple-300"
-                        aria-current="page">
-                        {{ __('incidents.analytics.overview.tabs.overview') }}
-                    </a>
-                    <a href="{{ route('monitoring-groups.index') }}"
-                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        {{ __('incidents.analytics.overview.tabs.groups') }}
-                    </a>
-                    <a href="{{ route('status-pages.index') }}"
-                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        {{ __('incidents.analytics.overview.tabs.status_pages') }}
-                    </a>
-                    <a href="#incident-analytics"
-                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        {{ __('incidents.analytics.overview.tabs.analytics') }}
-                    </a>
-                </div>
-            </nav>
-
             <section id="overview" aria-labelledby="service-health-heading">
                 <x-container class="overflow-hidden">
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">

@@ -32,7 +32,7 @@ return [
     'navigation' => [
         'home' => 'Hauptnavigation',
         'signal_room' => 'Signal Room',
-        'monitoring' => 'Monitoring',
+        'monitoring' => 'Überwachung',
         'workspace' => 'Workspace',
         'more' => 'Mehr',
         'sections' => [
