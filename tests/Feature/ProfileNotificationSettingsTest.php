@@ -103,6 +103,11 @@ class ProfileNotificationSettingsTest extends TestCase
 
         $testResponse = $this->actingAs($user)->get(route('profile.edit', ['full' => 1]));
         $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-profile-settings')
+            ->assertSeeHtml('id="profile-information"')
+            ->assertSeeHtml('id="profile-password"')
+            ->assertSeeHtml('id="profile-api"')
+            ->assertSeeHtml('id="profile-delete"');
         $testResponse->assertSeeText(__('profile.sections.account'));
         $testResponse->assertSeeText(__('profile.sections.preferences'));
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));

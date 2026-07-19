@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 return [
     'title' => 'Profile',
+    'navigation' => [
+        'heading' => 'Account settings',
+        'account' => 'Account and appearance',
+        'security' => 'Security',
+        'api' => 'API and documentation',
+        'danger_zone' => 'Delete account',
+    ],
     'delete_account' => [
         'heading' => 'Delete Account',
         'description' => 'Once your account is deleted, all of its resources and data will be permanently deleted.',
