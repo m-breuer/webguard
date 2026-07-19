@@ -20,7 +20,7 @@ final class MaintenanceWindowService
     {
         $at ??= Date::now();
         $windows = $this->recurringWindows($monitoring)
-            ->map(fn (MaintenanceWindow $window): ?array => $this->resolveOccurrence($window, $at))
+            ->map(fn (MaintenanceWindow $maintenanceWindow): ?array => $this->resolveOccurrence($maintenanceWindow, $at))
             ->filter()
             ->sortBy(fn (array $window): int => $window['active'] ? 0 : $window['starts_at']->getTimestamp());
 
@@ -57,16 +57,16 @@ final class MaintenanceWindowService
     /**
      * @return array{starts_at: CarbonInterface, ends_at: CarbonInterface, active: bool, recurring: bool}|null
      */
-    private function resolveOccurrence(MaintenanceWindow $window, CarbonInterface $at): ?array
+    private function resolveOccurrence(MaintenanceWindow $maintenanceWindow, CarbonInterface $at): ?array
     {
-        $timezone = $window->timezone;
-        $anchor = $window->starts_at->copy()->setTimezone($timezone);
+        $timezone = $maintenanceWindow->timezone;
+        $anchor = $maintenanceWindow->starts_at->copy()->setTimezone($timezone);
         $reference = $at->copy()->setTimezone($timezone);
 
         if ($reference->lt($anchor)) {
             $startsAt = $anchor;
         } else {
-            $startsAt = match ($window->recurrence) {
+            $startsAt = match ($maintenanceWindow->recurrence) {
                 MaintenanceWindowRecurrence::WEEKLY => $anchor->copy()->addWeeks(
                     intdiv((int) $anchor->diffInDays($reference), 7)
                 ),
@@ -75,21 +75,21 @@ final class MaintenanceWindowService
                 ),
             };
 
-            $endsAt = $startsAt->copy()->addMinutes($window->duration_minutes);
+            $endsAt = $startsAt->copy()->addMinutes($maintenanceWindow->duration_minutes);
 
             if ($endsAt->lt($reference)) {
-                $startsAt = match ($window->recurrence) {
+                $startsAt = match ($maintenanceWindow->recurrence) {
                     MaintenanceWindowRecurrence::WEEKLY => $startsAt->copy()->addWeek(),
                     MaintenanceWindowRecurrence::MONTHLY => $startsAt->copy()->addMonthNoOverflow(),
                 };
             }
         }
 
-        if ($window->repeat_until && $startsAt->gt($window->repeat_until->copy()->setTimezone($timezone))) {
+        if ($maintenanceWindow->repeat_until && $startsAt->gt($maintenanceWindow->repeat_until->copy()->setTimezone($timezone))) {
             return null;
         }
 
-        $endsAt = $startsAt->copy()->addMinutes($window->duration_minutes);
+        $endsAt = $startsAt->copy()->addMinutes($maintenanceWindow->duration_minutes);
 
         return [
             'starts_at' => $startsAt->copy()->setTimezone(Date::now()->getTimezone()),

@@ -50,7 +50,7 @@ class RecurringMaintenanceWindowTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
         $group = MonitoringGroup::factory()->for($user)->create();
         $group->monitorings()->attach($monitoring);
-        $window = MaintenanceWindow::query()->create([
+        $maintenanceWindow = MaintenanceWindow::query()->create([
             'monitoring_group_id' => $group->id,
             'starts_at' => '2026-07-01 08:00:00',
             'duration_minutes' => 60,
@@ -66,7 +66,7 @@ class RecurringMaintenanceWindowTest extends TestCase
         Date::setTestNow('2026-09-01 08:30:00');
         $this->assertFalse($monitoring->fresh()->isUnderMaintenance());
         $this->assertNull($monitoring->fresh()->currentOrUpcomingMaintenanceWindow());
-        $this->assertTrue($window->refresh()->enabled);
+        $this->assertTrue($maintenanceWindow->refresh()->enabled);
 
         Date::setTestNow();
     }
@@ -87,15 +87,15 @@ class RecurringMaintenanceWindowTest extends TestCase
             'recurring_timezone' => 'Europe/Berlin',
         ])->assertRedirect(route('maintenance.index'));
 
-        $window = MaintenanceWindow::query()->firstOrFail();
-        $this->assertSame($monitoring->id, $window->monitoring_id);
-        $this->assertSame(MaintenanceWindowRecurrence::WEEKLY, $window->recurrence);
+        $maintenanceWindow = MaintenanceWindow::query()->firstOrFail();
+        $this->assertSame($monitoring->id, $maintenanceWindow->monitoring_id);
+        $this->assertSame(MaintenanceWindowRecurrence::WEEKLY, $maintenanceWindow->recurrence);
 
         $this->actingAs($user)->delete(route('maintenance.destroy'), [
-            'maintenance_window_id' => $window->id,
+            'maintenance_window_id' => $maintenanceWindow->id,
         ])->assertRedirect(route('maintenance.index'));
 
-        $this->assertFalse($window->refresh()->enabled);
+        $this->assertFalse($maintenanceWindow->refresh()->enabled);
     }
 
     public function test_public_label_shows_the_next_recurring_window(): void
@@ -114,23 +114,23 @@ class RecurringMaintenanceWindowTest extends TestCase
 
     public function test_team_member_can_see_but_cannot_disable_a_team_recurring_window(): void
     {
-        $owner = $this->createUser();
+        $user = $this->createUser();
         $member = $this->createUser();
-        $team = Team::factory()->create(['created_by_user_id' => $owner->id, 'name' => 'Operations']);
-        $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::ADMIN]);
+        $team = Team::factory()->create(['created_by_user_id' => $user->id, 'name' => 'Operations']);
+        $team->memberships()->create(['user_id' => $user->id, 'role' => TeamRole::ADMIN]);
         $team->memberships()->create(['user_id' => $member->id, 'role' => TeamRole::MEMBER]);
-        $monitoring = Monitoring::factory()->create(['team_id' => $team->id, 'created_by_user_id' => $owner->id]);
-        $window = $this->createWindow($monitoring);
+        $monitoring = Monitoring::factory()->create(['team_id' => $team->id, 'created_by_user_id' => $user->id]);
+        $maintenanceWindow = $this->createWindow($monitoring);
 
         $this->actingAs($member)->get(route('maintenance.index'))
             ->assertOk()
             ->assertSeeText(__('maintenance.recurring.heading'));
 
         $this->actingAs($member)->delete(route('maintenance.destroy'), [
-            'maintenance_window_id' => $window->id,
+            'maintenance_window_id' => $maintenanceWindow->id,
         ])->assertSessionHasErrors('maintenance_window_id');
 
-        $this->assertTrue($window->refresh()->enabled);
+        $this->assertTrue($maintenanceWindow->refresh()->enabled);
     }
 
     private function createUser(): User

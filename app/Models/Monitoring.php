@@ -8,6 +8,7 @@ use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Enums\TeamRole;
+use App\Services\MaintenanceWindowService;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -341,16 +342,22 @@ class Monitoring extends Model
     public function isUnderMaintenance(): bool
     {
         if ($this->maintenance_from && is_null($this->maintenance_until)) {
-            return $this->maintenance_from->isPast()
-                || app(\App\Services\MaintenanceWindowService::class)->isUnderMaintenance($this);
+            if ($this->maintenance_from->isPast()) {
+                return true;
+            }
+
+            return resolve(MaintenanceWindowService::class)->isUnderMaintenance($this);
         }
 
         if ($this->maintenance_from && $this->maintenance_until) {
-            return now()->between($this->maintenance_from, $this->maintenance_until)
-                || app(\App\Services\MaintenanceWindowService::class)->isUnderMaintenance($this);
+            if (now()->between($this->maintenance_from, $this->maintenance_until)) {
+                return true;
+            }
+
+            return resolve(MaintenanceWindowService::class)->isUnderMaintenance($this);
         }
 
-        return app(\App\Services\MaintenanceWindowService::class)->isUnderMaintenance($this);
+        return resolve(MaintenanceWindowService::class)->isUnderMaintenance($this);
     }
 
     /**
@@ -367,7 +374,7 @@ class Monitoring extends Model
             ];
         }
 
-        return app(\App\Services\MaintenanceWindowService::class)->currentOrUpcoming($this);
+        return resolve(MaintenanceWindowService::class)->currentOrUpcoming($this);
     }
 
     public function hasUpcomingMaintenance(): bool
@@ -441,11 +448,11 @@ class Monitoring extends Model
         $maintenanceWindowQuery = MaintenanceWindow::query()
             ->selectRaw('1')
             ->where('enabled', true)
-            ->where(function (Builder $query) use ($monitoringTable): void {
-                $query
+            ->where(function (Builder $builder) use ($monitoringTable): void {
+                $builder
                     ->whereColumn('maintenance_windows.monitoring_id', $monitoringTable . '.id')
-                    ->orWhereExists(function (\Illuminate\Database\Query\Builder $query) use ($monitoringTable): void {
-                        $query
+                    ->orWhereExists(function (\Illuminate\Database\Query\Builder $builder) use ($monitoringTable): void {
+                        $builder
                             ->selectRaw('1')
                             ->from('monitoring_group_monitoring')
                             ->whereColumn('monitoring_group_monitoring.monitoring_id', $monitoringTable . '.id')

@@ -45,12 +45,12 @@ class FormModalTeamsProfileTest extends TestCase
         $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
         $team->memberships()->create(['user_id' => $admin->id, 'role' => TeamRole::ADMIN]);
 
-        $validationResponse = $this->actingAs($admin)->post(route('teams.store'), [
+        $testResponse = $this->actingAs($admin)->post(route('teams.store'), [
             'description' => 'Missing name',
             'modal_form' => 'team-create',
         ]);
 
-        $validationResponse
+        $testResponse
             ->assertRedirect(route('teams.index', ['modal' => 'team-create']))
             ->assertSessionHasErrors('name');
 
@@ -119,14 +119,14 @@ class FormModalTeamsProfileTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $validationResponse = $this->actingAs($user)->from(route('profile.edit'))->put(route('password.update'), [
+        $testResponse = $this->actingAs($user)->from(route('profile.edit'))->put(route('password.update'), [
             'current_password' => 'wrong-password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
             'modal_form' => 'profile-password',
         ]);
 
-        $validationResponse
+        $testResponse
             ->assertRedirect(route('profile.edit', ['modal' => 'profile-password']))
             ->assertSessionHasErrorsIn('updatePassword', 'current_password');
 

@@ -69,8 +69,8 @@ class MaintenanceWindow extends Model
     {
         return $builder->where(function (Builder $builder) use ($user): void {
             $builder
-                ->whereHas('monitoring', fn (Builder $query): Builder => $query->visibleTo($user))
-                ->orWhereHas('monitoringGroup', fn (Builder $query): Builder => $query->where('user_id', $user->id));
+                ->whereHas('monitoring', fn (Builder $builder): Builder => $builder->visibleTo($user))
+                ->orWhereHas('monitoringGroup', fn (Builder $builder): Builder => $builder->where('user_id', $user->id));
         });
     }
 
