@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 class AuthenticatedNavigationTest extends TestCase
 {
-    public function test_member_navigation_exposes_only_signal_room_and_monitoring_as_primary_destinations(): void
+    public function test_member_navigation_exposes_one_dashboard_and_grouped_operations_destinations(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
@@ -19,10 +19,18 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('app.navigation.signal_room'));
-        $testResponse->assertSeeText(__('app.navigation.monitoring'));
+        $testResponse->assertSeeText(__('app.navigation.dashboard'));
+        $testResponse->assertSeeText(__('app.navigation.monitorings'));
+        $testResponse->assertSeeText(__('app.navigation.monitoring_groups'));
+        $testResponse->assertSeeText(__('app.navigation.status_pages'));
+        $testResponse->assertSeeText(__('app.navigation.incidents'));
+        $testResponse->assertSeeText(__('app.navigation.maintenance'));
+        $testResponse->assertSeeText(__('app.navigation.teams'));
         $testResponse->assertSeeHtml('href="' . route('dashboard') . '"');
         $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
+        $testResponse->assertSeeHtml('data-secondary-navigation');
+        $this->assertSame(1, substr_count($testResponse->getContent() ?? '', 'data-primary-destination'));
+        $testResponse->assertDontSeeText(__('app.navigation.signal_room'));
         $testResponse->assertDontSeeText(__('app.navigation.workspace'));
         $testResponse->assertDontSeeHtml('data-workspace-navigation');
         $testResponse->assertDontSeeText(__('app.navigation.sections.administration'));
@@ -50,7 +58,7 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertSeeText(__('admin.dashboard.activity_logs.heading'));
     }
 
-    public function test_desktop_navigation_uses_the_signal_room_rail(): void
+    public function test_desktop_navigation_uses_the_dashboard_rail(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
@@ -59,6 +67,7 @@ class AuthenticatedNavigationTest extends TestCase
 
         $testResponse->assertSeeHtml('lg:fixed');
         $testResponse->assertSeeHtml('bg-purple-950');
-        $testResponse->assertSeeHtml(__('app.navigation.signal_room'));
+        $testResponse->assertSeeHtml(__('app.navigation.dashboard'));
+        $testResponse->assertSeeHtml('data-secondary-navigation');
     }
 }

@@ -15,13 +15,21 @@
             @endif
         </div>
 
-        <div class="mt-5 flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-700">
+        <div class="mt-5 flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-700" role="tablist" aria-label="{{ __('dashboard.signal_room.tabs_label') }}">
             @foreach (['signal', 'checks', 'incidents', 'history'] as $tab)
-                <span class="flex-1 rounded-lg px-2 py-2 text-center text-[11px] font-bold {{ $tab === 'signal' ? 'bg-white text-purple-700 shadow-sm dark:bg-gray-600 dark:text-purple-200' : 'text-gray-500 dark:text-gray-300' }}">{{ __('dashboard.signal_room.tabs.' . $tab) }}</span>
+                <button
+                    type="button"
+                    data-signal-tab="{{ $tab }}"
+                    role="tab"
+                    :aria-selected="activeTab === '{{ $tab }}'"
+                    @click="activeTab = '{{ $tab }}'"
+                    :class="activeTab === '{{ $tab }}' ? 'bg-white text-purple-700 shadow-sm dark:bg-gray-600 dark:text-purple-200' : 'text-gray-500 hover:bg-white/70 hover:text-purple-700 dark:text-gray-300 dark:hover:bg-gray-600/70 dark:hover:text-purple-200'"
+                    class="flex-1 rounded-lg px-2 py-2 text-center text-[11px] font-bold transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 dark:focus:ring-offset-gray-700"
+                >{{ __('dashboard.signal_room.tabs.' . $tab) }}</button>
             @endforeach
         </div>
 
-        <div class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
+        <div data-signal-tab-panel="signal" x-show="activeTab === 'signal'" x-cloak class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40" role="tabpanel">
             <div class="flex items-center gap-3">
                 <span class="h-3 w-3 rounded-full" :class="{ 'bg-emerald-500': service.status === 'up', 'bg-red-500': service.status === 'down', 'bg-amber-500': service.status === 'unknown', 'bg-purple-500': ['maintenance', 'paused'].includes(service.status) }"></span>
                 <span class="text-sm font-extrabold text-gray-900 dark:text-white" x-text="service.statusLabel"></span>
@@ -44,6 +52,41 @@
                     <dd class="mt-1 font-bold" :class="service.openIncident ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'" x-text="service.openIncident ? '{{ __('dashboard.signal_room.detail_open_incident') }}' : '{{ __('dashboard.signal_room.all_under_control') }}'"></dd>
                 </div>
             </dl>
+        </div>
+
+        <div data-signal-tab-panel="checks" x-show="activeTab === 'checks'" x-cloak class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40" role="tabpanel">
+            <h4 class="text-sm font-extrabold text-gray-900 dark:text-white">{{ __('dashboard.signal_room.tab_content.checks_title') }}</h4>
+            <p class="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ __('dashboard.signal_room.tab_content.checks_description') }}</p>
+            <dl class="mt-5 space-y-4 text-sm">
+                <div class="flex items-center justify-between gap-4">
+                    <dt class="text-gray-500 dark:text-gray-400">{{ __('dashboard.signal_room.detail_target') }}</dt>
+                    <dd class="max-w-[65%] truncate text-end font-bold text-gray-900 dark:text-white" x-text="service.target"></dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt class="text-gray-500 dark:text-gray-400">{{ __('dashboard.signal_room.detail_last_check') }}</dt>
+                    <dd class="text-end font-bold text-gray-900 dark:text-white" x-text="service.lastCheck"></dd>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <dt class="text-gray-500 dark:text-gray-400">{{ __('dashboard.signal_room.detail_response_time') }}</dt>
+                    <dd class="text-end font-bold text-gray-900 dark:text-white" x-text="service.responseTime"></dd>
+                </div>
+            </dl>
+        </div>
+
+        <div data-signal-tab-panel="incidents" x-show="activeTab === 'incidents'" x-cloak class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40" role="tabpanel">
+            <h4 class="text-sm font-extrabold text-gray-900 dark:text-white">{{ __('dashboard.signal_room.tab_content.incidents_title') }}</h4>
+            <p x-show="service.openIncident" class="mt-2 text-sm font-bold text-red-600 dark:text-red-300">{{ __('dashboard.signal_room.detail_open_incident') }}</p>
+            <p x-show="!service.openIncident" class="mt-2 text-sm font-bold text-emerald-600 dark:text-emerald-300">{{ __('dashboard.signal_room.all_under_control') }}</p>
+            <p class="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ __('dashboard.signal_room.tab_content.incidents_description') }}</p>
+        </div>
+
+        <div data-signal-tab-panel="history" x-show="activeTab === 'history'" x-cloak class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40" role="tabpanel">
+            <h4 class="text-sm font-extrabold text-gray-900 dark:text-white">{{ __('dashboard.signal_room.tab_content.history_title') }}</h4>
+            <p class="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">{{ __('dashboard.signal_room.tab_content.history_description') }}</p>
+            <div class="mt-5 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
+                <span class="font-bold text-gray-900 dark:text-white" x-text="service.statusLabel"></span>
+                <span class="text-xs text-gray-500 dark:text-gray-400" x-text="service.lastCheck"></span>
+            </div>
         </div>
 
         <div class="mt-5 flex flex-col gap-2 sm:flex-row">

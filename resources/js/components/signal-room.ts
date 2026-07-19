@@ -20,6 +20,7 @@ type SignalRoomComponent = {
     services: SignalRoomService[];
     query: string;
     activeFilter: string;
+    activeTab: string;
     selectedServiceId: string | null;
     mobileDetailOpen: boolean;
     desktop: boolean;
@@ -34,6 +35,7 @@ export default (config: SignalRoomConfig): SignalRoomComponent => ({
     services: config.services,
     query: '',
     activeFilter: 'all',
+    activeTab: 'signal',
     selectedServiceId: null,
     mobileDetailOpen: false,
     desktop: false,
@@ -71,6 +73,7 @@ export default (config: SignalRoomConfig): SignalRoomComponent => ({
 
     selectService(serviceId: string): void {
         this.selectedServiceId = serviceId;
+        this.activeTab = 'signal';
         this.mobileDetailOpen = true;
     },
 

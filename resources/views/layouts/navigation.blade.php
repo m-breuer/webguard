@@ -1,8 +1,15 @@
 @php
-    $monitoringNavActive = request()->routeIs('monitorings.*')
-        || request()->routeIs('incidents.*')
-        || request()->routeIs('monitoring-groups.*')
-        || request()->routeIs('status-pages.*');
+    $operationsNavigation = [
+        ['label' => __('app.navigation.monitorings'), 'href' => route('monitorings.index'), 'active' => 'monitorings.*'],
+        ['label' => __('app.navigation.monitoring_groups'), 'href' => route('monitoring-groups.index'), 'active' => 'monitoring-groups.*'],
+        ['label' => __('app.navigation.status_pages'), 'href' => route('status-pages.index'), 'active' => 'status-pages.*'],
+        ['label' => __('app.navigation.incidents'), 'href' => route('incidents.analytics'), 'active' => 'incidents.*'],
+        ['label' => __('app.navigation.maintenance'), 'href' => route('maintenance.index'), 'active' => 'maintenance.*'],
+    ];
+
+    $collaborationNavigation = [
+        ['label' => __('app.navigation.teams'), 'href' => route('teams.index'), 'active' => 'teams.*'],
+    ];
 @endphp
 
 <nav x-data="{ open: false }"
@@ -25,11 +32,50 @@
                 <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 13.5 12 5l8 8.5M6.5 11.5v7a1.5 1.5 0 0 0 1.5 1.5h8a1.5 1.5 0 0 0 1.5-1.5v-7" />
                 </svg>
-                <span>{{ __('app.navigation.signal_room') }}</span>
+                <span>{{ __('app.navigation.dashboard') }}</span>
             </a>
 
-            <div data-notifications-navigation class="mt-5 space-y-2">
-                <p class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('notifications.title') }}</p>
+            <div data-secondary-navigation class="mt-8 space-y-6">
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.operations') }}</p>
+                    <div class="mt-2 space-y-1">
+                        @foreach ($operationsNavigation as $item)
+                            @php($itemActive = request()->routeIs($item['active']))
+                            <a data-secondary-destination href="{{ $item['href'] }}"
+                                @class([
+                                    'group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
+                                    'border-purple-400/30 bg-purple-900/70 text-white' => $itemActive,
+                                    'border-transparent text-purple-200 hover:border-purple-800 hover:bg-purple-900/60 hover:text-white' => ! $itemActive,
+                                ])>
+                                <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ $itemActive ? 'bg-purple-200' : 'bg-purple-400/70 group-hover:bg-purple-200' }}"></span>
+                                <span class="truncate">{{ $item['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.collaboration') }}</p>
+                    <div class="mt-2 space-y-1">
+                        @foreach ($collaborationNavigation as $item)
+                            @php($itemActive = request()->routeIs($item['active']))
+                            <a data-secondary-destination href="{{ $item['href'] }}"
+                                @class([
+                                    'group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
+                                    'border-purple-400/30 bg-purple-900/70 text-white' => $itemActive,
+                                    'border-transparent text-purple-200 hover:border-purple-800 hover:bg-purple-900/60 hover:text-white' => ! $itemActive,
+                                ])>
+                                <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ $itemActive ? 'bg-purple-200' : 'bg-purple-400/70 group-hover:bg-purple-200' }}"></span>
+                                <span class="truncate">{{ $item['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 hidden space-y-4 lg:block">
+            <div data-notifications-navigation class="flex items-center gap-2">
                 <a id="notifications-bell-desktop" href="{{ route('notifications.index') }}"
                     aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"
                     @class([
@@ -40,41 +86,18 @@
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a2.75 2.75 0 0 1-5.714 0m11.104-2.108c-1.086-1.3-1.747-2.95-1.747-4.755V9.5a6.5 6.5 0 0 0-13 0v.719c0 1.805-.661 3.455-1.747 4.755A1.25 1.25 0 0 0 4.713 17h14.574a1.25 1.25 0 0 0 .96-2.026Z" />
                     </svg>
+                    <span class="sr-only">{{ __('notifications.title') }}</span>
                     @if (isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
                         <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
                     @endif
                 </a>
+                <x-language-switch id="language-switch-desktop" align="left" placement="top" />
             </div>
 
-            <div class="mt-5">
-                <a data-primary-destination href="{{ route('monitorings.index') }}"
-                    @class([
-                        'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
-                        'border-purple-400/50 bg-purple-700 text-white shadow-lg shadow-purple-950/20' => $monitoringNavActive,
-                        'border-transparent text-purple-100 hover:border-purple-700 hover:bg-purple-900/70 hover:text-white' => ! $monitoringNavActive,
-                    ])>
-                    <span class="flex items-center gap-3">
-                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5A2.5 2.5 0 0 1 6.5 4h4A2.5 2.5 0 0 1 13 6.5v4a2.5 2.5 0 0 1-2.5 2.5h-4A2.5 2.5 0 0 1 4 10.5v-4Zm7 7A2.5 2.5 0 0 1 13.5 11h4a2.5 2.5 0 0 1 2.5 2.5v4a2.5 2.5 0 0 1-2.5 2.5h-4a2.5 2.5 0 0 1-2.5-2.5v-4Z" />
-                        </svg>
-                        <span>{{ __('app.navigation.monitoring') }}</span>
-                    </span>
-                    <svg class="hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-
-            </div>
-        </div>
-
-        <div data-navigation-utilities class="mt-6 hidden space-y-4 lg:block">
-            <div class="flex items-center gap-2">
-                <x-language-switch id="language-switch-desktop" align="left" />
-            </div>
-
-            <x-dropdown align="right" width="48" contentClasses="bg-white py-2 dark:bg-slate-900">
+            <div data-navigation-utilities>
+            <x-dropdown align="right" placement="top" width="48" contentClasses="bg-white py-2 dark:bg-slate-900">
                 <x-slot name="trigger">
-                    <button class="flex w-full items-center justify-between gap-3 rounded-xl border border-purple-800 px-3 py-2 text-left text-sm font-medium text-purple-100 transition hover:border-purple-600 hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300">
+                    <button id="profile-menu-desktop" class="flex w-full items-center justify-between gap-3 rounded-xl border border-purple-800 px-3 py-2 text-left text-sm font-medium text-purple-100 transition hover:border-purple-600 hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300">
                         <span class="flex min-w-0 items-center gap-2">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-700 font-bold text-white">{{ mb_strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}</span>
                             <span class="truncate">{{ Auth::user()->name }}</span>
@@ -101,6 +124,7 @@
                     </form>
                 </x-slot>
             </x-dropdown>
+            </div>
         </div>
 
         <div class="flex items-center gap-2 lg:hidden">
@@ -110,7 +134,7 @@
                     <span class="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold leading-none text-white">{{ $unreadNotificationsCount }}</span>
                 @endif
             </a>
-            <x-language-switch id="language-switch-mobile" />
+            <x-language-switch id="language-switch-mobile" placement="bottom" />
             <button type="button" @click="open = ! open" class="inline-flex items-center justify-center rounded-xl border border-purple-800 p-2 text-purple-100 transition hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300" aria-label="{{ __('app.navigation.home') }}">
                 <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -120,12 +144,21 @@
         </div>
     </div>
 
-    <div x-cloak x-show="open" x-transition class="border-t border-purple-900/60 px-4 pb-4 pt-3 lg:hidden">
-        <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.signal_room') }}</p>
-        <a href="{{ route('dashboard') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('dashboard'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('dashboard')])>{{ __('app.navigation.signal_room') }}</a>
+    <div data-mobile-navigation x-cloak x-show="open" x-transition class="border-t border-purple-900/60 px-4 pb-4 pt-3 lg:hidden">
+        <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.dashboard') }}</p>
+        <a href="{{ route('dashboard') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('dashboard'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('dashboard')])>{{ __('app.navigation.dashboard') }}</a>
 
-        <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.monitoring') }}</p>
-        <a href="{{ route('monitorings.index') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => $monitoringNavActive, 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! $monitoringNavActive])>{{ __('app.navigation.monitoring') }}</a>
+        <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.operations') }}</p>
+        @foreach ($operationsNavigation as $item)
+            @php($itemActive = request()->routeIs($item['active']))
+            <a href="{{ $item['href'] }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => $itemActive, 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! $itemActive])>{{ $item['label'] }}</a>
+        @endforeach
+
+        <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.collaboration') }}</p>
+        @foreach ($collaborationNavigation as $item)
+            @php($itemActive = request()->routeIs($item['active']))
+            <a href="{{ $item['href'] }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => $itemActive, 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! $itemActive])>{{ $item['label'] }}</a>
+        @endforeach
 
         @if (Auth::user()->isAdmin())
             <p class="px-3 pb-2 pt-4 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.administration') }}</p>
