@@ -27,14 +27,15 @@ class MonitoringBadgePayloadService
         $checkedAt = $statusNow['checked_at'] ?? null;
         $uptimePercentages = $this->resolveUptimePercentages($monitoring, [7, 30, 90, 365]);
         $incidentCounts = $this->resolveIncidentCounts($monitoring, [30, 90, 365]);
+        $maintenanceActive = $monitoring->isUnderMaintenance();
 
         return new MonitoringBadgePayload(
             name: $monitoring->name,
             status: $status,
             statusLabel: mb_strtoupper($status),
             statusCode: $latestStatusCode,
-            statusIdentifier: MonitoringStatusMeta::statusIdentifier($latestStatusCode, $monitoring->isUnderMaintenance()),
-            statusKey: MonitoringStatusMeta::statusKey($latestStatusCode, $monitoring->isUnderMaintenance()),
+            statusIdentifier: MonitoringStatusMeta::statusIdentifier($latestStatusCode, $maintenanceActive),
+            statusKey: MonitoringStatusMeta::statusKey($latestStatusCode, $maintenanceActive),
             checkedAt: $checkedAt,
             checkedAtHuman: $checkedAt ? Date::parse((string) $checkedAt)->diffForHumans() : null,
             uptime: new MonitoringBadgeUptimePayload(
@@ -58,7 +59,7 @@ class MonitoringBadgePayloadService
                 'expires_at' => $monitoring->domainResult?->expires_at?->toIso8601String(),
             ],
             maintenance: [
-                'active' => $monitoring->isUnderMaintenance(),
+                'active' => $maintenanceActive,
                 'starts_at' => $monitoring->maintenance_from?->toIso8601String(),
                 'ends_at' => $monitoring->maintenance_until?->toIso8601String(),
             ]

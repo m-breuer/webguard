@@ -88,6 +88,7 @@ class NotificationBoardService
                 'maintenance_from',
                 'maintenance_until',
             ])
+            ->withMaintenanceWindowState()
             ->whereKey($statusChangeNotifications->pluck('monitoring_id')->all())
             ->with([
                 'latestResponseResult' => fn ($builder) => $builder->select([

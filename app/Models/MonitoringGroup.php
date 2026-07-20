@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id',
@@ -40,6 +41,14 @@ class MonitoringGroup extends Model
     {
         return $this->belongsToMany(Monitoring::class, 'monitoring_group_monitoring')
             ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<MaintenanceWindow, $this>
+     */
+    public function maintenanceWindows(): HasMany
+    {
+        return $this->hasMany(MaintenanceWindow::class);
     }
 
     /**

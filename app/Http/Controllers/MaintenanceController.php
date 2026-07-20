@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MaintenanceRequest;
+use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
 use App\Models\User;
 use App\Support\Admin\AsyncTable;
@@ -40,13 +41,20 @@ class MaintenanceController extends Controller
             ->with('groups:id,name')
             ->orderBy('name')
             ->get();
+        $recurringWindows = MaintenanceWindow::query()
+            ->visibleTo($user)
+            ->with([
+                'monitoring:id,name,user_id,team_id',
+                'monitoringGroup:id,name,user_id',
+            ])
+            ->latest('starts_at')
+            ->get();
         $activeMaintenanceCount = $monitorings
             ->filter(static fn (Monitoring $monitoring): bool => $monitoring->isUnderMaintenance())
             ->count();
         $upcomingMaintenanceCount = $monitorings
             ->filter(static fn (Monitoring $monitoring): bool => ! $monitoring->isUnderMaintenance()
-                && $monitoring->maintenance_from !== null
-                && $monitoring->maintenance_from->isFuture())
+                && $monitoring->hasUpcomingMaintenance())
             ->count();
         $expiredMaintenanceCount = $monitorings
             ->filter(static fn (Monitoring $monitoring): bool => ! $monitoring->isUnderMaintenance()
@@ -87,6 +95,7 @@ class MaintenanceController extends Controller
                 'expired' => $expiredMaintenanceCount,
                 'none' => $monitorings->count() - $activeMaintenanceCount - $upcomingMaintenanceCount - $expiredMaintenanceCount,
             ],
+            'recurringWindows' => $recurringWindows,
             'manageableMonitorings' => $manageableMonitorings,
             'manageableMonitoringIds' => $manageableMonitorings->pluck('id')->all(),
             'monitoringGroups' => $user->monitoringGroups()
@@ -131,6 +140,25 @@ class MaintenanceController extends Controller
 
         $validated = $maintenanceRequest->validated();
 
+        if ($validated['mode'] === 'recurring') {
+            $timezone = $validated['recurring_timezone'];
+            $startsAt = Date::parse($validated['recurring_starts_at'], $timezone)->setTimezone('UTC');
+
+            MaintenanceWindow::query()->create([
+                ...$this->recurringTarget($maintenanceRequest),
+                'starts_at' => $startsAt,
+                'duration_minutes' => (int) $validated['recurring_duration_minutes'],
+                'recurrence' => $validated['recurrence'],
+                'repeat_until' => isset($validated['recurring_repeat_until'])
+                    ? Date::parse($validated['recurring_repeat_until'], $timezone)->endOfDay()->setTimezone('UTC')
+                    : null,
+                'timezone' => $timezone,
+                'enabled' => true,
+            ]);
+
+            return to_route('maintenance.index')->with('success', __('maintenance.messages.recurring_scheduled'));
+        }
+
         $updatedCount = $this->targetMonitorings($maintenanceRequest)
             ->update([
                 'maintenance_from' => Date::parse($validated['maintenance_from']),
@@ -151,7 +179,8 @@ class MaintenanceController extends Controller
 
         $validated = $request->validate([
             'monitoring_id' => [
-                'required',
+                'nullable',
+                'required_without:maintenance_window_id',
                 'string',
                 function ($attribute, $value, $fail) use ($user): void {
                     if (! Monitoring::query()->manageableBy($user)->whereKey((string) $value)->exists()) {
@@ -159,7 +188,25 @@ class MaintenanceController extends Controller
                     }
                 },
             ],
+            'maintenance_window_id' => [
+                'nullable',
+                'required_without:monitoring_id',
+                'string',
+                function ($attribute, $value, $fail) use ($user): void {
+                    $window = MaintenanceWindow::query()->find((string) $value);
+
+                    if (! $window || ! $window->isManageableBy($user)) {
+                        $fail(__('validation.exists', ['attribute' => __('maintenance.form.recurring')]));
+                    }
+                },
+            ],
         ]);
+
+        if (isset($validated['maintenance_window_id'])) {
+            MaintenanceWindow::query()->whereKey($validated['maintenance_window_id'])->update(['enabled' => false]);
+
+            return to_route('maintenance.index')->with('success', __('maintenance.messages.recurring_cleared'));
+        }
 
         Monitoring::query()
             ->manageableBy($user)
@@ -186,6 +233,18 @@ class MaintenanceController extends Controller
         }
 
         return $query->whereKey($maintenanceRequest->string('monitoring_id')->toString());
+    }
+
+    /**
+     * @return array{monitoring_id?: string, monitoring_group_id?: string}
+     */
+    private function recurringTarget(MaintenanceRequest $maintenanceRequest): array
+    {
+        if ($maintenanceRequest->string('scope')->toString() === 'group') {
+            return ['monitoring_group_id' => $maintenanceRequest->string('monitoring_group_id')->toString()];
+        }
+
+        return ['monitoring_id' => $maintenanceRequest->string('monitoring_id')->toString()];
     }
 
     private function applyMaintenanceStatusFilter(Builder $builder, string $maintenanceStatus): void
