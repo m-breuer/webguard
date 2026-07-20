@@ -130,12 +130,15 @@
                                     <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                                         @if (!Auth::user()->isDemo())
                                             <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)"
-                                                data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
-                                                {{ __('button.edit') }}
+                                                data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal" :icon-only="true"
+                                                title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                                                <x-icon name="pencil" class="h-4 w-4" />
                                             </x-secondary-button>
                                         @endif
-                                        <a href="{{ route('monitorings.index', ['group_id' => $monitoringGroup->id]) }}" class="text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
-                                            {{ __('incidents.analytics.overview.view_group') }}
+                                        <a href="{{ route('monitorings.index', ['group_id' => $monitoringGroup->id]) }}"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-purple-700 transition hover:bg-purple-50 hover:text-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
+                                            title="{{ __('incidents.analytics.overview.view_group') }}" aria-label="{{ __('incidents.analytics.overview.view_group') }}">
+                                            <x-icon name="eye" class="h-4 w-4" />
                                         </a>
                                     </div>
                                 </div>
@@ -175,9 +178,19 @@
                                 <div class="flex flex-col gap-3 py-4">
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
-                                            <a href="{{ route('status-pages.show', $statusPage) }}" class="truncate font-semibold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">
-                                                {{ $statusPage->name }}
-                                            </a>
+                                            <div class="flex min-w-0 items-center gap-2">
+                                                <a href="{{ route('status-pages.show', $statusPage) }}" class="truncate font-semibold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">
+                                                    {{ $statusPage->name }}
+                                                </a>
+                                                @if ($statusPage->is_public)
+                                                    <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank" rel="noopener"
+                                                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-purple-600 transition hover:bg-purple-100 hover:text-purple-800 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
+                                                        title="{{ __('status_page.detail.open_public_page') }}"
+                                                        aria-label="{{ __('status_page.detail.open_public_page') }}">
+                                                        <x-icon name="external-link" class="h-4 w-4" />
+                                                    </a>
+                                                @endif
+                                            </div>
                                             <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                                 <x-badge :type="$statusPage->is_public ? 'success' : 'warning'">
                                                     {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
@@ -196,8 +209,10 @@
                                             <span class="mx-1">·</span>
                                             {{ $statusPageHealth['down'] }} {{ __('dashboard.summary.down') }}
                                         </span>
-                                        <a href="{{ route('status-pages.show', $statusPage) }}" class="font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
-                                            {{ __('incidents.analytics.overview.view_status_page') }}
+                                        <a href="{{ route('status-pages.show', $statusPage) }}"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-purple-700 transition hover:bg-purple-50 hover:text-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
+                                            title="{{ __('incidents.analytics.overview.view_status_page') }}" aria-label="{{ __('incidents.analytics.overview.view_status_page') }}">
+                                            <x-icon name="eye" class="h-4 w-4" />
                                         </a>
                                     </div>
                                 </div>

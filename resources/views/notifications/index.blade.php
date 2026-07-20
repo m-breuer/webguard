@@ -80,11 +80,10 @@
 
                     <form method="POST" action="{{ route('notifications.markAllAsRead') }}" class="sm:pb-1">
                         @csrf
-                        <x-secondary-button type="submit" class="!w-full justify-center !border-purple-600 !bg-purple-600 px-3 py-2 text-sm !normal-case !tracking-normal !text-white hover:!border-purple-700 hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!border-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!border-purple-400 dark:hover:!bg-purple-400 dark:focus:!ring-purple-400 sm:!w-auto">
-                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6" />
-                            </svg>
-                            {{ __('notifications.mark_all_as_read') }}
+                        <x-secondary-button type="submit" :icon-only="true"
+                            class="!border-purple-600 !bg-purple-600 !text-white hover:!border-purple-700 hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!border-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!border-purple-400 dark:hover:!bg-purple-400 dark:focus:!ring-purple-400"
+                            title="{{ __('notifications.mark_all_as_read') }}" aria-label="{{ __('notifications.mark_all_as_read') }}">
+                            <x-icon name="check" class="h-4 w-4" />
                         </x-secondary-button>
                     </form>
                 </div>

@@ -429,8 +429,16 @@
                                     </div>
 
                                     <div class="flex items-center gap-2 lg:justify-end">
-                                        <a href="#" x-bind:href="'/monitorings/' + id" class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-purple-300 hover:text-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:text-gray-200 dark:hover:border-purple-500 dark:hover:text-purple-300">{{ __('monitoring.index.workspace.view') }}</a>
-                                        <a href="#" x-bind:href="'/monitorings/' + id + '/edit'" data-form-modal-trigger data-form-modal-name="monitoring-form-modal" class="inline-flex items-center rounded-lg bg-purple-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">{{ __('button.edit') }}</a>
+                                        <a href="#" x-bind:href="'/monitorings/' + id" title="{{ __('monitoring.index.workspace.view') }}"
+                                            aria-label="{{ __('monitoring.index.workspace.view') }}"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-700 transition hover:border-purple-300 hover:text-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:text-gray-200 dark:hover:border-purple-500 dark:hover:text-purple-300">
+                                            <x-icon name="eye" class="h-4 w-4" />
+                                        </a>
+                                        <a href="#" x-bind:href="'/monitorings/' + id + '/edit'" data-form-modal-trigger data-form-modal-name="monitoring-form-modal"
+                                            title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white transition hover:bg-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+                                            <x-icon name="pencil" class="h-4 w-4" />
+                                        </a>
                                     </div>
                                 </div>
                             </article>

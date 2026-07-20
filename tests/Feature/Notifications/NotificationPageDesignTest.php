@@ -38,7 +38,7 @@ class NotificationPageDesignTest extends TestCase
         $testResponse->assertSeeText(__('notifications.filters.heading'));
         $testResponse->assertSeeText(__('notifications.filters.unread'));
         $testResponse->assertSeeText(__('notifications.filters.all'));
-        $testResponse->assertSeeText(__('notifications.mark_all_as_read'));
+        $testResponse->assertSeeHtml('aria-label="' . __('notifications.mark_all_as_read') . '"');
         $testResponse->assertSeeHtml('bg-purple-600 text-white');
         $testResponse->assertSeeHtml('dark:bg-purple-500 dark:text-white');
         $testResponse->assertSeeHtml('dark:!bg-purple-500 dark:!text-white');

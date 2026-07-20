@@ -25,20 +25,22 @@
                 </div>
 
                 <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="flex flex-wrap gap-2">
-                    <x-secondary-button :href="route('incidents.analytics')">
-                        {{ __('incidents.analytics.link') }}
+                    <x-secondary-button :href="route('incidents.analytics')" :icon-only="true"
+                        title="{{ __('incidents.analytics.link') }}" aria-label="{{ __('incidents.analytics.link') }}">
+                        <x-icon name="chart" class="h-4 w-4" />
                     </x-secondary-button>
                     @if (!Auth::user()->isDemo())
                         <x-secondary-button :href="route('status-pages.edit', $statusPage)"
-                            data-form-modal-trigger data-form-modal-name="status-page-form-modal">
-                            {{ __('button.edit') }}
+                            data-form-modal-trigger data-form-modal-name="status-page-form-modal" :icon-only="true"
+                            title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                            <x-icon name="pencil" class="h-4 w-4" />
                         </x-secondary-button>
                         <form method="POST" action="{{ route('status-pages.destroy', $statusPage) }}"
                             data-confirm-message="{{ __('status_page.actions.delete_confirmation') }}">
                             @csrf
                             @method('DELETE')
-                            <x-danger-button>
-                                {{ __('button.delete') }}
+                            <x-danger-button :icon-only="true" title="{{ __('button.delete') }}" aria-label="{{ __('button.delete') }}">
+                                <x-icon name="trash" class="h-4 w-4" />
                             </x-danger-button>
                         </form>
                     @endif
@@ -313,9 +315,12 @@
                                                 <x-textarea name="description" rows="2">{{ $followUp->description }}</x-textarea>
                                                 <div class="flex flex-wrap gap-2">
                                                     <x-primary-button>{{ __('status_page.incident_follow_ups.save') }}</x-primary-button>
-                                                    <button type="submit" form="delete-follow-up-{{ $followUp->id }}" class="text-sm text-red-600 hover:underline">
-                                                        {{ __('status_page.incident_follow_ups.delete') }}
-                                                    </button>
+                                                            <button type="submit" form="delete-follow-up-{{ $followUp->id }}"
+                                                                class="inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
+                                                                title="{{ __('status_page.incident_follow_ups.delete') }}"
+                                                                aria-label="{{ __('status_page.incident_follow_ups.delete') }}">
+                                                                <x-icon name="trash" class="h-4 w-4" />
+                                                            </button>
                                                 </div>
                                             </form>
                                             <form id="delete-follow-up-{{ $followUp->id }}" method="POST"
@@ -372,8 +377,11 @@
                                                         <x-textarea name="description" rows="2">{{ $timelineEvent['description'] }}</x-textarea>
                                                         <div class="flex flex-wrap gap-2">
                                                             <x-primary-button>{{ __('status_page.incident_timeline.save') }}</x-primary-button>
-                                                            <button type="submit" form="delete-timeline-{{ $timelineEvent['id'] }}" class="text-sm text-red-600 hover:underline">
-                                                                {{ __('status_page.incident_timeline.delete') }}
+                                                            <button type="submit" form="delete-timeline-{{ $timelineEvent['id'] }}"
+                                                                class="inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
+                                                                title="{{ __('status_page.incident_timeline.delete') }}"
+                                                                aria-label="{{ __('status_page.incident_timeline.delete') }}">
+                                                                <x-icon name="trash" class="h-4 w-4" />
                                                             </button>
                                                         </div>
                                                     </form>
@@ -490,8 +498,10 @@
                         </div>
                     </dl>
                     @if ($statusPage->is_public)
-                        <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank" class="mt-4 inline-flex w-full items-center justify-center rounded-md border border-purple-300 px-3 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-950/30">
-                            {{ __('status_page.detail.open_public_page') }}
+                        <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank" rel="noopener"
+                            class="mt-4 inline-flex h-10 w-10 items-center justify-center rounded-md border border-purple-300 text-purple-700 hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-950/30"
+                            title="{{ __('status_page.detail.open_public_page') }}" aria-label="{{ __('status_page.detail.open_public_page') }}">
+                            <x-icon name="external-link" class="h-4 w-4" />
                         </a>
                     @endif
                 </x-container>
