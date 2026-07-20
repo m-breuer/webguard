@@ -61,7 +61,7 @@
             <input x-model="query" type="search" class="w-full rounded-xl border-gray-200 bg-white py-3 ps-10 pe-4 text-sm shadow-sm placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" placeholder="{{ __('dashboard.signal_room.search_placeholder') }}">
         </label>
 
-        <div class="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="{{ __('dashboard.signal_room.filters.all') }}">
+        <div class="-mx-1 -my-2 flex gap-2 overflow-x-auto px-1 py-2" role="tablist" aria-label="{{ __('dashboard.signal_room.filters.all') }}">
             @foreach (['all', 'attention', 'maintenance', 'paused'] as $filter)
                 <button
                     type="button"
@@ -70,7 +70,7 @@
                     :aria-selected="activeFilter === '{{ $filter }}'"
                     @click="activeFilter = '{{ $filter }}'"
                     :class="activeFilter === '{{ $filter }}' ? 'border-purple-700 bg-purple-700 text-white dark:bg-purple-600' : 'border-gray-200 bg-white text-gray-600 hover:border-purple-200 hover:text-purple-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300'"
-                    class="whitespace-nowrap rounded-xl border px-3.5 py-2.5 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    class="whitespace-nowrap rounded-xl border px-3.5 py-2.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950"
                 >{{ __('dashboard.signal_room.filters.' . $filter) }}</button>
             @endforeach
         </div>

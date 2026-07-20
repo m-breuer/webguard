@@ -110,6 +110,8 @@ class DashboardOverviewTest extends TestCase
             ->assertDontSeeText('Guten Morgen, ' . $user->name)
             ->assertSeeText(__('dashboard.signal_room.heading'))
             ->assertSeeText(__('dashboard.signal_room.service_landscape'))
+            ->assertSeeHtml('overflow-x-auto px-1 py-2')
+            ->assertSeeHtml('focus-visible:ring-2')
             ->assertSeeText(__('dashboard.signal_room.context.heading'))
             ->assertSeeText(__('dashboard.signal_room.context.surfaces_heading'))
             ->assertSeeText(__('dashboard.next_action.heading'))
