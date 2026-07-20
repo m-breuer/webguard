@@ -12,6 +12,8 @@ use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\StatusPage;
+use App\Models\Team;
+use App\Models\TeamMembership;
 use App\Models\User;
 use App\Support\HttpStatusCodeRanges;
 use Tests\TestCase;
@@ -133,6 +135,128 @@ class MonitoringGroupTest extends TestCase
         $editResponse->assertSeeHtml('action="' . route('monitoring-groups.update', $monitoringGroup) . '"');
         $editResponse->assertSeeHtml('value="Production"');
         $editResponse->assertDontSeeText(__('monitoring.form.public_label'));
+    }
+
+    public function test_user_can_assign_monitorings_when_creating_and_editing_a_group(): void
+    {
+        $api = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Checkout API',
+            'target' => 'https://api.example.test',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $website = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Website',
+            'target' => 'https://example.test',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText('Checkout API — https://api.example.test');
+        $testResponse->assertSeeHtml('name="monitoring_ids[]"');
+
+        $this->actingAs($this->user)->post(route('monitoring-groups.store'), [
+            'name' => 'Production',
+            'monitoring_ids' => [$api->id, $website->id],
+        ])->assertRedirect(route('monitoring-groups.index'));
+
+        $monitoringGroup = MonitoringGroup::query()->where('name', 'Production')->firstOrFail();
+        $this->assertEqualsCanonicalizing(
+            [$api->id, $website->id],
+            $monitoringGroup->monitorings()->pluck('monitorings.id')->all()
+        );
+
+        $editForm = $this->actingAs($this->user)->get(route('monitoring-groups.edit', $monitoringGroup));
+        $editForm->assertOk();
+        $editForm->assertSeeText('Checkout API — https://api.example.test');
+        $editForm->assertSeeText('Website — https://example.test');
+
+        $this->actingAs($this->user)->patch(route('monitoring-groups.update', $monitoringGroup), [
+            'name' => 'Production',
+            'monitoring_ids' => [$website->id],
+        ])->assertRedirect(route('monitoring-groups.index'));
+
+        $this->assertSame(
+            [$website->id],
+            $monitoringGroup->monitorings()->pluck('monitorings.id')->all()
+        );
+    }
+
+    public function test_group_assignment_only_accepts_monitorings_the_user_can_manage(): void
+    {
+        $otherUser = User::factory()->create(['package_id' => Package::factory()->create()->id]);
+        $foreignMonitoring = Monitoring::factory()->for($otherUser)->create([
+            'name' => 'Foreign',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $team = Team::factory()->create(['created_by_user_id' => $otherUser->id]);
+        TeamMembership::factory()->for($team)->for($this->user)->create();
+        $teamMonitoring = Monitoring::factory()->for($team)->create([
+            'user_id' => null,
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->get(route('monitoring-groups.create'));
+        $testResponse->assertDontSeeText('Foreign');
+        $testResponse->assertDontSeeText($teamMonitoring->name);
+
+        $response = $this->from(route('monitoring-groups.create'))
+            ->actingAs($this->user)
+            ->post(route('monitoring-groups.store'), [
+                'name' => 'Restricted',
+                'monitoring_ids' => [$foreignMonitoring->id, $teamMonitoring->id],
+            ]);
+
+        $response->assertRedirect(route('monitoring-groups.create'));
+        $response->assertSessionHasErrors(['monitoring_ids.0', 'monitoring_ids.1']);
+        $response->assertSessionHasInput('monitoring_ids', [$foreignMonitoring->id, $teamMonitoring->id]);
+        $this->assertDatabaseMissing('monitoring_groups', ['name' => 'Restricted']);
+    }
+
+    public function test_group_assignment_keeps_team_monitorings_outside_personal_groups(): void
+    {
+        $team = Team::factory()->create(['created_by_user_id' => $this->user->id]);
+        TeamMembership::factory()->for($team)->for($this->user)->admin()->create();
+        $teamMonitoring = Monitoring::factory()->for($team)->create([
+            'user_id' => null,
+            'name' => 'Managed Team API',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $testResponse = $this->from(route('monitoring-groups.create'))
+            ->actingAs($this->user)
+            ->post(route('monitoring-groups.store'), [
+                'name' => 'Team Services',
+                'monitoring_ids' => [$teamMonitoring->id],
+            ]);
+
+        $testResponse->assertRedirect(route('monitoring-groups.create'));
+        $testResponse->assertSessionHasErrors(['monitoring_ids.0']);
+        $this->assertDatabaseMissing('monitoring_groups', ['name' => 'Team Services']);
+    }
+
+    public function test_updating_group_preserves_assignments_that_are_no_longer_manageable(): void
+    {
+        $monitoringGroup = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
+        $teamOwner = User::factory()->create(['package_id' => Package::factory()->create()->id]);
+        $team = Team::factory()->create(['created_by_user_id' => $teamOwner->id]);
+        TeamMembership::factory()->for($team)->for($this->user)->create();
+        $teamMonitoring = Monitoring::factory()->for($team)->create([
+            'user_id' => null,
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $monitoringGroup->monitorings()->attach($teamMonitoring);
+
+        $this->actingAs($this->user)->patch(route('monitoring-groups.update', $monitoringGroup), [
+            'name' => 'Production',
+            'monitoring_ids' => [],
+        ])->assertRedirect(route('monitoring-groups.index'));
+
+        $this->assertDatabaseHas('monitoring_group_monitoring', [
+            'monitoring_group_id' => $monitoringGroup->id,
+            'monitoring_id' => $teamMonitoring->id,
+        ]);
     }
 
     public function test_user_cannot_edit_foreign_monitoring_group(): void
@@ -337,7 +461,7 @@ class MonitoringGroupTest extends TestCase
         $this->assertDatabaseHas('status_pages', [
             'id' => $statusPage->id,
             'user_id' => $this->user->id,
-            'slug' => 'public-production',
+            'slug' => null,
             'is_public' => true,
         ]);
         $this->assertDatabaseHas('status_page_components', [
@@ -347,7 +471,7 @@ class MonitoringGroupTest extends TestCase
             'name' => 'Public Production',
         ]);
 
-        $publicResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $publicResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $publicResponse->assertOk();
         $publicResponse->assertSeeText('Public Production');
@@ -370,11 +494,11 @@ class MonitoringGroupTest extends TestCase
         $monitoringGroup->monitorings()->attach($initialMonitoring->id);
 
         $this->actingAs($this->user)->post(route('monitoring-groups.publish-status-page', $monitoringGroup));
-        $statusPage = StatusPage::query()->where('slug', 'production')->firstOrFail();
+        $statusPage = StatusPage::query()->where('name', 'Production')->firstOrFail();
 
         $monitoringGroup->monitorings()->attach($laterMonitoring->id);
 
-        $testResponse = $this->get(route('public-status-pages.show', $statusPage->slug));
+        $testResponse = $this->get(route('public-status-pages.show', $statusPage));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText('Initial API');

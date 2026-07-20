@@ -31,4 +31,13 @@ class StorePackageRequest extends FormRequest
             'is_selectable' => ['boolean'],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'admin-package-create') {
+            return route('admin.packages.index', ['modal' => 'admin-package-create']);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }

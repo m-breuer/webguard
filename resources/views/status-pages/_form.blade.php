@@ -28,6 +28,9 @@
         @isset($method)
             @method($method)
         @endisset
+        @if (isset($modal) && $modal)
+            <input type="hidden" name="modal_form" value="status-page-{{ isset($statusPage) ? 'edit' : 'create' }}">
+        @endif
 
         <div class="space-y-6"
             x-data="{
@@ -39,19 +42,10 @@
                     this.components.splice(index, 1);
                 }
             }">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                    <x-input-label for="name" :value="__('status_page.form.name')" />
-                    <x-text-input id="name" name="name" type="text" :value="old('name', $statusPage->name ?? '')" required />
-                    <x-input-error :messages="$errors->get('name')" />
-                </div>
-
-                <div>
-                    <x-input-label for="slug" :value="__('status_page.form.slug')" />
-                    <x-text-input id="slug" name="slug" type="text" :value="old('slug', $statusPage->slug ?? '')"
-                        placeholder="{{ __('status_page.form.slug_placeholder') }}" />
-                    <x-input-error :messages="$errors->get('slug')" />
-                </div>
+            <div>
+                <x-input-label for="name" :value="__('status_page.form.name')" />
+                <x-text-input id="name" name="name" type="text" :value="old('name', $statusPage->name ?? '')" required />
+                <x-input-error :messages="$errors->get('name')" />
             </div>
 
             <div>
@@ -126,8 +120,10 @@
                         </div>
 
                         <button type="button" @click="removeComponent(index)"
-                            class="mt-3 text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400">
-                            {{ __('status_page.form.remove_component') }}
+                            class="mt-3 inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
+                            title="{{ __('status_page.form.remove_component') }}"
+                            aria-label="{{ __('status_page.form.remove_component') }}">
+                            <x-icon name="trash" class="h-4 w-4" />
                         </button>
                     </div>
                 </template>
@@ -137,7 +133,11 @@
                 <x-primary-button>
                     {{ $submitLabel }}
                 </x-primary-button>
-                <x-secondary-button :href="route('status-pages.index')">
+                <x-secondary-button
+                    :href="isset($modal) && $modal ? null : route('status-pages.index')"
+                    type="button"
+                    x-on:click="$dispatch('close-form-modal', 'status-page-form-modal')"
+                >
                     {{ __('button.cancel') }}
                 </x-secondary-button>
             </div>

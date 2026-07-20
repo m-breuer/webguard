@@ -24,6 +24,25 @@ type MaintenanceWindow = {
     status: 'active' | 'upcoming' | 'expired' | 'none';
     maintenance_from: string | null;
     maintenance_until: string | null;
+    can_manage: boolean;
+};
+
+type RecurringMaintenanceWindow = {
+    id: string;
+    target: string | null;
+    recurrence: 'weekly' | 'monthly';
+    duration_minutes: number;
+    timezone: string;
+    starts_at: string;
+    can_manage: boolean;
+};
+
+type MaintenanceStats = {
+    total: number;
+    active: number;
+    upcoming: number;
+    expired: number;
+    none: number;
 };
 
 type MaintenanceApiResponse = {
@@ -37,6 +56,9 @@ type MaintenanceApiResponse = {
             total: number;
             per_page: number;
         };
+        stats: MaintenanceStats;
+        recurring_windows: RecurringMaintenanceWindow[];
+        can_manage_maintenance: boolean;
         monitoring_options: MaintenanceOption[];
         monitoring_groups: MaintenanceGroup[];
     };
@@ -46,19 +68,29 @@ type MaintenancePageLabels = {
     loading: string;
     error: string;
     clearConfirmation: string;
+    clearRecurringConfirmation: string;
 };
 
 interface MaintenancePageComponent {
     endpoint: string;
     labels: MaintenancePageLabels;
     scope: 'monitoring' | 'group';
+    mode: 'one_off' | 'recurring';
     monitoringId: string;
     monitoringGroupId: string;
     maintenanceFrom: string;
     maintenanceUntil: string;
+    recurringStartsAt: string;
+    recurrence: 'weekly' | 'monthly';
+    recurringDurationMinutes: string;
+    recurringRepeatUntil: string;
+    recurringTimezone: string;
     monitoringOptions: MaintenanceOption[];
     monitoringGroups: MaintenanceGroup[];
+    canManageMaintenance: boolean;
     windows: MaintenanceWindow[];
+    recurringWindows: RecurringMaintenanceWindow[];
+    stats: MaintenanceStats;
     pagination: MaintenancePagination;
     loading: boolean;
     submitting: boolean;
@@ -67,6 +99,7 @@ interface MaintenancePageComponent {
     load(this: MaintenancePageComponent, page?: number): Promise<void>;
     schedule(this: MaintenancePageComponent): Promise<void>;
     clearWindow(this: MaintenancePageComponent, monitoringId: string): Promise<void>;
+    clearRecurringWindow(this: MaintenancePageComponent, windowId: string): Promise<void>;
     statusClasses(this: MaintenancePageComponent, status: MaintenanceWindow['status']): string;
 }
 
@@ -77,6 +110,14 @@ const emptyPagination = (): MaintenancePagination => ({
     to: null,
     total: 0,
     per_page: 50,
+});
+
+const emptyStats = (): MaintenanceStats => ({
+    total: 0,
+    active: 0,
+    upcoming: 0,
+    expired: 0,
+    none: 0,
 });
 
 const csrfToken = (): string => document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
@@ -103,13 +144,22 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
     endpoint,
     labels,
     scope: 'monitoring',
+    mode: 'one_off',
     monitoringId: '',
     monitoringGroupId: '',
     maintenanceFrom: '',
     maintenanceUntil: '',
+    recurringStartsAt: '',
+    recurrence: 'weekly',
+    recurringDurationMinutes: '60',
+    recurringRepeatUntil: '',
+    recurringTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     monitoringOptions: [],
     monitoringGroups: [],
+    canManageMaintenance: false,
     windows: [],
+    recurringWindows: [],
+    stats: emptyStats(),
     pagination: emptyPagination(),
     loading: true,
     submitting: false,
@@ -139,7 +189,10 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
             const payload = await response.json() as MaintenanceApiResponse;
             this.monitoringOptions = payload.data.monitoring_options;
             this.monitoringGroups = payload.data.monitoring_groups;
+            this.canManageMaintenance = payload.data.can_manage_maintenance;
             this.windows = payload.data.windows.data;
+            this.recurringWindows = payload.data.recurring_windows;
+            this.stats = payload.data.stats;
             this.pagination = {
                 current_page: payload.data.windows.current_page,
                 last_page: payload.data.windows.last_page,
@@ -161,15 +214,21 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
         this.message = '';
 
         const payload: Record<string, string | null> = {
+            mode: this.mode,
             scope: this.scope,
             monitoring_id: this.scope === 'monitoring' ? this.monitoringId : null,
             monitoring_group_id: this.scope === 'group' ? this.monitoringGroupId : null,
-            maintenance_from: this.maintenanceFrom,
-            maintenance_until: this.maintenanceUntil || null,
+            maintenance_from: this.mode === 'one_off' ? this.maintenanceFrom : null,
+            maintenance_until: this.mode === 'one_off' ? (this.maintenanceUntil || null) : null,
+            recurring_starts_at: this.mode === 'recurring' ? this.recurringStartsAt : null,
+            recurrence: this.mode === 'recurring' ? this.recurrence : null,
+            recurring_duration_minutes: this.mode === 'recurring' ? this.recurringDurationMinutes : null,
+            recurring_repeat_until: this.mode === 'recurring' ? (this.recurringRepeatUntil || null) : null,
+            recurring_timezone: this.mode === 'recurring' ? this.recurringTimezone : null,
         };
 
         try {
-            const response = await fetch('/api/maintenance', {
+            const response = await fetch(this.endpoint, {
                 method: 'POST',
                 headers: requestHeaders(),
                 body: JSON.stringify(payload),
@@ -186,6 +245,8 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
             this.monitoringGroupId = '';
             this.maintenanceFrom = '';
             this.maintenanceUntil = '';
+            this.recurringStartsAt = '';
+            this.recurringRepeatUntil = '';
             await this.load(this.pagination.current_page);
         } catch {
             this.error = this.labels.error;
@@ -204,7 +265,7 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
         this.message = '';
 
         try {
-            const response = await fetch('/api/maintenance', {
+            const response = await fetch(this.endpoint, {
                 method: 'DELETE',
                 headers: requestHeaders(),
                 body: JSON.stringify({ monitoring_id: monitoringId }),
@@ -221,6 +282,37 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
                 ? this.pagination.current_page - 1
                 : this.pagination.current_page;
             await this.load(nextPage);
+        } catch {
+            this.error = this.labels.error;
+        } finally {
+            this.submitting = false;
+        }
+    },
+
+    async clearRecurringWindow(this: MaintenancePageComponent, windowId: string): Promise<void> {
+        if (! window.confirm(this.labels.clearRecurringConfirmation)) {
+            return;
+        }
+
+        this.submitting = true;
+        this.error = '';
+        this.message = '';
+
+        try {
+            const response = await fetch(this.endpoint, {
+                method: 'DELETE',
+                headers: requestHeaders(),
+                body: JSON.stringify({ maintenance_window_id: windowId }),
+            });
+
+            if (!response.ok) {
+                this.error = await errorMessage(response, this.labels.error);
+                return;
+            }
+
+            const result = await response.json() as { message?: string };
+            this.message = result.message ?? '';
+            await this.load(this.pagination.current_page);
         } catch {
             this.error = this.labels.error;
         } finally {

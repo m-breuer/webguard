@@ -101,8 +101,13 @@ class ProfileNotificationSettingsTest extends TestCase
             'notification_channels_hint_seen_at' => null,
         ]);
 
-        $testResponse = $this->actingAs($user)->get(route('profile.edit'));
+        $testResponse = $this->actingAs($user)->get(route('profile.edit', ['full' => 1]));
         $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-profile-settings')
+            ->assertSeeHtml('id="profile-information"')
+            ->assertSeeHtml('id="profile-password"')
+            ->assertSeeHtml('id="profile-api"')
+            ->assertSeeHtml('id="profile-delete"');
         $testResponse->assertSeeText(__('profile.sections.account'));
         $testResponse->assertSeeText(__('profile.sections.preferences'));
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
@@ -113,7 +118,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
         $testResponse->assertSeeHtml('data-confirm-message="' . __('api.configuration.messages.confirm_revoke_token') . '"');
 
-        $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));
+        $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit', ['full' => 1]));
         $secondResponse->assertOk();
         $secondResponse->assertDontSeeText(__('profile.notification_settings.hint_banner'));
     }
@@ -407,10 +412,10 @@ class ProfileNotificationSettingsTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $testResponse = $this->actingAs($user)->get(route('profile.edit'));
+        $testResponse = $this->actingAs($user)->get(route('profile.edit', ['modal' => 'profile-information']));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('profile.notification_settings.test.action'));
+        $testResponse->assertSeeHtml('aria-label="' . __('profile.notification_settings.test.action') . '"');
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'slack']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'telegram']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'discord']));

@@ -38,10 +38,10 @@ class NotificationPageDesignTest extends TestCase
         $testResponse->assertSeeText(__('notifications.filters.heading'));
         $testResponse->assertSeeText(__('notifications.filters.unread'));
         $testResponse->assertSeeText(__('notifications.filters.all'));
-        $testResponse->assertSeeText(__('notifications.mark_all_as_read'));
-        $testResponse->assertSeeHtml('bg-emerald-500 text-white');
-        $testResponse->assertSeeHtml('dark:bg-emerald-400 dark:text-slate-950');
-        $testResponse->assertSeeHtml('dark:!bg-emerald-400 dark:!text-slate-950');
+        $testResponse->assertSeeHtml('aria-label="' . __('notifications.mark_all_as_read') . '"');
+        $testResponse->assertSeeHtml('bg-purple-600 text-white');
+        $testResponse->assertSeeHtml('dark:bg-purple-500 dark:text-white');
+        $testResponse->assertSeeHtml('dark:!bg-purple-500 dark:!text-white');
         $testResponse->assertSeeHtml('sm:grid-cols-[1fr_auto]');
         $testResponse->assertSeeHtml('sm:grid-cols-3');
         $testResponse->assertSeeText(__('notifications.loading.title'));
@@ -80,8 +80,8 @@ class NotificationPageDesignTest extends TestCase
         $this->assertStringContainsString('notification-card-accent', $html);
         $this->assertStringNotContainsString('inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1', $html);
         $this->assertStringContainsString('aria-label="' . __('notifications.mark_as_read') . '"', $html);
-        $this->assertStringContainsString('!bg-emerald-500', $html);
-        $this->assertStringContainsString('dark:!text-slate-950', $html);
+        $this->assertStringContainsString('!bg-purple-600', $html);
+        $this->assertStringContainsString('dark:!text-white', $html);
         $this->assertStringContainsString('id="' . $monitoringNotification->id . '"', $html);
         $this->assertStringContainsString('Checkout API', $html);
     }

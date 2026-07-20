@@ -23,4 +23,20 @@ class TeamRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'team-create') {
+            return route('teams.index', ['modal' => 'team-create']);
+        }
+
+        if ($this->input('modal_form') === 'team-edit') {
+            return route('teams.index', [
+                'modal' => 'team-edit',
+                'team' => $this->route('team'),
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }

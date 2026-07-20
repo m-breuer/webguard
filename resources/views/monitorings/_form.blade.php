@@ -55,6 +55,7 @@
         'value' => $serverInstance->code,
         'label' => $serverInstance->code,
     ])->values();
+    $notificationPreferencesFormId = $notificationPreferencesFormId ?? null;
 @endphp
 
 @csrf
@@ -117,56 +118,6 @@
     </div>
 
     <div class="mt-4">
-        <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
-        @if (isset($monitoring))
-            <x-text-input id="team_id" class="cursor-not-allowed" :value="$monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private')" readonly />
-        @else
-            <x-select-input id="team_id" name="team_id" class="mt-1 block w-full">
-                <option value="">{{ __('team.ownership.private') }}</option>
-                @foreach ($adminTeams as $team)
-                    <option value="{{ $team->id }}" @selected($selectedTeamId === $team->id)>
-                        {{ __('team.ownership.team') }}: {{ $team->name }}
-                    </option>
-                @endforeach
-            </x-select-input>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('team.ownership.private_help') }}
-                @if ($adminTeams->isNotEmpty())
-                    {{ __('team.ownership.team_help') }}
-                @endif
-            </p>
-        @endif
-        <x-input-error :messages="$errors->get('team_id')" />
-    </div>
-
-    <div class="mt-4">
-        <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
-        <x-multi-select
-            id="group_ids"
-            name="group_ids"
-            :options="$groupOptions"
-            :selected="$selectedGroupIds"
-            :placeholder="__('monitoring.form.no_group')"
-            :search-placeholder="__('monitoring.form.search_groups')"
-            :select-all-label="__('monitoring.form.select_all_groups')"
-            :all-selected-label="__('monitoring.form.all_groups_selected')"
-            :no-options-label="__('monitoring.form.no_groups_available')"
-            :no-results-label="__('monitoring.form.no_groups_found')"
-            :remove-label="__('monitoring.form.remove_group')"
-            :clear-label="__('monitoring.form.clear_groups')" />
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('monitoring.form.groups_help') }}
-            @if (!Auth::user()->isDemo())
-                <a href="{{ route('monitoring-groups.index') }}" class="text-purple-700 underline dark:text-purple-300">
-                    {{ __('monitoring_group.title') }}
-                </a>
-            @endif
-        </p>
-        <x-input-error :messages="$errors->get('group_ids')" />
-        <x-input-error :messages="$errors->get('group_ids.*')" />
-    </div>
-
-    <div class="mt-4">
         <x-input-label for="target" :value="__('monitoring.form.target')" />
         @if (isset($monitoring))
             @if ($monitoring->type === MonitoringType::HEARTBEAT || $monitoring->type === MonitoringType::SERVER_HEALTH)
@@ -222,6 +173,70 @@
     </div>
 
         </section>
+
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
+                <x-heading type="h2">{{ __('monitoring.form.sections.organization') }}</x-heading>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                </svg>
+            </summary>
+
+            <div>
+                <x-input-label for="team_id" :value="__('team.ownership.select_label')" />
+                @if (isset($monitoring))
+                    <x-text-input id="team_id" class="cursor-not-allowed" :value="$monitoring->team ? __('team.ownership.team') . ': ' . $monitoring->team->name : __('team.ownership.private')" readonly />
+                @else
+                    <x-select-input id="team_id" name="team_id" class="mt-1 block w-full">
+                        <option value="">{{ __('team.ownership.private') }}</option>
+                        @foreach ($adminTeams as $team)
+                            <option value="{{ $team->id }}" @selected($selectedTeamId === $team->id)>
+                                {{ __('team.ownership.team') }}: {{ $team->name }}
+                            </option>
+                        @endforeach
+                    </x-select-input>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        {{ __('team.ownership.private_help') }}
+                        @if ($adminTeams->isNotEmpty())
+                            {{ __('team.ownership.team_help') }}
+                        @endif
+                    </p>
+                @endif
+                <x-input-error :messages="$errors->get('team_id')" />
+            </div>
+
+            <div>
+                <x-input-label for="group_ids" :value="__('monitoring.form.groups')" />
+                <x-multi-select
+                    id="group_ids"
+                    name="group_ids"
+                    :options="$groupOptions"
+                    :selected="$selectedGroupIds"
+                    :placeholder="__('monitoring.form.no_group')"
+                    :search-placeholder="__('monitoring.form.search_groups')"
+                    :select-all-label="__('monitoring.form.select_all_groups')"
+                    :all-selected-label="__('monitoring.form.all_groups_selected')"
+                    :no-options-label="__('monitoring.form.no_groups_available')"
+                    :no-results-label="__('monitoring.form.no_groups_found')"
+                    :remove-label="__('monitoring.form.remove_group')"
+                    :clear-label="__('monitoring.form.clear_groups')" />
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('monitoring.form.groups_help') }}
+                    @if (!Auth::user()->isDemo())
+                        <a href="{{ route('monitoring-groups.index') }}" class="text-purple-700 underline dark:text-purple-300">
+                            {{ __('monitoring_group.title') }}
+                        </a>
+                    @endif
+                </p>
+                <x-input-error :messages="$errors->get('group_ids')" />
+                <x-input-error :messages="$errors->get('group_ids.*')" />
+            </div>
+        </details>
 
         <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
             <div>
@@ -368,6 +383,17 @@
         </div>
     </template>
 
+    <details x-show="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'"
+        class="mt-4 rounded-md border border-gray-200 p-4 dark:border-gray-700">
+        <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-gray-800 [&::-webkit-details-marker]:hidden dark:text-gray-100">
+            <span>{{ __('monitoring.form.advanced_request_settings') }}</span>
+            <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25-4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1-1.08 1.06Z" clip-rule="evenodd" />
+            <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+            </svg>
+        </summary>
+
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
             <x-input-label for="auth_username" :value="__('monitoring.form.auth_username')" />
@@ -398,12 +424,18 @@
         </div>
     </template>
 
+    </details>
+
         </section>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.sharing') }}</x-heading>
-            </div>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                </svg>
+            </summary>
 
     <div class="mt-4">
         <x-input-label for="public_label_enabled" :value="__('monitoring.form.public_label')" />
@@ -439,19 +471,23 @@
         @endif
     </div>
 
-        </section>
+        </details>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
-            </div>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 1 1-1.08 1.06Z" clip-rule="evenodd" />
+                </svg>
+            </summary>
 
-    @if (isset($monitoring))
-        <input type="hidden" name="notification_on_failure" value="{{ old('notification_on_failure', $monitoring->notification_on_failure ?? true) ? '1' : '0' }}">
-        @foreach ($selectedNotificationChannels as $channel)
-            <input type="hidden" name="notification_channels[]" value="{{ $channel }}">
-        @endforeach
-        <input type="hidden" name="ssl_expiry_warning_days" value="{{ old('ssl_expiry_warning_days', $monitoring->ssl_expiry_warning_days ?? 7) }}">
+    @if (isset($monitoring) && isset($notificationPreference) && $notificationPreferencesFormId)
+        @include('monitorings._notification_preferences', [
+            'embedded' => true,
+            'formId' => $notificationPreferencesFormId,
+            'fieldIdPrefix' => $fieldIdPrefix ?? 'monitoring_notification_preference',
+        ])
     @endif
 
     @unless (isset($monitoring))
@@ -483,14 +519,14 @@
     <div class="mt-4">
         <x-input-label for="notification_channels" :value="__('monitoring.form.notification_channels')" />
         @if (count($enabledNotificationChannels) > 0)
-            <select id="notification_channels" name="notification_channels[]" multiple size="{{ min(4, count($enabledNotificationChannels)) }}"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+            <x-select-input id="notification_channels" name="notification_channels[]" multiple
+                size="{{ min(4, count($enabledNotificationChannels)) }}" class="mt-1 block w-full">
                 @foreach ($enabledNotificationChannels as $channel)
                     <option value="{{ $channel }}" @selected(in_array($channel, $selectedNotificationChannels, true))>
                         {{ __('profile.notification_settings.channels.' . $channel . '.title') }}
                     </option>
                 @endforeach
-            </select>
+            </x-select-input>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 {{ __('monitoring.form.notification_channels_help') }}
             </p>
@@ -514,12 +550,16 @@
     </div>
     @endunless
 
-        </section>
+        </details>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.operations') }}</x-heading>
-            </div>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 1 1 .02-1.06Z" clip-rule="evenodd" />
+                </svg>
+            </summary>
 
     <div class="mt-4">
         <x-input-label for="preferred_locations" :value="__('monitoring.form.preferred_location')" />
@@ -557,8 +597,18 @@
         <x-input-error :messages="$errors->get('status')" />
     </div>
 
-        </section>
+        </details>
 
-        <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+        <div class="flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-6 dark:border-gray-700"
+            data-monitoring-form-actions>
+            <x-secondary-button
+                :href="isset($modal) && $modal ? null : (isset($monitoring) ? route('monitorings.show', $monitoring) : route('monitorings.index'))"
+                type="button"
+                x-on:click="$dispatch('close-form-modal', 'monitoring-form-modal')"
+            >
+                {{ __('button.cancel') }}
+            </x-secondary-button>
+            <x-primary-button>{{ isset($monitoring) ? __('button.update') : __('button.create') }}</x-primary-button>
+        </div>
     </div>
 </div>

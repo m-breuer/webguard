@@ -8,6 +8,8 @@ use App\Enums\HttpMethod;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Enums\TeamRole;
+use App\Services\MaintenanceWindowService;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -153,6 +155,14 @@ class Monitoring extends Model
     public function incidents(): HasMany
     {
         return $this->hasMany(Incident::class, 'monitoring_id');
+    }
+
+    /**
+     * @return HasMany<MaintenanceWindow, $this>
+     */
+    public function maintenanceWindows(): HasMany
+    {
+        return $this->hasMany(MaintenanceWindow::class);
     }
 
     /**
@@ -332,14 +342,46 @@ class Monitoring extends Model
     public function isUnderMaintenance(): bool
     {
         if ($this->maintenance_from && is_null($this->maintenance_until)) {
-            return $this->maintenance_from->isPast();
+            if ($this->maintenance_from->isPast()) {
+                return true;
+            }
+
+            return resolve(MaintenanceWindowService::class)->isUnderMaintenance($this);
         }
 
         if ($this->maintenance_from && $this->maintenance_until) {
-            return now()->between($this->maintenance_from, $this->maintenance_until);
+            if (now()->between($this->maintenance_from, $this->maintenance_until)) {
+                return true;
+            }
+
+            return resolve(MaintenanceWindowService::class)->isUnderMaintenance($this);
         }
 
-        return false;
+        return resolve(MaintenanceWindowService::class)->isUnderMaintenance($this);
+    }
+
+    /**
+     * @return array{starts_at: CarbonInterface, ends_at: CarbonInterface|null, active: bool, recurring: bool}|null
+     */
+    public function currentOrUpcomingMaintenanceWindow(): ?array
+    {
+        if ($this->maintenance_from && (! $this->maintenance_until || $this->maintenance_until->isFuture())) {
+            return [
+                'starts_at' => $this->maintenance_from,
+                'ends_at' => $this->maintenance_until,
+                'active' => $this->isUnderMaintenanceWithoutRecurringWindow(),
+                'recurring' => false,
+            ];
+        }
+
+        return resolve(MaintenanceWindowService::class)->currentOrUpcoming($this);
+    }
+
+    public function hasUpcomingMaintenance(): bool
+    {
+        $window = $this->currentOrUpcomingMaintenanceWindow();
+
+        return $window !== null && ! $window['active'];
     }
 
     /**
@@ -357,6 +399,20 @@ class Monitoring extends Model
             array_map(static fn (mixed $location): string => (string) $location, $locations),
             static fn (string $location): bool => $location !== ''
         )));
+    }
+
+    /**
+     * Include recurring maintenance presence in route-bound monitoring queries.
+     *
+     * @param  mixed  $query
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return \Illuminate\Contracts\Database\Eloquent\Builder
+     */
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        return parent::resolveRouteBindingQuery($query, $value, $field)
+            ->withMaintenanceWindowState();
     }
 
     /**
@@ -379,6 +435,37 @@ class Monitoring extends Model
                 });
             }
         });
+    }
+
+    /**
+     * Add the recurring maintenance presence flag used by high-throughput payloads.
+     */
+    #[Scope]
+    protected function withMaintenanceWindowState(Builder $builder): Builder
+    {
+        $monitoringTable = $builder->getModel()->getTable();
+
+        $maintenanceWindowQuery = MaintenanceWindow::query()
+            ->selectRaw('1')
+            ->where('enabled', true)
+            ->where(function (Builder $builder) use ($monitoringTable): void {
+                $builder
+                    ->whereColumn('maintenance_windows.monitoring_id', $monitoringTable . '.id')
+                    ->orWhereExists(function (\Illuminate\Database\Query\Builder $builder) use ($monitoringTable): void {
+                        $builder
+                            ->selectRaw('1')
+                            ->from('monitoring_group_monitoring')
+                            ->whereColumn('monitoring_group_monitoring.monitoring_id', $monitoringTable . '.id')
+                            ->whereColumn(
+                                'monitoring_group_monitoring.monitoring_group_id',
+                                'maintenance_windows.monitoring_group_id'
+                            );
+                    });
+            });
+
+        return $builder->addSelect([
+            'has_enabled_maintenance_windows' => $maintenanceWindowQuery,
+        ]);
     }
 
     /**
@@ -478,6 +565,18 @@ class Monitoring extends Model
             'server_health_cpu_threshold_percent' => 'float',
             'server_health_ram_threshold_percent' => 'float',
             'server_health_storage_threshold_percent' => 'float',
+            'has_enabled_maintenance_windows' => 'boolean',
         ];
+    }
+
+    private function isUnderMaintenanceWithoutRecurringWindow(): bool
+    {
+        if (! $this->maintenance_from) {
+            return false;
+        }
+
+        return $this->maintenance_until === null
+            ? $this->maintenance_from->isPast()
+            : now()->between($this->maintenance_from, $this->maintenance_until);
     }
 }

@@ -31,4 +31,18 @@ class UpdatePackageRequest extends FormRequest
             'is_selectable' => ['boolean'],
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'admin-package-edit') {
+            $package = $this->route('package');
+
+            return route('admin.packages.index', [
+                'modal' => 'admin-package-edit',
+                'package' => is_object($package) ? $package->getRouteKey() : $package,
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
 }

@@ -16,19 +16,21 @@
         <x-table.cell>{{ $user->created_at->format('d.m.Y') }}</x-table.cell>
         <x-table.cell>{{ $user->updated_at->format('d.m.Y') }}</x-table.cell>
         <x-table.cell>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('admin.users.edit', $user) }}"
-                    class="inline-flex min-h-10 items-center text-purple-600 hover:underline">
-                    {{ __('button.edit') }}
-                </a>
+            <div class="flex items-center gap-2">
+                <x-secondary-button :href="route('admin.users.edit', $user)" :icon-only="true"
+                    data-form-modal-trigger data-form-modal-name="admin-user-form-modal"
+                    title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                    <x-icon name="pencil" class="h-4 w-4" />
+                </x-secondary-button>
                 @if ($user->id !== auth()->id())
                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline-flex"
                         data-confirm-message="{{ __('user.delete.confirmation_question') }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit"
-                            class="inline-flex min-h-10 cursor-pointer items-center text-red-600 hover:underline"
-                            data-testid="delete-user-{{ $user->id }}">{{ __('button.delete') }}</button>
+                        <x-danger-button :icon-only="true" title="{{ __('button.delete') }}" aria-label="{{ __('button.delete') }}"
+                            data-testid="delete-user-{{ $user->id }}">
+                            <x-icon name="trash" class="h-4 w-4" />
+                        </x-danger-button>
                     </form>
                 @endif
             </div>

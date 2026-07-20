@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 return [
     'title' => 'Profile',
+    'navigation' => [
+        'heading' => 'Account settings',
+        'account' => 'Account and appearance',
+        'security' => 'Security',
+        'api' => 'API and documentation',
+        'danger_zone' => 'Delete account',
+    ],
     'delete_account' => [
         'heading' => 'Delete Account',
         'description' => 'Once your account is deleted, all of its resources and data will be permanently deleted.',
@@ -141,6 +148,7 @@ return [
     'actions' => [
         'update_password' => 'Update Password',
         'update_profile' => 'Update Profile',
+        'open_full_page' => 'Open full-page editor',
         'delete_account' => 'Delete Account',
         'send_verification_email' => 'Click here to re-send the verification email',
     ],

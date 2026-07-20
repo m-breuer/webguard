@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'id',
     'monitoring_id',
+    'location_code',
     'status',
     'http_status_code',
     'response_time',

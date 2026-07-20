@@ -139,6 +139,8 @@
         <nav class="flex flex-wrap items-center gap-1" aria-label="{{ __('search.table.pagination') }}">
             <button type="button"
                 class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 transition hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                title="{{ __('pagination.previous') }}"
+                aria-label="{{ __('pagination.previous') }}"
                 :disabled="pagination.current_page <= 1 || loading" @click="fetchPage(pagination.current_page - 1)">
                 &laquo;
             </button>
@@ -157,6 +159,8 @@
 
             <button type="button"
                 class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 transition hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                title="{{ __('pagination.next') }}"
+                aria-label="{{ __('pagination.next') }}"
                 :disabled="pagination.current_page >= pagination.last_page || loading"
                 @click="fetchPage(pagination.current_page + 1)">
                 &raquo;

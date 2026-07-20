@@ -46,7 +46,9 @@ class ImprintPageTest extends TestCase
 
     public function test_footer_contains_imprint_link(): void
     {
-        $testResponse = $this->get(route('welcome'));
+        $this->configureImprint();
+
+        $testResponse = $this->get(route('imprint'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('imprint.footer_link'));

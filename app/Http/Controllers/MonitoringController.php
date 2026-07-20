@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\MonitoringLifecycleStatus;
+use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Http\Requests\MonitoringRequest;
 use App\Jobs\DeleteMonitoringResults;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\ServerInstance;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
+use App\Services\RegionalConsensusService;
 use App\Support\MonitoringPayload;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -36,8 +39,10 @@ class MonitoringController extends Controller
      * @param  Request  $request  The HTTP request instance.
      * @return View The view displaying the list of monitorings.
      */
-    public function index(Request $request): View
-    {
+    public function index(
+        Request $request,
+        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver
+    ): View {
         /** @var User $currentUser */
         $currentUser = $request->user()->loadMissing('package');
 
@@ -48,6 +53,13 @@ class MonitoringController extends Controller
                 foreach ($types as $type) {
                     if (! MonitoringType::tryFrom($type)) {
                         $fail(__('monitoring.validation.invalid_type', ['type' => $type]));
+                    }
+                }
+            }],
+            'health' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                foreach (explode(',', $value) as $status) {
+                    if (! MonitoringStatus::tryFrom($status)) {
+                        $fail(__('monitoring.validation.invalid_status', ['status' => $status]));
                     }
                 }
             }],
@@ -71,6 +83,7 @@ class MonitoringController extends Controller
                 },
             ],
             'ownership' => ['nullable', 'string', Rule::in(['all', 'private', 'team'])],
+            'maintenance' => ['nullable', 'string', Rule::in(['active'])],
         ]);
 
         $query = Monitoring::query();
@@ -110,6 +123,34 @@ class MonitoringController extends Controller
             $query->whereNotNull('team_id');
         }
 
+        if ($request->filled('health')) {
+            $healthStatuses = explode(',', (string) $request->input('health'));
+
+            $query->where(function (Builder $builder) use ($healthStatuses): void {
+                if (in_array(MonitoringStatus::UP->value, $healthStatuses, true)) {
+                    $builder->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::UP));
+                }
+
+                if (in_array(MonitoringStatus::DOWN->value, $healthStatuses, true)) {
+                    $builder->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::DOWN));
+                }
+
+                if (in_array(MonitoringStatus::UNKNOWN->value, $healthStatuses, true)) {
+                    $builder->orWhereDoesntHave('latestResponseResult')
+                        ->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::UNKNOWN));
+                }
+            });
+        }
+
+        if ($request->input('maintenance') === 'active') {
+            $query->whereNotNull('maintenance_from')
+                ->where('maintenance_from', '<=', now())
+                ->where(function (Builder $builder): void {
+                    $builder->whereNull('maintenance_until')
+                        ->orWhere('maintenance_until', '>=', now());
+                });
+        }
+
         $query->orderBy('status');
 
         match ($request->input('sort')) {
@@ -119,13 +160,16 @@ class MonitoringController extends Controller
             default => $query->orderBy('name'),
         };
 
+        $summaryMonitoringIds = (clone $query)->pluck('id')->values();
         $lengthAwarePaginator = $query->paginate(5);
         $hasActiveFilters = $request->filled('search')
             || $request->filled('types')
             || $request->filled('lifecycle')
             || $request->filled('group_id')
             || $request->filled('team_id')
-            || $request->filled('ownership');
+            || $request->filled('ownership')
+            || $request->filled('health')
+            || $request->filled('maintenance');
         $privateMonitoringsTotal = $currentUser->monitorings()->whereNull('team_id')->count();
         $monitoringsTotal = $hasActiveFilters
             ? Monitoring::query()->count()
@@ -141,17 +185,61 @@ class MonitoringController extends Controller
         $maintenanceStatusMap = $lengthAwarePaginator->getCollection()->mapWithKeys(function ($monitoring) {
             return [$monitoring->id => $monitoring->isUnderMaintenance()];
         });
+        $openIncidentCount = Incident::query()
+            ->whereNull('up_at')
+            ->whereHas('monitoring')
+            ->count();
+        $statusPageCount = $currentUser->statusPages()->count();
+        $modalForm = $request->string('modal')->toString();
+        $modalMonitoring = null;
+        $modalFormData = [];
+
+        if ($modalForm === 'monitoring-create') {
+            $modalFormData = [
+                'types' => MonitoringType::cases(),
+                'serverInstances' => ServerInstance::query()->active()->orderBy('code')->get(['code']),
+                'enabledNotificationChannels' => $currentUser->enabledNotificationChannelKeys(),
+                'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
+                'adminTeams' => $currentUser->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
+            ];
+        } elseif ($modalForm === 'monitoring-edit' && $request->filled('monitoring')) {
+            $modalMonitoring = Monitoring::query()->findOrFail($request->string('monitoring')->toString());
+            abort_unless($modalMonitoring->isManageableBy($currentUser), 403);
+            $modalMonitoring->loadMissing('groups', 'team');
+            $modalFormData = [
+                'types' => MonitoringType::cases(),
+                'serverInstances' => ServerInstance::query()
+                    ->where(function ($query) use ($modalMonitoring): void {
+                        $query->where('is_active', true)
+                            ->orWhereIn('code', $modalMonitoring->preferredLocationCodes());
+                    })
+                    ->orderBy('code')
+                    ->get(['code']),
+                'enabledNotificationChannels' => $currentUser->enabledNotificationChannelKeys(),
+                'monitoringGroups' => $modalMonitoring->isPrivateOwned()
+                    ? $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name'])
+                    : collect(),
+                'adminTeams' => $currentUser->administeredTeams()->orderBy('name')->get(['teams.id', 'teams.name']),
+                'notificationPreference' => $monitoringNotificationPreferenceResolver->preferenceFor($modalMonitoring, $currentUser),
+            ];
+        }
 
         return view('monitorings.index', [
             'currentUser' => $currentUser,
             'monitorings' => $lengthAwarePaginator,
+            'summaryMonitoringIds' => $summaryMonitoringIds,
             'monitoringsTotal' => $monitoringsTotal,
             'monitoringLimit' => $monitoringLimit,
             'privateMonitoringsTotal' => $privateMonitoringsTotal,
             'canCreateMonitoring' => $canCreateMonitoring,
             'maintenanceStatusMap' => $maintenanceStatusMap,
+            'openIncidentCount' => $openIncidentCount,
+            'statusPageCount' => $statusPageCount,
             'monitoringGroups' => $currentUser->monitoringGroups()->orderBy('name')->get(['id', 'name']),
             'teams' => Team::query()->visibleTo($currentUser)->orderBy('name')->get(['id', 'name']),
+            'modalForm' => $modalForm,
+            'modalMonitoring' => $modalMonitoring,
+            'modalFormData' => $modalFormData,
         ]);
     }
 
@@ -233,16 +321,32 @@ class MonitoringController extends Controller
      * @param  Monitoring  $monitoring  The monitoring instance to display.
      * @return View The view displaying the monitoring details.
      */
-    public function show(Monitoring $monitoring): View
+    public function show(Monitoring $monitoring, RegionalConsensusService $regionalConsensusService): View
     {
         /** @var User $user */
         $user = Auth::user();
-        $monitoring->loadMissing('domainResult', 'team');
+        $monitoring->loadMissing([
+            'domainResult',
+            'groups',
+            'latestIncident',
+            'latestResponseResult',
+            'sslResult',
+            'statusPageComponents.statusPage',
+            'team.users',
+            'user',
+        ]);
+
+        $notificationRecipients = $monitoring->team_id !== null
+            ? ($monitoring->team?->users ?? collect())
+            : collect([$monitoring->user ?? $user]);
 
         return view('monitorings.show', [
             'monitoring' => $monitoring,
             'canManageMonitoring' => $monitoring->isManageableBy($user) && ! $user->isDemo(),
-            'adminTeams' => Team::query()->administeredBy($user)->orderBy('name')->get(['teams.id', 'teams.name']),
+            'notificationRecipients' => $notificationRecipients,
+            'regionalConsensus' => count($monitoring->preferredLocationCodes()) > 1
+                ? $regionalConsensusService->snapshot($monitoring)
+                : null,
         ]);
     }
 

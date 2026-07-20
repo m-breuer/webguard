@@ -4,26 +4,30 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ApiController as AdminApiController;
-use App\Http\Controllers\Admin\DemoMonitoringController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HeartbeatPingController;
+use App\Http\Controllers\IncidentAnalyticsController;
+use App\Http\Controllers\LegacyPublicStatusPageController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\MonitoringGroupController;
-use App\Http\Controllers\MonitoringLocationsController;
 use App\Http\Controllers\MonitoringNotificationPreferenceController;
 use App\Http\Controllers\MonitoringOwnershipController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PublicFeatureController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\PublicStatusPageController;
 use App\Http\Controllers\StatusPageController;
+use App\Http\Controllers\StatusPageIncidentFollowUpController;
+use App\Http\Controllers\StatusPageIncidentMetadataController;
+use App\Http\Controllers\StatusPageIncidentReviewController;
+use App\Http\Controllers\StatusPageIncidentTimelineController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
 use App\Http\Controllers\StatusPageSubscriberController;
 use App\Http\Controllers\StatusPageSubscriptionController;
@@ -46,22 +50,7 @@ $sessionlessPublicRoutes = [
 Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
-Route::get('/', fn () => view('welcome'))
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('welcome');
-Route::get('/monitoring-locations', MonitoringLocationsController::class)
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('monitoring-locations');
-Route::get('/features', [PublicFeatureController::class, 'index'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('public-features.index');
-Route::get('/features/{feature}', [PublicFeatureController::class, 'show'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('public-features.show');
+Route::redirect('/', '/login')->name('home');
 Route::get('/imprint', [LegalController::class, 'imprint'])
     ->withoutMiddleware($sessionlessPublicRoutes)
     ->middleware('public.cache')
@@ -105,17 +94,42 @@ Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSub
 Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
     ->name('public-label.subscribers.destroy')
     ->scopeBindings();
-Route::post('/status/{statusPage:slug}/subscribers', [StatusPageSubscriptionController::class, 'store'])
+$statusPageUlidPattern = '(?i:[0-9A-HJKMNP-TV-Z]{26})';
+$legacyStatusPageSlugPattern = '(?!(?i:[0-9A-HJKMNP-TV-Z]{26}))[A-Za-z0-9_-]+';
+
+Route::post('/status/{statusPage}/subscribers', [StatusPageSubscriptionController::class, 'store'])
     ->middleware('throttle:6,1')
-    ->name('public-status-pages.subscribers.store');
-Route::get('/status/{statusPage:slug}/subscribers/confirm/{token}', [StatusPageSubscriptionController::class, 'confirm'])
-    ->name('public-status-pages.subscribers.confirm');
-Route::get('/status/{statusPage:slug}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'unsubscribe'])
-    ->name('public-status-pages.subscribers.unsubscribe');
-Route::delete('/status/{statusPage:slug}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'destroy'])
-    ->name('public-status-pages.subscribers.destroy');
-Route::get('/status/{statusPage:slug}', PublicStatusPageController::class)
-    ->name('public-status-pages.show');
+    ->name('public-status-pages.subscribers.store')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::get('/status/{statusPage}/subscribers/confirm/{token}', [StatusPageSubscriptionController::class, 'confirm'])
+    ->name('public-status-pages.subscribers.confirm')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::get('/status/{statusPage}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'unsubscribe'])
+    ->name('public-status-pages.subscribers.unsubscribe')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::delete('/status/{statusPage}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'destroy'])
+    ->name('public-status-pages.subscribers.destroy')
+    ->where('statusPage', $statusPageUlidPattern);
+Route::get('/status/{statusPage}', PublicStatusPageController::class)
+    ->name('public-status-pages.show')
+    ->where('statusPage', $statusPageUlidPattern);
+
+Route::post('/status/{statusPageSlug}/subscribers', [LegacyPublicStatusPageController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('legacy-public-status-pages.subscribers.store')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::get('/status/{statusPageSlug}/subscribers/confirm/{token}', [LegacyPublicStatusPageController::class, 'confirm'])
+    ->name('legacy-public-status-pages.subscribers.confirm')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::get('/status/{statusPageSlug}/subscribers/unsubscribe/{token}', [LegacyPublicStatusPageController::class, 'unsubscribe'])
+    ->name('legacy-public-status-pages.subscribers.unsubscribe')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::delete('/status/{statusPageSlug}/subscribers/unsubscribe/{token}', [LegacyPublicStatusPageController::class, 'destroy'])
+    ->name('legacy-public-status-pages.subscribers.destroy')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+Route::get('/status/{statusPageSlug}', [LegacyPublicStatusPageController::class, 'show'])
+    ->name('legacy-public-status-pages.show')
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
 
 Route::get('/badge.js', function () {
     return response(file_get_contents(public_path('js/badge.js')))->header('Content-Type', 'application/javascript');
@@ -132,7 +146,7 @@ Route::middleware(['auth', 'role:member,admin'])
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
 
-    Route::get('/dashboard', fn () => to_route('monitorings.index'))->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
         Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');
@@ -173,6 +187,24 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->names('status-pages');
     Route::post('/status-pages/{statusPage}/incidents/{incident}/updates', [StatusPageIncidentUpdateController::class, 'store'])
         ->name('status-pages.incident-updates.store');
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/review', [StatusPageIncidentReviewController::class, 'update'])
+        ->name('status-pages.incident-review.update');
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/metadata', [StatusPageIncidentMetadataController::class, 'update'])
+        ->name('status-pages.incident-metadata.update');
+    Route::post('/status-pages/{statusPage}/incidents/{incident}/follow-ups', [StatusPageIncidentFollowUpController::class, 'store'])
+        ->name('status-pages.incident-follow-ups.store');
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [StatusPageIncidentFollowUpController::class, 'update'])
+        ->name('status-pages.incident-follow-ups.update');
+    Route::delete('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [StatusPageIncidentFollowUpController::class, 'destroy'])
+        ->name('status-pages.incident-follow-ups.destroy');
+    Route::post('/status-pages/{statusPage}/incidents/{incident}/timeline', [StatusPageIncidentTimelineController::class, 'store'])
+        ->name('status-pages.incident-timeline.store');
+    Route::patch('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [StatusPageIncidentTimelineController::class, 'update'])
+        ->name('status-pages.incident-timeline.update');
+    Route::delete('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [StatusPageIncidentTimelineController::class, 'destroy'])
+        ->name('status-pages.incident-timeline.destroy');
+    Route::get('/incidents/analytics', [IncidentAnalyticsController::class, 'index'])
+        ->name('incidents.analytics');
 
     Route::delete('/monitorings/{monitoring}/reset', [MonitoringController::class, 'destroyResults'])
         ->name('monitorings.destroyResults');
@@ -191,7 +223,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::resource('/packages', PackageController::class)->except(['show'])->names('packages');
         Route::resource('/server-instances', ServerInstanceController::class)->except(['show'])->names('server-instances');
         Route::resource('/apis', AdminApiController::class)->only(['index'])->names('apis');
-        Route::resource('/demo-monitorings', DemoMonitoringController::class)->except(['show'])->names('demo-monitorings');
         Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     });
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\IncidentFollowUpStatus;
 use App\Enums\StatusPageComponentSource;
 use App\Http\Requests\StatusPages\StatusPageRequest;
 use App\Models\Incident;
@@ -11,6 +12,7 @@ use App\Models\Monitoring;
 use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
 use App\Models\User;
+use App\Services\IncidentTimelineService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -19,16 +21,38 @@ use Illuminate\View\View;
 
 class StatusPageController extends Controller
 {
+    public function __construct(
+        private readonly IncidentTimelineService $incidentTimelineService
+    ) {}
+
     public function index(): View
     {
         /** @var User $user */
         $user = Auth::user();
+        $modalForm = request()->string('modal')->toString();
+        $modalStatusPage = null;
+        $modalMonitorings = collect();
+        $modalDefaultComponents = [];
+
+        if ($modalForm === 'status-page-create') {
+            $modalMonitorings = $this->monitoringOptions();
+            $modalDefaultComponents = $this->defaultComponents();
+        } elseif ($modalForm === 'status-page-edit' && request()->filled('status_page')) {
+            $modalStatusPage = StatusPage::query()->findOrFail(request()->string('status_page')->toString());
+            $this->authorizeOwner($modalStatusPage);
+            $this->loadStatusPageComponents($modalStatusPage);
+            $modalMonitorings = $this->monitoringOptions();
+        }
 
         return view('status-pages.index', [
             'statusPages' => $user->statusPages()
                 ->withCount('components')
                 ->latest()
                 ->paginate(10),
+            'modalForm' => $modalForm,
+            'modalStatusPage' => $modalStatusPage,
+            'modalMonitorings' => $modalMonitorings,
+            'modalDefaultComponents' => $modalDefaultComponents,
         ]);
     }
 
@@ -52,7 +76,6 @@ class StatusPageController extends Controller
 
         $statusPage = $user->statusPages()->create([
             'name' => $validated['name'],
-            'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
             'is_public' => $validated['is_public'],
         ]);
@@ -68,10 +91,36 @@ class StatusPageController extends Controller
         $this->authorizeOwner($statusPage);
 
         $this->loadStatusPageComponents($statusPage);
+        $incidents = $this->recentIncidents($statusPage);
+        $followUpStatus = request()->query('follow_up_status') ?: null;
+        $followUpAssignee = request()->query('follow_up_assignee') ?: null;
+
+        if (IncidentFollowUpStatus::tryFrom((string) $followUpStatus) || $followUpAssignee === $statusPage->user_id) {
+            $incidents->each(function (Incident $incident) use ($followUpStatus, $followUpAssignee): void {
+                $incident->setRelation('followUps', $incident->followUps->filter(
+                    fn ($followUp): bool => ($followUpStatus === null || $followUp->status->value === $followUpStatus)
+                        && ($followUpAssignee === null || $followUp->assigned_user_id === $followUpAssignee)
+                )->values());
+            });
+        }
+
+        $openIncidentId = request()->string('incident_id')->toString();
+        if ($incidents->doesntContain(fn (Incident $incident): bool => $incident->id === $openIncidentId)) {
+            $openIncidentId = null;
+        }
 
         return view('status-pages.show', [
             'statusPage' => $statusPage,
-            'incidents' => $this->recentIncidents($statusPage),
+            'incidents' => $incidents,
+            'openIncidentId' => $openIncidentId,
+            'incidentTimelines' => $incidents->mapWithKeys(
+                fn (Incident $incident) => [$incident->id => $this->incidentTimelineService->events($incident)]
+            ),
+            'followUpFilters' => [
+                'status' => $followUpStatus,
+                'assignee' => $followUpAssignee,
+            ],
+            'followUpStatuses' => IncidentFollowUpStatus::cases(),
         ]);
     }
 
@@ -98,7 +147,6 @@ class StatusPageController extends Controller
 
         $statusPage->update([
             'name' => $validated['name'],
-            'slug' => $validated['slug'],
             'description' => $validated['description'] ?? null,
             'is_public' => $validated['is_public'],
         ]);
@@ -182,6 +230,7 @@ class StatusPageController extends Controller
     private function loadStatusPageComponents(StatusPage $statusPage): void
     {
         $statusPage->loadMissing([
+            'user',
             'components.monitorings',
             'components.monitoringGroup.monitorings' => fn ($query) => $query->orderBy('name'),
         ]);
@@ -214,7 +263,7 @@ class StatusPageController extends Controller
         }
 
         return Incident::query()
-            ->with(['monitoring', 'updates'])
+            ->with(['monitoring', 'updates', 'followUps.assignedUser', 'timelineEvents'])
             ->whereIn('monitoring_id', $monitoringIds)
             ->whereBetween('down_at', [Date::now()->subDays(90)->startOfDay(), Date::now()->endOfDay()])
             ->latest('down_at')

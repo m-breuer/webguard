@@ -17,6 +17,19 @@ return [
     'form' => [
         'name' => 'Name',
         'description' => 'Description',
+        'monitorings' => 'Monitorings',
+        'no_monitorings' => 'No monitorings selected',
+        'search_monitorings' => 'Search monitorings by name or target...',
+        'select_all_monitorings' => 'Select all',
+        'all_monitorings_selected' => 'All matching monitorings are selected.',
+        'no_monitorings_available' => 'No private monitorings are available.',
+        'no_monitorings_found' => 'No matching monitorings found.',
+        'remove_monitoring' => 'Remove monitoring:',
+        'clear_monitorings' => 'Remove all monitorings',
+        'monitorings_help' => 'Optionally assign monitorings while saving this group.',
+    ],
+    'validation' => [
+        'monitoring_not_manageable' => 'The selected monitoring cannot be assigned to your group.',
     ],
     'filter' => [
         'all' => 'All groups',

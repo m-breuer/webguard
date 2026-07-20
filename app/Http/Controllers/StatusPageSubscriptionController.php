@@ -25,26 +25,26 @@ class StatusPageSubscriptionController extends Controller
         ]);
 
         $email = Str::lower((string) $validated['email']);
-        $subscription = StatusPageSubscription::query()->firstOrNew([
+        $statusPageSubscription = StatusPageSubscription::query()->firstOrNew([
             'status_page_id' => $statusPage->id,
             'email' => $email,
         ]);
 
-        if (! $subscription->exists || ! $subscription->isVerified()) {
+        if (! $statusPageSubscription->exists || ! $statusPageSubscription->isVerified()) {
             $confirmationToken = Str::random(48);
 
-            $subscription->forceFill([
+            $statusPageSubscription->forceFill([
                 'confirmation_token_hash' => StatusPageSubscription::hashToken($confirmationToken),
                 'unsubscribe_token' => Str::random(48),
                 'verified_at' => null,
             ])->save();
 
-            Mail::to($subscription->email)->send(
-                new PublicStatusPageSubscriptionConfirmationMail($subscription, $confirmationToken)
+            Mail::to($statusPageSubscription->email)->send(
+                new PublicStatusPageSubscriptionConfirmationMail($statusPageSubscription, $confirmationToken)
             );
         }
 
-        return to_route('public-status-pages.show', $statusPage->slug)
+        return to_route('public-status-pages.show', $statusPage)
             ->with('status_page_subscription_success', __('status_page.public.subscribe.confirmation_sent'));
     }
 
@@ -52,26 +52,26 @@ class StatusPageSubscriptionController extends Controller
     {
         abort_unless($statusPage->is_public, 404);
 
-        $subscription = $statusPage->subscriptions()
+        $statusPageSubscription = $statusPage->subscriptions()
             ->where('confirmation_token_hash', StatusPageSubscription::hashToken($token))
             ->firstOrFail();
 
-        $subscription->markVerified();
+        $statusPageSubscription->markVerified();
 
-        return to_route('public-status-pages.show', $statusPage->slug)
+        return to_route('public-status-pages.show', $statusPage)
             ->with('status_page_subscription_success', __('status_page.public.subscribe.confirmed'));
     }
 
     public function unsubscribe(StatusPage $statusPage, string $token): View
     {
-        $subscription = $statusPage->subscriptions()
+        $statusPageSubscription = $statusPage->subscriptions()
             ->where('unsubscribe_token', $token)
             ->firstOrFail();
 
         return view('status-pages.unsubscribe', [
             'statusPage' => $statusPage,
             'token' => $token,
-            'subscription' => $subscription,
+            'subscription' => $statusPageSubscription,
         ]);
     }
 
@@ -98,7 +98,7 @@ class StatusPageSubscriptionController extends Controller
             ->delete();
 
         $redirect = $statusPage->is_public
-            ? to_route('public-status-pages.show', $statusPage->slug)
+            ? to_route('public-status-pages.show', $statusPage)
             : redirect('/');
 
         return $redirect->with('status_page_subscription_success', __('status_page.public.subscribe.unsubscribed'));

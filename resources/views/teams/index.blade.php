@@ -3,14 +3,16 @@
         <x-heading type="h1">{{ __('team.title') }}</x-heading>
 
         @if (!Auth::user()->isDemo())
-            <x-primary-button :href="route('teams.create')" class="sm:ml-auto">
+            <x-primary-button :href="route('teams.create')" class="sm:ml-auto"
+                data-form-modal-trigger data-form-modal-name="team-form-modal">
                 {{ __('team.actions.create') }}
             </x-primary-button>
         @endif
     </x-slot>
 
     <x-main>
-        <x-container>
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
+            <x-container>
             @if ($teams->count() === 0)
                 <x-paragraph>{{ __('team.empty.teams') }}</x-paragraph>
             @else
@@ -28,8 +30,9 @@
                                 </x-paragraph>
                             </div>
 
-                            <x-secondary-button :href="route('teams.show', $team)">
-                                {{ __('button.show') }}
+                            <x-secondary-button :href="route('teams.show', $team)" :icon-only="true"
+                                title="{{ __('button.show') }}" aria-label="{{ __('button.show') }}">
+                                <x-icon name="eye" class="h-4 w-4" />
                             </x-secondary-button>
                         </div>
                     @endforeach
@@ -37,6 +40,30 @@
             @endif
 
             {{ $teams->links() }}
-        </x-container>
+            </x-container>
+
+            <x-form-modal name="team-form-modal" title="{{ __('team.title') }}"
+                description="{{ __('team.create.title') }}" max-width="3xl"
+                :show="in_array($modalForm, ['team-create', 'team-edit'], true)">
+                <div class="p-6" x-ref="content">
+                    @if ($modalForm === 'team-create')
+                        @include('teams._modal-form', [
+                            'action' => route('teams.store'),
+                            'modalForm' => 'team-create',
+                        ])
+                    @elseif ($modalForm === 'team-edit' && $modalTeam)
+                        @include('teams._modal-form', [
+                            'action' => route('teams.update', $modalTeam),
+                            'team' => $modalTeam,
+                            'modalForm' => 'team-edit',
+                        ])
+                    @else
+                        <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                        <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                        <div x-html="content"></div>
+                    @endif
+                </div>
+            </x-form-modal>
+        </div>
     </x-main>
 </x-app-layout>

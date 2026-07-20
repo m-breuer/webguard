@@ -232,7 +232,7 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         $outsideComponent = $outsideStatusPage->components()->create(['name' => 'Workers', 'position' => 0]);
         $outsideComponent->monitorings()->attach($outsideMonitoring->id, ['position' => 0]);
 
-        $subscription = StatusPageSubscription::query()->create([
+        $statusPageSubscription = StatusPageSubscription::query()->create([
             'status_page_id' => $statusPage->id,
             'email' => 'verified@example.com',
             'confirmation_token_hash' => null,
@@ -267,14 +267,14 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         Artisan::call('notifications:dispatch-status-changes');
 
         $this->assertTrue($monitoringNotification->refresh()->sent);
-        Mail::assertSent(PublicStatusPageStatusUpdateMail::class, function (PublicStatusPageStatusUpdateMail $mail) use ($subscription, $monitoring): bool {
-            return $mail->hasTo('verified@example.com')
-                && $mail->subscription->is($subscription)
-                && $mail->monitoring->is($monitoring)
-                && $mail->status === 'down';
+        Mail::assertSent(PublicStatusPageStatusUpdateMail::class, function (PublicStatusPageStatusUpdateMail $publicStatusPageStatusUpdateMail) use ($statusPageSubscription, $monitoring): bool {
+            return $publicStatusPageStatusUpdateMail->hasTo('verified@example.com')
+                && $publicStatusPageStatusUpdateMail->subscription->is($statusPageSubscription)
+                && $publicStatusPageStatusUpdateMail->monitoring->is($monitoring)
+                && $publicStatusPageStatusUpdateMail->status === 'down';
         });
-        Mail::assertNotSent(PublicStatusPageStatusUpdateMail::class, fn (PublicStatusPageStatusUpdateMail $mail): bool => $mail->hasTo('pending@example.com'));
-        Mail::assertNotSent(PublicStatusPageStatusUpdateMail::class, fn (PublicStatusPageStatusUpdateMail $mail): bool => $mail->hasTo('outside@example.com'));
+        Mail::assertNotSent(PublicStatusPageStatusUpdateMail::class, fn (PublicStatusPageStatusUpdateMail $publicStatusPageStatusUpdateMail): bool => $publicStatusPageStatusUpdateMail->hasTo('pending@example.com'));
+        Mail::assertNotSent(PublicStatusPageStatusUpdateMail::class, fn (PublicStatusPageStatusUpdateMail $publicStatusPageStatusUpdateMail): bool => $publicStatusPageStatusUpdateMail->hasTo('outside@example.com'));
         Http::assertNothingSent();
     }
 }

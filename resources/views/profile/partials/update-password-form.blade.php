@@ -7,6 +7,9 @@
     <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-6">
         @csrf
         @method('put')
+        @if (!empty($modal))
+            <input type="hidden" name="modal_form" value="profile-password">
+        @endif
 
         <div>
             <x-input-label for="update_password_current_password" :value="__('profile.form.current_password')" />
@@ -30,6 +33,12 @@
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('button.update') }}</x-primary-button>
+
+            @if (!empty($modal))
+                <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'profile-password-form-modal')">
+                    {{ __('button.cancel') }}
+                </x-secondary-button>
+            @endif
         </div>
     </form>
 </x-container>

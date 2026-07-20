@@ -4,6 +4,10 @@
     use App\Enums\HttpMethod;
 @endphp
 
+@if (request()->boolean('modal'))
+    @include('monitorings._modal-form', ['action' => route('monitorings.update', $monitoring)])
+@else
+
 <x-app-layout>
     <x-slot name="header">
         <x-heading>
@@ -16,16 +20,26 @@
         </x-secondary-button>
     </x-slot>
 
-    <x-main>
+    <x-main class="space-y-4">
+        @include('monitorings._ownership')
+
         <x-container>
-            <form method="POST" action="{{ route('monitorings.update', $monitoring) }}">
-                @include('monitorings._form')
+            <form id="monitoring-edit-form" method="POST" action="{{ route('monitorings.update', $monitoring) }}">
+                @include('monitorings._form', [
+                    'notificationPreferencesFormId' => 'edit-notification-preferences-form',
+                    'fieldIdPrefix' => 'edit_notification_preference',
+                ])
             </form>
         </x-container>
 
-        @include('monitorings._notification_preferences', ['fieldIdPrefix' => 'edit_notification_preference'])
+        <form id="edit-notification-preferences-form" method="POST"
+            action="{{ route('monitorings.notification-preferences.update', $monitoring) }}" class="hidden">
+            @csrf
+            @method('PATCH')
+        </form>
     </x-main>
 </x-app-layout>
+@endif
 <script>
     function copyToClipboard(elementId) {
         const element = document.getElementById(elementId);

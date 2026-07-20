@@ -3,7 +3,7 @@
         $isRead = (bool) $notification->read;
         $accentClasses = match ($type) {
             'domain_expiry' => 'bg-sky-500',
-            'status_change' => 'bg-emerald-500',
+            'status_change' => 'bg-violet-500',
             default => 'bg-amber-500',
         };
         $showCardIcon = $type === 'domain_expiry';
@@ -43,13 +43,11 @@
             </div>
 
             @if (! $isRead)
-                <x-primary-button class="mark-as-read-button shrink-0 !w-full justify-center !bg-emerald-500 px-3 py-2 text-sm !normal-case !tracking-normal hover:!bg-emerald-600 focus:!bg-emerald-600 focus:!ring-emerald-500 dark:!bg-emerald-400 dark:!text-slate-950 dark:hover:!bg-emerald-300 dark:focus:!ring-emerald-300 sm:!w-auto"
+                <x-primary-button :icon-only="true" class="mark-as-read-button shrink-0 !bg-purple-600 hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!bg-purple-400 dark:focus:!ring-purple-400"
+                    title="{{ __('notifications.mark_as_read') }}"
                     aria-label="{{ __('notifications.mark_as_read') }}"
                     @click="markAsRead(event, '{{ $notification->id }}', '{{ route('notifications.markAsRead', $notification) }}', '{{ $type }}')">
-                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m4 12 5 5L20 6" />
-                    </svg>
-                    {{ __('notifications.mark_as_read') }}
+                    <x-icon name="check" class="h-4 w-4" />
                 </x-primary-button>
             @endif
         </div>

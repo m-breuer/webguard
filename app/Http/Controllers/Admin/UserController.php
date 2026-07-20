@@ -81,6 +81,13 @@ class UserController extends Controller
         }
 
         $packages = Package::query()->withoutGlobalScope('selectable')->orderBy('monitoring_limit')->get();
+        $modalForm = $request->string('modal')->toString();
+        $modalUser = null;
+
+        if ($modalForm === 'admin-user-edit' && $request->filled('user')) {
+            $modalUser = User::query()->findOrFail($request->string('user')->toString());
+        }
+
         $filters = [
             [
                 'name' => 'role',
@@ -119,6 +126,9 @@ class UserController extends Controller
             ],
             'sort' => $asyncTableOptions->sort,
             'direction' => $asyncTableOptions->direction,
+            'modalForm' => $modalForm,
+            'modalUser' => $modalUser,
+            'modalPackages' => Package::all(),
         ]);
     }
 
@@ -198,12 +208,19 @@ class UserController extends Controller
      * @param  string  $id  The ID of the user to verify.
      * @return RedirectResponse A redirect response after verifying the user.
      */
-    public function verify(string $id): RedirectResponse
+    public function verify(Request $request, string $id): RedirectResponse
     {
         $model = User::query()->findOrFail($id);
 
         if (! $model->hasVerifiedEmail()) {
             $model->markEmailAsVerified();
+        }
+
+        if ($request->boolean('modal')) {
+            return to_route('admin.users.index', [
+                'modal' => 'admin-user-edit',
+                'user' => $model->id,
+            ])->with('success', __('user.messages.user_verified'));
         }
 
         return to_route('admin.users.edit', $model->id)->with('success', __('user.messages.user_verified'));

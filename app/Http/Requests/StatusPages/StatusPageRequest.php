@@ -6,7 +6,6 @@ namespace App\Http\Requests\StatusPages;
 
 use App\Enums\StatusPageComponentSource;
 use App\Models\Monitoring;
-use App\Models\StatusPage;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,18 +22,8 @@ class StatusPageRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var StatusPage|null $statusPage */
-        $statusPage = $this->route('statusPage');
-
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                'alpha_dash:ascii',
-                Rule::unique('status_pages', 'slug')->ignore($statusPage?->id),
-            ],
             'description' => ['nullable', 'string', 'max:1000'],
             'is_public' => ['boolean'],
             'components' => ['required', 'array', 'min:1'],
@@ -88,10 +77,27 @@ class StatusPageRequest extends FormRequest
         });
     }
 
+    protected function getRedirectUrl(): string
+    {
+        if ($this->input('modal_form') === 'status-page-create') {
+            return route('status-pages.index', ['modal' => 'status-page-create']);
+        }
+
+        if ($this->input('modal_form') === 'status-page-edit') {
+            $statusPage = $this->route('statusPage');
+
+            return route('status-pages.index', [
+                'modal' => 'status-page-edit',
+                'status_page' => is_object($statusPage) ? $statusPage->getRouteKey() : $statusPage,
+            ]);
+        }
+
+        return parent::getRedirectUrl();
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'slug' => str($this->input('slug') ?: $this->input('name'))->slug()->toString(),
             'is_public' => $this->boolean('is_public'),
             'components' => $this->normalizeComponents(),
         ]);

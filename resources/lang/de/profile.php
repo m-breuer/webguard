@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 return [
     'title' => 'Profil',
+    'navigation' => [
+        'heading' => 'Kontoeinstellungen',
+        'account' => 'Konto und Darstellung',
+        'security' => 'Sicherheit',
+        'api' => 'API und Dokumentation',
+        'danger_zone' => 'Konto löschen',
+    ],
     'delete_account' => [
         'heading' => 'Konto löschen',
         'description' => 'Sobald Ihr Konto gelöscht wurde, werden alle zugehörigen Ressourcen und Daten dauerhaft gelöscht.',
@@ -141,6 +148,7 @@ return [
     'actions' => [
         'update_password' => 'Passwort aktualisieren',
         'update_profile' => 'Profil aktualisieren',
+        'open_full_page' => 'Editor als vollständige Seite öffnen',
         'delete_account' => 'Konto löschen',
         'send_verification_email' => 'Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden',
     ],

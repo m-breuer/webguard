@@ -157,6 +157,39 @@ class MonitoringCardDataApiTest extends TestCase
         $testResponse->assertJsonPath('data.' . $monitorings->first()->id . '.heatmap.0.uptime', 0);
     }
 
+    public function test_card_data_endpoint_can_load_summary_batches_without_card_payloads(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 2]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitorings = Monitoring::factory()->count(2)->for($user)->create();
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitorings->first()->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 120,
+            'created_at' => Date::now()->subMinutes(5),
+            'updated_at' => Date::now()->subMinutes(5),
+        ]);
+
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/card-data?' . http_build_query([
+            'summary_ids' => $monitorings->pluck('id')->all(),
+        ]));
+
+        $testResponse->assertOk()
+            ->assertExactJson([
+                'data' => [],
+                'summary' => [
+                    'attention' => 1,
+                    'healthy' => 1,
+                    'paused' => 0,
+                    'maintenance' => 0,
+                ],
+            ]);
+    }
+
     public function test_card_data_endpoint_requires_authentication(): void
     {
         Date::setTestNow('2026-04-12 12:00:00');

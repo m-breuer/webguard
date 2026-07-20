@@ -8,10 +8,10 @@ use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    public function test_it_returns_a_successful_response(): void
+    public function test_root_redirects_to_login(): void
     {
         $testResponse = $this->get('/');
 
-        $testResponse->assertOk();
+        $testResponse->assertRedirect(route('login', absolute: false));
     }
 }

@@ -13,6 +13,7 @@ return [
     'messages' => [
         'copied_to_clipboard' => 'In die Zwischenablage kopiert!',
         'loading' => 'Wird geladen...',
+        'form_modal_load_error' => 'Das Formular konnte nicht geladen werden. Bitte verwenden Sie stattdessen den Link zur vollständigen Seite.',
     ],
     'multi_select' => [
         'placeholder' => 'Optionen auswählen',
@@ -29,8 +30,18 @@ return [
         'confirm' => 'Bestätigen',
     ],
     'navigation' => [
-        'monitoring' => 'Monitoring',
+        'home' => 'Hauptnavigation',
+        'dashboard' => 'Dashboard',
+        'signal_room' => 'Signal Room',
+        'monitoring' => 'Überwachung',
+        'monitorings' => 'Überwachungen',
+        'monitoring_groups' => 'Gruppen',
+        'status_pages' => 'Statusseiten',
+        'incidents' => 'Vorfallanalyse',
+        'maintenance' => 'Wartung',
+        'teams' => 'Teams',
         'workspace' => 'Workspace',
+        'more' => 'Mehr',
         'sections' => [
             'operations' => 'Betrieb',
             'collaboration' => 'Zusammenarbeit',
@@ -38,4 +49,7 @@ return [
         ],
     ],
     'public_status_title' => 'WebGuard Öffentlicher Status',
+    'marketing_site' => 'WebGuard-Website',
+    'api_documentation' => 'API-Dokumentation',
+    'logo_alt' => 'WebGuard-Logo',
 ];

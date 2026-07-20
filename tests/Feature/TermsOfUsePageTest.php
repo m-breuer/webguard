@@ -69,7 +69,9 @@ class TermsOfUsePageTest extends TestCase
 
     public function test_footer_contains_terms_of_use_link(): void
     {
-        $testResponse = $this->get(route('welcome'));
+        $this->configureImprintContact();
+
+        $testResponse = $this->get(route('terms-of-use'));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('legal.terms_of_use.footer_link'));

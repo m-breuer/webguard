@@ -19,6 +19,7 @@ final readonly class MonitoringStatusPayload implements JsonSerializable
         public ?string $statusChangedAt,
         public string $statusIdentifier,
         public string $statusKey,
+        public ?array $regionalConsensus = null,
         public ?MonitoringSummaryPayload $monitoring = null
     ) {}
 
@@ -38,6 +39,10 @@ final readonly class MonitoringStatusPayload implements JsonSerializable
             'status_identifier' => $this->statusIdentifier,
             'status_key' => $this->statusKey,
         ];
+
+        if ($this->regionalConsensus !== null) {
+            $payload['regional_consensus'] = $this->regionalConsensus;
+        }
 
         if ($this->monitoring) {
             $payload['monitoring'] = $this->monitoring->toArray();

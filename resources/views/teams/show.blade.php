@@ -11,30 +11,43 @@
             @endif
         </div>
 
-        <div class="ml-auto flex flex-wrap gap-2">
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}"
+            class="ml-auto flex flex-wrap gap-2">
             @if ($isTeamAdmin)
-                <x-secondary-button :href="route('teams.edit', $team)">
-                    {{ __('team.actions.edit') }}
+                <x-secondary-button :href="route('teams.edit', $team)"
+                    data-form-modal-trigger data-form-modal-name="team-form-modal" :icon-only="true"
+                    title="{{ __('team.actions.edit') }}" aria-label="{{ __('team.actions.edit') }}">
+                    <x-icon name="pencil" class="h-4 w-4" />
                 </x-secondary-button>
                 <form method="POST" action="{{ route('teams.destroy', $team) }}"
                     data-confirm-message="{{ __('team.actions.delete') }}">
                     @csrf
                     @method('DELETE')
-                    <x-danger-button>
-                        {{ __('team.actions.delete') }}
+                    <x-danger-button :icon-only="true" title="{{ __('team.actions.delete') }}" aria-label="{{ __('team.actions.delete') }}">
+                        <x-icon name="trash" class="h-4 w-4" />
                     </x-danger-button>
                 </form>
             @endif
             <form method="POST" action="{{ route('teams.leave', $team) }}">
                 @csrf
                 @method('DELETE')
-                <x-secondary-button>
-                    {{ __('team.actions.leave') }}
+                <x-secondary-button :icon-only="true" title="{{ __('team.actions.leave') }}" aria-label="{{ __('team.actions.leave') }}">
+                    <x-icon name="arrow-left" class="h-4 w-4" />
                 </x-secondary-button>
             </form>
-            <x-secondary-button :href="route('teams.index')">
-                {{ __('button.back') }}
+            <x-secondary-button :href="route('teams.index')" :icon-only="true"
+                title="{{ __('button.back') }}" aria-label="{{ __('button.back') }}">
+                <x-icon name="arrow-left" class="h-4 w-4" />
             </x-secondary-button>
+
+            <x-form-modal name="team-form-modal" title="{{ __('team.edit.title', ['team' => $team->name]) }}"
+                description="{{ __('team.title') }}" max-width="3xl">
+                <div class="p-6" x-ref="content">
+                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                    <div x-html="content"></div>
+                </div>
+            </x-form-modal>
         </div>
     </x-slot>
 
@@ -64,16 +77,16 @@
                                                 </option>
                                             @endforeach
                                         </x-select-input>
-                                        <x-secondary-button>
-                                            {{ __('team.actions.save_role') }}
+                                        <x-secondary-button :icon-only="true" title="{{ __('team.actions.save_role') }}" aria-label="{{ __('team.actions.save_role') }}">
+                                            <x-icon name="check" class="h-4 w-4" />
                                         </x-secondary-button>
                                     </form>
 
                                     <form method="POST" action="{{ route('teams.members.destroy', [$team, $membership]) }}">
                                         @csrf
                                         @method('DELETE')
-                                        <x-danger-button>
-                                            {{ __('team.actions.remove') }}
+                                        <x-danger-button :icon-only="true" title="{{ __('team.actions.remove') }}" aria-label="{{ __('team.actions.remove') }}">
+                                            <x-icon name="trash" class="h-4 w-4" />
                                         </x-danger-button>
                                     </form>
                                 @else
@@ -131,8 +144,8 @@
                                         <form method="POST" action="{{ route('teams.invitations.destroy', [$team, $invitation]) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <x-danger-button>
-                                                {{ __('team.actions.revoke') }}
+                                            <x-danger-button :icon-only="true" title="{{ __('team.actions.revoke') }}" aria-label="{{ __('team.actions.revoke') }}">
+                                                <x-icon name="trash" class="h-4 w-4" />
                                             </x-danger-button>
                                         </form>
                                     @endif

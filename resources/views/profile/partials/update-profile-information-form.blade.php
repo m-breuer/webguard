@@ -16,6 +16,9 @@
     <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
         @csrf
         @method('patch')
+        @if (!empty($modal))
+            <input type="hidden" name="modal_form" value="profile-information">
+        @endif
 
         <section class="space-y-4">
             <div>
@@ -41,8 +44,10 @@
                             {{ __('profile.information.email_unverified') }}
 
                             <button form="send-verification"
-                                class="focus:outline-hidden rounded-md text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
-                                {{ __('profile.information.send_verification_email') }}
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-700"
+                                title="{{ __('profile.information.send_verification_email') }}"
+                                aria-label="{{ __('profile.information.send_verification_email') }}">
+                                <x-icon name="send" class="h-4 w-4" />
                             </button>
                         </x-paragraph>
                     </div>
@@ -99,8 +104,9 @@
                         <x-text-checkbox id="notification_channels_slack_enabled" name="notification_channels[slack][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'slack.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
-                        <x-secondary-button form="test-slack-notification-channel" class="text-xs">
-                            {{ __('profile.notification_settings.test.action') }}
+                        <x-secondary-button form="test-slack-notification-channel" :icon-only="true"
+                            title="{{ __('profile.notification_settings.test.action') }}" aria-label="{{ __('profile.notification_settings.test.action') }}">
+                            <x-icon name="send" class="h-4 w-4" />
                         </x-secondary-button>
                     </div>
                     <x-input-error :messages="$errors->get('notification_channels.slack')" />
@@ -121,8 +127,9 @@
                         <x-text-checkbox id="notification_channels_telegram_enabled" name="notification_channels[telegram][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'telegram.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
-                        <x-secondary-button form="test-telegram-notification-channel" class="text-xs">
-                            {{ __('profile.notification_settings.test.action') }}
+                        <x-secondary-button form="test-telegram-notification-channel" :icon-only="true"
+                            title="{{ __('profile.notification_settings.test.action') }}" aria-label="{{ __('profile.notification_settings.test.action') }}">
+                            <x-icon name="send" class="h-4 w-4" />
                         </x-secondary-button>
                     </div>
                     <x-input-error :messages="$errors->get('notification_channels.telegram')" />
@@ -151,8 +158,9 @@
                         <x-text-checkbox id="notification_channels_discord_enabled" name="notification_channels[discord][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'discord.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
-                        <x-secondary-button form="test-discord-notification-channel" class="text-xs">
-                            {{ __('profile.notification_settings.test.action') }}
+                        <x-secondary-button form="test-discord-notification-channel" :icon-only="true"
+                            title="{{ __('profile.notification_settings.test.action') }}" aria-label="{{ __('profile.notification_settings.test.action') }}">
+                            <x-icon name="send" class="h-4 w-4" />
                         </x-secondary-button>
                     </div>
                     <x-input-error :messages="$errors->get('notification_channels.discord')" />
@@ -173,8 +181,9 @@
                         <x-text-checkbox id="notification_channels_teams_enabled" name="notification_channels[teams][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'teams.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
-                        <x-secondary-button form="test-teams-notification-channel" class="text-xs">
-                            {{ __('profile.notification_settings.test.action') }}
+                        <x-secondary-button form="test-teams-notification-channel" :icon-only="true"
+                            title="{{ __('profile.notification_settings.test.action') }}" aria-label="{{ __('profile.notification_settings.test.action') }}">
+                            <x-icon name="send" class="h-4 w-4" />
                         </x-secondary-button>
                     </div>
                     <x-input-error :messages="$errors->get('notification_channels.teams')" />
@@ -195,8 +204,9 @@
                         <x-text-checkbox id="notification_channels_webhook_enabled" name="notification_channels[webhook][enabled]"
                             :checked="(bool) data_get($notificationChannels, 'webhook.enabled', false)"
                             :label="__('profile.notification_settings.enabled')" />
-                        <x-secondary-button form="test-webhook-notification-channel" class="text-xs">
-                            {{ __('profile.notification_settings.test.action') }}
+                        <x-secondary-button form="test-webhook-notification-channel" :icon-only="true"
+                            title="{{ __('profile.notification_settings.test.action') }}" aria-label="{{ __('profile.notification_settings.test.action') }}">
+                            <x-icon name="send" class="h-4 w-4" />
                         </x-secondary-button>
                     </div>
                     <x-input-error :messages="$errors->get('notification_channels.webhook')" />
@@ -261,7 +271,15 @@
             </div>
         </section>
 
-        <x-primary-button>{{ __('button.update') }}</x-primary-button>
+        <div class="flex flex-wrap items-center gap-3">
+            <x-primary-button>{{ __('button.update') }}</x-primary-button>
+
+            @if (!empty($modal))
+                <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'profile-information-form-modal')">
+                    {{ __('button.cancel') }}
+                </x-secondary-button>
+            @endif
+        </div>
     </form>
 
     @foreach ($notificationChannelKeys as $notificationChannelKey)

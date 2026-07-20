@@ -1,3 +1,9 @@
+@if (request()->boolean('modal'))
+    @include('admin.users._modal-form', [
+        'action' => route('admin.users.store'),
+        'modalForm' => 'admin-user-create',
+    ])
+@else
 <x-app-layout>
     <x-slot name="header">
         <x-heading>{{ __('user.actions.create') }}</x-heading>
@@ -15,3 +21,4 @@
         </x-container>
     </x-main>
 </x-app-layout>
+@endif

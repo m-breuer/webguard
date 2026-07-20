@@ -185,6 +185,30 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringNotContainsString('{$', $environmentExample);
     }
 
+    public function test_obsolete_environment_variables_are_removed_from_environment_configuration(): void
+    {
+        foreach (['.env.example', '.env.testing', 'phpunit.xml'] as $environmentFile) {
+            $environmentConfiguration = file_get_contents(base_path($environmentFile));
+
+            $this->assertIsString($environmentConfiguration);
+
+            foreach (['BCRYPT_ROUNDS', 'BROADCAST_CONNECTION', 'VITE_APP_NAME'] as $environmentVariable) {
+                $this->assertStringNotContainsString($environmentVariable, $environmentConfiguration);
+            }
+        }
+    }
+
+    public function test_local_runtime_services_share_one_application_environment(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.override.yml'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('x-local-app-environment: &local-app-environment', $composeConfiguration);
+        $this->assertSame(3, mb_substr_count($composeConfiguration, '<<: *local-app-environment'));
+        $this->assertSame(1, mb_substr_count($composeConfiguration, 'DB_HOST: "mysql"'));
+        $this->assertSame(1, mb_substr_count($composeConfiguration, 'MAIL_HOST: "mailpit"'));
+    }
+
     public function test_worker_image_does_not_depend_on_the_frontend_build_stage(): void
     {
         $dockerfile = file_get_contents(base_path('Dockerfile'));
@@ -277,6 +301,23 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" sitemap:generate', $sitemapEntrypoint);
     }
 
+    public function test_production_php_container_can_generate_robots_txt_on_startup_when_enabled(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+        $dockerfile = file_get_contents(base_path('Dockerfile'));
+        $robotsEntrypoint = file_get_contents(base_path('docker/php/entrypoint.d/55-laravel-robots-generate.sh'));
+
+        $this->assertIsString($composeConfiguration);
+        $this->assertIsString($dockerfile);
+        $this->assertIsString($robotsEntrypoint);
+        $this->assertStringContainsString(
+            'AUTORUN_LARAVEL_ROBOTS_GENERATE: "${AUTORUN_LARAVEL_ROBOTS_GENERATE:-true}"',
+            $composeConfiguration
+        );
+        $this->assertStringContainsString('COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
+        $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" robots:generate', $robotsEntrypoint);
+    }
+
     public function test_sitemap_entrypoint_skips_generation_unless_enabled(): void
     {
         $process = new Process([
@@ -343,6 +384,58 @@ PHP
 
         $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
         $this->assertSame('sitemap:generate', file_get_contents($argumentsPath));
+
+        unlink($argumentsPath);
+        unlink($appBaseDirectory . '/artisan');
+        rmdir($appBaseDirectory);
+    }
+
+    public function test_robots_entrypoint_skips_generation_unless_enabled(): void
+    {
+        $process = new Process([
+            'env',
+            '-i',
+            'sh',
+            base_path('docker/php/entrypoint.d/55-laravel-robots-generate.sh'),
+        ]);
+
+        $process->run();
+
+        $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+        $this->assertSame('', $process->getOutput());
+    }
+
+    public function test_robots_entrypoint_generates_robots_txt_when_enabled(): void
+    {
+        $appBaseDirectory = base_path('storage/framework/testing/robots-entrypoint-app');
+        $argumentsPath = $appBaseDirectory . '/robots-arguments.txt';
+
+        if (! is_dir($appBaseDirectory)) {
+            mkdir($appBaseDirectory, 0777, true);
+        }
+
+        file_put_contents(
+            $appBaseDirectory . '/artisan',
+            <<<'PHP'
+<?php
+file_put_contents(__DIR__.'/robots-arguments.txt', implode(' ', array_slice($argv, 1)));
+PHP
+        );
+
+        $process = new Process([
+            'env',
+            '-i',
+            'AUTORUN_LARAVEL_ROBOTS_GENERATE=true',
+            'APP_BASE_DIR=' . $appBaseDirectory,
+            'PATH=' . getenv('PATH'),
+            'sh',
+            base_path('docker/php/entrypoint.d/55-laravel-robots-generate.sh'),
+        ]);
+
+        $process->run();
+
+        $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+        $this->assertSame('robots:generate', file_get_contents($argumentsPath));
 
         unlink($argumentsPath);
         unlink($appBaseDirectory . '/artisan');

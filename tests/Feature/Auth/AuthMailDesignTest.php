@@ -25,7 +25,7 @@ class AuthMailDesignTest extends TestCase
         $this->assertStringContainsString(e(__('mail.general.brand_subtitle')), $html);
         $this->assertStringContainsString('border-radius: 16px', $html);
         $this->assertStringContainsString('background-color: #10b981', $html);
-        $this->assertStringContainsString(route('monitoring-locations'), $html);
+        $this->assertStringNotContainsString('monitoring-locations', $html);
         $this->assertStringContainsString(route('terms-of-use'), $html);
     }
 }

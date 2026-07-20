@@ -3,7 +3,7 @@
     <div class="mt-2 flex items-center gap-2">
         <x-text-input type="text" id="api_key_field" class="block w-full" value="{{ $token }}" readonly />
 
-        <x-primary-button
+        <x-primary-button :icon-only="true"
             @click="
             const apiKeyInput = document.getElementById('api_key_field');
             apiKeyInput.select();
@@ -11,8 +11,8 @@
             document.execCommand('copy');
             copied = true;
             setTimeout(() => copied = false, 2000);
-        ">
-            {{ __('api.configuration.actions.copy') }}
+        " title="{{ __('api.configuration.actions.copy') }}" aria-label="{{ __('api.configuration.actions.copy') }}">
+            <x-icon name="copy" class="h-4 w-4" />
         </x-primary-button>
         <span x-show="copied" x-transition.opacity
             class="text-sm text-green-600 dark:text-green-400">{{ __('api.configuration.messages.copied') }}</span>

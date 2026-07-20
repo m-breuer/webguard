@@ -1,3 +1,11 @@
+@if (request()->boolean('modal'))
+    @include('admin.users._modal-form', [
+        'action' => route('admin.users.update', $user),
+        'user' => $user,
+        'packages' => $packages,
+        'modalForm' => 'admin-user-edit',
+    ])
+@else
 <x-app-layout>
     <x-slot name="header">
         <x-heading>{{ __('user.actions.edit') . ': ' . $user->name }}</x-heading>
@@ -37,3 +45,4 @@
         </x-container>
     </x-main>
 </x-app-layout>
+@endif

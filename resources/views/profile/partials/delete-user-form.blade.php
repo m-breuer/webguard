@@ -4,8 +4,11 @@
         {{ __('profile.delete_account.description') }}
     </x-paragraph>
 
-    <x-danger-button x-data=""
-        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')">{{ __('button.delete') }}</x-danger-button>
+    <x-danger-button x-data="" :icon-only="true"
+        x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
+        title="{{ __('button.delete') }}" aria-label="{{ __('button.delete') }}">
+        <x-icon name="trash" class="h-4 w-4" />
+    </x-danger-button>
 
     <x-modal name="confirm-user-deletion" :show="$errors->userDeletion->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.destroy') }}" class="p-6">

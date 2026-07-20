@@ -13,6 +13,7 @@ use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
 class MaintenanceManagementTest extends TestCase
@@ -79,6 +80,50 @@ class MaintenanceManagementTest extends TestCase
         $testResponse->assertJsonFragment(['id' => (string) $lastMonitoring->id, 'name' => 'Monitoring 050']);
         $testResponse->assertJsonFragment(['name' => 'Monitoring 000']);
         $testResponse->assertJsonCount(51, 'data.monitoring_options');
+    }
+
+    public function test_maintenance_api_supports_filtering_search_and_sorting(): void
+    {
+        Date::setTestNow('2026-07-01 10:30:00');
+        $this->beforeApplicationDestroyed(fn (): mixed => Date::setTestNow());
+
+        $group = MonitoringGroup::factory()->for($this->user)->create(['name' => 'Production']);
+        $activeMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Alpha Maintenance',
+            'target' => 'https://alpha-maintenance.example.test',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
+        ]);
+        $zuluMonitoring = Monitoring::factory()->for($this->user)->create([
+            'name' => 'Zulu Maintenance',
+            'target' => 'https://zulu-maintenance.example.test',
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-01 09:00:00',
+            'maintenance_until' => '2026-07-01 12:00:00',
+        ]);
+        Monitoring::factory()->for($this->user)->create([
+            'name' => 'Outside Maintenance',
+            'target' => 'https://outside-maintenance.example.test',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $activeMonitoring->groups()->attach($group);
+        $zuluMonitoring->groups()->attach($group);
+
+        $testResponse = $this->actingAs($this->user)->getJson(route('api.maintenance.index', [
+            'search' => 'Maintenance',
+            'maintenance_status' => 'active',
+            'monitoring_group_id' => $group->id,
+            'sort' => 'name',
+            'direction' => 'desc',
+            'per_page' => 5,
+        ]));
+
+        $testResponse->assertOk()
+            ->assertJsonPath('data.windows.total', 2)
+            ->assertJsonPath('data.windows.data.0.name', 'Zulu Maintenance')
+            ->assertJsonPath('data.windows.data.1.name', 'Alpha Maintenance');
+        $this->assertNotContains('Outside Maintenance', array_column($testResponse->json('data.windows.data'), 'name'));
     }
 
     public function test_maintenance_actions_support_json_requests(): void
@@ -226,7 +271,8 @@ class MaintenanceManagementTest extends TestCase
         $this->actingAs($member)->get(route('maintenance.index'))->assertOk();
         $this->actingAs($member)->getJson(route('api.maintenance.index'))
             ->assertOk()
-            ->assertJsonMissing(['name' => 'Shared API']);
+            ->assertJsonPath('data.windows.data.0.name', 'Shared API')
+            ->assertJsonPath('data.windows.data.0.can_manage', false);
 
         $this->actingAs($member)->post(route('maintenance.store'), [
             'scope' => 'monitoring',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\MaintenanceWindowRecurrence;
 use App\Models\Monitoring;
 use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -14,7 +15,7 @@ class MaintenanceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user() !== null && ! $this->user()->isDemo();
     }
 
     /**
@@ -23,6 +24,7 @@ class MaintenanceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'mode' => ['required', 'string', Rule::in(['one_off', 'recurring'])],
             'scope' => ['required', 'string', Rule::in(['monitoring', 'group'])],
             'monitoring_id' => [
                 'nullable',
@@ -35,8 +37,13 @@ class MaintenanceRequest extends FormRequest
                 'string',
                 Rule::exists('monitoring_groups', 'id')->where('user_id', $this->user()?->id),
             ],
-            'maintenance_from' => ['required', 'date'],
+            'maintenance_from' => ['nullable', 'required_if:mode,one_off', 'date'],
             'maintenance_until' => ['nullable', 'date', 'after:maintenance_from'],
+            'recurring_starts_at' => ['nullable', 'required_if:mode,recurring', 'date'],
+            'recurring_duration_minutes' => ['nullable', 'required_if:mode,recurring', 'integer', 'min:1', 'max:1440'],
+            'recurrence' => ['nullable', 'required_if:mode,recurring', Rule::enum(MaintenanceWindowRecurrence::class)],
+            'recurring_repeat_until' => ['nullable', 'date', 'after:recurring_starts_at'],
+            'recurring_timezone' => ['nullable', 'required_if:mode,recurring', 'timezone'],
         ];
     }
 
@@ -67,5 +74,12 @@ class MaintenanceRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'mode' => $this->input('mode', 'one_off'),
+        ]);
     }
 }

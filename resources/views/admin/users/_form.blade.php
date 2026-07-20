@@ -1,4 +1,7 @@
 @csrf
+@if (isset($modalForm))
+    <input type="hidden" name="modal_form" value="{{ $modalForm }}">
+@endif
 
 <div class="mb-4">
     <x-input-label for="name" :value="__('user.fields.name')" />
@@ -49,3 +52,9 @@
 <x-primary-button>
     {{ isset($user) ? __('button.update') : __('button.create') }}
 </x-primary-button>
+
+@if (isset($modalForm))
+    <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'admin-user-form-modal')">
+        {{ __('button.cancel') }}
+    </x-secondary-button>
+@endif

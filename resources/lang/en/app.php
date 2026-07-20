@@ -13,6 +13,7 @@ return [
     'messages' => [
         'copied_to_clipboard' => 'Copied to clipboard!',
         'loading' => 'Loading...',
+        'form_modal_load_error' => 'The form could not be loaded. Please use the full-page link instead.',
     ],
     'multi_select' => [
         'placeholder' => 'Select options',
@@ -29,8 +30,18 @@ return [
         'confirm' => 'Confirm',
     ],
     'navigation' => [
+        'home' => 'Main navigation',
+        'dashboard' => 'Dashboard',
+        'signal_room' => 'Signal Room',
         'monitoring' => 'Monitoring',
+        'monitorings' => 'Monitorings',
+        'monitoring_groups' => 'Groups',
+        'status_pages' => 'Status pages',
+        'incidents' => 'Incident analysis',
+        'maintenance' => 'Maintenance',
+        'teams' => 'Teams',
         'workspace' => 'Workspace',
+        'more' => 'More',
         'sections' => [
             'operations' => 'Operations',
             'collaboration' => 'Collaboration',
@@ -38,4 +49,7 @@ return [
         ],
     ],
     'public_status_title' => 'WebGuard Public Status',
+    'marketing_site' => 'WebGuard website',
+    'api_documentation' => 'API documentation',
+    'logo_alt' => 'WebGuard logo',
 ];

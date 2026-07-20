@@ -36,6 +36,8 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('id="response-time-range"');
         $testResponse->assertSeeHtml('id="incidents-range"');
         $testResponse->assertSeeHtml('@click="loadMoreChecks()"');
+        $testResponse->assertSeeHtml('focus:ring-purple-500');
+        $testResponse->assertDontSeeHtml('focus:ring-emerald-500');
         $testResponse->assertDontSeeText(__('monitoring.detail.custom_range.heading'));
         $testResponse->assertDontSeeHtml('id="uptime-card-custom-range"');
         $testResponse->assertSeeHtml('id="recent-checks"');
