@@ -193,8 +193,14 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <input type="hidden" name="maintenance_window_id" value="{{ $recurringWindow->id }}">
-                                                    <button type="submit" class="font-medium text-purple-600 hover:underline dark:text-purple-300" x-data x-on:click.prevent="if (confirm('{{ __('maintenance.actions.clear_recurring_confirmation') }}')) $el.closest('form').submit()">
-                                                        {{ __('maintenance.actions.clear') }}
+                                                    <button
+                                                        type="submit"
+                                                        class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-purple-600 transition hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40"
+                                                        title="{{ __('maintenance.actions.clear') }}"
+                                                        aria-label="{{ __('maintenance.actions.clear') }}"
+                                                        x-data
+                                                        x-on:click.prevent="if (confirm('{{ __('maintenance.actions.clear_recurring_confirmation') }}')) $el.closest('form').submit()">
+                                                        <x-icon name="x" class="h-4 w-4" />
                                                     </button>
                                                 </form>
                                             @endif

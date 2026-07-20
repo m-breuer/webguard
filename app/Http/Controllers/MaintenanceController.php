@@ -43,7 +43,10 @@ class MaintenanceController extends Controller
             ->get();
         $recurringWindows = MaintenanceWindow::query()
             ->visibleTo($user)
-            ->with(['monitoring:id,name', 'monitoringGroup:id,name'])
+            ->with([
+                'monitoring:id,name,user_id,team_id',
+                'monitoringGroup:id,name,user_id',
+            ])
             ->latest('starts_at')
             ->get();
         $activeMaintenanceCount = $monitorings

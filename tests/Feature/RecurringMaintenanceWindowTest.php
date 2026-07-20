@@ -91,6 +91,11 @@ class RecurringMaintenanceWindowTest extends TestCase
         $this->assertSame($monitoring->id, $maintenanceWindow->monitoring_id);
         $this->assertSame(MaintenanceWindowRecurrence::WEEKLY, $maintenanceWindow->recurrence);
 
+        $this->actingAs($user)->get(route('maintenance.index'))
+            ->assertOk()
+            ->assertSee('aria-label="' . __('maintenance.actions.clear') . '"', false)
+            ->assertSee('<svg', false);
+
         $this->actingAs($user)->delete(route('maintenance.destroy'), [
             'maintenance_window_id' => $maintenanceWindow->id,
         ])->assertRedirect(route('maintenance.index'));
