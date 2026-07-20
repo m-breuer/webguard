@@ -78,6 +78,15 @@
                                         title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
                                         <x-icon name="pencil" class="h-4 w-4" />
                                     </x-secondary-button>
+                                    <form method="POST" action="{{ route('status-pages.destroy', $statusPage) }}"
+                                        data-confirm-message="{{ __('status_page.actions.delete_confirmation') }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-danger-button :icon-only="true" title="{{ __('button.delete') }}"
+                                            aria-label="{{ __('button.delete') }}">
+                                            <x-icon name="trash" class="h-4 w-4" />
+                                        </x-danger-button>
+                                    </form>
                                 @endif
                             </div>
                         </div>
