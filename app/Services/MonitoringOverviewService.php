@@ -124,7 +124,7 @@ class MonitoringOverviewService
                 'href' => route('monitorings.show', $monitoring),
             ];
         })->values();
-        $servicePaginator = new LengthAwarePaginator(
+        $lengthAwarePaginator = new LengthAwarePaginator(
             $signalRoomServices->forPage(max(1, $servicePage), 10)->values(),
             $signalRoomServices->count(),
             10,
@@ -134,13 +134,13 @@ class MonitoringOverviewService
 
         return [
             'monitorings' => $monitorings,
-            'signalRoomServices' => $servicePaginator->getCollection(),
+            'signalRoomServices' => $lengthAwarePaginator->getCollection(),
             'signalRoomPagination' => [
-                'current_page' => $servicePaginator->currentPage(),
-                'last_page' => $servicePaginator->lastPage(),
-                'total' => $servicePaginator->total(),
-                'from' => $servicePaginator->firstItem(),
-                'to' => $servicePaginator->lastItem(),
+                'current_page' => $lengthAwarePaginator->currentPage(),
+                'last_page' => $lengthAwarePaginator->lastPage(),
+                'total' => $lengthAwarePaginator->total(),
+                'from' => $lengthAwarePaginator->firstItem(),
+                'to' => $lengthAwarePaginator->lastItem(),
             ],
             'summary' => $summary,
             'overallState' => $overallState,
@@ -166,6 +166,91 @@ class MonitoringOverviewService
             'canManageMaintenance' => ! $user->isDemo()
                 && Monitoring::query()->manageableBy($user)->exists(),
         ];
+    }
+
+    /**
+     * Load only the bounded service-map page used by async dashboard navigation.
+     *
+     * @return array{services:Collection<int, array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}>,pagination:array{current_page:int,last_page:int,total:int,from:int|null,to:int|null},total:int}
+     */
+    public function serviceMap(User $user, int $servicePage = 1): array
+    {
+        $servicePaginator = Monitoring::query()
+            ->visibleTo($user)
+            ->with([
+                'latestResponseResult' => fn ($query) => $query->select([
+                    'monitoring_response_results.id',
+                    'monitoring_response_results.monitoring_id',
+                    'monitoring_response_results.status',
+                    'monitoring_response_results.response_time',
+                    'monitoring_response_results.created_at',
+                    'monitoring_response_results.updated_at',
+                ]),
+                'latestIncident' => fn ($query) => $query->select([
+                    'incidents.id',
+                    'incidents.monitoring_id',
+                    'incidents.down_at',
+                    'incidents.up_at',
+                ]),
+                'groups:id,name',
+            ])
+            ->orderBy('name')
+            ->paginate(10, [
+                'id',
+                'name',
+                'target',
+                'type',
+                'status',
+                'maintenance_from',
+                'maintenance_until',
+                'heartbeat_interval_minutes',
+                'heartbeat_grace_minutes',
+            ], 'service_page', max(1, $servicePage));
+
+        $services = $this->mapSignalRoomServices($servicePaginator->getCollection());
+
+        return [
+            'services' => $services,
+            'pagination' => [
+                'current_page' => $servicePaginator->currentPage(),
+                'last_page' => $servicePaginator->lastPage(),
+                'total' => $servicePaginator->total(),
+                'from' => $servicePaginator->firstItem(),
+                'to' => $servicePaginator->lastItem(),
+            ],
+            'total' => $servicePaginator->total(),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, Monitoring>  $monitorings
+     * @return Collection<int, array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}>
+     */
+    private function mapSignalRoomServices(Collection $monitorings): Collection
+    {
+        $statuses = $monitorings->mapWithKeys(
+            fn (Monitoring $monitoring): array => [$monitoring->id => $this->status($monitoring)]
+        );
+
+        return $monitorings->map(function (Monitoring $monitoring) use ($statuses): array {
+            $status = (string) $statuses->get($monitoring->getKey(), MonitoringStatus::UNKNOWN->value);
+            $latestResponse = $monitoring->latestResponseResult;
+
+            return [
+                'id' => (string) $monitoring->getKey(),
+                'name' => (string) $monitoring->name,
+                'target' => (string) $monitoring->target,
+                'status' => $status,
+                'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $status),
+                'group' => (string) ($monitoring->groups->first()?->name ?? __('dashboard.signal_room.ungrouped')),
+                'lastCheck' => $latestResponse?->created_at?->locale(app()->getLocale())->diffForHumans() ?? __('dashboard.signal_room.no_check'),
+                'responseTime' => $latestResponse?->response_time !== null
+                    ? number_format((float) $latestResponse->response_time, 0, ',', '.') . ' ms'
+                    : '—',
+                'openIncident' => $monitoring->latestIncident?->up_at === null && $monitoring->latestIncident !== null,
+                'href' => route('monitorings.show', $monitoring),
+            ];
+        })->values();
     }
 
     private function status(Monitoring $monitoring): string

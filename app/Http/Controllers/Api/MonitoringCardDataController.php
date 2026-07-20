@@ -45,9 +45,7 @@ class MonitoringCardDataController extends Controller
             ->unique()
             ->values();
 
-        if ($requestedIds->isEmpty() && $summaryIds->isEmpty()) {
-            abort(422, 'At least one monitoring id is required.');
-        }
+        abort_if($requestedIds->isEmpty() && $summaryIds->isEmpty(), 422, 'At least one monitoring id is required.');
         $allRequestedIds = $requestedIds->merge($summaryIds)->unique()->values();
 
         $monitorings = Monitoring::query()

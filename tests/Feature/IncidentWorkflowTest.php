@@ -32,6 +32,22 @@ class IncidentWorkflowTest extends TestCase
             ->assertDontSeeHtml('data-incident-overview-table');
     }
 
+    public function test_incident_analytics_sections_load_independently(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+
+        foreach (['overview', 'groups', 'status-pages', 'incidents'] as $section) {
+            $this->actingAs($user)->get(route('incidents.analytics', [
+                'async' => 1,
+                'section' => $section,
+            ]))
+                ->assertOk()
+                ->assertSeeHtml('data-analytics-section-content');
+        }
+    }
+
     public function test_owner_can_manage_private_metadata_follow_ups_and_timeline_without_public_disclosure(): void
     {
         Date::setTestNow('2026-07-15 12:00:00');

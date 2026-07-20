@@ -36,6 +36,18 @@ class IncidentAnalyticsController extends Controller
             return view('incidents.analytics-shell');
         }
 
+        $section = $incidentAnalyticsRequest->string('section')->toString();
+        if ($section !== '') {
+            return $this->section(
+                $section,
+                $filters,
+                $days,
+                $incidentAnalyticsRequest,
+                $monitoringOverviewService,
+                $monitoringStatusService,
+            );
+        }
+
         $incidents = $this->incidents($filters, $days);
         $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
         $durations = $resolvedIncidents->map(
@@ -98,6 +110,107 @@ class IncidentAnalyticsController extends Controller
             'overallState' => $overview['overallState'],
             'incidentTrend' => $this->incidentTrend($incidents, $days),
         ]);
+    }
+
+    private function section(
+        string $section,
+        array $filters,
+        int $days,
+        IncidentAnalyticsRequest $request,
+        MonitoringOverviewService $monitoringOverviewService,
+        MonitoringStatusService $monitoringStatusService,
+    ): View {
+        return match ($section) {
+            'overview' => view('incidents.analytics-sections.overview', [
+                'overview' => $monitoringOverviewService->overview($request->user()),
+            ]),
+            'groups' => view('incidents.analytics-sections.groups', [
+                'groups' => $this->monitoringGroups($request, $monitoringStatusService),
+            ]),
+            'status-pages' => view('incidents.analytics-sections.status-pages', [
+                'statusPages' => $this->statusPages($request, $monitoringStatusService),
+            ]),
+            'incidents' => view('incidents.analytics-sections.incidents', $this->incidentSectionData($filters, $days)),
+            default => abort(404),
+        };
+    }
+
+    /**
+     * @return array{groups:Collection<int, array{model:MonitoringGroup,summary:array{total:int,healthy:int,down:int,attention:int,state:string}}>,statusPages:Collection<int, array{model:StatusPage,summary:array{total:int,healthy:int,down:int,attention:int,state:string}}>}
+     */
+    private function monitoringGroups(IncidentAnalyticsRequest $request, MonitoringStatusService $monitoringStatusService): Collection
+    {
+        return $request->user()
+            ->monitoringGroups()
+            ->withCount('monitorings')
+            ->with(['monitorings.latestResponseResult', 'monitorings.latestIncident'])
+            ->orderBy('name')
+            ->limit(20)
+            ->get()
+            ->map(fn (MonitoringGroup $monitoringGroup): array => [
+                'model' => $monitoringGroup,
+                'summary' => $this->summarizeMonitorings($monitoringGroup->monitorings, $monitoringStatusService),
+            ]);
+    }
+
+    /**
+     * @return Collection<int, array{model:StatusPage,summary:array{total:int,healthy:int,down:int,attention:int,state:string}}>
+     */
+    private function statusPages(IncidentAnalyticsRequest $request, MonitoringStatusService $monitoringStatusService): Collection
+    {
+        return $request->user()
+            ->statusPages()
+            ->withCount('components')
+            ->with([
+                'components.monitorings.latestResponseResult',
+                'components.monitorings.latestIncident',
+                'components.monitoringGroup.monitorings.latestResponseResult',
+                'components.monitoringGroup.monitorings.latestIncident',
+            ])
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(function (StatusPage $statusPage) use ($monitoringStatusService): array {
+                return [
+                    'model' => $statusPage,
+                    'summary' => $this->summarizeMonitorings($this->statusPageMonitorings($statusPage), $monitoringStatusService),
+                ];
+            });
+    }
+
+    /**
+     * @return array{filters:array{days:int,incident_type:string|null,severity:string|null,customer_impact:string|null,affected_service:string|null},incidents:EloquentCollection<int, Incident>,totalCount:int,resolvedCount:int,openCount:int,mttrMinutes:int|null,byType:Collection<string,int>,bySeverity:Collection<string,int>,byImpact:Collection<string,int>,byService:Collection<string,int>,repeatServices:Collection<string,int>,incidentTypes:list<IncidentType>,severities:list<IncidentSeverity>,customerImpacts:list<IncidentCustomerImpact>,incidentTrend:array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}}
+     */
+    private function incidentSectionData(array $filters, int $days): array
+    {
+        $incidents = $this->incidents($filters, $days);
+        $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
+        $durations = $resolvedIncidents->map(static fn (Incident $incident): int => (int) $incident->down_at->diffInMinutes($incident->up_at));
+        $byService = $this->groupCounts($incidents, static fn (Incident $incident): string => $incident->affected_service ?: $incident->monitoring->name);
+
+        return [
+            'filters' => [
+                'days' => $days,
+                'incident_type' => $filters['incident_type'] ?? null,
+                'severity' => $filters['severity'] ?? null,
+                'customer_impact' => $filters['customer_impact'] ?? null,
+                'affected_service' => $filters['affected_service'] ?? null,
+            ],
+            'incidents' => $incidents,
+            'totalCount' => $incidents->count(),
+            'resolvedCount' => $resolvedIncidents->count(),
+            'openCount' => $incidents->reject(static fn (Incident $incident): bool => $incident->up_at !== null)->count(),
+            'mttrMinutes' => $durations->isEmpty() ? null : (int) round($durations->avg()),
+            'byType' => $this->groupCounts($incidents, static fn (Incident $incident): string => $incident->incident_type?->value ?? 'unclassified'),
+            'bySeverity' => $this->groupCounts($incidents, static fn (Incident $incident): string => $incident->severity?->value ?? 'unclassified'),
+            'byImpact' => $this->groupCounts($incidents, static fn (Incident $incident): string => $incident->customer_impact?->value ?? 'unclassified'),
+            'byService' => $byService,
+            'repeatServices' => $byService->filter(static fn (int $count): bool => $count > 1),
+            'incidentTypes' => IncidentType::cases(),
+            'severities' => IncidentSeverity::cases(),
+            'customerImpacts' => IncidentCustomerImpact::cases(),
+            'incidentTrend' => $this->incidentTrend($incidents, $days),
+        ];
     }
 
     /**
