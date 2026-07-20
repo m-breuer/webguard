@@ -24,6 +24,19 @@ class TeamControllerCoverageTest extends TestCase
         Package::factory()->create();
     }
 
+    public function test_empty_team_index_keeps_create_action_only_in_the_header(): void
+    {
+        $admin = User::factory()->create();
+
+        $testResponse = $this->actingAs($admin)->get(route('teams.index'));
+
+        $testResponse->assertOk()
+            ->assertSeeText(__('team.empty.teams'))
+            ->assertSeeHtml('data-form-modal-name="team-form-modal"');
+
+        $this->assertSame(1, mb_substr_count($testResponse->getContent(), 'data-form-modal-name="team-form-modal"'));
+    }
+
     public function test_team_pages_render_index_create_show_and_edit(): void
     {
         $admin = User::factory()->create();
