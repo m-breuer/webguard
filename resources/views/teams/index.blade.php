@@ -15,12 +15,6 @@
             <x-container>
             @if ($teams->count() === 0)
                 <x-paragraph>{{ __('team.empty.teams') }}</x-paragraph>
-                @if (!Auth::user()->isDemo())
-                    <x-primary-button :href="route('teams.create')" class="mt-4"
-                        data-form-modal-trigger data-form-modal-name="team-form-modal">
-                        {{ __('team.actions.create') }}
-                    </x-primary-button>
-                @endif
             @else
                 <div class="space-y-3">
                     @foreach ($teams as $team)
