@@ -50,7 +50,46 @@ function () {
 
     return primaryNavigation.querySelectorAll('[data-primary-destination]').length === 1
         && primaryNavigation.querySelector('[data-secondary-navigation]') !== null
-        && primaryNavigation.querySelector('[data-notifications-navigation]') !== null;
+        && document.querySelector('[data-notifications-navigation]') !== null;
+}
+JS, true)
+        ->click('[data-sidebar-toggle]')
+        ->assertScript(<<<'JS'
+function () {
+    const rail = document.querySelector('nav');
+    const content = document.querySelector('body > div.min-h-screen');
+    const toggle = document.querySelector('[data-sidebar-toggle]');
+    const destinations = document.querySelectorAll('[data-secondary-destination]');
+
+    return rail !== null
+        && content !== null
+        && toggle?.getAttribute('aria-expanded') === 'false'
+        && rail.getBoundingClientRect().width < 100
+        && content.getBoundingClientRect().left < 100
+        && destinations.length === 6
+        && [...destinations].every((destination) => destination.querySelector('svg') !== null);
+}
+JS, true)
+        ->navigate('/dashboard')
+        ->assertScript(<<<'JS'
+function () {
+    const rail = document.querySelector('nav');
+    const toggle = document.querySelector('[data-sidebar-toggle]');
+
+    return rail !== null
+        && toggle?.getAttribute('aria-expanded') === 'false'
+        && rail.getBoundingClientRect().width < 100;
+}
+JS, true)
+        ->click('[data-sidebar-toggle]')
+        ->assertScript(<<<'JS'
+function () {
+    const rail = document.querySelector('nav');
+    const toggle = document.querySelector('[data-sidebar-toggle]');
+
+    return rail !== null
+        && toggle?.getAttribute('aria-expanded') === 'true'
+        && rail.getBoundingClientRect().width >= 240;
 }
 JS, true)
         ->assertScript(<<<'JS'

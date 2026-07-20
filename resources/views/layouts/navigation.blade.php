@@ -1,43 +1,56 @@
 @php
     $operationsNavigation = [
-        ['label' => __('app.navigation.monitorings'), 'href' => route('monitorings.index'), 'active' => 'monitorings.*'],
-        ['label' => __('app.navigation.monitoring_groups'), 'href' => route('monitoring-groups.index'), 'active' => 'monitoring-groups.*'],
-        ['label' => __('app.navigation.status_pages'), 'href' => route('status-pages.index'), 'active' => 'status-pages.*'],
-        ['label' => __('app.navigation.incidents'), 'href' => route('incidents.analytics'), 'active' => 'incidents.*'],
-        ['label' => __('app.navigation.maintenance'), 'href' => route('maintenance.index'), 'active' => 'maintenance.*'],
+        ['label' => __('app.navigation.monitorings'), 'icon' => 'monitoring', 'href' => route('monitorings.index'), 'active' => 'monitorings.*'],
+        ['label' => __('app.navigation.monitoring_groups'), 'icon' => 'groups', 'href' => route('monitoring-groups.index'), 'active' => 'monitoring-groups.*'],
+        ['label' => __('app.navigation.status_pages'), 'icon' => 'status-pages', 'href' => route('status-pages.index'), 'active' => 'status-pages.*'],
+        ['label' => __('app.navigation.incidents'), 'icon' => 'incidents', 'href' => route('incidents.analytics'), 'active' => 'incidents.*'],
+        ['label' => __('app.navigation.maintenance'), 'icon' => 'maintenance', 'href' => route('maintenance.index'), 'active' => 'maintenance.*'],
     ];
 
     $collaborationNavigation = [
-        ['label' => __('app.navigation.teams'), 'href' => route('teams.index'), 'active' => 'teams.*'],
+        ['label' => __('app.navigation.teams'), 'icon' => 'teams', 'href' => route('teams.index'), 'active' => 'teams.*'],
     ];
 @endphp
 
-<nav x-data="{ open: false }"
-    class="relative z-40 border-b border-purple-900/40 bg-purple-950 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:overflow-y-auto lg:border-b-0">
+<nav
+    class="relative z-40 border-b border-purple-900/40 bg-purple-950 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:overflow-y-auto lg:border-b-0"
+    :class="{ 'lg:w-20': sidebarCollapsed, 'lg:w-64': ! sidebarCollapsed }">
     <div class="flex min-h-16 items-center justify-between px-4 lg:min-h-screen lg:h-auto lg:flex-col lg:items-stretch lg:px-3 lg:py-5">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl px-2 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-purple-300">
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl px-2 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-purple-300" :class="{ 'lg:justify-center': sidebarCollapsed }">
             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1.5 shadow-sm">
                 <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('app.logo_alt') }}" class="h-full w-full object-contain">
             </span>
-            <span class="text-lg font-bold tracking-tight text-white">{{ __('app.name') }}</span>
+            <span x-show="! sidebarCollapsed" x-cloak class="text-lg font-bold tracking-tight text-white">{{ __('app.name') }}</span>
         </a>
 
-        <div data-primary-navigation class="hidden flex-1 pt-12 lg:block">
+        <div class="mt-3 hidden lg:flex" :class="{ 'justify-center': sidebarCollapsed, 'justify-end': ! sidebarCollapsed }">
+            <button type="button" data-sidebar-toggle @click="sidebarCollapsed = ! sidebarCollapsed"
+                :aria-expanded="(! sidebarCollapsed).toString()"
+                :aria-label="sidebarCollapsed ? '{{ __('app.navigation.expand_sidebar') }}' : '{{ __('app.navigation.collapse_sidebar') }}'"
+                :title="sidebarCollapsed ? '{{ __('app.navigation.expand_sidebar') }}' : '{{ __('app.navigation.collapse_sidebar') }}'"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-purple-800 text-purple-200 transition hover:border-purple-600 hover:bg-purple-900 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-300">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path x-show="! sidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" d="m14 6-6 6 6 6m-6-6h12" />
+                    <path x-show="sidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" d="m10 6 6 6-6 6m6-6H4" />
+                </svg>
+            </button>
+        </div>
+
+        <div data-primary-navigation class="hidden flex-1 pt-8 lg:block">
             <a data-primary-destination href="{{ route('dashboard') }}"
                 @class([
                     'flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
                     'border-purple-400/50 bg-purple-700 text-white shadow-lg shadow-purple-950/20' => request()->routeIs('dashboard'),
                     'border-transparent text-purple-100 hover:border-purple-700 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('dashboard'),
-                ])>
-                <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 13.5 12 5l8 8.5M6.5 11.5v7a1.5 1.5 0 0 0 1.5 1.5h8a1.5 1.5 0 0 0 1.5-1.5v-7" />
-                </svg>
-                <span>{{ __('app.navigation.dashboard') }}</span>
+                ])
+                :class="{ 'lg:justify-center lg:px-0': sidebarCollapsed }">
+                <x-icon name="home" class="h-5 w-5 shrink-0" />
+                <span x-show="! sidebarCollapsed" x-cloak>{{ __('app.navigation.dashboard') }}</span>
             </a>
 
             <div data-secondary-navigation class="mt-8 space-y-6">
                 <div>
-                    <p class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.operations') }}</p>
+                    <p x-show="! sidebarCollapsed" x-cloak class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.operations') }}</p>
                     <div class="mt-2 space-y-1">
                         @foreach ($operationsNavigation as $item)
                             @php($itemActive = request()->routeIs($item['active']))
@@ -46,16 +59,17 @@
                                     'group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
                                     'border-purple-400/30 bg-purple-900/70 text-white' => $itemActive,
                                     'border-transparent text-purple-200 hover:border-purple-800 hover:bg-purple-900/60 hover:text-white' => ! $itemActive,
-                                ])>
-                                <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ $itemActive ? 'bg-purple-200' : 'bg-purple-400/70 group-hover:bg-purple-200' }}"></span>
-                                <span class="truncate">{{ $item['label'] }}</span>
+                                ])
+                                :class="{ 'lg:justify-center lg:px-0': sidebarCollapsed }">
+                                <x-icon name="{{ $item['icon'] }}" class="h-5 w-5 shrink-0" />
+                                <span x-show="! sidebarCollapsed" x-cloak class="truncate">{{ $item['label'] }}</span>
                             </a>
                         @endforeach
                     </div>
                 </div>
 
                 <div>
-                    <p class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.collaboration') }}</p>
+                    <p x-show="! sidebarCollapsed" x-cloak class="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.sections.collaboration') }}</p>
                     <div class="mt-2 space-y-1">
                         @foreach ($collaborationNavigation as $item)
                             @php($itemActive = request()->routeIs($item['active']))
@@ -64,9 +78,10 @@
                                     'group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
                                     'border-purple-400/30 bg-purple-900/70 text-white' => $itemActive,
                                     'border-transparent text-purple-200 hover:border-purple-800 hover:bg-purple-900/60 hover:text-white' => ! $itemActive,
-                                ])>
-                                <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ $itemActive ? 'bg-purple-200' : 'bg-purple-400/70 group-hover:bg-purple-200' }}"></span>
-                                <span class="truncate">{{ $item['label'] }}</span>
+                                ])
+                                :class="{ 'lg:justify-center lg:px-0': sidebarCollapsed }">
+                                <x-icon name="{{ $item['icon'] }}" class="h-5 w-5 shrink-0" />
+                                <span x-show="! sidebarCollapsed" x-cloak class="truncate">{{ $item['label'] }}</span>
                             </a>
                         @endforeach
                     </div>
@@ -135,16 +150,16 @@
                 @endif
             </a>
             <x-language-switch id="language-switch-mobile" placement="bottom" />
-            <button type="button" @click="open = ! open" class="inline-flex items-center justify-center rounded-xl border border-purple-800 p-2 text-purple-100 transition hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300" aria-label="{{ __('app.navigation.home') }}">
+            <button type="button" @click="mobileOpen = ! mobileOpen" class="inline-flex items-center justify-center rounded-xl border border-purple-800 p-2 text-purple-100 transition hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300" aria-label="{{ __('app.navigation.home') }}">
                 <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                    <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    <path :class="{ 'hidden': mobileOpen, 'inline-flex': !mobileOpen }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path :class="{ 'hidden': !mobileOpen, 'inline-flex': mobileOpen }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
     </div>
 
-    <div data-mobile-navigation x-cloak x-show="open" x-transition class="border-t border-purple-900/60 px-4 pb-4 pt-3 lg:hidden">
+    <div data-mobile-navigation x-cloak x-show="mobileOpen" x-transition class="border-t border-purple-900/60 px-4 pb-4 pt-3 lg:hidden">
         <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-purple-300">{{ __('app.navigation.dashboard') }}</p>
         <a href="{{ route('dashboard') }}" @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('dashboard'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('dashboard')])>{{ __('app.navigation.dashboard') }}</a>
 

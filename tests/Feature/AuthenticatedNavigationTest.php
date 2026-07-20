@@ -29,6 +29,8 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertSeeHtml('href="' . route('dashboard') . '"');
         $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
         $testResponse->assertSeeHtml('data-secondary-navigation');
+        $testResponse->assertSeeHtml('data-sidebar-toggle');
+        $testResponse->assertSeeHtml(__('app.navigation.collapse_sidebar'));
         $this->assertSame(1, mb_substr_count($testResponse->getContent() ?? '', 'data-primary-destination'));
         $testResponse->assertDontSeeText(__('app.navigation.signal_room'));
         $testResponse->assertDontSeeText(__('app.navigation.workspace'));

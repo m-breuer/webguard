@@ -31,6 +31,8 @@ return [
     ],
     'navigation' => [
         'home' => 'Main navigation',
+        'collapse_sidebar' => 'Collapse sidebar',
+        'expand_sidebar' => 'Expand sidebar',
         'dashboard' => 'Dashboard',
         'signal_room' => 'Signal Room',
         'monitoring' => 'Monitoring',
