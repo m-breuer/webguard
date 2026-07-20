@@ -410,7 +410,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('profile.edit', ['modal' => 'profile-information']));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('profile.notification_settings.test.action'));
+        $testResponse->assertSeeHtml('aria-label="' . __('profile.notification_settings.test.action') . '"');
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'slack']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'telegram']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'discord']));
