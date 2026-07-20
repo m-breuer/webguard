@@ -67,7 +67,7 @@
                             <span class="hidden text-sm text-gray-600 dark:text-gray-300 md:block">
                                 {{ trans_choice('status_page.components_count', $statusPage->components_count, ['count' => $statusPage->components_count]) }}
                             </span>
-                            <div class="flex flex-wrap justify-start gap-2 md:justify-end">
+                            <div class="flex flex-wrap justify-start gap-2 md:flex-nowrap md:justify-end">
                                 <x-secondary-button :href="route('status-pages.show', $statusPage)" :icon-only="true"
                                     title="{{ __('button.show') }}" aria-label="{{ __('button.show') }}">
                                     <x-icon name="eye" class="h-4 w-4" />

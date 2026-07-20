@@ -226,6 +226,7 @@ class StatusPageManagementTest extends TestCase
             ->assertSeeText('Old Status')
             ->assertSeeHtml('data-status-page-overview')
             ->assertSeeHtml('data-status-page-row')
+            ->assertSeeHtml('class="flex flex-wrap justify-start gap-2 md:flex-nowrap md:justify-end"')
             ->assertSeeHtml('aria-label="' . __('button.show') . '"')
             ->assertSeeHtml('aria-label="' . __('button.edit') . '"')
             ->assertSeeHtml('aria-label="' . __('button.delete') . '"')
