@@ -3,6 +3,36 @@
 <svg {{ $attributes->merge(['class' => 'h-5 w-5']) }} viewBox="0 0 24 24" fill="none" stroke="currentColor"
     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     @switch($name)
+        @case('home')
+            <path d="m3 10 9-7 9 7" />
+            <path d="M5 9.5V21h14V9.5M9 21v-6h6v6" />
+            @break
+        @case('monitoring')
+            <path d="M4 5h16v12H4z" />
+            <path d="m7 13 3-3 2 2 4-4" />
+            <path d="M8 21h8M12 17v4" />
+            @break
+        @case('groups')
+            <circle cx="9" cy="8" r="3" />
+            <path d="M3 20a6 6 0 0 1 12 0" />
+            <path d="M16 5.5a3 3 0 0 1 0 5.8M17 14a5 5 0 0 1 4 6" />
+            @break
+        @case('status-pages')
+            <path d="M4 5h16v14H4z" />
+            <path d="M8 9h8M8 13h5" />
+            @break
+        @case('incidents')
+            <path d="M12 3 3 20h18L12 3Z" />
+            <path d="M12 9v5M12 17h.01" />
+            @break
+        @case('maintenance')
+            <path d="m14.7 6.3 3-3a4 4 0 0 0-5 5L4 17a2.1 2.1 0 0 0 3 3l8.8-8.7a4 4 0 0 0 5-5l-3 3-3.1-.9-.9-3.1Z" />
+            @break
+        @case('teams')
+            <circle cx="9" cy="8" r="3" />
+            <circle cx="17" cy="9" r="2.25" />
+            <path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5" />
+            @break
         @case('eye')
             <path d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7Z" />
             <circle cx="12" cy="12" r="3" />

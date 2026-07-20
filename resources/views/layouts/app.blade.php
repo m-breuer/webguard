@@ -43,10 +43,12 @@
 </head>
 
 <body
+    x-data="{ mobileOpen: false, sidebarCollapsed: window.localStorage.getItem('webguard.sidebar.collapsed') === 'true' }"
+    x-init="$watch('sidebarCollapsed', value => window.localStorage.setItem('webguard.sidebar.collapsed', value ? 'true' : 'false'))"
     class="flex min-h-screen flex-col justify-start bg-slate-50 font-sans antialiased dark:bg-slate-950 dark:text-gray-100">
     @include('layouts.navigation')
 
-    <div class="min-h-screen lg:ps-64">
+    <div class="min-h-screen" :class="{ 'lg:ps-20': sidebarCollapsed, 'lg:ps-64': ! sidebarCollapsed }">
         @isset($header)
             <header class="border-b border-purple-100/80 bg-white/95 shadow-sm dark:border-purple-900/50 dark:bg-slate-900/95">
                 <x-main>
