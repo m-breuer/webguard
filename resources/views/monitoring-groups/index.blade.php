@@ -45,19 +45,21 @@
                                 @if (!Auth::user()->isDemo())
                                     <form method="POST" action="{{ route('monitoring-groups.publish-status-page', $monitoringGroup) }}">
                                         @csrf
-                                        <x-secondary-button>
-                                            {{ __('monitoring_group.actions.publish_status_page') }}
+                                        <x-secondary-button :icon-only="true" title="{{ __('monitoring_group.actions.publish_status_page') }}"
+                                            aria-label="{{ __('monitoring_group.actions.publish_status_page') }}">
+                                            <x-icon name="globe" class="h-4 w-4" />
                                         </x-secondary-button>
                                     </form>
-                                    <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)" data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
-                                        {{ __('button.edit') }}
+                                    <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)" data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal"
+                                        :icon-only="true" title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                                        <x-icon name="pencil" class="h-4 w-4" />
                                     </x-secondary-button>
                                     <form method="POST" action="{{ route('monitoring-groups.destroy', $monitoringGroup) }}"
                                         data-confirm-message="{{ __('monitoring_group.actions.delete.confirmation') }}">
                                         @csrf
                                         @method('DELETE')
-                                        <x-danger-button>
-                                            {{ __('button.delete') }}
+                                        <x-danger-button :icon-only="true" title="{{ __('button.delete') }}" aria-label="{{ __('button.delete') }}">
+                                            <x-icon name="trash" class="h-4 w-4" />
                                         </x-danger-button>
                                     </form>
                                 @endif

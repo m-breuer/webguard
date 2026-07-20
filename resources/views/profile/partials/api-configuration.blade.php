@@ -17,7 +17,10 @@
             data-confirm-message="{{ __('api.configuration.messages.confirm_revoke_token') }}">
             @csrf
             @method('DELETE')
-            <x-danger-button>{{ __('api.configuration.actions.revoke_token') }}</x-danger-button>
+            <x-danger-button :icon-only="true" title="{{ __('api.configuration.actions.revoke_token') }}"
+                aria-label="{{ __('api.configuration.actions.revoke_token') }}">
+                <x-icon name="x" class="h-4 w-4" />
+            </x-danger-button>
         </form>
     </div>
     @if (Auth::user()->tokens->isNotEmpty())

@@ -36,8 +36,9 @@
                                 </x-paragraph>
                             </div>
 
-                            <x-secondary-button :href="route('teams.show', $team)">
-                                {{ __('button.show') }}
+                            <x-secondary-button :href="route('teams.show', $team)" :icon-only="true"
+                                title="{{ __('button.show') }}" aria-label="{{ __('button.show') }}">
+                                <x-icon name="eye" class="h-4 w-4" />
                             </x-secondary-button>
                         </div>
                     @endforeach
