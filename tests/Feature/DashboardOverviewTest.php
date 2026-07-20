@@ -43,6 +43,25 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeHtml('service_page=1');
     }
 
+    public function test_dashboard_service_landscape_page_can_be_loaded_as_a_bounded_fragment(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 20]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->count(11)->for($user)->sequence(
+            fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
+        )->create();
+
+        $this->actingAs($user)->get(route('dashboard', [
+            'service_fragment' => 1,
+            'service_page' => 2,
+        ]))
+            ->assertOk()
+            ->assertSeeHtml('id="dashboard-service-list"')
+            ->assertSeeText('Service 11')
+            ->assertDontSeeText('Service 01')
+            ->assertDontSeeText(__('dashboard.greeting', ['name' => $user->name]));
+    }
+
     public function test_new_user_sees_a_clear_dashboard_empty_state(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);

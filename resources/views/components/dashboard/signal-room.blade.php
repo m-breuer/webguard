@@ -77,7 +77,14 @@
     </div>
 
     <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]">
-        <section class="min-w-0 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-labelledby="signal-room-services-heading">
+        <div
+            x-data="serviceMapLoader()"
+            data-service-map-loader
+            data-services='@json($services)'
+            data-endpoint="{{ route('dashboard') }}"
+            class="min-w-0"
+        >
+        <section id="dashboard-service-list" data-services='@json($services)' class="min-w-0 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-labelledby="signal-room-services-heading">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700 sm:px-6">
                 <div>
                     <h3 id="signal-room-services-heading" class="text-base font-extrabold text-gray-950 dark:text-white">{{ __('dashboard.signal_room.service_landscape') }}</h3>
@@ -133,28 +140,29 @@
             </div>
         </section>
 
+        @if ($pagination && $pagination['last_page'] > 1)
+            <div id="dashboard-service-pagination" class="flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-300 sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                    {{ __('search.table.showing') }} {{ $pagination['from'] ?? 0 }} {{ __('search.table.to') }} {{ $pagination['to'] ?? 0 }}
+                    {{ __('search.table.of') }} {{ $pagination['total'] }} {{ __('search.table.entries') }}
+                </p>
+                <nav class="flex items-center gap-2" aria-label="{{ __('search.table.pagination') }}">
+                    @if ($pagination['current_page'] > 1)
+                        <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] - 1]) }}" @click.prevent="loadPage($el.href)" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">&laquo; {{ __('pagination.previous') }}</a>
+                    @endif
+                    <span class="rounded-md bg-purple-100 px-3 py-2 font-semibold text-purple-700 dark:bg-purple-900 dark:text-purple-100">{{ $pagination['current_page'] }} / {{ $pagination['last_page'] }}</span>
+                    @if ($pagination['current_page'] < $pagination['last_page'])
+                        <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] + 1]) }}" @click.prevent="loadPage($el.href)" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">{{ __('pagination.next') }} &raquo;</a>
+                    @endif
+                </nav>
+            </div>
+        @endif
+        </div>
+
         <aside class="hidden lg:block">
             <x-dashboard.signal-room-detail />
         </aside>
     </div>
-
-    @if ($pagination && $pagination['last_page'] > 1)
-        <div class="flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-300 sm:flex-row sm:items-center sm:justify-between">
-            <p>
-                {{ __('search.table.showing') }} {{ $pagination['from'] ?? 0 }} {{ __('search.table.to') }} {{ $pagination['to'] ?? 0 }}
-                {{ __('search.table.of') }} {{ $pagination['total'] }} {{ __('search.table.entries') }}
-            </p>
-            <nav class="flex items-center gap-2" aria-label="{{ __('search.table.pagination') }}">
-                @if ($pagination['current_page'] > 1)
-                    <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] - 1]) }}" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">&laquo; {{ __('pagination.previous') }}</a>
-                @endif
-                <span class="rounded-md bg-purple-100 px-3 py-2 font-semibold text-purple-700 dark:bg-purple-900 dark:text-purple-100">{{ $pagination['current_page'] }} / {{ $pagination['last_page'] }}</span>
-                @if ($pagination['current_page'] < $pagination['last_page'])
-                    <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] + 1]) }}" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">{{ __('pagination.next') }} &raquo;</a>
-                @endif
-            </nav>
-        </div>
-    @endif
 
     <div data-signal-mobile-sheet x-show="mobileDetailOpen" x-cloak class="lg:hidden">
         <div class="fixed inset-0 z-40 bg-gray-950/35" aria-hidden="true" @click="closeDetail()"></div>

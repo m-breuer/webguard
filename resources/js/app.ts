@@ -18,6 +18,7 @@ import asyncTable from './components/async-table';
 import confirmDialog, { registerConfirmableForms } from './components/confirm-dialog';
 import formModalLoader from './components/form-modal-loader';
 import signalRoom from './components/signal-room';
+import serviceMapLoader from './components/service-map-loader';
 import incidentAnalyticsLoader from './components/incident-analytics-loader';
 
 const decodeImprintPayload = (payload: string): string => {
@@ -72,6 +73,7 @@ Alpine.data('asyncTable', asyncTable);
 Alpine.data('confirmDialog', confirmDialog);
 Alpine.data('formModalLoader', formModalLoader);
 Alpine.data('signalRoom', signalRoom);
+Alpine.data('serviceMapLoader', serviceMapLoader);
 Alpine.data('incidentAnalyticsLoader', incidentAnalyticsLoader);
 
 window.Alpine = Alpine;

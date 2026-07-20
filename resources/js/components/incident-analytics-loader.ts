@@ -1,41 +1,38 @@
 interface IncidentAnalyticsLoaderComponent {
-    endpoint: string;
-    errorMessage: string;
-    loading: boolean;
-    error: string;
     init(this: IncidentAnalyticsLoaderComponent): Promise<void>;
+    showSectionError(this: IncidentAnalyticsLoaderComponent, section: HTMLElement): void;
 }
 
 export default (): IncidentAnalyticsLoaderComponent => ({
-    endpoint: '',
-    errorMessage: '',
-    loading: true,
-    error: '',
-
     async init(this: IncidentAnalyticsLoaderComponent): Promise<void> {
         const root = (this as any).$el as HTMLElement;
-        this.endpoint = root.dataset.endpoint ?? window.location.href;
-        this.errorMessage = root.dataset.error ?? 'Unable to load analytics.';
+        const sections = Array.from(root.querySelectorAll<HTMLElement>('[data-analytics-section]'));
 
-        const endpoint = new URL(this.endpoint, window.location.origin);
-        endpoint.searchParams.set('async', '1');
+        await Promise.all(sections.map(async (section): Promise<void> => {
+            const endpoint = new URL(section.dataset.endpoint ?? window.location.href, window.location.origin);
+            endpoint.searchParams.set('async', '1');
+            endpoint.searchParams.set('section', section.dataset.analyticsSection ?? '');
 
-        const response = await fetch(endpoint.toString()).catch(() => null);
-        if (!response?.ok) {
-            this.loading = false;
-            this.error = this.errorMessage;
-            return;
-        }
+            const response = await fetch(endpoint.toString()).catch(() => null);
+            if (!response?.ok) {
+                this.showSectionError(section);
+                return;
+            }
 
-        const documentText = await response.text();
-        const parsedDocument = new DOMParser().parseFromString(documentText, 'text/html');
-        const content = parsedDocument.querySelector<HTMLElement>('#incident-analytics-page-content');
-        if (!content) {
-            this.loading = false;
-            this.error = this.errorMessage;
-            return;
-        }
+            const documentText = await response.text();
+            const parsedDocument = new DOMParser().parseFromString(documentText, 'text/html');
+            const content = parsedDocument.querySelector<HTMLElement>('[data-analytics-section-content]');
+            if (!content) {
+                this.showSectionError(section);
+                return;
+            }
 
-        root.replaceWith(content);
+            section.replaceChildren(content);
+        }));
+    },
+
+    showSectionError(this: IncidentAnalyticsLoaderComponent, section: HTMLElement): void {
+        section.querySelector<HTMLElement>('[data-section-loading]')?.setAttribute('hidden', 'hidden');
+        section.querySelector<HTMLElement>('[data-section-error]')?.removeAttribute('hidden');
     },
 });

@@ -25,6 +25,7 @@ type SignalRoomComponent = {
     mobileDetailOpen: boolean;
     desktop: boolean;
     resizeHandler: () => void;
+    servicesUpdatedHandler: (event: Event) => void;
     init(): void;
     selectService(serviceId: string): void;
     closeDetail(): void;
@@ -40,6 +41,7 @@ export default (config: SignalRoomConfig): SignalRoomComponent => ({
     mobileDetailOpen: false,
     desktop: false,
     resizeHandler: (): void => undefined,
+    servicesUpdatedHandler: (): void => undefined,
 
     init(): void {
         const mediaQuery = window.matchMedia('(min-width: 1024px)');
@@ -64,10 +66,22 @@ export default (config: SignalRoomConfig): SignalRoomComponent => ({
         window.addEventListener('keydown', keydownHandler);
         document.addEventListener('keydown', keydownHandler);
 
+        this.servicesUpdatedHandler = (event: Event): void => {
+            const services = (event as CustomEvent<{ services?: SignalRoomService[] }>).detail.services;
+            if (!services) return;
+
+            this.services = services;
+            if (!this.services.some((service) => service.id === this.selectedServiceId)) {
+                this.selectedServiceId = this.services[0]?.id ?? null;
+            }
+        };
+        window.addEventListener('signal-room:services-updated', this.servicesUpdatedHandler);
+
         (this as any).$el.addEventListener('alpine:destroy', () => {
             mediaQuery.removeEventListener('change', this.resizeHandler);
             window.removeEventListener('keydown', keydownHandler);
             document.removeEventListener('keydown', keydownHandler);
+            window.removeEventListener('signal-room:services-updated', this.servicesUpdatedHandler);
         });
     },
 

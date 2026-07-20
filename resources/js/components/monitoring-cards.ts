@@ -20,6 +20,7 @@ interface MonitoringCardLoaderComponent {
     attentionCount: number;
     pausedCount: number;
     maintenanceCount: number;
+    summaryError: boolean;
     currentLocale: string;
     updateSummary(this: MonitoringCardLoaderComponent): void;
     updateSince(this: MonitoringCardLoaderComponent): void;
@@ -55,6 +56,7 @@ export default (
     attentionCount: 0,
     pausedCount: 0,
     maintenanceCount: 0,
+    summaryError: false,
 
     currentLocale: getCurrentDayjsLocale(),
 
@@ -83,12 +85,10 @@ export default (
             };
         };
 
-        const [cardPayload, ...summaryPayloads] = await Promise.all([
-            loadBatch(this.monitoringIds),
-            ...summaryBatches.map((batch) => loadBatch([], batch)),
-        ]);
+        const cardPayloadPromise = loadBatch(this.monitoringIds);
+        cardPayloadPromise.then((cardPayload) => {
+            if (!cardPayload) return;
 
-        if (cardPayload) {
             const cardData = cardPayload.data ?? {};
 
             for (const monitoringId of this.monitoringIds) {
@@ -107,18 +107,41 @@ export default (
                     renderHeatmap(heatmapContainer, monitoringCardData.heatmap);
                 }
             }
+        });
+
+        if (summaryBatches.length === 0) {
+            this.updateSummary();
+            await cardPayloadPromise;
+            return;
         }
 
-        const summaries = summaryPayloads.map((payload) => payload?.summary).filter((summary): summary is NonNullable<typeof summary> => summary !== undefined);
-        if (summaryBatches.length > 0 && summaries.length === summaryBatches.length) {
-            this.attentionCount = summaries.reduce((total, summary) => total + summary.attention, 0);
-            this.healthyCount = summaries.reduce((total, summary) => total + summary.healthy, 0);
-            this.pausedCount = summaries.reduce((total, summary) => total + summary.paused, 0);
-            this.maintenanceCount = summaries.reduce((total, summary) => total + summary.maintenance, 0);
-            this.summaryReady = true;
-        } else if (summaryBatches.length === 0) {
-            this.updateSummary();
-        }
+        let nextBatchIndex = 0;
+        let completedBatches = 0;
+        const loadSummaryWorker = async (): Promise<void> => {
+            while (nextBatchIndex < summaryBatches.length) {
+                const batch = summaryBatches[nextBatchIndex++];
+                const payload = await loadBatch([], batch);
+                const summary = payload?.summary;
+
+                if (!summary) {
+                    this.summaryError = true;
+                } else {
+                    this.attentionCount += summary.attention;
+                    this.healthyCount += summary.healthy;
+                    this.pausedCount += summary.paused;
+                    this.maintenanceCount += summary.maintenance;
+                }
+
+                completedBatches++;
+                this.summaryReady = completedBatches === summaryBatches.length;
+            }
+        };
+
+        await Promise.all(Array.from(
+            { length: Math.min(3, summaryBatches.length) },
+            () => loadSummaryWorker(),
+        ));
+        await cardPayloadPromise;
     },
 
     updateSummary(this: MonitoringCardLoaderComponent): void {
