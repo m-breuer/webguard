@@ -62,53 +62,61 @@ export default (
         this.hasMonitorings = this.monitoringIds.length > 0;
         if (!this.hasMonitorings) return;
 
-        const query = new URLSearchParams();
+        const summaryBatches = Array.from({ length: Math.ceil(this.summaryMonitoringIds.length / 50) }, (_, index) =>
+            this.summaryMonitoringIds.slice(index * 50, (index + 1) * 50)
+        );
 
-        this.monitoringIds.forEach((id: string) => query.append('ids[]', id));
-        this.summaryMonitoringIds.forEach((id: string) => query.append('summary_ids[]', id));
-
-        const response = await fetch(`/api/monitorings/card-data?${query.toString()}`).catch(() => null);
-        if (!response?.ok) {
-            return;
-        }
-
-        const payload = await response.json() as {
+        const loadBatch = async (ids: string[], summaryIds: string[] = []): Promise<{
             data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }>;
-            summary?: {
-                attention: number;
-                healthy: number;
-                paused: number;
-                maintenance: number;
+            summary?: { attention: number; healthy: number; paused: number; maintenance: number };
+        } | null> => {
+            const query = new URLSearchParams();
+            ids.forEach((id: string) => query.append('ids[]', id));
+            summaryIds.forEach((id: string) => query.append('summary_ids[]', id));
+
+            const response = await fetch(`/api/monitorings/card-data?${query.toString()}`).catch(() => null);
+            if (!response?.ok) return null;
+
+            return await response.json() as {
+                data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }>;
+                summary?: { attention: number; healthy: number; paused: number; maintenance: number };
             };
         };
-        const cardData = payload.data ?? {};
 
-        for (const monitoringId of this.monitoringIds) {
-            const monitoringCardData = cardData[monitoringId];
-            if (!monitoringCardData) {
-                continue;
-            }
+        const [cardPayload, ...summaryPayloads] = await Promise.all([
+            loadBatch(this.monitoringIds),
+            ...summaryBatches.map((batch) => loadBatch([], batch)),
+        ]);
 
-            this.statusMap = { ...this.statusMap, [monitoringId]: monitoringCardData.status ?? '' };
-            this.sinceDateMap = { ...this.sinceDateMap, [monitoringId]: monitoringCardData.since ?? null };
-            this.sinceMap = {
-                ...this.sinceMap,
-                [monitoringId]: monitoringCardData.since ? humanizeDistance(monitoringCardData.since, { withoutSuffix: true }) : '',
-            };
+        if (cardPayload) {
+            const cardData = cardPayload.data ?? {};
 
-            const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
-            if (heatmapContainer && monitoringCardData.heatmap) {
-                renderHeatmap(heatmapContainer, monitoringCardData.heatmap);
+            for (const monitoringId of this.monitoringIds) {
+                const monitoringCardData = cardData[monitoringId];
+                if (!monitoringCardData) continue;
+
+                this.statusMap = { ...this.statusMap, [monitoringId]: monitoringCardData.status ?? '' };
+                this.sinceDateMap = { ...this.sinceDateMap, [monitoringId]: monitoringCardData.since ?? null };
+                this.sinceMap = {
+                    ...this.sinceMap,
+                    [monitoringId]: monitoringCardData.since ? humanizeDistance(monitoringCardData.since, { withoutSuffix: true }) : '',
+                };
+
+                const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
+                if (heatmapContainer && monitoringCardData.heatmap) {
+                    renderHeatmap(heatmapContainer, monitoringCardData.heatmap);
+                }
             }
         }
 
-        if (payload.summary) {
-            this.attentionCount = payload.summary.attention;
-            this.healthyCount = payload.summary.healthy;
-            this.pausedCount = payload.summary.paused;
-            this.maintenanceCount = payload.summary.maintenance;
+        const summaries = summaryPayloads.map((payload) => payload?.summary).filter((summary): summary is NonNullable<typeof summary> => summary !== undefined);
+        if (summaryBatches.length > 0 && summaries.length === summaryBatches.length) {
+            this.attentionCount = summaries.reduce((total, summary) => total + summary.attention, 0);
+            this.healthyCount = summaries.reduce((total, summary) => total + summary.healthy, 0);
+            this.pausedCount = summaries.reduce((total, summary) => total + summary.paused, 0);
+            this.maintenanceCount = summaries.reduce((total, summary) => total + summary.maintenance, 0);
             this.summaryReady = true;
-        } else {
+        } else if (summaryBatches.length === 0) {
             this.updateSummary();
         }
     },

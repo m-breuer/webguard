@@ -61,6 +61,7 @@
         @else
             <x-dashboard.signal-room
                 :services="$signalRoomServices"
+                :pagination="$signalRoomPagination"
                 :summary="$summary"
                 :overall-state="$overallState"
                 :can-create-monitoring="$canCreateMonitoring"
