@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringHeatmapService
 {
+    public function __construct(private readonly MonitoringStatsCache $monitoringStatsCache) {}
+
     /**
      * @return Collection<int, array{date: Carbon, uptime: int, downtime: int, unknown: int}>
      */
@@ -37,7 +39,29 @@ class MonitoringHeatmapService
         $startDate = Date::now()->subHours(23)->startOfHour();
         $endDate = Date::now()->endOfHour();
 
-        $monitoringIds = $monitorings
+        $heatmaps = [];
+        $monitoringsToLoad = collect();
+
+        foreach ($monitorings as $monitoring) {
+            $cachedHeatmap = $this->monitoringStatsCache->get(
+                $monitoring,
+                $this->monitoringStatsCache->heatmapKey($monitoring)
+            );
+
+            if (is_array($cachedHeatmap)) {
+                $heatmaps[$monitoring->id] = $cachedHeatmap;
+
+                continue;
+            }
+
+            $monitoringsToLoad->push($monitoring);
+        }
+
+        if ($monitoringsToLoad->isEmpty()) {
+            return $heatmaps;
+        }
+
+        $monitoringIds = $monitoringsToLoad
             ->pluck('id')
             ->filter(static fn (mixed $id): bool => is_string($id) && $id !== '')
             ->values();
@@ -59,7 +83,7 @@ class MonitoringHeatmapService
             ->groupBy('monitoring_id')
             ->map(static fn (Collection $rows): Collection => $rows->keyBy('period'));
 
-        return $monitoringIds
+        $freshHeatmaps = $monitoringIds
             ->mapWithKeys(function (string $monitoringId) use ($rawByMonitoring, $startDate, $endDate): array {
                 /** @var Collection<int, object> $raw */
                 $raw = $rawByMonitoring->get($monitoringId, collect());
@@ -81,5 +105,22 @@ class MonitoringHeatmapService
                 return [$monitoringId => $heatmap];
             })
             ->all();
+
+        foreach ($freshHeatmaps as $monitoringId => $heatmap) {
+            $monitoring = $monitoringsToLoad->firstWhere('id', $monitoringId);
+
+            if ($monitoring) {
+                $this->monitoringStatsCache->put(
+                    $monitoring,
+                    $this->monitoringStatsCache->heatmapKey($monitoring),
+                    $heatmap,
+                    $this->monitoringStatsCache->heatmapExpiresAt()
+                );
+            }
+
+            $heatmaps[$monitoringId] = $heatmap;
+        }
+
+        return $heatmaps;
     }
 }

@@ -43,6 +43,25 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('id="recent-checks"');
     }
 
+    public function test_monitoring_detail_page_uses_tablet_friendly_responsive_layout(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3');
+        $testResponse->assertSeeHtml('grid grid-cols-12 gap-0.5 sm:flex sm:flex-nowrap');
+        $testResponse->assertSeeHtml('grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3');
+        $testResponse->assertSeeHtml('flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between');
+        $testResponse->assertSeeHtml('xl:grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] xl:items-center');
+    }
+
     public function test_heartbeat_monitoring_detail_page_keeps_recent_checks_without_response_time_chart(): void
     {
         Package::factory()->create();
