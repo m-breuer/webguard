@@ -2,12 +2,18 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\MaintenanceDataController;
 use App\Http\Controllers\Api\MonitoringCardDataController;
 use App\Http\Controllers\Api\NotificationBoardController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\MaintenanceController as WebMaintenanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/notifications/status-board', NotificationBoardController::class)->name('notifications.status-board');
+
+Route::get('/maintenance', MaintenanceDataController::class)->name('maintenance.index');
+Route::post('/maintenance', [WebMaintenanceController::class, 'store'])->name('maintenance.store');
+Route::delete('/maintenance', [WebMaintenanceController::class, 'destroy'])->name('maintenance.destroy');
 
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {
     Route::get('/card-data', MonitoringCardDataController::class)->middleware('auth')->name('card-data');

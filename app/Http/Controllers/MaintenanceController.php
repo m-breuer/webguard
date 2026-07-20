@@ -8,9 +8,9 @@ use App\Http\Requests\MaintenanceRequest;
 use App\Models\Monitoring;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\View\View;
 
@@ -18,23 +18,10 @@ class MaintenanceController extends Controller
 {
     public function index(): View
     {
-        /** @var User $user */
-        $user = Auth::user();
-
-        return view('maintenance.index', [
-            'monitorings' => Monitoring::query()
-                ->manageableBy($user)
-                ->with('groups:id,name')
-                ->orderBy('name')
-                ->get(),
-            'monitoringGroups' => $user->monitoringGroups()
-                ->withCount('monitorings')
-                ->orderBy('name')
-                ->get(['id', 'name']),
-        ]);
+        return view('maintenance.index');
     }
 
-    public function store(MaintenanceRequest $maintenanceRequest): RedirectResponse
+    public function store(MaintenanceRequest $maintenanceRequest): RedirectResponse|JsonResponse
     {
         abort_if($maintenanceRequest->user()?->isDemo(), 403);
 
@@ -48,11 +35,19 @@ class MaintenanceController extends Controller
                     : null,
             ]);
 
-        return to_route('maintenance.index')
-            ->with('success', trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]));
+        $message = trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]);
+
+        if ($maintenanceRequest->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'updated_count' => $updatedCount,
+            ]);
+        }
+
+        return to_route('maintenance.index')->with('success', $message);
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): RedirectResponse|JsonResponse
     {
         abort_if($request->user()?->isDemo(), 403);
         /** @var User $user */
@@ -78,8 +73,13 @@ class MaintenanceController extends Controller
                 'maintenance_until' => null,
             ]);
 
-        return to_route('maintenance.index')
-            ->with('success', __('maintenance.messages.cleared'));
+        $message = __('maintenance.messages.cleared');
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return to_route('maintenance.index')->with('success', $message);
     }
 
     private function targetMonitorings(MaintenanceRequest $maintenanceRequest): Builder

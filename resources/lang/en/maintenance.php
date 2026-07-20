@@ -41,6 +41,8 @@ return [
     'messages' => [
         'scheduled' => 'Maintenance was scheduled for :count monitoring.|Maintenance was scheduled for :count monitorings.',
         'cleared' => 'Maintenance window was cleared.',
+        'loading' => 'Loading maintenance data…',
+        'error' => 'Maintenance data could not be loaded.',
     ],
     'empty' => [
         'title' => 'No monitorings yet',

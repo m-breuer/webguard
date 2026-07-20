@@ -15,6 +15,7 @@ import monitoringDetail from './components/monitoring-detail';
 import uptimeCalendar from './components/uptime-calendar';
 import demoLogin from './components/demoLogin';
 import asyncTable from './components/async-table';
+import maintenancePage from './components/maintenance-page';
 import confirmDialog, { registerConfirmableForms } from './components/confirm-dialog';
 
 const decodeImprintPayload = (payload: string): string => {
@@ -66,6 +67,7 @@ Alpine.data('monitoringCardLoader', monitoringCardLoader);
 Alpine.data('uptimeCalendar', uptimeCalendar);
 Alpine.data('demoLogin', demoLogin);
 Alpine.data('asyncTable', asyncTable);
+Alpine.data('maintenancePage', maintenancePage);
 Alpine.data('confirmDialog', confirmDialog);
 
 window.Alpine = Alpine;

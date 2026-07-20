@@ -50,9 +50,53 @@ class MaintenanceManagementTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('maintenance.title'));
-        $testResponse->assertSeeText('Checkout API');
-        $testResponse->assertSeeText('Production');
+        $testResponse->assertDontSeeText('Checkout API');
+        $testResponse->assertSeeHtml('x-data="maintenancePage');
         $testResponse->assertSeeHtml('action="' . route('maintenance.store') . '"');
+    }
+
+    public function test_maintenance_api_paginates_window_list_without_limiting_monitoring_options(): void
+    {
+        Monitoring::factory()->for($this->user)->create([
+            'name' => 'Monitoring 000',
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        foreach (range(1, 50) as $index) {
+            Monitoring::factory()->for($this->user)->create([
+                'name' => sprintf('Monitoring %03d', $index),
+                'preferred_location' => $this->serverInstance->code,
+            ]);
+        }
+
+        $lastMonitoring = Monitoring::query()->where('name', 'Monitoring 050')->firstOrFail();
+        $testResponse = $this->actingAs($this->user)->getJson(route('api.maintenance.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('data.windows.current_page', 1);
+        $testResponse->assertJsonPath('data.windows.last_page', 2);
+        $testResponse->assertJsonCount(50, 'data.windows.data');
+        $testResponse->assertJsonFragment(['id' => (string) $lastMonitoring->id, 'name' => 'Monitoring 050']);
+        $testResponse->assertJsonFragment(['name' => 'Monitoring 000']);
+        $testResponse->assertJsonCount(51, 'data.monitoring_options');
+    }
+
+    public function test_maintenance_actions_support_json_requests(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $this->actingAs($this->user)->postJson(route('api.maintenance.store'), [
+            'scope' => 'monitoring',
+            'monitoring_id' => $monitoring->id,
+            'maintenance_from' => '2026-07-01T10:00',
+            'maintenance_until' => '2026-07-01T11:00',
+        ])->assertOk()->assertJsonStructure(['message', 'updated_count']);
+
+        $this->actingAs($this->user)->deleteJson(route('api.maintenance.destroy'), [
+            'monitoring_id' => $monitoring->id,
+        ])->assertOk()->assertJsonStructure(['message']);
     }
 
     public function test_user_can_schedule_maintenance_for_single_monitoring(): void
@@ -128,9 +172,10 @@ class MaintenanceManagementTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $this->actingAs($this->user)->get(route('maintenance.index'))
+        $this->actingAs($this->user)->get(route('maintenance.index'))->assertOk();
+        $this->actingAs($this->user)->getJson(route('api.maintenance.index'))
             ->assertOk()
-            ->assertSeeText('Team API');
+            ->assertJsonFragment(['name' => 'Team API']);
 
         $this->actingAs($this->user)->post(route('maintenance.store'), [
             'scope' => 'monitoring',
@@ -178,9 +223,10 @@ class MaintenanceManagementTest extends TestCase
             'maintenance_until' => '2026-07-01 11:00:00',
         ]);
 
-        $this->actingAs($member)->get(route('maintenance.index'))
+        $this->actingAs($member)->get(route('maintenance.index'))->assertOk();
+        $this->actingAs($member)->getJson(route('api.maintenance.index'))
             ->assertOk()
-            ->assertDontSeeText('Shared API');
+            ->assertJsonMissing(['name' => 'Shared API']);
 
         $this->actingAs($member)->post(route('maintenance.store'), [
             'scope' => 'monitoring',

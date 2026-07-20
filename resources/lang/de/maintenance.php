@@ -41,6 +41,8 @@ return [
     'messages' => [
         'scheduled' => 'Wartung wurde für :count Überwachung geplant.|Wartung wurde für :count Überwachungen geplant.',
         'cleared' => 'Wartungsfenster wurde entfernt.',
+        'loading' => 'Wartungsdaten werden geladen …',
+        'error' => 'Wartungsdaten konnten nicht geladen werden.',
     ],
     'empty' => [
         'title' => 'Noch keine Überwachungen',
