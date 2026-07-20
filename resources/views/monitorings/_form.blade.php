@@ -55,6 +55,7 @@
         'value' => $serverInstance->code,
         'label' => $serverInstance->code,
     ])->values();
+    $notificationPreferencesFormId = $notificationPreferencesFormId ?? null;
 @endphp
 
 @csrf
@@ -174,8 +175,16 @@
         </section>
 
         <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <summary class="cursor-pointer list-none">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.organization') }}</x-heading>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+                </svg>
             </summary>
 
             <div>
@@ -376,8 +385,13 @@
 
     <details x-show="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'"
         class="mt-4 rounded-md border border-gray-200 p-4 dark:border-gray-700">
-        <summary class="cursor-pointer font-semibold text-gray-800 dark:text-gray-100">
-            {{ __('monitoring.form.advanced_request_settings') }}
+        <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-gray-800 [&::-webkit-details-marker]:hidden dark:text-gray-100">
+            <span>{{ __('monitoring.form.advanced_request_settings') }}</span>
+            <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25-4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1-1.08 1.06Z" clip-rule="evenodd" />
+            <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+            </svg>
         </summary>
 
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
@@ -415,8 +429,12 @@
         </section>
 
         <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <summary class="cursor-pointer list-none">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.sharing') }}</x-heading>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                </svg>
             </summary>
 
     <div class="mt-4">
@@ -456,9 +474,21 @@
         </details>
 
         <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <summary class="cursor-pointer list-none">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.notifications') }}</x-heading>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 1 1-1.08 1.06Z" clip-rule="evenodd" />
+                </svg>
             </summary>
+
+    @if (isset($monitoring) && isset($notificationPreference) && $notificationPreferencesFormId)
+        @include('monitorings._notification_preferences', [
+            'embedded' => true,
+            'formId' => $notificationPreferencesFormId,
+            'fieldIdPrefix' => $fieldIdPrefix ?? 'monitoring_notification_preference',
+        ])
+    @endif
 
     @unless (isset($monitoring))
     <div class="mt-4">
@@ -523,8 +553,12 @@
         </details>
 
         <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <summary class="cursor-pointer list-none">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.operations') }}</x-heading>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 1 1 .02-1.06Z" clip-rule="evenodd" />
+                </svg>
             </summary>
 
     <div class="mt-4">

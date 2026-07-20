@@ -24,12 +24,19 @@
         @include('monitorings._ownership')
 
         <x-container>
-            <form method="POST" action="{{ route('monitorings.update', $monitoring) }}">
-                @include('monitorings._form')
+            <form id="monitoring-edit-form" method="POST" action="{{ route('monitorings.update', $monitoring) }}">
+                @include('monitorings._form', [
+                    'notificationPreferencesFormId' => 'edit-notification-preferences-form',
+                    'fieldIdPrefix' => 'edit_notification_preference',
+                ])
             </form>
         </x-container>
 
-        @include('monitorings._notification_preferences', ['fieldIdPrefix' => 'edit_notification_preference'])
+        <form id="edit-notification-preferences-form" method="POST"
+            action="{{ route('monitorings.notification-preferences.update', $monitoring) }}" class="hidden">
+            @csrf
+            @method('PATCH')
+        </form>
     </x-main>
 </x-app-layout>
 @endif
