@@ -116,31 +116,28 @@ class IncidentAnalyticsController extends Controller
         string $section,
         array $filters,
         int $days,
-        IncidentAnalyticsRequest $request,
+        IncidentAnalyticsRequest $incidentAnalyticsRequest,
         MonitoringOverviewService $monitoringOverviewService,
         MonitoringStatusService $monitoringStatusService,
     ): View {
         return match ($section) {
             'overview' => view('incidents.analytics-sections.overview', [
-                'overview' => $monitoringOverviewService->overview($request->user()),
+                'overview' => $monitoringOverviewService->overview($incidentAnalyticsRequest->user()),
             ]),
             'groups' => view('incidents.analytics-sections.groups', [
-                'groups' => $this->monitoringGroups($request, $monitoringStatusService),
+                'groups' => $this->monitoringGroups($incidentAnalyticsRequest, $monitoringStatusService),
             ]),
             'status-pages' => view('incidents.analytics-sections.status-pages', [
-                'statusPages' => $this->statusPages($request, $monitoringStatusService),
+                'statusPages' => $this->statusPages($incidentAnalyticsRequest, $monitoringStatusService),
             ]),
             'incidents' => view('incidents.analytics-sections.incidents', $this->incidentSectionData($filters, $days)),
             default => abort(404),
         };
     }
 
-    /**
-     * @return array{groups:Collection<int, array{model:MonitoringGroup,summary:array{total:int,healthy:int,down:int,attention:int,state:string}}>,statusPages:Collection<int, array{model:StatusPage,summary:array{total:int,healthy:int,down:int,attention:int,state:string}}>}
-     */
-    private function monitoringGroups(IncidentAnalyticsRequest $request, MonitoringStatusService $monitoringStatusService): Collection
+    private function monitoringGroups(IncidentAnalyticsRequest $incidentAnalyticsRequest, MonitoringStatusService $monitoringStatusService): Collection
     {
-        return $request->user()
+        return $incidentAnalyticsRequest->user()
             ->monitoringGroups()
             ->withCount('monitorings')
             ->with(['monitorings.latestResponseResult', 'monitorings.latestIncident'])
@@ -156,9 +153,9 @@ class IncidentAnalyticsController extends Controller
     /**
      * @return Collection<int, array{model:StatusPage,summary:array{total:int,healthy:int,down:int,attention:int,state:string}}>
      */
-    private function statusPages(IncidentAnalyticsRequest $request, MonitoringStatusService $monitoringStatusService): Collection
+    private function statusPages(IncidentAnalyticsRequest $incidentAnalyticsRequest, MonitoringStatusService $monitoringStatusService): Collection
     {
-        return $request->user()
+        return $incidentAnalyticsRequest->user()
             ->statusPages()
             ->withCount('components')
             ->with([
