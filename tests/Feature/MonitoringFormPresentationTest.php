@@ -44,6 +44,7 @@ class MonitoringFormPresentationTest extends TestCase
         $testResponse->assertSeeHtml('href="' . route('monitorings.index') . '"');
         $editResponse->assertSeeHtml('href="' . route('monitorings.show', $monitoring) . '"');
         $testResponse->assertSeeHtml('<details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">');
+        $testResponse->assertSeeHtml('group-open:rotate-180');
         $testResponse->assertSee(__('monitoring.form.advanced_request_settings'));
     }
 
@@ -79,6 +80,13 @@ class MonitoringFormPresentationTest extends TestCase
         $editResponse->assertSeeHtml('data-monitoring-ownership-badge');
         $editResponse->assertSeeHtml('data-monitoring-form-actions');
         $editResponse->assertSeeHtml('data-monitoring-notification-preferences');
+        $editResponse->assertSeeHtml('id="edit-notification-preferences-form"');
+        $editResponse->assertSeeHtml('form="edit-notification-preferences-form"');
+        $editResponse->assertSeeInOrder([
+            __('monitoring.form.sections.notifications'),
+            __('team.sections.notification_preferences'),
+            'data-monitoring-form-actions',
+        ]);
         $editResponse->assertSeeHtml('data-select-control="native"');
         $editResponse->assertSeeHtml('data-select-control="multi"');
     }
