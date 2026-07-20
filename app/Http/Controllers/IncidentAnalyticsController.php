@@ -31,6 +31,11 @@ class IncidentAnalyticsController extends Controller
     ): View {
         $filters = $incidentAnalyticsRequest->validated();
         $days = (int) ($filters['days'] ?? 90);
+
+        if (! $incidentAnalyticsRequest->boolean('async')) {
+            return view('incidents.analytics-shell');
+        }
+
         $incidents = $this->incidents($filters, $days);
         $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
         $durations = $resolvedIncidents->map(

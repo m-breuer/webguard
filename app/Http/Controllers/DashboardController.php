@@ -16,6 +16,9 @@ class DashboardController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return view('dashboard', $monitoringOverviewService->overview($user));
+        return view('dashboard', $monitoringOverviewService->overview(
+            $user,
+            max(1, $request->integer('service_page', 1)),
+        ));
     }
 }

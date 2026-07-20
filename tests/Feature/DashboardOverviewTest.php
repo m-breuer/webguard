@@ -21,6 +21,28 @@ use Tests\TestCase;
 
 class DashboardOverviewTest extends TestCase
 {
+    public function test_dashboard_service_landscape_is_paginated_without_changing_the_global_summary(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 20]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->count(11)->for($user)->sequence(
+            fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
+        )->create();
+
+        $firstPage = $this->actingAs($user)->get(route('dashboard'));
+        $secondPage = $this->actingAs($user)->get(route('dashboard', ['service_page' => 2]));
+
+        $firstPage->assertOk()
+            ->assertSeeText('11 ' . __('dashboard.signal_room.active_services'))
+            ->assertSeeText('Service 01')
+            ->assertDontSeeText('Service 11')
+            ->assertSeeText('1 / 2');
+        $secondPage->assertOk()
+            ->assertSeeText('Service 11')
+            ->assertSeeText('2 / 2')
+            ->assertSeeHtml('service_page=1');
+    }
+
     public function test_new_user_sees_a_clear_dashboard_empty_state(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);

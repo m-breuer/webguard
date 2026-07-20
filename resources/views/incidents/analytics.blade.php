@@ -23,6 +23,7 @@
     </x-slot>
 
     <x-main>
+        <div id="incident-analytics-page-content">
         <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
             <x-form-modal name="status-page-form-modal" title="{{ __('status_page.title') }}"
                 description="{{ __('status_page.form.components') }}" max-width="5xl">
@@ -434,6 +435,7 @@
                     <div x-html="content"></div>
                 </div>
             </x-form-modal>
+        </div>
         </div>
     </x-main>
 </x-app-layout>

@@ -28,14 +28,14 @@ class MonitoringCardDataController extends Controller
         }
 
         $validated = $request->validate([
-            'ids' => ['required', 'array', 'min:1'],
+            'ids' => ['nullable', 'array', 'max:100'],
             'ids.*' => ['required', 'string'],
-            'summary_ids' => ['nullable', 'array', 'min:1'],
+            'summary_ids' => ['nullable', 'array', 'max:100'],
             'summary_ids.*' => ['required', 'string'],
         ]);
 
         /** @var Collection<int, string> $requestedIds */
-        $requestedIds = collect($validated['ids'])
+        $requestedIds = collect($validated['ids'] ?? [])
             ->filter(static fn (mixed $id): bool => is_string($id) && $id !== '')
             ->unique()
             ->values();
@@ -44,6 +44,10 @@ class MonitoringCardDataController extends Controller
             ->filter(static fn (mixed $id): bool => is_string($id) && $id !== '')
             ->unique()
             ->values();
+
+        if ($requestedIds->isEmpty() && $summaryIds->isEmpty()) {
+            abort(422, 'At least one monitoring id is required.');
+        }
         $allRequestedIds = $requestedIds->merge($summaryIds)->unique()->values();
 
         $monitorings = Monitoring::query()

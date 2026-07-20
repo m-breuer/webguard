@@ -19,6 +19,19 @@ use Tests\TestCase;
 
 class IncidentWorkflowTest extends TestCase
 {
+    public function test_incident_analytics_initial_request_returns_a_fast_loading_shell(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->count(20)->for($user)->create();
+
+        $this->actingAs($user)->get(route('incidents.analytics'))
+            ->assertOk()
+            ->assertSeeHtml('data-incident-analytics-loader')
+            ->assertSeeText(__('app.loading'))
+            ->assertDontSeeHtml('data-incident-overview-table');
+    }
+
     public function test_owner_can_manage_private_metadata_follow_ups_and_timeline_without_public_disclosure(): void
     {
         Date::setTestNow('2026-07-15 12:00:00');
@@ -238,6 +251,7 @@ class IncidentWorkflowTest extends TestCase
         $this->actingAs($user)->get(route('incidents.analytics', [
             'days' => 90,
             'severity' => IncidentSeverity::HIGH->value,
+            'async' => 1,
         ]))
             ->assertOk()
             ->assertSeeText('Average MTTR')
@@ -269,7 +283,7 @@ class IncidentWorkflowTest extends TestCase
             'source_type' => StatusPageComponentSource::MONITORING_GROUP,
         ]);
 
-        $this->actingAs($user)->get(route('incidents.analytics'))
+        $this->actingAs($user)->get(route('incidents.analytics', ['async' => 1]))
             ->assertOk()
             ->assertSeeText(__('incidents.analytics.overview.groups'))
             ->assertSeeText(__('incidents.analytics.overview.status_pages'))
@@ -303,7 +317,7 @@ class IncidentWorkflowTest extends TestCase
             'down_at' => Date::now()->subMinutes(30),
         ]);
 
-        $this->actingAs($user)->get(route('incidents.analytics'))
+        $this->actingAs($user)->get(route('incidents.analytics', ['async' => 1]))
             ->assertOk()
             ->assertSeeText('Checkout API')
             ->assertDontSeeText('Other API');
@@ -331,7 +345,7 @@ class IncidentWorkflowTest extends TestCase
                 'up_at' => Date::now()->subMinutes(30),
             ]);
 
-            $this->actingAs($user)->get(route('incidents.analytics'))
+            $this->actingAs($user)->get(route('incidents.analytics', ['async' => 1]))
                 ->assertOk()
                 ->assertSeeText($localizedExpectation['label'])
                 ->assertDontSeeText('incidents.types.unclassified')

@@ -15,6 +15,7 @@ use App\Models\NotificationChannelDelivery;
 use App\Models\StatusPage;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
@@ -25,6 +26,7 @@ class MonitoringOverviewService
      * @return array{
      *     monitorings: EloquentCollection<int, Monitoring>,
      *     signalRoomServices: Collection<int, array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}>,
+     *     signalRoomPagination: array{current_page:int,last_page:int,total:int,from:int|null,to:int|null},
      *     summary: array{total:int,healthy:int,down:int,unknown:int,paused:int,maintenance:int},
      *     overallState: string,
      *     attentionItems: Collection<int, array{type:string,monitoring:Monitoring|null,count:int|null}>,
@@ -38,7 +40,7 @@ class MonitoringOverviewService
      *     canManageMaintenance: bool
      * }
      */
-    public function overview(User $user): array
+    public function overview(User $user, int $servicePage = 1): array
     {
         $user->loadMissing('package');
 
@@ -103,28 +105,43 @@ class MonitoringOverviewService
             $this->statusPagesByMonitoringId($user)
         );
         $overallState = $this->overallState($summary);
+        $signalRoomServices = $monitorings->map(function (Monitoring $monitoring) use ($statuses): array {
+            $status = (string) $statuses->get($monitoring->getKey(), MonitoringStatus::UNKNOWN->value);
+            $latestResponse = $monitoring->latestResponseResult;
+
+            return [
+                'id' => (string) $monitoring->getKey(),
+                'name' => (string) $monitoring->name,
+                'target' => (string) $monitoring->target,
+                'status' => $status,
+                'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $status),
+                'group' => (string) ($monitoring->groups->first()?->name ?? __('dashboard.signal_room.ungrouped')),
+                'lastCheck' => $latestResponse?->created_at?->locale(app()->getLocale())->diffForHumans() ?? __('dashboard.signal_room.no_check'),
+                'responseTime' => $latestResponse?->response_time !== null
+                    ? number_format((float) $latestResponse->response_time, 0, ',', '.') . ' ms'
+                    : '—',
+                'openIncident' => $monitoring->latestIncident?->up_at === null && $monitoring->latestIncident !== null,
+                'href' => route('monitorings.show', $monitoring),
+            ];
+        })->values();
+        $servicePaginator = new LengthAwarePaginator(
+            $signalRoomServices->forPage(max(1, $servicePage), 10)->values(),
+            $signalRoomServices->count(),
+            10,
+            max(1, $servicePage),
+            ['pageName' => 'service_page', 'path' => route('dashboard')],
+        );
 
         return [
             'monitorings' => $monitorings,
-            'signalRoomServices' => $monitorings->map(function (Monitoring $monitoring) use ($statuses): array {
-                $status = (string) $statuses->get($monitoring->getKey(), MonitoringStatus::UNKNOWN->value);
-                $latestResponse = $monitoring->latestResponseResult;
-
-                return [
-                    'id' => (string) $monitoring->getKey(),
-                    'name' => (string) $monitoring->name,
-                    'target' => (string) $monitoring->target,
-                    'status' => $status,
-                    'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $status),
-                    'group' => (string) ($monitoring->groups->first()?->name ?? __('dashboard.signal_room.ungrouped')),
-                    'lastCheck' => $latestResponse?->created_at?->locale(app()->getLocale())->diffForHumans() ?? __('dashboard.signal_room.no_check'),
-                    'responseTime' => $latestResponse?->response_time !== null
-                        ? number_format((float) $latestResponse->response_time, 0, ',', '.') . ' ms'
-                        : '—',
-                    'openIncident' => $monitoring->latestIncident?->up_at === null && $monitoring->latestIncident !== null,
-                    'href' => route('monitorings.show', $monitoring),
-                ];
-            })->values(),
+            'signalRoomServices' => $servicePaginator->getCollection(),
+            'signalRoomPagination' => [
+                'current_page' => $servicePaginator->currentPage(),
+                'last_page' => $servicePaginator->lastPage(),
+                'total' => $servicePaginator->total(),
+                'from' => $servicePaginator->firstItem(),
+                'to' => $servicePaginator->lastItem(),
+            ],
             'summary' => $summary,
             'overallState' => $overallState,
             'attentionItems' => $attentionItems,
