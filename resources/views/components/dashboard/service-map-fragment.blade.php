@@ -38,19 +38,18 @@
             </div>
         @endforeach
     </div>
-</section>
-
-@if ($pagination && $pagination['last_page'] > 1)
-    <div id="dashboard-service-pagination" class="mt-5 flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-300 sm:flex-row sm:items-center sm:justify-between">
-        <p>{{ __('search.table.showing') }} {{ $pagination['from'] ?? 0 }} {{ __('search.table.to') }} {{ $pagination['to'] ?? 0 }} {{ __('search.table.of') }} {{ $pagination['total'] }} {{ __('search.table.entries') }}</p>
-        <nav class="flex items-center gap-2" aria-label="{{ __('search.table.pagination') }}">
+    @if ($pagination && $pagination['last_page'] > 1)
+        <div id="dashboard-service-pagination" class="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <p>{{ __('search.table.showing') }} {{ $pagination['from'] ?? 0 }} {{ __('search.table.to') }} {{ $pagination['to'] ?? 0 }} {{ __('search.table.of') }} {{ $pagination['total'] }} {{ __('search.table.entries') }}</p>
+            <nav class="flex items-center gap-1.5" aria-label="{{ __('search.table.pagination') }}">
             @if ($pagination['current_page'] > 1)
-                <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] - 1]) }}" @click.prevent="loadPage($el.href)" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">&laquo; {{ __('pagination.previous') }}</a>
+                <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] - 1]) }}" @click.prevent="loadPage($el.href)" class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-purple-500 dark:hover:bg-purple-950/30 dark:hover:text-purple-200">&laquo; {{ __('pagination.previous') }}</a>
             @endif
-            <span class="rounded-md bg-purple-100 px-3 py-2 font-semibold text-purple-700 dark:bg-purple-900 dark:text-purple-100">{{ $pagination['current_page'] }} / {{ $pagination['last_page'] }}</span>
+            <span class="inline-flex items-center rounded-lg bg-purple-700 px-3 py-2 font-bold text-white dark:bg-purple-600">{{ $pagination['current_page'] }} / {{ $pagination['last_page'] }}</span>
             @if ($pagination['current_page'] < $pagination['last_page'])
-                <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] + 1]) }}" @click.prevent="loadPage($el.href)" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">{{ __('pagination.next') }} &raquo;</a>
+                <a href="{{ request()->fullUrlWithQuery(['service_page' => $pagination['current_page'] + 1]) }}" @click.prevent="loadPage($el.href)" class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-purple-500 dark:hover:bg-purple-950/30 dark:hover:text-purple-200">{{ __('pagination.next') }} &raquo;</a>
             @endif
-        </nav>
-    </div>
-@endif
+            </nav>
+        </div>
+    @endif
+</section>
