@@ -90,11 +90,11 @@ class FormModalCrudFlowTest extends TestCase
             'is_public' => true,
         ]);
 
-        $monitoringResponse = $this->actingAs($user)
+        $testResponse = $this->actingAs($user)
             ->from(route('monitorings.index'))
             ->post(route('monitorings.store'), ['modal_form' => 'monitoring-create']);
-        $monitoringResponse->assertRedirect(route('monitorings.index', ['modal' => 'monitoring-create']));
-        $this->get($monitoringResponse->headers->get('Location'))
+        $testResponse->assertRedirect(route('monitorings.index', ['modal' => 'monitoring-create']));
+        $this->get($testResponse->headers->get('Location'))
             ->assertOk()
             ->assertSeeText(__('monitoring.form.sections.basic'));
 
