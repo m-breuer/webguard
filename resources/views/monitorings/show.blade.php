@@ -205,43 +205,6 @@
                 </x-container>
             @endif
 
-            @if ($monitoring->type === MonitoringType::HTTP || $monitoring->type === MonitoringType::KEYWORD)
-                <x-container>
-                    <x-heading type="h2">{{ __('monitoring.detail.ssl.heading') }}</x-heading>
-
-                    <template x-if="sslValid===true">
-                        <div>
-                            <x-paragraph
-                                class="font-bold text-green-600 dark:text-green-600">{{ __('monitoring.detail.ssl.valid') }}</x-paragraph>
-                            <x-paragraph class=""
-                                x-text="'{{ __('monitoring.detail.ssl.expires_in') }}: ' + sslExpiration"></x-paragraph>
-                            <template x-if="sslIssueDate">
-                                <x-paragraph class=""
-                                    x-text="'{{ __('monitoring.detail.ssl.issued_on') }}: ' + sslIssueDate"></x-paragraph>
-                            </template>
-                            <template x-if="sslIssuer">
-                                <x-paragraph class=""
-                                    x-text="'{{ __('monitoring.detail.ssl.issued_from') }}: ' + sslIssuer"></x-paragraph>
-                            </template>
-
-                        </div>
-                    </template>
-
-                    <template x-if="sslValid === false">
-                        <div>
-                            <x-paragraph
-                                class="font-bold text-red-600 dark:text-red-600">{{ __('monitoring.detail.ssl.expired') }}</x-paragraph>
-                        </div>
-                    </template>
-
-                    <template x-if="sslValid === null">
-                        <div x-transition.opacity>
-                            <x-loading-indicator>{{ __('monitoring.detail.no_data') }}</x-loading-indicator>
-                        </div>
-                    </template>
-                </x-container>
-            @endif
-
             @if ($monitoring->isHeartbeat())
                 <x-container>
                     <x-heading type="h2">{{ __('monitoring.detail.heartbeat.heading') }}</x-heading>
