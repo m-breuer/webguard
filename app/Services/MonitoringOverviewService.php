@@ -124,7 +124,7 @@ class MonitoringOverviewService
                 'href' => route('monitorings.show', $monitoring),
             ];
         })->values();
-        $servicePaginator = new LengthAwarePaginator(
+        $lengthAwarePaginator = new LengthAwarePaginator(
             $signalRoomServices->forPage(max(1, $servicePage), 10)->values(),
             $signalRoomServices->count(),
             10,
@@ -134,13 +134,13 @@ class MonitoringOverviewService
 
         return [
             'monitorings' => $monitorings,
-            'signalRoomServices' => $servicePaginator->getCollection(),
+            'signalRoomServices' => $lengthAwarePaginator->getCollection(),
             'signalRoomPagination' => [
-                'current_page' => $servicePaginator->currentPage(),
-                'last_page' => $servicePaginator->lastPage(),
-                'total' => $servicePaginator->total(),
-                'from' => $servicePaginator->firstItem(),
-                'to' => $servicePaginator->lastItem(),
+                'current_page' => $lengthAwarePaginator->currentPage(),
+                'last_page' => $lengthAwarePaginator->lastPage(),
+                'total' => $lengthAwarePaginator->total(),
+                'from' => $lengthAwarePaginator->firstItem(),
+                'to' => $lengthAwarePaginator->lastItem(),
             ],
             'summary' => $summary,
             'overallState' => $overallState,

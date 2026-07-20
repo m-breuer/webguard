@@ -29,10 +29,10 @@ class DashboardOverviewTest extends TestCase
             fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
         )->create();
 
-        $firstPage = $this->actingAs($user)->get(route('dashboard'));
+        $testResponse = $this->actingAs($user)->get(route('dashboard'));
         $secondPage = $this->actingAs($user)->get(route('dashboard', ['service_page' => 2]));
 
-        $firstPage->assertOk()
+        $testResponse->assertOk()
             ->assertSeeText('11 ' . __('dashboard.signal_room.active_services'))
             ->assertSeeText('Service 01')
             ->assertDontSeeText('Service 11')
