@@ -228,6 +228,9 @@ class StatusPageManagementTest extends TestCase
             ->assertSeeHtml('data-status-page-row')
             ->assertSeeHtml('aria-label="' . __('button.show') . '"')
             ->assertSeeHtml('aria-label="' . __('button.edit') . '"')
+            ->assertSeeHtml('aria-label="' . __('button.delete') . '"')
+            ->assertSeeHtml('action="' . route('status-pages.destroy', $statusPage) . '"')
+            ->assertSeeHtml('data-confirm-message="' . __('status_page.actions.delete_confirmation') . '"')
             ->assertSeeHtml('title="' . __('status_page.detail.open_public_page') . '"')
             ->assertSeeHtml('rel="noopener"');
 
