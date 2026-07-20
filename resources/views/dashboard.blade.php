@@ -49,9 +49,6 @@
                 <p class="mt-2 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ __('dashboard.description') }}</p>
             </div>
 
-            <x-dashboard.action-link href="{{ route('monitorings.index') }}" class="shrink-0">
-                {{ __('dashboard.open_monitorings') }}
-            </x-dashboard.action-link>
         </div>
     </x-slot>
 
