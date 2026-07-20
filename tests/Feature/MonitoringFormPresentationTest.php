@@ -47,7 +47,7 @@ class MonitoringFormPresentationTest extends TestCase
         $testResponse->assertSee(__('monitoring.form.advanced_request_settings'));
     }
 
-    public function test_assignment_indicators_and_ownership_actions_only_appear_on_edit_page(): void
+    public function test_detail_context_and_ownership_actions_are_present_on_their_respective_pages(): void
     {
         $user = User::factory()->create([
             'package_id' => Package::factory()->create(['monitoring_limit' => 10])->id,
@@ -67,12 +67,19 @@ class MonitoringFormPresentationTest extends TestCase
         $editResponse = $this->actingAs($user)->get(route('monitorings.edit', $monitoring));
 
         $testResponse->assertOk();
-        $testResponse->assertDontSeeText(__('team.ownership.private'));
-        $testResponse->assertDontSeeText('Production');
+        $testResponse->assertSeeText(__('monitoring.detail.context.ownership'));
+        $testResponse->assertSeeText(__('monitoring.detail.context.private'));
+        $testResponse->assertSeeText('Production');
         $testResponse->assertDontSeeHtml('action="' . route('monitorings.team-ownership.store', $monitoring) . '"');
 
         $editResponse->assertOk();
         $editResponse->assertSeeText(__('team.ownership.private'));
         $editResponse->assertSeeText('Production');
+        $editResponse->assertSeeHtml('data-monitoring-ownership-status');
+        $editResponse->assertSeeHtml('data-monitoring-ownership-badge');
+        $editResponse->assertSeeHtml('data-monitoring-form-actions');
+        $editResponse->assertSeeHtml('data-monitoring-notification-preferences');
+        $editResponse->assertSeeHtml('data-select-control="native"');
+        $editResponse->assertSeeHtml('data-select-control="multi"');
     }
 }

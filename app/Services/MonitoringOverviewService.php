@@ -24,11 +24,13 @@ class MonitoringOverviewService
     /**
      * @return array{
      *     monitorings: EloquentCollection<int, Monitoring>,
+     *     signalRoomServices: Collection<int, array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}>,
      *     summary: array{total:int,healthy:int,down:int,unknown:int,paused:int,maintenance:int},
      *     overallState: string,
      *     attentionItems: Collection<int, array{type:string,monitoring:Monitoring|null,count:int|null}>,
      *     recentIncidents: EloquentCollection<int, Incident>,
      *     maintenanceMonitorings: Collection<int, Monitoring>,
+     *     statusPages: EloquentCollection<int, StatusPage>,
      *     trend: list<array{date:string,label:string,uptime_percentage:float|null,has_data:bool}>,
      *     failedDeliveryCount: int,
      *     recommendedAction: string,
@@ -46,6 +48,7 @@ class MonitoringOverviewService
                     'monitoring_response_results.id',
                     'monitoring_response_results.monitoring_id',
                     'monitoring_response_results.status',
+                    'monitoring_response_results.response_time',
                     'monitoring_response_results.created_at',
                     'monitoring_response_results.updated_at',
                 ]),
@@ -55,6 +58,7 @@ class MonitoringOverviewService
                     'incidents.down_at',
                     'incidents.up_at',
                 ]),
+                'groups:id,name',
             ])
             ->orderBy('name')
             ->get([
@@ -102,6 +106,25 @@ class MonitoringOverviewService
 
         return [
             'monitorings' => $monitorings,
+            'signalRoomServices' => $monitorings->map(function (Monitoring $monitoring) use ($statuses): array {
+                $status = (string) $statuses->get($monitoring->getKey(), MonitoringStatus::UNKNOWN->value);
+                $latestResponse = $monitoring->latestResponseResult;
+
+                return [
+                    'id' => (string) $monitoring->getKey(),
+                    'name' => (string) $monitoring->name,
+                    'target' => (string) $monitoring->target,
+                    'status' => $status,
+                    'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $status),
+                    'group' => (string) ($monitoring->groups->first()?->name ?? __('dashboard.signal_room.ungrouped')),
+                    'lastCheck' => $latestResponse?->created_at?->locale(app()->getLocale())->diffForHumans() ?? __('dashboard.signal_room.no_check'),
+                    'responseTime' => $latestResponse?->response_time !== null
+                        ? number_format((float) $latestResponse->response_time, 0, ',', '.') . ' ms'
+                        : '—',
+                    'openIncident' => $monitoring->latestIncident?->up_at === null && $monitoring->latestIncident !== null,
+                    'href' => route('monitorings.show', $monitoring),
+                ];
+            })->values(),
             'summary' => $summary,
             'overallState' => $overallState,
             'attentionItems' => $attentionItems,
@@ -112,6 +135,11 @@ class MonitoringOverviewService
                 ->limit(5)
                 ->get(),
             'maintenanceMonitorings' => $maintenanceMonitorings,
+            'statusPages' => $user->statusPages()
+                ->withCount('components')
+                ->latest()
+                ->limit(4)
+                ->get(),
             'trend' => $this->trend($monitorings),
             'failedDeliveryCount' => $failedDeliveryCount,
             'recommendedAction' => $this->recommendedAction($summary, $failedDeliveryCount, $maintenanceMonitorings->isNotEmpty()),

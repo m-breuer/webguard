@@ -19,12 +19,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <x-heading type="h1">{{ __('incidents.analytics.title') }}</x-heading>
-            <p class="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-400">
-                {{ __('incidents.analytics.description') }}
-            </p>
-        </div>
+        <x-monitoring-operations-header />
     </x-slot>
 
     <x-main>
@@ -40,28 +35,6 @@
         </div>
 
         <div id="service-operations" class="space-y-6">
-            <nav aria-label="{{ __('incidents.analytics.overview.tabs.overview') }}" class="overflow-x-auto">
-                <div class="flex min-w-max items-center gap-1 border-b border-gray-200 dark:border-gray-700">
-                    <a href="{{ route('incidents.analytics') }}#overview"
-                        class="border-b-2 border-purple-500 px-3 py-3 text-sm font-semibold text-purple-700 dark:text-purple-300"
-                        aria-current="page">
-                        {{ __('incidents.analytics.overview.tabs.overview') }}
-                    </a>
-                    <a href="{{ route('monitoring-groups.index') }}"
-                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        {{ __('incidents.analytics.overview.tabs.groups') }}
-                    </a>
-                    <a href="{{ route('status-pages.index') }}"
-                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        {{ __('incidents.analytics.overview.tabs.status_pages') }}
-                    </a>
-                    <a href="#incident-analytics"
-                        class="border-b-2 border-transparent px-3 py-3 text-sm font-medium text-gray-500 transition hover:border-purple-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        {{ __('incidents.analytics.overview.tabs.analytics') }}
-                    </a>
-                </div>
-            </nav>
-
             <section id="overview" aria-labelledby="service-health-heading">
                 <x-container class="overflow-hidden">
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -157,12 +130,15 @@
                                     <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                                         @if (!Auth::user()->isDemo())
                                             <x-secondary-button :href="route('monitoring-groups.edit', $monitoringGroup)"
-                                                data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal">
-                                                {{ __('button.edit') }}
+                                                data-form-modal-trigger data-form-modal-name="monitoring-group-form-modal" :icon-only="true"
+                                                title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                                                <x-icon name="pencil" class="h-4 w-4" />
                                             </x-secondary-button>
                                         @endif
-                                        <a href="{{ route('monitorings.index', ['group_id' => $monitoringGroup->id]) }}" class="text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
-                                            {{ __('incidents.analytics.overview.view_group') }}
+                                        <a href="{{ route('monitorings.index', ['group_id' => $monitoringGroup->id]) }}"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-purple-700 transition hover:bg-purple-50 hover:text-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
+                                            title="{{ __('incidents.analytics.overview.view_group') }}" aria-label="{{ __('incidents.analytics.overview.view_group') }}">
+                                            <x-icon name="eye" class="h-4 w-4" />
                                         </a>
                                     </div>
                                 </div>
@@ -202,9 +178,19 @@
                                 <div class="flex flex-col gap-3 py-4">
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
-                                            <a href="{{ route('status-pages.show', $statusPage) }}" class="truncate font-semibold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">
-                                                {{ $statusPage->name }}
-                                            </a>
+                                            <div class="flex min-w-0 items-center gap-2">
+                                                <a href="{{ route('status-pages.show', $statusPage) }}" class="truncate font-semibold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">
+                                                    {{ $statusPage->name }}
+                                                </a>
+                                                @if ($statusPage->is_public)
+                                                    <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank" rel="noopener"
+                                                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-purple-600 transition hover:bg-purple-100 hover:text-purple-800 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
+                                                        title="{{ __('status_page.detail.open_public_page') }}"
+                                                        aria-label="{{ __('status_page.detail.open_public_page') }}">
+                                                        <x-icon name="external-link" class="h-4 w-4" />
+                                                    </a>
+                                                @endif
+                                            </div>
                                             <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                                 <x-badge :type="$statusPage->is_public ? 'success' : 'warning'">
                                                     {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
@@ -223,8 +209,10 @@
                                             <span class="mx-1">·</span>
                                             {{ $statusPageHealth['down'] }} {{ __('dashboard.summary.down') }}
                                         </span>
-                                        <a href="{{ route('status-pages.show', $statusPage) }}" class="font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
-                                            {{ __('incidents.analytics.overview.view_status_page') }}
+                                        <a href="{{ route('status-pages.show', $statusPage) }}"
+                                            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-purple-700 transition hover:bg-purple-50 hover:text-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
+                                            title="{{ __('incidents.analytics.overview.view_status_page') }}" aria-label="{{ __('incidents.analytics.overview.view_status_page') }}">
+                                            <x-icon name="eye" class="h-4 w-4" />
                                         </a>
                                     </div>
                                 </div>
@@ -236,14 +224,14 @@
 
             <section id="incident-analytics" aria-labelledby="incident-analytics-heading" class="scroll-mt-6 space-y-4">
                 <x-container>
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div class="space-y-5">
                         <div>
                             <x-heading type="h2" id="incident-analytics-heading">{{ __('incidents.analytics.sections.recent') }}</x-heading>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.definitions') }}</p>
                         </div>
-                        <form method="GET" action="{{ route('incidents.analytics') }}" class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-4xl lg:grid-cols-5">
-                            <div>
-                                <x-input-label for="days" :value="__('incidents.analytics.filters.period')" />
+                        <form method="GET" action="{{ route('incidents.analytics') }}" class="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
+                            <div class="min-w-0">
+                                <x-input-label for="days" class="leading-5" :value="__('incidents.analytics.filters.period')" />
                                 <x-select-input id="days" name="days" class="mt-1 w-full">
                                     @foreach ([30, 90, 365] as $daysOption)
                                         <option value="{{ $daysOption }}" @selected($filters['days'] === $daysOption)>
@@ -252,8 +240,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div>
-                                <x-input-label for="incident_type" :value="__('incidents.analytics.filters.type')" />
+                            <div class="min-w-0">
+                                <x-input-label for="incident_type" class="leading-5" :value="__('incidents.analytics.filters.type')" />
                                 <x-select-input id="incident_type" name="incident_type" class="mt-1 w-full">
                                     <option value="">{{ __('incidents.analytics.filters.all') }}</option>
                                     @foreach ($incidentTypes as $type)
@@ -263,8 +251,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div>
-                                <x-input-label for="severity" :value="__('incidents.analytics.filters.severity')" />
+                            <div class="min-w-0">
+                                <x-input-label for="severity" class="leading-5" :value="__('incidents.analytics.filters.severity')" />
                                 <x-select-input id="severity" name="severity" class="mt-1 w-full">
                                     <option value="">{{ __('incidents.analytics.filters.all') }}</option>
                                     @foreach ($severities as $severity)
@@ -274,8 +262,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div>
-                                <x-input-label for="customer_impact" :value="__('incidents.analytics.filters.customer_impact')" />
+                            <div class="min-w-0">
+                                <x-input-label for="customer_impact" class="leading-5" :value="__('incidents.analytics.filters.customer_impact')" />
                                 <x-select-input id="customer_impact" name="customer_impact" class="mt-1 w-full">
                                     <option value="">{{ __('incidents.analytics.filters.all') }}</option>
                                     @foreach ($customerImpacts as $impact)
@@ -285,8 +273,8 @@
                                     @endforeach
                                 </x-select-input>
                             </div>
-                            <div class="flex items-end">
-                                <x-primary-button class="w-full justify-center">{{ __('incidents.analytics.filters.apply') }}</x-primary-button>
+                            <div class="flex items-end sm:col-span-2 sm:justify-end">
+                                <x-primary-button class="w-full justify-center whitespace-nowrap sm:w-auto">{{ __('incidents.analytics.filters.apply') }}</x-primary-button>
                             </div>
                             <div class="sm:col-span-2 lg:col-span-5">
                                 <x-input-label for="affected_service" :value="__('incidents.analytics.filters.affected_service')" />
@@ -389,25 +377,39 @@
                     @if ($incidents->isEmpty())
                         <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.empty') }}</p>
                     @else
-                        <div class="mt-4 overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <div class="mt-4 overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
+                            <table data-incident-overview-table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                                 <thead>
-                                    <tr class="text-left text-gray-500 dark:text-gray-400">
-                                        <th class="px-3 py-2">{{ __('status_page.incident_metadata.type') }}</th>
-                                        <th class="px-3 py-2">{{ __('status_page.incident_metadata.severity') }}</th>
-                                        <th class="px-3 py-2">{{ __('status_page.incident_metadata.affected_service') }}</th>
-                                        <th class="px-3 py-2">{{ __('monitoring.detail.incidents.incident.down_at') }}</th>
-                                        <th class="px-3 py-2">{{ __('monitoring.detail.incidents.incident.up_at') }}</th>
+                                    <tr class="bg-gray-50/80 text-left text-xs font-bold uppercase tracking-[0.12em] text-gray-500 dark:bg-gray-900/30 dark:text-gray-400">
+                                        <th class="px-4 py-3">{{ __('incidents.analytics.table.status') }}</th>
+                                        <th class="px-4 py-3">{{ __('incidents.analytics.table.monitoring') }}</th>
+                                        <th class="px-4 py-3">{{ __('incidents.analytics.table.root_cause') }}</th>
+                                        <th class="px-4 py-3">{{ __('incidents.analytics.table.started') }}</th>
+                                        <th class="px-4 py-3">{{ __('incidents.analytics.table.resolved') }}</th>
+                                        <th class="px-4 py-3">{{ __('incidents.analytics.table.duration') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach ($incidents as $incident)
-                                        <tr>
-                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->incident_type ? __('incidents.types.' . $incident->incident_type->value) : __('incidents.analytics.unclassified') }}</td>
-                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->severity ? __('incidents.severities.' . $incident->severity->value) : __('incidents.analytics.unclassified') }}</td>
-                                            <td class="px-3 py-2">{{ $incident->affected_service ?: $incident->monitoring->name }}</td>
-                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->down_at->toDayDateTimeString() }}</td>
-                                            <td class="whitespace-nowrap px-3 py-2">{{ $incident->up_at?->toDayDateTimeString() ?? __('incidents.analytics.metrics.not_available') }}</td>
+                                        @php($incidentDuration = $incident->up_at ? $incident->down_at->diffForHumans($incident->up_at, true) : __('incidents.analytics.table.ongoing'))
+                                        <tr data-incident-row class="group transition hover:bg-purple-50/50 dark:hover:bg-purple-950/20">
+                                            <td class="whitespace-nowrap px-4 py-3">
+                                                <span class="inline-flex items-center gap-2 font-semibold {{ $incident->up_at ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300' }}">
+                                                    <span class="h-2.5 w-2.5 rounded-full {{ $incident->up_at ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
+                                                    {{ $incident->up_at ? __('incidents.analytics.table.resolved_state') : __('incidents.analytics.table.open_state') }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <a href="{{ route('monitorings.show', $incident->monitoring) }}" class="font-bold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300">{{ $incident->monitoring->name }}</a>
+                                                <span class="mt-1 block max-w-[14rem] truncate text-xs text-gray-500 dark:text-gray-400">{{ $incident->monitoring->target }}</span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="font-medium text-gray-800 dark:text-gray-200">{{ $incident->problem_description ?: ($incident->affected_service ?: __('incidents.analytics.unclassified')) }}</span>
+                                                <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ $incident->incident_type ? __('incidents.types.' . $incident->incident_type->value) : __('incidents.analytics.unclassified') }} · {{ $incident->severity ? __('incidents.severities.' . $incident->severity->value) : __('incidents.analytics.unclassified') }}</span>
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">{{ $incident->down_at->toDayDateTimeString() }}</td>
+                                            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">{{ $incident->up_at?->toDayDateTimeString() ?? __('incidents.analytics.metrics.not_available') }}</td>
+                                            <td class="whitespace-nowrap px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ $incidentDuration }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

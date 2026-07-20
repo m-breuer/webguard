@@ -2,6 +2,8 @@
     'id' => 'language-switch',
     'class' => '',
     'variant' => 'default',
+    'align' => 'right',
+    'placement' => 'bottom',
 ])
 
 @php
@@ -33,7 +35,7 @@
 @endphp
 
 <div class="{{ $class }}">
-    <x-dropdown align="right" width="w-40" :content-classes="$menuClasses">
+    <x-dropdown :align="$align" :placement="$placement" width="w-40" :content-classes="$menuClasses">
         <x-slot name="trigger">
             <button id="{{ $id }}" type="button" aria-label="{{ __('profile.fields.language') }}"
                 title="{{ $languages[$currentLocale]['label'] }}" class="{{ $triggerClasses }}">

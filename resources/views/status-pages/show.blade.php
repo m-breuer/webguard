@@ -1,55 +1,65 @@
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <x-heading type="h1">{{ $statusPage->name }}</x-heading>
-            <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <div data-status-page-detail-header>
+            <a href="{{ route('status-pages.index') }}" class="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200">
+                <span aria-hidden="true">←</span>
+                {{ __('status_page.detail.back') }}
+            </a>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <x-heading type="h1">{{ $statusPage->name }}</x-heading>
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 <x-badge :type="$statusPage->is_public ? 'success' : 'warning'">
                     {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
                 </x-badge>
+                        <x-badge type="info">
+                            {{ $statusPage->is_public ? __('status_page.detail.published') : __('status_page.detail.draft') }}
+                        </x-badge>
                 @if ($statusPage->is_public)
                     <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank"
                         class="break-all hover:text-gray-700 dark:hover:text-white">
                         {{ route('public-status-pages.show', $statusPage) }}
                     </a>
                 @endif
-            </div>
-        </div>
-
-        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="ml-auto flex flex-wrap gap-2">
-            <x-secondary-button :href="route('incidents.analytics')">
-                {{ __('incidents.analytics.link') }}
-            </x-secondary-button>
-            @if (!Auth::user()->isDemo())
-                <x-secondary-button :href="route('status-pages.edit', $statusPage)"
-                    data-form-modal-trigger data-form-modal-name="status-page-form-modal">
-                    {{ __('button.edit') }}
-                </x-secondary-button>
-                <form method="POST" action="{{ route('status-pages.destroy', $statusPage) }}"
-                    data-confirm-message="{{ __('status_page.actions.delete_confirmation') }}">
-                    @csrf
-                    @method('DELETE')
-                    <x-danger-button>
-                        {{ __('button.delete') }}
-                    </x-danger-button>
-                </form>
-            @endif
-            <x-secondary-button :href="route('status-pages.index')">
-                {{ __('button.back') }}
-            </x-secondary-button>
-
-            <x-form-modal name="status-page-form-modal" title="{{ __('status_page.title') }}"
-                description="{{ __('status_page.form.components') }}" max-width="5xl">
-                <div class="p-6" x-ref="content">
-                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
-                    <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
-                    <div x-html="content"></div>
+                    </div>
                 </div>
-            </x-form-modal>
+
+                <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="flex flex-wrap gap-2">
+                    <x-secondary-button :href="route('incidents.analytics')" :icon-only="true"
+                        title="{{ __('incidents.analytics.link') }}" aria-label="{{ __('incidents.analytics.link') }}">
+                        <x-icon name="chart" class="h-4 w-4" />
+                    </x-secondary-button>
+                    @if (!Auth::user()->isDemo())
+                        <x-secondary-button :href="route('status-pages.edit', $statusPage)"
+                            data-form-modal-trigger data-form-modal-name="status-page-form-modal" :icon-only="true"
+                            title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                            <x-icon name="pencil" class="h-4 w-4" />
+                        </x-secondary-button>
+                        <form method="POST" action="{{ route('status-pages.destroy', $statusPage) }}"
+                            data-confirm-message="{{ __('status_page.actions.delete_confirmation') }}">
+                            @csrf
+                            @method('DELETE')
+                            <x-danger-button :icon-only="true" title="{{ __('button.delete') }}" aria-label="{{ __('button.delete') }}">
+                                <x-icon name="trash" class="h-4 w-4" />
+                            </x-danger-button>
+                        </form>
+                    @endif
+                    <x-form-modal name="status-page-form-modal" title="{{ __('status_page.title') }}"
+                        description="{{ __('status_page.form.components') }}" max-width="5xl">
+                        <div class="p-6" x-ref="content">
+                            <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                            <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
+                            <div x-html="content"></div>
+                        </div>
+                    </x-form-modal>
+                </div>
+            </div>
         </div>
     </x-slot>
 
     <x-main>
-        <div class="space-y-4">
+        <div data-status-page-detail-layout class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div class="min-w-0 space-y-4">
             @if ($statusPage->description)
                 <x-container>
                     <x-paragraph>{{ $statusPage->description }}</x-paragraph>
@@ -305,9 +315,12 @@
                                                 <x-textarea name="description" rows="2">{{ $followUp->description }}</x-textarea>
                                                 <div class="flex flex-wrap gap-2">
                                                     <x-primary-button>{{ __('status_page.incident_follow_ups.save') }}</x-primary-button>
-                                                    <button type="submit" form="delete-follow-up-{{ $followUp->id }}" class="text-sm text-red-600 hover:underline">
-                                                        {{ __('status_page.incident_follow_ups.delete') }}
-                                                    </button>
+                                                            <button type="submit" form="delete-follow-up-{{ $followUp->id }}"
+                                                                class="inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
+                                                                title="{{ __('status_page.incident_follow_ups.delete') }}"
+                                                                aria-label="{{ __('status_page.incident_follow_ups.delete') }}">
+                                                                <x-icon name="trash" class="h-4 w-4" />
+                                                            </button>
                                                 </div>
                                             </form>
                                             <form id="delete-follow-up-{{ $followUp->id }}" method="POST"
@@ -364,8 +377,11 @@
                                                         <x-textarea name="description" rows="2">{{ $timelineEvent['description'] }}</x-textarea>
                                                         <div class="flex flex-wrap gap-2">
                                                             <x-primary-button>{{ __('status_page.incident_timeline.save') }}</x-primary-button>
-                                                            <button type="submit" form="delete-timeline-{{ $timelineEvent['id'] }}" class="text-sm text-red-600 hover:underline">
-                                                                {{ __('status_page.incident_timeline.delete') }}
+                                                            <button type="submit" form="delete-timeline-{{ $timelineEvent['id'] }}"
+                                                                class="inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
+                                                                title="{{ __('status_page.incident_timeline.delete') }}"
+                                                                aria-label="{{ __('status_page.incident_timeline.delete') }}">
+                                                                <x-icon name="trash" class="h-4 w-4" />
                                                             </button>
                                                         </div>
                                                     </form>
@@ -462,6 +478,49 @@
                     </div>
                 @endif
             </x-container>
+            </div>
+
+            <aside data-status-page-context-rail class="space-y-4 lg:sticky lg:top-6 lg:self-start">
+                <x-container>
+                    <x-heading type="h2">{{ __('status_page.detail.summary') }}</x-heading>
+                    <dl class="mt-4 divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <div class="flex items-center justify-between gap-3 py-3">
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('status_page.detail.owner') }}</dt>
+                            <dd class="font-semibold text-gray-900 dark:text-gray-100">{{ $statusPage->user->name }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 py-3">
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('status_page.detail.components') }}</dt>
+                            <dd class="font-semibold text-gray-900 dark:text-gray-100">{{ $statusPage->components->count() }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 py-3">
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('status_page.detail.incidents') }}</dt>
+                            <dd class="font-semibold text-gray-900 dark:text-gray-100">{{ $incidents->count() }}</dd>
+                        </div>
+                    </dl>
+                    @if ($statusPage->is_public)
+                        <a href="{{ route('public-status-pages.show', $statusPage) }}" target="_blank" rel="noopener"
+                            class="mt-4 inline-flex h-10 w-10 items-center justify-center rounded-md border border-purple-300 text-purple-700 hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-950/30"
+                            title="{{ __('status_page.detail.open_public_page') }}" aria-label="{{ __('status_page.detail.open_public_page') }}">
+                            <x-icon name="external-link" class="h-4 w-4" />
+                        </a>
+                    @endif
+                </x-container>
+
+                <x-container>
+                    <x-heading type="h2">{{ __('status_page.detail.incident_context') }}</x-heading>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ __('status_page.incident_workbench.description') }}</p>
+                    <div class="mt-4 space-y-3 text-sm">
+                        <div class="rounded-lg bg-purple-50 p-3 text-purple-900 dark:bg-purple-950/30 dark:text-purple-100">
+                            <p class="font-semibold">{{ __('status_page.detail.root_cause') }}</p>
+                            <p class="mt-1 text-purple-800/80 dark:text-purple-200/80">{{ __('status_page.incident_review.problem') }}</p>
+                        </div>
+                        <div class="rounded-lg bg-gray-50 p-3 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300">
+                            <p class="font-semibold">{{ __('status_page.detail.request_response') }}</p>
+                            <p class="mt-1 text-gray-500 dark:text-gray-400">{{ __('status_page.detail.regions_activity') }}</p>
+                        </div>
+                    </div>
+                </x-container>
+            </aside>
         </div>
     </x-main>
 </x-app-layout>

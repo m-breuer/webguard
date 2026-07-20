@@ -48,6 +48,17 @@ return [
             'recurring_empty' => 'Keine wiederkehrenden Dienste im Zeitraum.',
             'definitions_toggle' => 'Definitionen anzeigen',
         ],
+        'table' => [
+            'status' => 'Status',
+            'monitoring' => 'Überwachung',
+            'root_cause' => 'Ursache',
+            'started' => 'Beginn',
+            'resolved' => 'Behoben',
+            'duration' => 'Dauer',
+            'resolved_state' => 'Behoben',
+            'open_state' => 'Offen',
+            'ongoing' => 'Läuft',
+        ],
         'filters' => [
             'period' => 'Zeitraum',
             'type' => 'Typ',

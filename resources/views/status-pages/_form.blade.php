@@ -120,8 +120,10 @@
                         </div>
 
                         <button type="button" @click="removeComponent(index)"
-                            class="mt-3 text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400">
-                            {{ __('status_page.form.remove_component') }}
+                            class="mt-3 inline-flex h-10 w-10 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
+                            title="{{ __('status_page.form.remove_component') }}"
+                            aria-label="{{ __('status_page.form.remove_component') }}">
+                            <x-icon name="trash" class="h-4 w-4" />
                         </button>
                     </div>
                 </template>

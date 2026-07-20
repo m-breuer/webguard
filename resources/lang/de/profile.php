@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 return [
     'title' => 'Profil',
+    'navigation' => [
+        'heading' => 'Kontoeinstellungen',
+        'account' => 'Konto und Darstellung',
+        'security' => 'Sicherheit',
+        'api' => 'API und Dokumentation',
+        'danger_zone' => 'Konto löschen',
+    ],
     'delete_account' => [
         'heading' => 'Konto löschen',
         'description' => 'Sobald Ihr Konto gelöscht wurde, werden alle zugehörigen Ressourcen und Daten dauerhaft gelöscht.',

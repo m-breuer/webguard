@@ -103,6 +103,11 @@ class ProfileNotificationSettingsTest extends TestCase
 
         $testResponse = $this->actingAs($user)->get(route('profile.edit', ['full' => 1]));
         $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-profile-settings')
+            ->assertSeeHtml('id="profile-information"')
+            ->assertSeeHtml('id="profile-password"')
+            ->assertSeeHtml('id="profile-api"')
+            ->assertSeeHtml('id="profile-delete"');
         $testResponse->assertSeeText(__('profile.sections.account'));
         $testResponse->assertSeeText(__('profile.sections.preferences'));
         $testResponse->assertSeeText(__('profile.notification_settings.heading'));
@@ -410,7 +415,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse = $this->actingAs($user)->get(route('profile.edit', ['modal' => 'profile-information']));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeText(__('profile.notification_settings.test.action'));
+        $testResponse->assertSeeHtml('aria-label="' . __('profile.notification_settings.test.action') . '"');
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'slack']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'telegram']));
         $testResponse->assertSeeHtml(route('profile.notification-channels.test', ['channel' => 'discord']));
