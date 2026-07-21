@@ -9,7 +9,7 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-it('keeps recent check status badges beside their result content at tablet desktop widths', function (): void {
+it('keeps monitoring detail content readable before the desktop side rail breakpoint', function (): void {
     if (! file_exists(public_path('build/manifest.json'))) {
         $this->markTestSkipped('Browser test requires built Vite assets in public/build.');
     }
@@ -36,16 +36,28 @@ it('keeps recent check status badges beside their result content at tablet deskt
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/monitorings/' . $monitoring->id)
-        ->resize(1280, 800)
+        ->resize(1068, 1368)
         ->waitForText(__('monitoring.detail.checks.sources.live'));
 
     $webpage->assertScript(<<<'JS'
 function () {
+    const layout = document.querySelector('[data-monitoring-detail-layout]');
+    const primary = layout?.children[0];
+    const rail = layout?.children[1];
+    const cards = document.querySelector('[data-monitoring-primary-cards]');
     const row = document.querySelector('[data-recent-check-row]');
     const result = row?.querySelector('[data-recent-check-result]');
     const status = row?.querySelector('[data-recent-check-status]');
 
-    if (!row || !result || !status) {
+    if (!layout || !primary || !rail || !cards || !row || !result || !status) {
+        return false;
+    }
+
+    const primaryRect = primary.getBoundingClientRect();
+    const railRect = rail.getBoundingClientRect();
+    const cardRects = [...cards.children].slice(0, 2).map((card) => card.getBoundingClientRect());
+
+    if (railRect.top < primaryRect.bottom - 1 || cardRects.length < 2 || cardRects[0].width < 300) {
         return false;
     }
 

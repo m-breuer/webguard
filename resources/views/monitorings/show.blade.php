@@ -165,9 +165,9 @@
             </x-container>
         </section>
 
-        <div data-monitoring-detail-layout class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div data-monitoring-detail-layout class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div class="min-w-0 space-y-6">
-        <div class="mb-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div data-monitoring-primary-cards class="mb-4 grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 2xl:grid-cols-3">
             @if ($regionalConsensus)
                 <x-container>
                     <div class="flex flex-wrap items-center justify-between gap-2">
@@ -360,7 +360,7 @@
             </x-container>
 
             <template x-if="responseStats[responseTimeRange + 'd']">
-                <div class="mb-4 grid grid-cols-1 gap-4 text-center sm:grid-cols-2 xl:grid-cols-3">
+                <div class="mb-4 grid grid-cols-1 gap-4 text-center md:grid-cols-2 2xl:grid-cols-3">
                     <x-container>
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.min') }}</x-paragraph>
