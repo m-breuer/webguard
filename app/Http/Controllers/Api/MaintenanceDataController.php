@@ -121,14 +121,14 @@ class MaintenanceDataController extends Controller
                     ])
                     ->latest('starts_at')
                     ->get()
-                    ->map(static fn (MaintenanceWindow $window): array => [
-                        'id' => (string) $window->id,
-                        'target' => $window->monitoring?->name ?? $window->monitoringGroup?->name,
-                        'recurrence' => $window->recurrence->value,
-                        'duration_minutes' => $window->duration_minutes,
-                        'timezone' => $window->timezone,
-                        'starts_at' => $window->starts_at->setTimezone($window->timezone)->toDayDateTimeString(),
-                        'can_manage' => $window->isManageableBy($user),
+                    ->map(static fn (MaintenanceWindow $maintenanceWindow): array => [
+                        'id' => (string) $maintenanceWindow->id,
+                        'target' => $maintenanceWindow->monitoring?->name ?? $maintenanceWindow->monitoringGroup?->name,
+                        'recurrence' => $maintenanceWindow->recurrence->value,
+                        'duration_minutes' => $maintenanceWindow->duration_minutes,
+                        'timezone' => $maintenanceWindow->timezone,
+                        'starts_at' => $maintenanceWindow->starts_at->setTimezone($maintenanceWindow->timezone)->toDayDateTimeString(),
+                        'can_manage' => $maintenanceWindow->isManageableBy($user),
                     ])
                     ->values()
                     ->all(),
