@@ -486,6 +486,7 @@
                         <div class="divide-y divide-gray-100 dark:divide-gray-700/80">
                             <template x-for="(check, index) in recentChecks" :key="check.id">
                                 <div
+                                    data-recent-check-row
                                     class="grid gap-4 px-4 py-4 transition duration-150 hover:bg-gray-50/80 dark:hover:bg-gray-900/30 sm:px-5 xl:grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] xl:items-center">
                                     <div class="flex min-w-0 gap-3">
                                         <div class="relative flex w-5 shrink-0 justify-center">
@@ -509,9 +510,10 @@
                                     </div>
 
                                     <div
-                                        class="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(6.5rem,0.8fr)_minmax(10rem,1.2fr)_minmax(5rem,0.7fr)_minmax(5rem,0.7fr)]"
-                                        x-bind:class="hasServerHealthMetrics(check.serverHealthMetrics) ? 'xl:grid-cols-[minmax(6.5rem,0.8fr)_minmax(10rem,1.2fr)_minmax(9rem,1.2fr)_minmax(5rem,0.7fr)_minmax(5rem,0.7fr)]' : ''">
-                                        <div>
+                                        data-recent-check-result
+                                        class="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_minmax(0,0.7fr)_minmax(0,0.7fr)]"
+                                        x-bind:class="hasServerHealthMetrics(check.serverHealthMetrics) ? '2xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,0.7fr)_minmax(0,0.7fr)]' : ''">
+                                        <div class="min-w-0">
                                             <span
                                                 class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                                                 {{ __('monitoring.detail.checks.labels.status_code') }}
@@ -520,13 +522,13 @@
                                                 x-text="check.httpStatusCode ?? '{{ __('monitoring.detail.checks.status_code_unavailable') }}'"></span>
                                         </div>
 
-                                        <div>
-                                            <div class="flex items-baseline justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="flex min-w-0 items-baseline justify-between gap-3">
                                                 <span
-                                                    class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                                                    class="block min-w-0 truncate text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                                                     {{ __('monitoring.detail.checks.labels.response_time') }}
                                                 </span>
-                                                <span class="text-sm font-semibold text-sky-700 dark:text-sky-300"
+                                                <span class="shrink-0 text-sm font-semibold text-sky-700 dark:text-sky-300"
                                                     x-text="formatResponseTime(check.responseTime)"></span>
                                             </div>
                                             <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
@@ -535,7 +537,7 @@
                                             </div>
                                         </div>
 
-                                        <div x-show="hasServerHealthMetrics(check.serverHealthMetrics)">
+                                        <div class="min-w-0" x-show="hasServerHealthMetrics(check.serverHealthMetrics)">
                                             <span
                                                 class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                                                 {{ __('monitoring.detail.checks.labels.server_health') }}
@@ -544,7 +546,7 @@
                                                 x-text="formatServerHealthMetrics(check.serverHealthMetrics)"></span>
                                         </div>
 
-                                        <div>
+                                        <div class="min-w-0">
                                             <span
                                                 class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                                                 {{ __('monitoring.detail.checks.labels.source') }}
@@ -553,19 +555,19 @@
                                                 x-text="resolveCheckSourceLabel(check.source)"></span>
                                         </div>
 
-                                        <div>
+                                        <div class="min-w-0">
                                             <span
                                                 class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                                                 {{ __('monitoring.detail.checks.labels.raw_status') }}
                                             </span>
-                                            <span class="mt-1 block text-sm font-semibold uppercase text-gray-900 dark:text-gray-100"
+                                            <span class="mt-1 block truncate text-sm font-semibold uppercase text-gray-900 dark:text-gray-100"
                                                 x-text="check.status"></span>
                                         </div>
                                     </div>
 
-                                    <div class="flex justify-start lg:justify-end">
+                                    <div data-recent-check-status class="flex min-w-0 justify-start lg:justify-end">
                                         <span
-                                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase"
+                                            class="inline-flex max-w-full items-center truncate whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold uppercase"
                                             x-bind:class="resolveCheckStatusClass(check.statusIdentifier)"
                                             x-text="resolveCheckStatusLabel(check.statusIdentifier)"></span>
                                     </div>
