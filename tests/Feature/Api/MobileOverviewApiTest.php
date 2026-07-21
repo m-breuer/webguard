@@ -43,9 +43,9 @@ class MobileOverviewApiTest extends TestCase
         ]);
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/mobile/overview');
+        $testResponse = $this->getJson('/api/v1/mobile/overview');
 
-        $response
+        $testResponse
             ->assertOk()
             ->assertJsonPath('data.overall_state', 'degraded')
             ->assertJsonPath('data.summary.total', 3)
@@ -68,9 +68,9 @@ class MobileOverviewApiTest extends TestCase
         Monitoring::factory()->create(['name' => 'Hidden API']);
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/mobile/overview');
+        $testResponse = $this->getJson('/api/v1/mobile/overview');
 
-        $response->assertOk()
+        $testResponse->assertOk()
             ->assertJsonPath('data.summary.total', 1)
             ->assertJsonPath('data.services.0.name', 'Visible API')
             ->assertJsonMissing(['name' => 'Hidden API']);
