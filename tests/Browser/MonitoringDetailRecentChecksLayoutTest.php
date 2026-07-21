@@ -52,7 +52,10 @@ function () {
     const resultRect = result.getBoundingClientRect();
     const statusRect = status.getBoundingClientRect();
 
-    return resultRect.right <= statusRect.left + 1
+    const statusFitsAfterResult = resultRect.bottom <= statusRect.top + 1;
+    const statusFitsBesideResult = resultRect.right <= statusRect.left + 1;
+
+    return (statusFitsAfterResult || statusFitsBesideResult)
         && row.getBoundingClientRect().right >= statusRect.right;
 }
 JS, true)

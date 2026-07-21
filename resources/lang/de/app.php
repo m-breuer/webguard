@@ -31,6 +31,8 @@ return [
     ],
     'navigation' => [
         'home' => 'Hauptnavigation',
+        'collapse_sidebar' => 'Seitenleiste einklappen',
+        'expand_sidebar' => 'Seitenleiste ausklappen',
         'dashboard' => 'Dashboard',
         'signal_room' => 'Signal Room',
         'monitoring' => 'Überwachung',

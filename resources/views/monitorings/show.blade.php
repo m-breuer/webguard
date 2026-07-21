@@ -134,7 +134,7 @@
         checkResponseTimeUnavailable: '{{ __('monitoring.detail.checks.response_time_unavailable') }}',
     })">
 
-        <section data-monitoring-summary class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3" aria-label="{{ __('monitoring.detail.summary_heading') }}">
+        <section data-monitoring-summary class="mb-6 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="{{ __('monitoring.detail.summary_heading') }}">
             <x-container class="!rounded-2xl !border-gray-200 !shadow-sm dark:!border-gray-700">
                 <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.summary.current_status') }}</p>
                 <div class="mt-3 flex items-center gap-3">
@@ -156,7 +156,7 @@
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.summary.last_24_hours') }}</p>
                     <span class="text-sm font-black text-purple-700 dark:text-purple-300" x-text="uptimeStats['1']?.uptime?.percentage !== null && uptimeStats['1']?.uptime?.percentage !== undefined ? uptimeStats['1'].uptime.percentage.toFixed(2) + '%' : '—'"></span>
                 </div>
-                <div class="mt-4 flex h-8 items-end gap-1" aria-hidden="true">
+                <div class="mt-4 grid grid-cols-12 gap-0.5 sm:flex sm:flex-nowrap" aria-hidden="true">
                     <template x-for="(dataPoint, index) in heatmap" :key="'summary-' + index">
                         <span class="min-w-0 flex-1 rounded-full" :class="dataPoint.uptime > dataPoint.downtime ? 'bg-emerald-400' : (dataPoint.uptime < dataPoint.downtime ? 'bg-red-400' : 'bg-gray-300 dark:bg-gray-600')" :style="`height: ${dataPoint.uptime === dataPoint.downtime ? 35 : 100}%`"></span>
                     </template>
@@ -167,7 +167,7 @@
 
         <div data-monitoring-detail-layout class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div class="min-w-0 space-y-6">
-        <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="mb-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
             @if ($regionalConsensus)
                 <x-container>
                     <div class="flex flex-wrap items-center justify-between gap-2">
@@ -360,7 +360,7 @@
             </x-container>
 
             <template x-if="responseStats[responseTimeRange + 'd']">
-                <div class="mb-4 grid grid-cols-1 gap-4 text-center md:grid-cols-3">
+                <div class="mb-4 grid grid-cols-1 gap-4 text-center sm:grid-cols-2 xl:grid-cols-3">
                     <x-container>
                         <x-paragraph
                             class="text-gray-500">{{ __('monitoring.detail.response_time.min') }}</x-paragraph>
@@ -390,7 +390,7 @@
         @endif
 
         <div id="incidents" class="mt-4">
-            <div class="mb-2 flex items-center justify-between gap-4">
+            <div class="mb-2 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <x-heading type="h2"
                     class="text-lg font-semibold text-gray-800">{{ __('monitoring.detail.incidents.heading') }}
                 </x-heading>
@@ -477,7 +477,7 @@
                     <div
                         class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div
-                            class="hidden grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:border-gray-700 dark:bg-gray-900/35 dark:text-gray-400 lg:grid">
+                            class="hidden grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] gap-4 border-b border-gray-100 bg-gray-50/80 px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:border-gray-700 dark:bg-gray-900/35 dark:text-gray-400 xl:grid">
                             <span>{{ __('monitoring.detail.checks.labels.checked_at') }}</span>
                             <span>{{ __('monitoring.detail.checks.labels.result') }}</span>
                             <span class="text-right">{{ __('monitoring.detail.checks.labels.status') }}</span>
@@ -487,7 +487,7 @@
                             <template x-for="(check, index) in recentChecks" :key="check.id">
                                 <div
                                     data-recent-check-row
-                                    class="grid gap-4 px-4 py-4 transition duration-150 hover:bg-gray-50/80 dark:hover:bg-gray-900/30 sm:px-5 lg:grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] lg:items-center">
+                                    class="grid gap-4 px-4 py-4 transition duration-150 hover:bg-gray-50/80 dark:hover:bg-gray-900/30 sm:px-5 xl:grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] xl:items-center">
                                     <div class="flex min-w-0 gap-3">
                                         <div class="relative flex w-5 shrink-0 justify-center">
                                             <span

@@ -8,133 +8,21 @@ use App\Http\Requests\MaintenanceRequest;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
 use App\Models\User;
-use App\Support\Admin\AsyncTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\View\View;
 
 class MaintenanceController extends Controller
 {
-    public function index(Request $request): View|JsonResponse
+    public function index(): View
     {
-        /** @var User $user */
-        $user = Auth::user();
-        $validated = $request->validate(AsyncTable::requestRules([
-            'search' => ['nullable', 'string', 'max:100'],
-            'maintenance_status' => ['nullable', 'string', 'in:active,upcoming,expired,none'],
-            'monitoring_group_id' => ['nullable', 'string', 'exists:monitoring_groups,id'],
-        ], ['name', 'maintenance_status', 'maintenance_from', 'maintenance_until']));
-        $asyncTableOptions = AsyncTable::options($validated, 'name', 'asc', 25);
-        $manageableMonitorings = ! $user->isDemo()
-            ? Monitoring::query()
-                ->manageableBy($user)
-                ->orderBy('name')
-                ->get(['id', 'name'])
-            : collect();
-        $canManageMaintenance = $manageableMonitorings->isNotEmpty();
-        $monitorings = Monitoring::query()
-            ->visibleTo($user)
-            ->with('groups:id,name')
-            ->orderBy('name')
-            ->get();
-        $recurringWindows = MaintenanceWindow::query()
-            ->visibleTo($user)
-            ->with([
-                'monitoring:id,name,user_id,team_id',
-                'monitoringGroup:id,name,user_id',
-            ])
-            ->latest('starts_at')
-            ->get();
-        $activeMaintenanceCount = $monitorings
-            ->filter(static fn (Monitoring $monitoring): bool => $monitoring->isUnderMaintenance())
-            ->count();
-        $upcomingMaintenanceCount = $monitorings
-            ->filter(static fn (Monitoring $monitoring): bool => ! $monitoring->isUnderMaintenance()
-                && $monitoring->hasUpcomingMaintenance())
-            ->count();
-        $expiredMaintenanceCount = $monitorings
-            ->filter(static fn (Monitoring $monitoring): bool => ! $monitoring->isUnderMaintenance()
-                && $monitoring->maintenance_from !== null
-                && ! $monitoring->maintenance_from->isFuture())
-            ->count();
-        $tableQuery = Monitoring::query()
-            ->visibleTo($user)
-            ->with('groups:id,name')
-            ->when($validated['search'] ?? null, function (Builder $builder, string $search): void {
-                $builder->where(function (Builder $builder) use ($search): void {
-                    $builder->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('target', 'like', '%' . $search . '%')
-                        ->orWhereHas('groups', fn (Builder $builder): Builder => $builder->where('name', 'like', '%' . $search . '%'));
-                });
-            })
-            ->when($validated['monitoring_group_id'] ?? null, fn (Builder $builder, string $groupId): Builder => $builder->whereHas('groups', fn (Builder $builder): Builder => $builder->where('monitoring_groups.id', $groupId)));
-
-        $this->applyMaintenanceStatusFilter($tableQuery, (string) ($validated['maintenance_status'] ?? ''));
-        $this->applyMaintenanceSort($tableQuery, $asyncTableOptions->sort, $asyncTableOptions->direction);
-
-        $lengthAwarePaginator = $tableQuery->paginate($asyncTableOptions->perPage);
-
-        if ($request->expectsJson()) {
-            return AsyncTable::json($lengthAwarePaginator, 'maintenance.partials.rows', [
-                'monitorings' => $lengthAwarePaginator,
-                'canManageMaintenance' => $canManageMaintenance,
-                'manageableMonitoringIds' => $manageableMonitorings->pluck('id')->all(),
-            ]);
-        }
-
-        return view('maintenance.index', [
-            'monitorings' => $lengthAwarePaginator,
-            'maintenanceStats' => [
-                'total' => $monitorings->count(),
-                'active' => $activeMaintenanceCount,
-                'upcoming' => $upcomingMaintenanceCount,
-                'expired' => $expiredMaintenanceCount,
-                'none' => $monitorings->count() - $activeMaintenanceCount - $upcomingMaintenanceCount - $expiredMaintenanceCount,
-            ],
-            'recurringWindows' => $recurringWindows,
-            'manageableMonitorings' => $manageableMonitorings,
-            'manageableMonitoringIds' => $manageableMonitorings->pluck('id')->all(),
-            'monitoringGroups' => $user->monitoringGroups()
-                ->withCount('monitorings')
-                ->orderBy('name')
-                ->get(['id', 'name']),
-            'canManageMaintenance' => $canManageMaintenance,
-            'filters' => [
-                [
-                    'name' => 'maintenance_status',
-                    'label' => __('maintenance.table.status_filter'),
-                    'placeholder' => __('search.filter.text', ['attribute' => __('maintenance.table.status_filter')]),
-                    'options' => [
-                        'active' => __('maintenance.status.active'),
-                        'upcoming' => __('maintenance.status.upcoming'),
-                        'expired' => __('maintenance.status.expired'),
-                        'none' => __('maintenance.status.none'),
-                    ],
-                ],
-                [
-                    'name' => 'monitoring_group_id',
-                    'label' => __('maintenance.table.group_filter'),
-                    'placeholder' => __('search.filter.text', ['attribute' => __('maintenance.table.group_filter')]),
-                    'options' => $user->monitoringGroups()
-                        ->orderBy('name')
-                        ->pluck('name', 'id')
-                        ->all(),
-                ],
-            ],
-            'activeFilters' => [
-                'maintenance_status' => (string) ($validated['maintenance_status'] ?? ''),
-                'monitoring_group_id' => (string) ($validated['monitoring_group_id'] ?? ''),
-            ],
-            'sort' => $asyncTableOptions->sort,
-            'direction' => $asyncTableOptions->direction,
-        ]);
+        return view('maintenance.index');
     }
 
-    public function store(MaintenanceRequest $maintenanceRequest): RedirectResponse
+    public function store(MaintenanceRequest $maintenanceRequest): RedirectResponse|JsonResponse
     {
         abort_if($maintenanceRequest->user()?->isDemo(), 403);
 
@@ -156,7 +44,13 @@ class MaintenanceController extends Controller
                 'enabled' => true,
             ]);
 
-            return to_route('maintenance.index')->with('success', __('maintenance.messages.recurring_scheduled'));
+            $message = __('maintenance.messages.recurring_scheduled');
+
+            if ($maintenanceRequest->expectsJson()) {
+                return response()->json(['message' => $message, 'updated_count' => 0]);
+            }
+
+            return to_route('maintenance.index')->with('success', $message);
         }
 
         $updatedCount = $this->targetMonitorings($maintenanceRequest)
@@ -167,11 +61,16 @@ class MaintenanceController extends Controller
                     : null,
             ]);
 
-        return to_route('maintenance.index')
-            ->with('success', trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]));
+        $message = trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]);
+
+        if ($maintenanceRequest->expectsJson()) {
+            return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
+        }
+
+        return to_route('maintenance.index')->with('success', $message);
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): RedirectResponse|JsonResponse
     {
         abort_if($request->user()?->isDemo(), 403);
         /** @var User $user */
@@ -205,7 +104,13 @@ class MaintenanceController extends Controller
         if (isset($validated['maintenance_window_id'])) {
             MaintenanceWindow::query()->whereKey($validated['maintenance_window_id'])->update(['enabled' => false]);
 
-            return to_route('maintenance.index')->with('success', __('maintenance.messages.recurring_cleared'));
+            $message = __('maintenance.messages.recurring_cleared');
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message]);
+            }
+
+            return to_route('maintenance.index')->with('success', $message);
         }
 
         Monitoring::query()
@@ -216,8 +121,13 @@ class MaintenanceController extends Controller
                 'maintenance_until' => null,
             ]);
 
-        return to_route('maintenance.index')
-            ->with('success', __('maintenance.messages.cleared'));
+        $message = __('maintenance.messages.cleared');
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return to_route('maintenance.index')->with('success', $message);
     }
 
     private function targetMonitorings(MaintenanceRequest $maintenanceRequest): Builder

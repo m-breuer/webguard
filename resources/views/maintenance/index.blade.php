@@ -3,126 +3,136 @@
         <x-heading type="h1">{{ __('maintenance.title') }}</x-heading>
     </x-slot>
 
-    <x-main>
-        <div class="space-y-6">
-            @if ($canManageMaintenance)
-                <x-container>
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <x-heading type="h2">{{ __('maintenance.schedule.heading') }}</x-heading>
-                            <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                {{ __('maintenance.schedule.description') }}
-                            </x-paragraph>
+    <x-main x-data="maintenancePage(@js(route('api.maintenance.index')), {
+        loading: @js(__('maintenance.messages.loading')),
+        error: @js(__('maintenance.messages.error')),
+        clearConfirmation: @js(__('maintenance.actions.clear_confirmation')),
+        clearRecurringConfirmation: @js(__('maintenance.actions.clear_recurring_confirmation')),
+    })" x-init="load()">
+        <div x-show="message" x-cloak class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-800 dark:bg-green-900/30 dark:text-green-200"
+            x-text="message"></div>
+        <div x-show="error" x-cloak class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200"
+            x-text="error"></div>
+
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+            <x-container x-show="loading || canManageMaintenance" x-cloak>
+                <x-heading type="h2">{{ __('maintenance.schedule.heading') }}</x-heading>
+                <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('maintenance.schedule.description') }}
+                </x-paragraph>
+
+                <form method="POST" action="{{ route('maintenance.store') }}" class="mt-6 space-y-4"
+                    @submit.prevent="schedule()">
+                    @csrf
+
+                    <div>
+                        <x-input-label for="mode" :value="__('maintenance.form.mode')" />
+                        <x-select-input id="mode" class="mt-1 block w-full" name="mode" x-model="mode"
+                            x-bind:disabled="loading || submitting">
+                            <option value="one_off">{{ __('maintenance.form.modes.one_off') }}</option>
+                            <option value="recurring">{{ __('maintenance.form.modes.recurring') }}</option>
+                        </x-select-input>
+                    </div>
+
+                    <div>
+                        <x-input-label for="scope" :value="__('maintenance.form.scope')" />
+                        <x-select-input id="scope" class="mt-1 block w-full" name="scope" x-model="scope"
+                            x-bind:disabled="loading || submitting">
+                            <option value="monitoring">{{ __('maintenance.form.scopes.monitoring') }}</option>
+                            <option value="group">{{ __('maintenance.form.scopes.group') }}</option>
+                        </x-select-input>
+                    </div>
+
+                    <div>
+                        <div x-show="scope === 'monitoring'">
+                            <x-input-label for="monitoring_id" :value="__('maintenance.form.monitoring')" />
+                            <x-select-input id="monitoring_id" class="mt-1 block w-full" name="monitoring_id"
+                                x-model="monitoringId" x-bind:disabled="loading || submitting">
+                                <option value="">{{ __('maintenance.form.select_monitoring') }}</option>
+                                <template x-for="option in monitoringOptions" :key="option.id">
+                                    <option x-bind:value="option.id" x-text="option.name"></option>
+                                </template>
+                            </x-select-input>
+                        </div>
+
+                        <div x-show="scope === 'group'">
+                            <x-input-label for="monitoring_group_id" :value="__('maintenance.form.group')" />
+                            <x-select-input id="monitoring_group_id" class="mt-1 block w-full" name="monitoring_group_id"
+                                x-model="monitoringGroupId" x-bind:disabled="loading || submitting">
+                                <option value="">{{ __('maintenance.form.select_group') }}</option>
+                                <template x-for="group in monitoringGroups" :key="group.id">
+                                    <option x-bind:value="group.id"
+                                        x-text="group.name + ' (' + group.monitorings_count + ')'">
+                                    </option>
+                                </template>
+                            </x-select-input>
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('maintenance.store') }}" class="mt-6 space-y-4" x-data="{ scope: @js(old('scope', 'monitoring')), mode: @js(old('mode', 'one_off')) }">
-                        @csrf
-
-                        <div class="grid gap-4 lg:grid-cols-5">
-                            <div>
-                                <x-input-label for="mode" :value="__('maintenance.form.mode')" />
-                                <x-select-input id="mode" class="mt-1 block w-full" name="mode" x-model="mode">
-                                    <option value="one_off">{{ __('maintenance.form.modes.one_off') }}</option>
-                                    <option value="recurring">{{ __('maintenance.form.modes.recurring') }}</option>
-                                </x-select-input>
-                                <x-input-error :messages="$errors->get('mode')" />
-                            </div>
-
-                            <div>
-                                <x-input-label for="scope" :value="__('maintenance.form.scope')" />
-                                <x-select-input id="scope" class="mt-1 block w-full" name="scope" x-model="scope">
-                                    <option value="monitoring">{{ __('maintenance.form.scopes.monitoring') }}</option>
-                                    <option value="group">{{ __('maintenance.form.scopes.group') }}</option>
-                                </x-select-input>
-                                <x-input-error :messages="$errors->get('scope')" />
-                            </div>
-
-                            <div x-show="scope === 'monitoring'">
-                                <x-input-label for="monitoring_id" :value="__('maintenance.form.monitoring')" />
-                                <x-select-input id="monitoring_id" class="mt-1 block w-full" name="monitoring_id">
-                                    <option value="">{{ __('maintenance.form.select_monitoring') }}</option>
-                                    @foreach ($manageableMonitorings as $monitoring)
-                                        <option value="{{ $monitoring->id }}" @selected(old('monitoring_id') === $monitoring->id)>
-                                            {{ $monitoring->name }}
-                                        </option>
-                                    @endforeach
-                                </x-select-input>
-                                <x-input-error :messages="$errors->get('monitoring_id')" />
-                            </div>
-
-                            <div x-show="scope === 'group'">
-                                <x-input-label for="monitoring_group_id" :value="__('maintenance.form.group')" />
-                                <x-select-input id="monitoring_group_id" class="mt-1 block w-full" name="monitoring_group_id">
-                                    <option value="">{{ __('maintenance.form.select_group') }}</option>
-                                    @foreach ($monitoringGroups as $monitoringGroup)
-                                        <option value="{{ $monitoringGroup->id }}" @selected(old('monitoring_group_id') === $monitoringGroup->id)>
-                                            {{ $monitoringGroup->name }} ({{ $monitoringGroup->monitorings_count }})
-                                        </option>
-                                    @endforeach
-                                </x-select-input>
-                                <x-input-error :messages="$errors->get('monitoring_group_id')" />
-                            </div>
-
-                            <div x-show="mode === 'one_off'">
-                                <x-input-label for="maintenance_from" :value="__('maintenance.form.from')" />
-                                <x-text-input id="maintenance_from" type="datetime-local" name="maintenance_from" :value="old('maintenance_from')" x-bind:required="mode === 'one_off'" />
-                                <x-input-error :messages="$errors->get('maintenance_from')" />
-                            </div>
-
-                            <div x-show="mode === 'one_off'">
-                                <x-input-label for="maintenance_until" :value="__('maintenance.form.until')" />
-                                <x-text-input id="maintenance_until" type="datetime-local" name="maintenance_until" :value="old('maintenance_until')" />
-                                <x-input-error :messages="$errors->get('maintenance_until')" />
-                            </div>
-
-                            <div x-show="mode === 'recurring'">
-                                <x-input-label for="recurring_starts_at" :value="__('maintenance.form.recurring_starts_at')" />
-                                <x-text-input id="recurring_starts_at" type="datetime-local" name="recurring_starts_at" :value="old('recurring_starts_at')" x-bind:required="mode === 'recurring'" />
-                                <x-input-error :messages="$errors->get('recurring_starts_at')" />
-                            </div>
-
-                            <div x-show="mode === 'recurring'">
-                                <x-input-label for="recurrence" :value="__('maintenance.form.recurrence')" />
-                                <x-select-input id="recurrence" class="mt-1 block w-full" name="recurrence" x-bind:required="mode === 'recurring'">
-                                    <option value="weekly" @selected(old('recurrence', 'weekly') === 'weekly')>{{ __('maintenance.form.recurrences.weekly') }}</option>
-                                    <option value="monthly" @selected(old('recurrence') === 'monthly')>{{ __('maintenance.form.recurrences.monthly') }}</option>
-                                </x-select-input>
-                                <x-input-error :messages="$errors->get('recurrence')" />
-                            </div>
-
-                            <div x-show="mode === 'recurring'">
-                                <x-input-label for="recurring_duration_minutes" :value="__('maintenance.form.duration')" />
-                                <x-text-input id="recurring_duration_minutes" type="number" min="1" max="1440" name="recurring_duration_minutes" :value="old('recurring_duration_minutes', 60)" x-bind:required="mode === 'recurring'" />
-                                <x-input-error :messages="$errors->get('recurring_duration_minutes')" />
-                            </div>
-
-                            <div x-show="mode === 'recurring'">
-                                <x-input-label for="recurring_repeat_until" :value="__('maintenance.form.repeat_until')" />
-                                <x-text-input id="recurring_repeat_until" type="date" name="recurring_repeat_until" :value="old('recurring_repeat_until')" />
-                                <x-input-error :messages="$errors->get('recurring_repeat_until')" />
-                            </div>
-
-                            <div x-show="mode === 'recurring'">
-                                <x-input-label for="recurring_timezone" :value="__('maintenance.form.timezone')" />
-                                <x-text-input id="recurring_timezone" type="text" name="recurring_timezone" :value="old('recurring_timezone', config('app.timezone'))" x-bind:required="mode === 'recurring'" />
-                                <x-input-error :messages="$errors->get('recurring_timezone')" />
-                            </div>
+                    <div x-show="mode === 'one_off'" class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <x-input-label for="maintenance_from" :value="__('maintenance.form.from')" />
+                            <x-text-input id="maintenance_from" type="datetime-local" name="maintenance_from"
+                                x-model="maintenanceFrom" required x-bind:disabled="loading || submitting" />
                         </div>
 
-                        <div class="flex flex-wrap items-center justify-between gap-3">
-                            <p class="max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-                                {{ __('maintenance.form.help') }}
-                            </p>
-
-                            <x-primary-button>{{ __('maintenance.actions.schedule') }}</x-primary-button>
+                        <div>
+                            <x-input-label for="maintenance_until" :value="__('maintenance.form.until')" />
+                            <x-text-input id="maintenance_until" type="datetime-local" name="maintenance_until"
+                                x-model="maintenanceUntil" x-bind:disabled="loading || submitting" />
                         </div>
-                    </form>
-                </x-container>
-            @endif
+                    </div>
+
+                    <div x-show="mode === 'recurring'" class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <x-input-label for="recurring_starts_at" :value="__('maintenance.form.recurring_starts_at')" />
+                            <x-text-input id="recurring_starts_at" type="datetime-local" name="recurring_starts_at"
+                                x-model="recurringStartsAt" x-bind:required="mode === 'recurring'"
+                                x-bind:disabled="loading || submitting" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="recurrence" :value="__('maintenance.form.recurrence')" />
+                            <x-select-input id="recurrence" class="mt-1 block w-full" name="recurrence" x-model="recurrence"
+                                x-bind:required="mode === 'recurring'" x-bind:disabled="loading || submitting">
+                                <option value="weekly">{{ __('maintenance.form.recurrences.weekly') }}</option>
+                                <option value="monthly">{{ __('maintenance.form.recurrences.monthly') }}</option>
+                            </x-select-input>
+                        </div>
+
+                        <div>
+                            <x-input-label for="recurring_duration_minutes" :value="__('maintenance.form.duration')" />
+                            <x-text-input id="recurring_duration_minutes" type="number" min="1" max="1440"
+                                name="recurring_duration_minutes" x-model="recurringDurationMinutes"
+                                x-bind:required="mode === 'recurring'" x-bind:disabled="loading || submitting" />
+                        </div>
+
+                        <div>
+                            <x-input-label for="recurring_repeat_until" :value="__('maintenance.form.repeat_until')" />
+                            <x-text-input id="recurring_repeat_until" type="date" name="recurring_repeat_until"
+                                x-model="recurringRepeatUntil" x-bind:disabled="loading || submitting" />
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <x-input-label for="recurring_timezone" :value="__('maintenance.form.timezone')" />
+                            <x-text-input id="recurring_timezone" type="text" name="recurring_timezone"
+                                x-model="recurringTimezone" x-bind:required="mode === 'recurring'"
+                                x-bind:disabled="loading || submitting" />
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ __('maintenance.form.help') }}
+                    </p>
+
+                    <x-primary-button x-bind:disabled="loading || submitting">
+                        <span x-text="submitting ? '{{ __('maintenance.messages.loading') }}' : '{{ __('maintenance.actions.schedule') }}'"></span>
+                    </x-primary-button>
+                </form>
+            </x-container>
 
             <x-container>
-                <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <x-heading type="h2">{{ __('maintenance.windows.heading') }}</x-heading>
                         <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -131,111 +141,122 @@
                     </div>
                 </div>
 
-                <dl class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                    <div class="rounded-md border border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('maintenance.summary.total') }}</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $maintenanceStats['total'] }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('maintenance.status.active') }}</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $maintenanceStats['active'] }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('maintenance.status.upcoming') }}</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $maintenanceStats['upcoming'] }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('maintenance.status.expired') }}</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $maintenanceStats['expired'] }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('maintenance.status.none') }}</dt>
-                        <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $maintenanceStats['none'] }}</dd>
-                    </div>
-                </dl>
-            </x-container>
+                <div x-show="loading" x-cloak class="mt-6">
+                    <x-loading-indicator>{{ __('maintenance.messages.loading') }}</x-loading-indicator>
+                </div>
 
-            @if ($recurringWindows->isNotEmpty())
-                <x-container>
-                    <x-heading type="h2">{{ __('maintenance.recurring.heading') }}</x-heading>
+                <dl x-show="!loading" x-cloak class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                    <template x-for="stat in [
+                        ['{{ __('maintenance.summary.total') }}', stats.total],
+                        ['{{ __('maintenance.status.active') }}', stats.active],
+                        ['{{ __('maintenance.status.upcoming') }}', stats.upcoming],
+                        ['{{ __('maintenance.status.expired') }}', stats.expired],
+                        ['{{ __('maintenance.status.none') }}', stats.none]
+                    ]" :key="stat[0]">
+                        <div class="rounded-md border border-gray-200 px-4 py-3 dark:border-gray-700">
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" x-text="stat[0]"></dt>
+                            <dd class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100" x-text="stat[1]"></dd>
+                        </div>
+                    </template>
+                </dl>
+
+                <div x-show="!loading && recurringWindows.length > 0" x-cloak class="mt-6">
+                    <x-heading type="h3">{{ __('maintenance.recurring.heading') }}</x-heading>
                     <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         {{ __('maintenance.recurring.description') }}
                     </x-paragraph>
-
-                    <div class="mt-6 overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-left text-sm dark:divide-gray-700">
-                            <thead>
-                                <tr class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    <th class="px-3 py-2">{{ __('maintenance.recurring.target') }}</th>
-                                    <th class="px-3 py-2">{{ __('maintenance.recurring.schedule') }}</th>
-                                    <th class="px-3 py-2">{{ __('maintenance.recurring.timezone') }}</th>
-                                    <th class="px-3 py-2">{{ __('maintenance.recurring.starts') }}</th>
-                                    <th class="px-3 py-2">{{ __('maintenance.table.actions') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                                @foreach ($recurringWindows as $recurringWindow)
-                                    <tr>
-                                        <td class="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $recurringWindow->monitoring?->name ?? $recurringWindow->monitoringGroup?->name }}
-                                        </td>
-                                        <td class="px-3 py-3 text-gray-600 dark:text-gray-400">
-                                            {{ __('maintenance.form.recurrences.' . $recurringWindow->recurrence->value) }}
-                                            · {{ $recurringWindow->duration_minutes }} min
-                                        </td>
-                                        <td class="px-3 py-3 text-gray-600 dark:text-gray-400">{{ $recurringWindow->timezone }}</td>
-                                        <td class="px-3 py-3 text-gray-600 dark:text-gray-400">
-                                            {{ $recurringWindow->starts_at->setTimezone($recurringWindow->timezone)->toDayDateTimeString() }}
-                                        </td>
-                                        <td class="px-3 py-3">
-                                            @if ($recurringWindow->isManageableBy(Auth::user()))
-                                                <form method="POST" action="{{ route('maintenance.destroy') }}" class="inline-flex">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <input type="hidden" name="maintenance_window_id" value="{{ $recurringWindow->id }}">
-                                                    <button
-                                                        type="submit"
-                                                        class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-purple-600 transition hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40"
-                                                        title="{{ __('maintenance.actions.clear') }}"
-                                                        aria-label="{{ __('maintenance.actions.clear') }}"
-                                                        x-data
-                                                        x-on:click.prevent="if (confirm('{{ __('maintenance.actions.clear_recurring_confirmation') }}')) $el.closest('form').submit()">
-                                                        <x-icon name="x" class="h-4 w-4" />
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="mt-4 space-y-3">
+                        <template x-for="window in recurringWindows" :key="window.id">
+                            <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <div class="font-semibold text-gray-900 dark:text-gray-100" x-text="window.target"></div>
+                                        <div class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                                            x-text="window.recurrence === 'weekly' ? '{{ __('maintenance.form.recurrences.weekly') }}' : '{{ __('maintenance.form.recurrences.monthly') }}'"></div>
+                                        <div class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                                            x-text="window.starts_at + ' · ' + window.duration_minutes + ' min · ' + window.timezone"></div>
+                                    </div>
+                                    <button x-show="window.can_manage" type="button"
+                                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                        x-bind:disabled="submitting" @click="clearRecurringWindow(window.id)"
+                                        title="{{ __('maintenance.actions.clear') }}"
+                                        aria-label="{{ __('maintenance.actions.clear') }}">
+                                        <x-icon name="x" class="mr-2 h-4 w-4" />
+                                        {{ __('maintenance.actions.clear') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
                     </div>
-                </x-container>
-            @endif
+                </div>
 
-            <x-async-table id="maintenance-table" :endpoint="route('maintenance.index')" :paginator="$monitorings"
-                :filters="$filters" :initial-filters="$activeFilters" :initial-sort="$sort"
-                :initial-direction="$direction"
-                search-placeholder="{{ __('search.fields.placeholder', ['attribute' => __('maintenance.title')]) }}">
-                <x-slot name="head">
-                    <x-table.heading sort="name">{{ __('monitoring.index.table.name') }}</x-table.heading>
-                    <x-table.heading sort="maintenance_status">{{ __('monitoring.index.table.status') }}</x-table.heading>
-                    <x-table.heading sort="maintenance_from">{{ __('maintenance.form.from') }}</x-table.heading>
-                    <x-table.heading sort="maintenance_until">{{ __('maintenance.form.until') }}</x-table.heading>
-                    <x-table.heading>{{ __('maintenance.table.groups') }}</x-table.heading>
-                    @if ($canManageMaintenance)
-                        <x-table.heading>{{ __('maintenance.table.actions') }}</x-table.heading>
-                    @endif
-                </x-slot>
+                <div x-show="!loading && windows.length === 0" x-cloak
+                    class="mt-6 rounded-md border border-gray-200 p-6 text-center dark:border-gray-700">
+                    <x-heading type="h3">{{ __('maintenance.empty.title') }}</x-heading>
+                    <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        {{ __('maintenance.empty.text') }}
+                    </x-paragraph>
+                </div>
 
-                <x-slot name="body">
-                    @include('maintenance.partials.rows', [
-                        'monitorings' => $monitorings,
-                        'canManageMaintenance' => $canManageMaintenance,
-                        'manageableMonitoringIds' => $manageableMonitoringIds,
-                    ])
-                </x-slot>
-            </x-async-table>
+                <div x-show="!loading && windows.length > 0" x-cloak class="mt-6 space-y-3">
+                    <template x-for="monitoring in windows" :key="monitoring.id">
+                        <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-gray-900 dark:text-gray-100" x-text="monitoring.name"></div>
+                                    <div class="mt-1 break-all text-sm text-gray-500 dark:text-gray-400" x-text="monitoring.target"></div>
+                                    <div x-show="monitoring.groups.length > 0" class="mt-2 flex flex-wrap gap-2">
+                                        <template x-for="group in monitoring.groups" :key="group.id">
+                                            <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                                                x-text="group.name"></span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                                    x-bind:class="statusClasses(monitoring.status)"
+                                    x-text="monitoring.status === 'active' ? '{{ __('maintenance.status.active') }}' : (monitoring.status === 'upcoming' ? '{{ __('maintenance.status.upcoming') }}' : (monitoring.status === 'expired' ? '{{ __('maintenance.status.expired') }}' : '{{ __('maintenance.status.none') }}'))"></span>
+                            </div>
+
+                            <div x-show="monitoring.maintenance_from" class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                                <div>
+                                    <dt class="text-gray-500 dark:text-gray-400">{{ __('maintenance.form.from') }}</dt>
+                                    <dd class="font-medium text-gray-900 dark:text-gray-100" x-text="monitoring.maintenance_from"></dd>
+                                </div>
+                                <div>
+                                    <dt class="text-gray-500 dark:text-gray-400">{{ __('maintenance.form.until') }}</dt>
+                                    <dd class="font-medium text-gray-900 dark:text-gray-100"
+                                        x-text="monitoring.maintenance_until || '{{ __('maintenance.status.open_ended') }}'"></dd>
+                                </div>
+                            </div>
+
+                            <button x-show="monitoring.maintenance_from && monitoring.can_manage" type="button"
+                                class="mt-4 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                x-bind:disabled="submitting" @click="clearWindow(monitoring.id)">
+                                {{ __('maintenance.actions.clear') }}
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
+                <div x-show="!loading && pagination.last_page > 1" x-cloak
+                    class="mt-6 flex items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-300">
+                    <span>
+                        <span x-text="pagination.from ?? 0"></span>–<span x-text="pagination.to ?? 0"></span>
+                        / <span x-text="pagination.total"></span>
+                    </span>
+                    <div class="flex gap-2">
+                        <button type="button" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100"
+                            x-bind:disabled="pagination.current_page <= 1 || loading" @click="load(pagination.current_page - 1)">
+                            &laquo;
+                        </button>
+                        <button type="button" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100"
+                            x-bind:disabled="pagination.current_page >= pagination.last_page || loading" @click="load(pagination.current_page + 1)">
+                            &raquo;
+                        </button>
+                    </div>
+                </div>
+            </x-container>
         </div>
     </x-main>
 </x-app-layout>

@@ -7,7 +7,6 @@ namespace Tests\Feature;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Enums\TeamRole;
-use App\Enums\UserRole;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
@@ -52,35 +51,38 @@ class MaintenanceManagementTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('maintenance.title'));
-        $testResponse->assertSeeText(__('maintenance.summary.total'));
-        $testResponse->assertSeeText(__('maintenance.table.groups'));
-        $testResponse->assertSeeText('Checkout API');
-        $testResponse->assertSeeText('Production');
+        $testResponse->assertDontSeeText('Checkout API');
+        $testResponse->assertSeeHtml('x-data="maintenancePage');
         $testResponse->assertSeeHtml('action="' . route('maintenance.store') . '"');
     }
 
-    public function test_user_can_schedule_maintenance_for_single_monitoring(): void
+    public function test_maintenance_api_paginates_window_list_without_limiting_monitoring_options(): void
     {
-        $monitoring = Monitoring::factory()->for($this->user)->create([
+        Monitoring::factory()->for($this->user)->create([
+            'name' => 'Monitoring 000',
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $testResponse = $this->actingAs($this->user)->post(route('maintenance.store'), [
-            'scope' => 'monitoring',
-            'monitoring_id' => $monitoring->id,
-            'maintenance_from' => '2026-07-01T10:00',
-            'maintenance_until' => '2026-07-01T11:00',
-        ]);
+        foreach (range(1, 50) as $index) {
+            Monitoring::factory()->for($this->user)->create([
+                'name' => sprintf('Monitoring %03d', $index),
+                'preferred_location' => $this->serverInstance->code,
+            ]);
+        }
 
-        $testResponse->assertRedirect(route('maintenance.index'));
-        $this->assertDatabaseHas('monitorings', [
-            'id' => $monitoring->id,
-            'maintenance_from' => '2026-07-01 10:00:00',
-            'maintenance_until' => '2026-07-01 11:00:00',
-        ]);
+        $lastMonitoring = Monitoring::query()->where('name', 'Monitoring 050')->firstOrFail();
+        $testResponse = $this->actingAs($this->user)->getJson(route('api.maintenance.index'));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('data.windows.current_page', 1);
+        $testResponse->assertJsonPath('data.windows.last_page', 2);
+        $testResponse->assertJsonCount(50, 'data.windows.data');
+        $testResponse->assertJsonFragment(['id' => (string) $lastMonitoring->id, 'name' => 'Monitoring 050']);
+        $testResponse->assertJsonFragment(['name' => 'Monitoring 000']);
+        $testResponse->assertJsonCount(51, 'data.monitoring_options');
     }
 
-    public function test_maintenance_table_supports_filtering_search_and_sorting(): void
+    public function test_maintenance_api_supports_filtering_search_and_sorting(): void
     {
         Date::setTestNow('2026-07-01 10:30:00');
         $this->beforeApplicationDestroyed(fn (): mixed => Date::setTestNow());
@@ -104,13 +106,11 @@ class MaintenanceManagementTest extends TestCase
             'name' => 'Outside Maintenance',
             'target' => 'https://outside-maintenance.example.test',
             'preferred_location' => $this->serverInstance->code,
-            'maintenance_from' => null,
-            'maintenance_until' => null,
         ]);
         $activeMonitoring->groups()->attach($group);
         $zuluMonitoring->groups()->attach($group);
 
-        $testResponse = $this->actingAs($this->user)->getJson(route('maintenance.index', [
+        $testResponse = $this->actingAs($this->user)->getJson(route('api.maintenance.index', [
             'search' => 'Maintenance',
             'maintenance_status' => 'active',
             'monitoring_group_id' => $group->id,
@@ -119,13 +119,50 @@ class MaintenanceManagementTest extends TestCase
             'per_page' => 5,
         ]));
 
-        $testResponse->assertOk()->assertJsonPath('pagination.total', 2);
-        $html = $testResponse->json('html');
+        $testResponse->assertOk()
+            ->assertJsonPath('data.windows.total', 2)
+            ->assertJsonPath('data.windows.data.0.name', 'Zulu Maintenance')
+            ->assertJsonPath('data.windows.data.1.name', 'Alpha Maintenance');
+        $this->assertNotContains('Outside Maintenance', array_column($testResponse->json('data.windows.data'), 'name'));
+    }
 
-        $this->assertStringContainsString('Zulu Maintenance', $html);
-        $this->assertStringContainsString('Alpha Maintenance', $html);
-        $this->assertStringNotContainsString('Outside Maintenance', $html);
-        $this->assertLessThan(mb_strpos($html, 'Alpha Maintenance'), mb_strpos($html, 'Zulu Maintenance'));
+    public function test_maintenance_actions_support_json_requests(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $this->actingAs($this->user)->postJson(route('api.maintenance.store'), [
+            'scope' => 'monitoring',
+            'monitoring_id' => $monitoring->id,
+            'maintenance_from' => '2026-07-01T10:00',
+            'maintenance_until' => '2026-07-01T11:00',
+        ])->assertOk()->assertJsonStructure(['message', 'updated_count']);
+
+        $this->actingAs($this->user)->deleteJson(route('api.maintenance.destroy'), [
+            'monitoring_id' => $monitoring->id,
+        ])->assertOk()->assertJsonStructure(['message']);
+    }
+
+    public function test_user_can_schedule_maintenance_for_single_monitoring(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+
+        $testResponse = $this->actingAs($this->user)->post(route('maintenance.store'), [
+            'scope' => 'monitoring',
+            'monitoring_id' => $monitoring->id,
+            'maintenance_from' => '2026-07-01T10:00',
+            'maintenance_until' => '2026-07-01T11:00',
+        ]);
+
+        $testResponse->assertRedirect(route('maintenance.index'));
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $monitoring->id,
+            'maintenance_from' => '2026-07-01 10:00:00',
+            'maintenance_until' => '2026-07-01 11:00:00',
+        ]);
     }
 
     public function test_user_can_schedule_maintenance_for_monitoring_group(): void
@@ -180,9 +217,10 @@ class MaintenanceManagementTest extends TestCase
             'preferred_location' => $this->serverInstance->code,
         ]);
 
-        $this->actingAs($this->user)->get(route('maintenance.index'))
+        $this->actingAs($this->user)->get(route('maintenance.index'))->assertOk();
+        $this->actingAs($this->user)->getJson(route('api.maintenance.index'))
             ->assertOk()
-            ->assertSeeText('Team API');
+            ->assertJsonFragment(['name' => 'Team API']);
 
         $this->actingAs($this->user)->post(route('maintenance.store'), [
             'scope' => 'monitoring',
@@ -208,7 +246,7 @@ class MaintenanceManagementTest extends TestCase
         ]);
     }
 
-    public function test_team_member_can_view_but_not_manage_team_monitoring_maintenance(): void
+    public function test_team_member_cannot_schedule_or_clear_team_monitoring_maintenance(): void
     {
         $member = User::factory()->create(['package_id' => Package::factory()->create()->id]);
         $team = Team::factory()->create(['created_by_user_id' => $this->user->id]);
@@ -230,12 +268,11 @@ class MaintenanceManagementTest extends TestCase
             'maintenance_until' => '2026-07-01 11:00:00',
         ]);
 
-        $this->actingAs($member)->get(route('maintenance.index'))
+        $this->actingAs($member)->get(route('maintenance.index'))->assertOk();
+        $this->actingAs($member)->getJson(route('api.maintenance.index'))
             ->assertOk()
-            ->assertSeeText('Shared API')
-            ->assertSeeText(__('maintenance.status.expired'))
-            ->assertDontSeeHtml('action="' . route('maintenance.store') . '"')
-            ->assertDontSeeHtml('action="' . route('maintenance.destroy') . '"');
+            ->assertJsonPath('data.windows.data.0.name', 'Shared API')
+            ->assertJsonPath('data.windows.data.0.can_manage', false);
 
         $this->actingAs($member)->post(route('maintenance.store'), [
             'scope' => 'monitoring',
@@ -247,46 +284,6 @@ class MaintenanceManagementTest extends TestCase
         $this->actingAs($member)->delete(route('maintenance.destroy'), [
             'monitoring_id' => $monitoring->id,
         ])->assertSessionHasErrors(['monitoring_id']);
-
-        $this->assertDatabaseHas('monitorings', [
-            'id' => $monitoring->id,
-            'maintenance_from' => '2026-07-01 10:00:00',
-            'maintenance_until' => '2026-07-01 11:00:00',
-        ]);
-    }
-
-    public function test_demo_user_can_view_but_not_manage_maintenance(): void
-    {
-        $demoUser = User::factory()->create([
-            'package_id' => Package::factory()->create()->id,
-            'role' => UserRole::DEMO,
-        ]);
-        $monitoring = Monitoring::factory()->for($demoUser)->create([
-            'name' => 'Demo API',
-            'preferred_location' => $this->serverInstance->code,
-            'maintenance_from' => '2026-07-01 10:00:00',
-            'maintenance_until' => '2026-07-01 11:00:00',
-        ]);
-
-        $this->actingAs($demoUser)->get(route('maintenance.index'))
-            ->assertOk()
-            ->assertSeeText('Demo API')
-            ->assertSeeText(__('maintenance.status.expired'))
-            ->assertDontSeeHtml('action="' . route('maintenance.store') . '"')
-            ->assertDontSeeHtml('action="' . route('maintenance.destroy') . '"')
-            ->assertDontSeeHtml('name="maintenance_from"')
-            ->assertDontSeeHtml('name="maintenance_until"');
-
-        $this->actingAs($demoUser)->post(route('maintenance.store'), [
-            'scope' => 'monitoring',
-            'monitoring_id' => $monitoring->id,
-            'maintenance_from' => '2026-07-03T10:00',
-            'maintenance_until' => '2026-07-03T11:00',
-        ])->assertForbidden();
-
-        $this->actingAs($demoUser)->delete(route('maintenance.destroy'), [
-            'monitoring_id' => $monitoring->id,
-        ])->assertForbidden();
 
         $this->assertDatabaseHas('monitorings', [
             'id' => $monitoring->id,

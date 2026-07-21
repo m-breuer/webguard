@@ -10,6 +10,7 @@ use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\MonitoringHeatmapService;
+use App\Services\MonitoringStatsCache;
 use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
@@ -73,6 +74,34 @@ class MonitoringHeatmapServiceTest extends TestCase
         $this->assertCount(24, $heatmaps[$secondMonitoring->id]);
         $this->assertSame(5, $heatmaps[$firstMonitoring->id][23]['uptime']);
         $this->assertSame(5, $heatmaps[$secondMonitoring->id][23]['downtime']);
+    }
+
+    public function test_batched_heatmaps_reuses_cached_monitorings_and_loads_only_misses(): void
+    {
+        Date::setTestNow('2026-04-12 12:30:00');
+
+        $firstMonitoring = $this->createMonitoring();
+        $secondMonitoring = $this->createMonitoring();
+        $cachedHeatmap = [['date' => Date::now(), 'uptime' => 5, 'downtime' => 0, 'unknown' => 0]];
+
+        $cache = $this->mock(MonitoringStatsCache::class);
+        $cache->shouldReceive('get')->twice()->andReturnUsing(
+            static fn (Monitoring $monitoring, string $key): ?array => $monitoring->is($firstMonitoring) ? $cachedHeatmap : null
+        );
+        $cache->shouldReceive('heatmapKey')->times(3)->andReturn('heatmap');
+        $cache->shouldReceive('put')->once()->withArgs(function (Monitoring $monitoring, string $key, array $heatmap, mixed $ttl) use ($secondMonitoring): bool {
+            return $monitoring->is($secondMonitoring) && $key === 'heatmap' && count($heatmap) === 24 && $ttl !== null;
+        });
+        $cache->shouldReceive('heatmapExpiresAt')->once()->andReturn(Date::now()->addMinutes(5));
+
+        $heatmaps = resolve(MonitoringHeatmapService::class)->getHeatmapsForMonitorings(
+            collect([$firstMonitoring, $secondMonitoring]),
+            Date::parse('2026-01-01'),
+            Date::parse('2026-01-02')
+        );
+
+        $this->assertSame($cachedHeatmap, $heatmaps[$firstMonitoring->id]);
+        $this->assertCount(24, $heatmaps[$secondMonitoring->id]);
     }
 
     private function createMonitoring(): Monitoring

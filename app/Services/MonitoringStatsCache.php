@@ -56,6 +56,27 @@ class MonitoringStatsCache
         return $callback();
     }
 
+    public function get(Monitoring $monitoring, string $cacheKey): mixed
+    {
+        if (! $this->shouldCache()) {
+            return null;
+        }
+
+        return Cache::tags($this->tags($monitoring))->get($cacheKey);
+    }
+
+    public function put(
+        Monitoring $monitoring,
+        string $cacheKey,
+        mixed $value,
+        int|DateTimeInterface|null $ttl = null
+    ): void {
+        if ($this->shouldCache()) {
+            Cache::tags($this->tags($monitoring))
+                ->put($cacheKey, $value, $ttl ?? $this->defaultTtlSeconds());
+        }
+    }
+
     public function dashboardKey(
         Monitoring $monitoring,
         int $days,
