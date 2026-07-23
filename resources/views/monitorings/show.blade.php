@@ -25,7 +25,7 @@
                 {{ __('monitoring.detail.back_to_overview') }}
             </a>
 
-            <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.14em]">
                         <span class="rounded-full bg-purple-50 px-2.5 py-1 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
@@ -54,34 +54,36 @@
                     </div>
                 </div>
 
-        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="ml-auto flex flex-wrap items-start gap-2 sm:items-center">
+        <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="w-full lg:ml-auto lg:w-auto">
 
             @if ($canManageMonitoring)
-                <div class="relative" x-data="{ open: false }">
-                    <x-secondary-button @click="open = !open" :icon-only="true"
-                        title="{{ __('monitoring.actions.heading') }}" aria-label="{{ __('monitoring.actions.heading') }}">
-                        <x-icon name="ellipsis" class="h-4 w-4" />
-                    </x-secondary-button>
+                <div class="flex w-full justify-end lg:w-auto">
+                    <div data-monitoring-actions class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+                        <x-secondary-button type="button" data-monitoring-actions-trigger @click="open = !open"
+                            :icon-only="true" :title="__('monitoring.actions.heading')" :aria-label="__('monitoring.actions.heading')"
+                            x-bind:aria-expanded="open.toString()" aria-controls="monitoring-actions-menu">
+                            <x-icon name="ellipsis" class="h-4 w-4" />
+                        </x-secondary-button>
 
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute z-10 mt-2 flex gap-1 rounded-md bg-white p-2 shadow-lg dark:bg-gray-800" style="display: none">
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            id="monitoring-actions-menu" class="absolute end-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800" style="display: none">
                         <a href="{{ route('monitorings.edit', ['monitoring' => $monitoring->id]) }}"
                             data-form-modal-trigger data-form-modal-name="monitoring-form-modal"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-200 dark:hover:bg-gray-700"
-                            title="{{ __('monitoring.actions.edit') }}" aria-label="{{ __('monitoring.actions.edit') }}">
+                            class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-200 dark:hover:bg-gray-700">
                             <x-icon name="pencil" class="h-4 w-4" />
+                            <span>{{ __('monitoring.actions.edit') }}</span>
                         </a>
                         <form method="POST" action="{{ route('monitorings.destroyResults', $monitoring) }}"
                             data-confirm-message="{{ __('monitoring.actions.reset.confirmation') }}">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-200 dark:hover:bg-gray-700"
-                                title="{{ __('monitoring.actions.reset.heading') }}" aria-label="{{ __('monitoring.actions.reset.heading') }}">
+                                class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-200 dark:hover:bg-gray-700">
                                 <x-icon name="refresh" class="h-4 w-4" />
+                                <span>{{ __('monitoring.actions.reset.heading') }}</span>
                             </button>
                         </form>
                         <form method="POST" action="{{ route('monitorings.destroy', $monitoring) }}"
@@ -89,11 +91,12 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-md text-red-600 hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30"
-                                title="{{ __('monitoring.actions.delete.heading') }}" aria-label="{{ __('monitoring.actions.delete.heading') }}">
+                                class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-semibold text-red-600 hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-950/30">
                                 <x-icon name="trash" class="h-4 w-4" />
+                                <span>{{ __('monitoring.actions.delete.heading') }}</span>
                             </button>
                         </form>
+                        </div>
                     </div>
                 </div>
             @endif
