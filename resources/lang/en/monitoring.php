@@ -383,6 +383,7 @@ return [
     ],
     'actions' => [
         'heading' => 'Actions',
+        'trigger' => 'More options',
         'edit' => 'Edit',
         'reset' => [
             'heading' => 'Reset',
