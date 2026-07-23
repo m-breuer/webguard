@@ -57,22 +57,19 @@
         <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}" class="w-full lg:ml-auto lg:w-auto">
 
             @if ($canManageMonitoring)
-                <div data-monitoring-actions class="relative w-full lg:w-auto" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
-                    <button type="button" data-monitoring-actions-trigger @click="open = !open"
-                        :aria-expanded="open.toString()" aria-controls="monitoring-actions-menu"
-                        class="inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-purple-300 bg-white px-4 py-2 text-sm font-bold text-purple-700 shadow-sm transition hover:border-purple-500 hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:bg-purple-100 dark:border-purple-700 dark:bg-gray-800 dark:text-purple-300 dark:hover:border-purple-500 dark:hover:bg-purple-950/40 lg:w-auto">
-                        <span class="inline-flex items-center gap-2">
+                <div class="flex w-full justify-end lg:w-auto">
+                    <div data-monitoring-actions class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+                        <x-secondary-button type="button" data-monitoring-actions-trigger @click="open = !open"
+                            :icon-only="true" :title="__('monitoring.actions.heading')" :aria-label="__('monitoring.actions.heading')"
+                            x-bind:aria-expanded="open.toString()" aria-controls="monitoring-actions-menu">
                             <x-icon name="ellipsis" class="h-4 w-4" />
-                            <span>{{ __('monitoring.actions.trigger') }}</span>
-                        </span>
-                        <x-icon name="chevron-down" class="h-4 w-4" />
-                    </button>
+                        </x-secondary-button>
 
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        id="monitoring-actions-menu" class="absolute end-0 z-30 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:w-60" style="display: none">
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            id="monitoring-actions-menu" class="absolute end-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800" style="display: none">
                         <a href="{{ route('monitorings.edit', ['monitoring' => $monitoring->id]) }}"
                             data-form-modal-trigger data-form-modal-name="monitoring-form-modal"
                             class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-200 dark:hover:bg-gray-700">
@@ -99,6 +96,7 @@
                                 <span>{{ __('monitoring.actions.delete.heading') }}</span>
                             </button>
                         </form>
+                        </div>
                     </div>
                 </div>
             @endif

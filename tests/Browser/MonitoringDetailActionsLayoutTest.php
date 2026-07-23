@@ -30,7 +30,7 @@ it('keeps monitoring detail actions aligned and usable across responsive widths'
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/monitorings/' . $monitoring->id)
         ->resize(390, 844)
-        ->waitForText(__('monitoring.actions.trigger'));
+        ->assertVisible('[data-monitoring-actions-trigger]');
 
     $webpage->assertScript(<<<'JS'
 function () {
@@ -46,8 +46,8 @@ function () {
     const triggerRect = trigger.getBoundingClientRect();
     const headerRect = header.getBoundingClientRect();
 
-    return Math.abs(actionsRect.width - triggerRect.width) <= 1
-        && actionsRect.width >= headerRect.width - 2
+    return Math.abs(triggerRect.right - actionsRect.right) <= 1
+        && actionsRect.right <= headerRect.right + 1
         && document.documentElement.scrollWidth <= document.documentElement.clientWidth;
 }
 JS, true)
@@ -81,7 +81,7 @@ function () {
 
     return actionsRect.left >= headerRect.left - 1
         && actionsRect.right <= headerRect.right + 1
-        && triggerRect.width < headerRect.width
+        && Math.abs(triggerRect.right - actionsRect.right) <= 1
         && document.documentElement.scrollWidth <= document.documentElement.clientWidth;
 }
 JS, true)

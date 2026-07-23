@@ -14,7 +14,7 @@ class MonitoringDetailActionsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_monitoring_detail_actions_use_a_labeled_responsive_trigger_and_menu(): void
+    public function test_monitoring_detail_actions_use_an_icon_only_responsive_trigger_and_menu(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -25,10 +25,11 @@ class MonitoringDetailActionsTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('data-monitoring-actions');
         $testResponse->assertSeeHtml('data-monitoring-actions-trigger');
+        $testResponse->assertSeeHtml('title="' . __('monitoring.actions.heading') . '"');
+        $testResponse->assertSeeHtml('aria-label="' . __('monitoring.actions.heading') . '"');
         $testResponse->assertSeeHtml('aria-controls="monitoring-actions-menu"');
-        $testResponse->assertSeeHtml('class="inline-flex min-h-11 w-full items-center justify-between');
-        $testResponse->assertSeeHtml('class="absolute end-0 z-30 mt-2 w-full overflow-hidden');
-        $testResponse->assertSeeText(__('monitoring.actions.trigger'));
+        $testResponse->assertSeeHtml('class="cursor-pointer inline-flex h-10 w-10');
+        $testResponse->assertSeeHtml('class="absolute end-0 z-30 mt-2 w-56 overflow-hidden');
         $testResponse->assertSeeText(__('monitoring.actions.edit'));
         $testResponse->assertSeeText(__('monitoring.actions.reset.heading'));
         $testResponse->assertSeeText(__('monitoring.actions.delete.heading'));

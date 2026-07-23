@@ -70,9 +70,6 @@
             <circle cx="12" cy="12" r="1" />
             <circle cx="19" cy="12" r="1" />
             @break
-        @case('chevron-down')
-            <path d="m6 9 6 6 6-6" />
-            @break
         @case('refresh')
             <path d="M20 11a8 8 0 0 0-14.5-4L4 9" />
             <path d="M4 4v5h5" />
