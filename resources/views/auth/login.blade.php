@@ -159,7 +159,7 @@
                                     class="mt-0.5 rounded-sm border-gray-300 text-purple-600 shadow-xs focus:border-purple-300 focus:ring-3 focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600"
                                     @checked(old('terms')) required>
                                 <span class="ms-2 text-sm text-gray-600 dark:text-gray-300">
-                                    {!! __('auth.register.terms_agreement', ['terms_link' => route('terms-of-use'), 'privacy_link' => route('gdpr')]) !!}
+                                    {!! __('auth.register.terms_agreement', ['terms_link' => \App\Support\LegalLinks::termsOfUse(), 'privacy_link' => \App\Support\LegalLinks::privacyPolicy()]) !!}
                                 </span>
                             </label>
                             <x-input-error :messages="$errors->get('terms')" />
