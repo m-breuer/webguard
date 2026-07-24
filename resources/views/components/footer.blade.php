@@ -2,10 +2,10 @@
     <x-main class="w-full py-5">
         <div class="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
             <x-paragraph class="max-w-2xl text-sm leading-6 text-gray-500">
-                &copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('legal.footer.content') }}
+                &copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('app.legal.footer_content') }}
             </x-paragraph>
 
-            <nav class="w-full sm:w-auto" aria-label="{{ __('imprint.footer_nav_aria') }}">
+            <nav class="w-full sm:w-auto" aria-label="{{ __('app.legal.footer_nav_aria') }}">
                 <ul class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
                     @if (config('app.marketing_url'))
                         <li>
@@ -22,21 +22,21 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('imprint') }}"
+                        <a href="{{ \App\Support\LegalLinks::imprint() }}"
                             class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
-                            {{ __('imprint.footer_link') }}
+                            {{ __('app.legal.imprint') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('terms-of-use') }}"
+                        <a href="{{ \App\Support\LegalLinks::termsOfUse() }}"
                             class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
-                            {{ __('legal.terms_of_use.footer_link') }}
+                            {{ __('app.legal.terms_of_use') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('gdpr') }}"
+                        <a href="{{ \App\Support\LegalLinks::privacyPolicy() }}"
                             class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
-                            {{ __('gdpr.footer_link') }}
+                            {{ __('app.legal.privacy_policy') }}
                         </a>
                     </li>
                 </ul>

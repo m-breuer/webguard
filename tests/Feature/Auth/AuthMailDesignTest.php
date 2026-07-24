@@ -26,6 +26,6 @@ class AuthMailDesignTest extends TestCase
         $this->assertStringContainsString('border-radius: 16px', $html);
         $this->assertStringContainsString('background-color: #10b981', $html);
         $this->assertStringNotContainsString('monitoring-locations', $html);
-        $this->assertStringContainsString(route('terms-of-use'), $html);
+        $this->assertStringContainsString('http://localhost:4321/terms-of-use', $html);
     }
 }

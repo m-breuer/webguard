@@ -130,22 +130,20 @@ For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `
 Optional:
 
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
-- `MARKETING_URL` for an optional link to a separately deployed marketing website
-- `IMPRINT_*` fields for legal/imprint content
+- `MARKETING_URL` for the required canonical landing page, including its imprint, terms of use, and privacy policy
 
 ### Build and Startup Performance
 
 The production Dockerfile uses BuildKit cache mounts for Composer and Bun dependency downloads. Keep BuildKit enabled in Docker, Docker Compose, or your deployment platform so repeated builds can reuse those caches.
 
-The production web container regenerates `robots.txt` from `APP_URL` on startup. Optional sitemap and Scribe generation remain disabled by default to keep deploys and restarts faster:
+The production web container regenerates `robots.txt` from `APP_URL` on startup. Optional Scribe generation remains disabled by default to keep deploys and restarts faster:
 
 ```env
 AUTORUN_LARAVEL_ROBOTS_GENERATE=true
-AUTORUN_LARAVEL_SITEMAP_GENERATE=false
 AUTORUN_LARAVEL_SCRIBE_GENERATE=false
 ```
 
-The robots file is regenerated from `APP_URL` during startup by default. Set `AUTORUN_LARAVEL_ROBOTS_GENERATE=false` only when you manage that file separately. Set the sitemap or Scribe flags to `true` when the container should regenerate those static artifacts during startup. The entrypoint scripts remain installed in the image and skip work unless the matching flag is enabled.
+The robots file is regenerated from `APP_URL` during startup by default. Set `AUTORUN_LARAVEL_ROBOTS_GENERATE=false` only when you manage that file separately. Set `AUTORUN_LARAVEL_SCRIBE_GENERATE=true` when the container should regenerate API documentation during startup.
 
 ### External Database and Redis
 
@@ -246,7 +244,7 @@ APP_NAME=WebGuard
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://webguard.test
-MARKETING_URL=
+MARKETING_URL=http://localhost:4321
 APP_KEY=base64:...
 APP_TIMEZONE=Europe/Berlin
 APP_LOCALE=en
@@ -297,7 +295,6 @@ DOCKER_SSL_MODE=off
 WEBGUARD_NETWORK=webguard-network
 COMPOSE_PROFILES=internal-services
 AUTORUN_LARAVEL_ROBOTS_GENERATE=true
-AUTORUN_LARAVEL_SITEMAP_GENERATE=false
 AUTORUN_LARAVEL_SCRIBE_GENERATE=false
 ```
 

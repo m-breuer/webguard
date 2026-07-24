@@ -101,26 +101,14 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('php artisan key:generate --show', $appKeyEntrypoint);
     }
 
-    public function test_production_container_requires_imprint_configuration_for_legal_pages(): void
+    public function test_production_container_does_not_require_imprint_configuration_for_legal_pages(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
 
         $this->assertIsString($composeConfiguration);
 
-        foreach ([
-            'IMPRINT_OPERATOR_NAME',
-            'IMPRINT_ADDRESS_STREET',
-            'IMPRINT_ADDRESS_POSTAL_CODE',
-            'IMPRINT_ADDRESS_CITY',
-            'IMPRINT_ADDRESS_COUNTRY',
-            'IMPRINT_CONTACT_EMAIL',
-            'IMPRINT_CONTACT_PHONE',
-        ] as $environmentVariable) {
-            $this->assertStringContainsString(
-                "{$environmentVariable}: \"\${{$environmentVariable}:?{$environmentVariable} must be set for legal pages}\"",
-                $composeConfiguration
-            );
-        }
+        $this->assertStringNotContainsString('IMPRINT_', $composeConfiguration);
+
     }
 
     public function test_app_key_entrypoint_rejects_missing_production_key(): void
@@ -284,23 +272,6 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" scribe:generate --force', $scribeEntrypoint);
     }
 
-    public function test_production_php_container_can_generate_sitemap_on_startup_when_enabled(): void
-    {
-        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
-        $dockerfile = file_get_contents(base_path('Dockerfile'));
-        $sitemapEntrypoint = file_get_contents(base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'));
-
-        $this->assertIsString($composeConfiguration);
-        $this->assertIsString($dockerfile);
-        $this->assertIsString($sitemapEntrypoint);
-        $this->assertStringContainsString(
-            'AUTORUN_LARAVEL_SITEMAP_GENERATE: "${AUTORUN_LARAVEL_SITEMAP_GENERATE:-false}"',
-            $composeConfiguration
-        );
-        $this->assertStringContainsString('COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
-        $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" sitemap:generate', $sitemapEntrypoint);
-    }
-
     public function test_production_php_container_can_generate_robots_txt_on_startup_when_enabled(): void
     {
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
@@ -316,78 +287,6 @@ class HeartbeatQueueDeploymentConfigTest extends TestCase
         );
         $this->assertStringContainsString('COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/', $dockerfile);
         $this->assertStringContainsString('php "$APP_BASE_DIR/artisan" robots:generate', $robotsEntrypoint);
-    }
-
-    public function test_sitemap_entrypoint_skips_generation_unless_enabled(): void
-    {
-        $process = new Process([
-            'env',
-            '-i',
-            'sh',
-            base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'),
-        ]);
-
-        $process->run();
-
-        $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
-        $this->assertSame('', $process->getOutput());
-    }
-
-    public function test_sitemap_entrypoint_requires_artisan_when_generation_is_enabled(): void
-    {
-        $process = new Process([
-            'env',
-            '-i',
-            'AUTORUN_LARAVEL_SITEMAP_GENERATE=true',
-            'APP_BASE_DIR=' . base_path('storage/framework/testing/missing-sitemap-app'),
-            'sh',
-            base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'),
-        ]);
-
-        $process->run();
-
-        $this->assertSame(1, $process->getExitCode());
-        $this->assertStringContainsString(
-            'Artisan file not found in ' . base_path('storage/framework/testing/missing-sitemap-app'),
-            $process->getOutput()
-        );
-    }
-
-    public function test_sitemap_entrypoint_generates_sitemap_when_enabled(): void
-    {
-        $appBaseDirectory = base_path('storage/framework/testing/sitemap-entrypoint-app');
-        $argumentsPath = $appBaseDirectory . '/sitemap-arguments.txt';
-
-        if (! is_dir($appBaseDirectory)) {
-            mkdir($appBaseDirectory, 0777, true);
-        }
-
-        file_put_contents(
-            $appBaseDirectory . '/artisan',
-            <<<'PHP'
-<?php
-file_put_contents(__DIR__.'/sitemap-arguments.txt', implode(' ', array_slice($argv, 1)));
-PHP
-        );
-
-        $process = new Process([
-            'env',
-            '-i',
-            'AUTORUN_LARAVEL_SITEMAP_GENERATE=true',
-            'APP_BASE_DIR=' . $appBaseDirectory,
-            'PATH=' . getenv('PATH'),
-            'sh',
-            base_path('docker/php/entrypoint.d/55-laravel-sitemap-generate.sh'),
-        ]);
-
-        $process->run();
-
-        $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
-        $this->assertSame('sitemap:generate', file_get_contents($argumentsPath));
-
-        unlink($argumentsPath);
-        unlink($appBaseDirectory . '/artisan');
-        rmdir($appBaseDirectory);
     }
 
     public function test_robots_entrypoint_skips_generation_unless_enabled(): void

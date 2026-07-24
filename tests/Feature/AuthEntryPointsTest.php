@@ -79,8 +79,8 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeHtml('id="register_captcha"');
         $testResponse->assertSeeHtml('name="captcha"');
         $testResponse->assertSeeHtml(url('captcha/register'));
-        $testResponse->assertSeeHtml(route('terms-of-use'));
-        $testResponse->assertSeeHtml(route('gdpr'));
+        $testResponse->assertSeeHtml('http://localhost:4321/terms-of-use');
+        $testResponse->assertSeeHtml('http://localhost:4321/gdpr');
     }
 
     public function test_register_captcha_image_is_served_locally(): void

@@ -29,11 +29,11 @@ Agents MUST NOT invent business requirements. When instructions conflict, report
 
 ## Project Overview
 
-WebGuard Core is the Laravel Management Core & API for WebGuard. It owns the dashboard, admin panel, public status pages, REST API, monitoring orchestration, notification workflows, package administration, and legal/public content. Distributed scanning nodes live in the separate `webguard-instance` repository; do not implement scanning-node behavior here unless the core API contract or integration surface requires it.
+WebGuard Core is the Laravel Management Core & API for WebGuard. It owns the dashboard, admin panel, public status pages, REST API, monitoring orchestration, notification workflows, and package administration. Distributed scanning nodes live in the separate `webguard-instance` repository; do not implement scanning-node behavior here unless the core API contract or integration surface requires it.
 
 Primary stack:
 
-- Backend: PHP 8.5+, Laravel 13, Laravel Sanctum, Socialite, Scribe, Spatie activity log and sitemap.
+- Backend: PHP 8.5+, Laravel 13, Laravel Sanctum, Socialite, Scribe, and Spatie activity log.
 - Frontend: Blade, Vite, Tailwind CSS, Alpine.js, TypeScript, Chart.js, Axios.
 - Runtime services: MySQL-compatible database, Redis cache and queues, SMTP mail.
 - Tests: Pest, PHPUnit config, Pest Browser Plugin, SQLite in-memory defaults.

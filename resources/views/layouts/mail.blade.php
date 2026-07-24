@@ -275,14 +275,14 @@
             </div>
 
             <div class="mail-footer">
-                <p>&copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('legal.footer.content') }}</p>
+                <p>&copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('app.legal.footer_content') }}</p>
                 <p class="mail-legal-links">
                     @if (config('app.marketing_url'))
                         <a href="{{ config('app.marketing_url') }}">{{ __('app.marketing_site') }}</a>
                     @endif
-                    <a href="{{ route('imprint') }}">{{ __('imprint.footer_link') }}</a>
-                    <a href="{{ route('terms-of-use') }}">{{ __('legal.terms_of_use.footer_link') }}</a>
-                    <a href="{{ route('gdpr') }}">{{ __('gdpr.footer_link') }}</a>
+                    <a href="{{ \App\Support\LegalLinks::imprint() }}">{{ __('app.legal.imprint') }}</a>
+                    <a href="{{ \App\Support\LegalLinks::termsOfUse() }}">{{ __('app.legal.terms_of_use') }}</a>
+                    <a href="{{ \App\Support\LegalLinks::privacyPolicy() }}">{{ __('app.legal.privacy_policy') }}</a>
                 </p>
             </div>
         </div>

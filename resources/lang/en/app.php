@@ -54,4 +54,11 @@ return [
     'marketing_site' => 'WebGuard website',
     'api_documentation' => 'API documentation',
     'logo_alt' => 'WebGuard logo',
+    'legal' => [
+        'footer_content' => 'All rights reserved.',
+        'footer_nav_aria' => 'Footer links',
+        'imprint' => 'Imprint',
+        'terms_of_use' => 'Terms of Use',
+        'privacy_policy' => 'Privacy Policy',
+    ],
 ];
