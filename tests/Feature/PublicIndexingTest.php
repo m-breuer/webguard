@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class PublicIndexingTest extends TestCase
@@ -15,23 +17,40 @@ class PublicIndexingTest extends TestCase
         }
     }
 
-    public function test_robots_command_does_not_advertise_a_core_sitemap(): void
+    public function test_robots_txt_disallows_all_crawlers(): void
     {
-        $robotsPath = public_path('robots.txt');
-        $originalRobotsContent = file_get_contents($robotsPath);
+        $robotsContent = file_get_contents(public_path('robots.txt'));
 
-        $this->assertIsString($originalRobotsContent);
+        $this->assertSame("User-agent: *\nDisallow: /\n", $robotsContent);
+    }
 
-        try {
-            $this->artisan('robots:generate')->assertSuccessful();
+    public function test_sitemap_route_and_file_are_removed(): void
+    {
+        $this->assertFalse(Route::has('sitemap'));
+        $this->get('/sitemap.xml')->assertNotFound();
+        $this->assertFileDoesNotExist(public_path('sitemap.xml'));
+    }
 
-            $robotsContent = file_get_contents($robotsPath);
+    public function test_application_pages_send_a_global_no_crawl_header_without_seo_markup(): void
+    {
+        $testResponse = $this->get(route('login'));
 
-            $this->assertIsString($robotsContent);
-            $this->assertSame("User-agent: *\nAllow: /\n", $robotsContent);
-            $this->assertStringNotContainsString('/sitemap.xml', $robotsContent);
-        } finally {
-            file_put_contents($robotsPath, $originalRobotsContent);
-        }
+        $testResponse->assertOk();
+        $testResponse->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
+        $testResponse->assertDontSeeHtml('<meta name="robots"');
+        $testResponse->assertDontSeeHtml('<meta name="description"');
+        $testResponse->assertDontSeeHtml('<meta name="keywords"');
+        $testResponse->assertDontSeeHtml('property="og:');
+        $testResponse->assertDontSeeHtml('name="twitter:');
+        $testResponse->assertDontSeeHtml('<link rel="canonical"');
+        $testResponse->assertDontSeeHtml('application/ld+json');
+    }
+
+    public function test_sitemap_generation_commands_are_removed(): void
+    {
+        $commands = Artisan::all();
+
+        $this->assertArrayNotHasKey('sitemap:generate', $commands);
+        $this->assertArrayNotHasKey('robots:generate', $commands);
     }
 }

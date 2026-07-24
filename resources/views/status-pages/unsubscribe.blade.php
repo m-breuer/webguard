@@ -1,6 +1,5 @@
 <x-public-layout>
     <x-slot name="head">
-        <meta name="robots" content="noindex">
         <title>{{ __('status_page.public.subscribe.unsubscribe_title', ['statusPageName' => $statusPage->name]) }}</title>
     </x-slot>
 

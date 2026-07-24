@@ -36,13 +36,13 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeHtml('data-initial-mode="register"');
     }
 
-    public function test_auth_entry_pages_are_noindexed_and_not_publicly_cacheable(): void
+    public function test_auth_entry_pages_are_not_crawlable_and_not_publicly_cacheable(): void
     {
         foreach (['login', 'register'] as $routeName) {
             $testResponse = $this->get(route($routeName));
 
             $testResponse->assertOk();
-            $testResponse->assertSeeHtml('<meta name="robots" content="noindex, follow">');
+            $testResponse->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
 
             $cacheControl = (string) $testResponse->headers->get('Cache-Control');
 
@@ -81,6 +81,17 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeHtml(url('captcha/register'));
         $testResponse->assertSeeHtml('http://localhost:4321/terms-of-use');
         $testResponse->assertSeeHtml('http://localhost:4321/gdpr');
+    }
+
+    public function test_register_mode_uses_configured_landing_page_legal_links(): void
+    {
+        config()->set('app.marketing_url', 'https://marketing.example.test');
+
+        $testResponse = $this->get(route('login', ['mode' => 'register']));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('href="https://marketing.example.test/terms-of-use" target="_blank" rel="noopener"');
+        $testResponse->assertSeeHtml('href="https://marketing.example.test/gdpr" target="_blank" rel="noopener"');
     }
 
     public function test_register_captcha_image_is_served_locally(): void

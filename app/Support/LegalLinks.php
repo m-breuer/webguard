@@ -21,6 +21,11 @@ final class LegalLinks
         return self::url('gdpr');
     }
 
+    public static function isExternal(): bool
+    {
+        return filled(config('app.marketing_url'));
+    }
+
     private static function url(string $path): string
     {
         $baseUrl = config('app.marketing_url') ?: 'http://localhost:4321';

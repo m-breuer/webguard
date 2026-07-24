@@ -6,6 +6,7 @@
 @php
     $theme = auth()->check() ? auth()->user()->theme : 'system';
     $homeUrl = config('app.marketing_url') ?: route('login');
+    $homeIsExternal = filled(config('app.marketing_url'));
     if (! in_array($theme, ['light', 'dark', 'system'], true)) {
         $theme = 'system';
     }
@@ -15,7 +16,6 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex, follow">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {!! $head ?? '' !!}
@@ -25,15 +25,6 @@
     <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
 
-    <meta name="description" content="{{ __('app.description') }}">
-    <meta name="keywords" content="{{ __('app.keywords') }}">
-    <meta name="author" content="{{ __('app.author') }}">
-    <meta property="og:title" content="{{ __('app.og_title') }}">
-    <meta property="og:description" content="{{ __('app.og_description') }}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:image" content="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}">
-
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
 
@@ -42,7 +33,7 @@
         <nav class="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
-                    <a href="{{ $homeUrl }}" class="flex items-center">
+                    <a href="{{ $homeUrl }}" @if ($homeIsExternal) target="_blank" rel="noopener" @endif class="flex items-center">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
                         <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
                             {{ __('app.name') }}

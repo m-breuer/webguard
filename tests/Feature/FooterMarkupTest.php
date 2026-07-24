@@ -20,5 +20,6 @@ class FooterMarkupTest extends TestCase
         $testResponse->assertSeeHtml(LegalLinks::imprint());
         $testResponse->assertSeeHtml(LegalLinks::termsOfUse());
         $testResponse->assertSeeHtml(LegalLinks::privacyPolicy());
+        $testResponse->assertSeeHtml('target="_blank" rel="noopener"');
     }
 }

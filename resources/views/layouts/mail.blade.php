@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+@php
+    $legalLinksExternal = \App\Support\LegalLinks::isExternal();
+@endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
@@ -278,11 +281,11 @@
                 <p>&copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('app.legal.footer_content') }}</p>
                 <p class="mail-legal-links">
                     @if (config('app.marketing_url'))
-                        <a href="{{ config('app.marketing_url') }}">{{ __('app.marketing_site') }}</a>
+                        <a href="{{ config('app.marketing_url') }}" target="_blank" rel="noopener">{{ __('app.marketing_site') }}</a>
                     @endif
-                    <a href="{{ \App\Support\LegalLinks::imprint() }}">{{ __('app.legal.imprint') }}</a>
-                    <a href="{{ \App\Support\LegalLinks::termsOfUse() }}">{{ __('app.legal.terms_of_use') }}</a>
-                    <a href="{{ \App\Support\LegalLinks::privacyPolicy() }}">{{ __('app.legal.privacy_policy') }}</a>
+                    <a href="{{ \App\Support\LegalLinks::imprint() }}" @if ($legalLinksExternal) target="_blank" rel="noopener" @endif>{{ __('app.legal.imprint') }}</a>
+                    <a href="{{ \App\Support\LegalLinks::termsOfUse() }}" @if ($legalLinksExternal) target="_blank" rel="noopener" @endif>{{ __('app.legal.terms_of_use') }}</a>
+                    <a href="{{ \App\Support\LegalLinks::privacyPolicy() }}" @if ($legalLinksExternal) target="_blank" rel="noopener" @endif>{{ __('app.legal.privacy_policy') }}</a>
                 </p>
             </div>
         </div>
