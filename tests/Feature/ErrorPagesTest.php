@@ -28,13 +28,13 @@ class ErrorPagesTest extends TestCase
 
     public function test_not_found_page_uses_the_webguard_error_design(): void
     {
-        $response = $this->get('/webguard-error-page-that-does-not-exist');
+        $testResponse = $this->get('/webguard-error-page-that-does-not-exist');
 
-        $response->assertNotFound();
-        $response->assertSeeText('404');
-        $response->assertSeeText(__('errors.status.404.title'));
-        $response->assertSeeText(__('errors.eyebrow'));
-        $response->assertSee(__('app.logo_alt'));
+        $testResponse->assertNotFound();
+        $testResponse->assertSeeText('404');
+        $testResponse->assertSeeText(__('errors.status.404.title'));
+        $testResponse->assertSeeText(__('errors.eyebrow'));
+        $testResponse->assertSee(__('app.logo_alt'));
     }
 
     public function test_error_page_uses_the_active_application_locale(): void
