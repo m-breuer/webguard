@@ -11,7 +11,7 @@ class FooterMarkupTest extends TestCase
     public function test_footer_renders_core_links_and_optional_marketing_link(): void
     {
         config()->set('app.marketing_url', 'https://marketing.example.test');
-        config()->set('app.marketing_legal_url', null);
+        config()->set('app.marketing_legal_url');
 
         $this->configureImprint();
 

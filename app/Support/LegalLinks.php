@@ -30,7 +30,7 @@ final class LegalLinks
     {
         $baseUrl = config('app.marketing_legal_url');
 
-        if (! filled($baseUrl)) {
+        if (blank($baseUrl)) {
             return $fallback;
         }
 
