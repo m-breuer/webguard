@@ -79,13 +79,13 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeHtml('id="register_captcha"');
         $testResponse->assertSeeHtml('name="captcha"');
         $testResponse->assertSeeHtml(url('captcha/register'));
-        $testResponse->assertSeeHtml(route('terms-of-use'));
-        $testResponse->assertSeeHtml(route('gdpr'));
+        $testResponse->assertSeeHtml('http://localhost:4321/terms-of-use');
+        $testResponse->assertSeeHtml('http://localhost:4321/gdpr');
     }
 
-    public function test_register_mode_uses_configured_external_legal_links(): void
+    public function test_register_mode_uses_configured_landing_page_legal_links(): void
     {
-        config()->set('app.marketing_legal_url', 'https://marketing.example.test');
+        config()->set('app.marketing_url', 'https://marketing.example.test');
 
         $testResponse = $this->get(route('login', ['mode' => 'register']));
 

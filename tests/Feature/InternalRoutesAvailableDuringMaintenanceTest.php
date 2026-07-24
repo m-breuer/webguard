@@ -49,13 +49,6 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
         };
         $this->app->instance(MaintenanceMode::class, $this->maintenanceMode);
 
-        config()->set('imprint.operator_name', 'Max Mustermann');
-        config()->set('imprint.street', 'Musterstrasse 1');
-        config()->set('imprint.postal_code', '10115');
-        config()->set('imprint.city', 'Berlin');
-        config()->set('imprint.country', 'Germany');
-        config()->set('imprint.email', 'max@example.test');
-        config()->set('imprint.phone', '+49 1512 3456789');
     }
 
     protected function tearDown(): void
@@ -100,8 +93,7 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
             $legacyInternalResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/status');
             $legacyInternalResponse->assertOk();
 
-            $gdprResponse = $this->get(route('gdpr'));
-            $gdprResponse->assertOk();
+            $this->get('/gdpr')->assertNotFound();
         } finally {
             $this->maintenanceMode->deactivate();
         }

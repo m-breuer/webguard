@@ -49,4 +49,11 @@ return [
     'marketing_site' => 'WebGuard-Website',
     'api_documentation' => 'API-Dokumentation',
     'logo_alt' => 'WebGuard-Logo',
+    'legal' => [
+        'footer_content' => 'Alle Rechte vorbehalten.',
+        'footer_nav_aria' => 'Footer-Links',
+        'imprint' => 'Impressum',
+        'terms_of_use' => 'Nutzungsbedingungen',
+        'privacy_policy' => 'Datenschutzerklärung',
+    ],
 ];

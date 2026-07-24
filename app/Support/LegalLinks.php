@@ -8,31 +8,27 @@ final class LegalLinks
 {
     public static function imprint(): string
     {
-        return self::url('imprint', route('imprint'));
+        return self::url('imprint');
     }
 
     public static function termsOfUse(): string
     {
-        return self::url('terms-of-use', route('terms-of-use'));
+        return self::url('terms-of-use');
     }
 
     public static function privacyPolicy(): string
     {
-        return self::url('gdpr', route('gdpr'));
+        return self::url('gdpr');
     }
 
     public static function isExternal(): bool
     {
-        return filled(config('app.marketing_legal_url'));
+        return filled(config('app.marketing_url'));
     }
 
-    private static function url(string $path, string $fallback): string
+    private static function url(string $path): string
     {
-        $baseUrl = config('app.marketing_legal_url');
-
-        if (blank($baseUrl)) {
-            return $fallback;
-        }
+        $baseUrl = config('app.marketing_url') ?: 'http://localhost:4321';
 
         return mb_rtrim((string) $baseUrl, '/') . '/' . $path;
     }

@@ -12,7 +12,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\IncidentAnalyticsController;
 use App\Http\Controllers\LegacyPublicStatusPageController;
-use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\MonitoringController;
@@ -50,19 +49,6 @@ Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProv
 Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
 Route::redirect('/', '/login')->name('home');
-Route::get('/imprint', [LegalController::class, 'imprint'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('imprint');
-Route::get('/terms-of-use', [LegalController::class, 'termsOfUse'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('terms-of-use');
-Route::get('/gdpr', [LegalController::class, 'gdpr'])
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('gdpr');
-
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 Route::match(['get', 'post'], '/heartbeat/{token}', HeartbeatPingController::class)->name('monitorings.heartbeat.ping');
 Route::permanentRedirect('/api/docs', '/api/reference')->name('api.docs.redirect');
@@ -225,5 +211,4 @@ Route::group(
     }
 );
 
-require __DIR__ . '/redirects.php';
 require __DIR__ . '/auth.php';

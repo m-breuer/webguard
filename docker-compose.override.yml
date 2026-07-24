@@ -2,7 +2,7 @@ x-local-app-environment: &local-app-environment
   APP_ENV: "local"
   APP_DEBUG: "true"
   APP_URL: "http://${DOCKER_APP_HOST:-webguard.test}"
-  MARKETING_LEGAL_URL: "${MARKETING_LEGAL_URL:-}"
+  MARKETING_URL: "${MARKETING_URL:-http://localhost:4321}"
   DB_CONNECTION: "mysql"
   DB_HOST: "mysql"
   DB_PORT: "3306"

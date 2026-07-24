@@ -56,9 +56,7 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'marketing_url' => env('MARKETING_URL'),
-
-    'marketing_legal_url' => env('MARKETING_LEGAL_URL'),
+    'marketing_url' => env('MARKETING_URL', 'http://localhost:4321'),
 
     /*
     |--------------------------------------------------------------------------
