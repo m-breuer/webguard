@@ -131,6 +131,7 @@ Optional:
 
 - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
 - `MARKETING_URL` for an optional link to a separately deployed marketing website
+- `MARKETING_LEGAL_URL` for optional canonical legal pages on the separately deployed marketing website; the application appends `/imprint`, `/terms-of-use`, and `/gdpr`
 - `IMPRINT_*` fields for legal/imprint content
 
 ### Build and Startup Performance

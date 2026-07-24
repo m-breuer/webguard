@@ -7,6 +7,7 @@
 
     $pageTitle = isset($title) ? trim((string) $title) : __('app.title');
     $homeUrl = config('app.marketing_url') ?: route('login');
+    $homeIsExternal = filled(config('app.marketing_url'));
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
 
@@ -33,7 +34,7 @@
         <header class="relative z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-950/80" style="z-index: 40;">
             <nav aria-label="{{ __('app.navigation.home') }}">
                 <x-main class="flex w-full items-center justify-between py-4">
-                    <a href="{{ $homeUrl }}" class="flex items-center gap-3">
+                    <a href="{{ $homeUrl }}" @if ($homeIsExternal) target="_blank" rel="noopener" @endif class="flex items-center gap-3">
                         <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('app.logo_alt') }}" class="h-9 w-9">
                         <x-span class="hidden text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:inline">{{ __('app.name') }}</x-span>
                     </a>

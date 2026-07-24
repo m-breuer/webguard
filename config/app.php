@@ -58,6 +58,8 @@ return [
 
     'marketing_url' => env('MARKETING_URL'),
 
+    'marketing_legal_url' => env('MARKETING_LEGAL_URL'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
