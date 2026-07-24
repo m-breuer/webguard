@@ -12,27 +12,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {!! $head ?? '' !!}
 
-    <title>WebGuard – Website, Server & Port Monitoring (GDPR-ready)</title>
+    <title>{{ __('app.title') }}</title>
 
     <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
-
-    <meta name="description"
-        content="WebGuard is the GDPR-compliant monitoring solution for websites, servers, and ports. Track uptime, performance, and security from a single dashboard.">
-    <meta name="keywords"
-        content="uptime monitoring, server monitoring, port check, GDPR monitoring, WebGuard, website monitoring, performance tracker">
-    <meta name="author" content="Marcel Breuer">
-    <meta property="og:title" content="WebGuard – Website, Server & Port Monitoring (GDPR-ready)">
-    <meta property="og:description"
-        content="GDPR-compliant and powerful monitoring for your websites, servers, and ports. Uptime, response times, and security at a glance.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:image" content="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
     <script>

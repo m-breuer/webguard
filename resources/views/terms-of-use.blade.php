@@ -1,10 +1,5 @@
 <x-legal-layout>
-    <x-slot:title>{{ __('legal.terms_of_use.seo.title') }}</x-slot:title>
-    <x-slot:description>{{ __('legal.terms_of_use.seo.description') }}</x-slot:description>
-    <x-slot:keywords>{{ __('legal.terms_of_use.seo.keywords') }}</x-slot:keywords>
-    <x-slot:ogTitle>{{ __('legal.terms_of_use.seo.og_title') }}</x-slot:ogTitle>
-    <x-slot:ogDescription>{{ __('legal.terms_of_use.seo.og_description') }}</x-slot:ogDescription>
-    <x-slot:canonical>{{ route('terms-of-use') }}</x-slot:canonical>
+    <x-slot:title>{{ __('legal.terms_of_use.hero.title') }}</x-slot:title>
 
     <main class="py-14 lg:py-20">
         <x-main class="w-full space-y-8 lg:space-y-10">

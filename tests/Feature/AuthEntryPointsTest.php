@@ -36,13 +36,13 @@ class AuthEntryPointsTest extends TestCase
         $testResponse->assertSeeHtml('data-initial-mode="register"');
     }
 
-    public function test_auth_entry_pages_are_noindexed_and_not_publicly_cacheable(): void
+    public function test_auth_entry_pages_are_not_crawlable_and_not_publicly_cacheable(): void
     {
         foreach (['login', 'register'] as $routeName) {
             $testResponse = $this->get(route($routeName));
 
             $testResponse->assertOk();
-            $testResponse->assertSeeHtml('<meta name="robots" content="noindex, follow">');
+            $testResponse->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
 
             $cacheControl = (string) $testResponse->headers->get('Cache-Control');
 

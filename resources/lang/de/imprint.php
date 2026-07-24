@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 return [
-    'seo' => [
-        'title' => 'Impressum | WebGuard',
-        'description' => 'Rechtliche Angaben und Kontaktinformationen zu WebGuard.',
-        'keywords' => 'webguard impressum, rechtliche angaben, kontakt',
-        'og_title' => 'WebGuard Impressum',
-        'og_description' => 'Rechtliche Betreiberdaten und Kontaktinformationen zu WebGuard.',
-    ],
     'hero' => [
         'eyebrow' => 'Rechtliche Angaben',
         'title' => 'Impressum',

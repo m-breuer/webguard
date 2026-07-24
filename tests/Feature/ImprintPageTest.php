@@ -25,7 +25,7 @@ class ImprintPageTest extends TestCase
         $testResponse->assertSeeHtml('data-phone-payload=');
         $testResponse->assertSeeText(__('imprint.sections.disclaimer'));
         $testResponse->assertSeeText(__('imprint.disclaimer'));
-        $testResponse->assertSeeHtml('<meta name="robots" content="index, follow">');
+        $testResponse->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
         $testResponse->assertSeeHtml('rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 sm:p-10');
     }
 
@@ -34,14 +34,6 @@ class ImprintPageTest extends TestCase
         $testResponse = $this->get('/impressum');
 
         $testResponse->assertRedirect(route('imprint'));
-    }
-
-    public function test_imprint_page_is_included_in_sitemap(): void
-    {
-        $testResponse = $this->get(route('sitemap'));
-
-        $testResponse->assertOk();
-        $testResponse->assertSeeHtml(route('imprint'));
     }
 
     public function test_footer_contains_imprint_link(): void
@@ -53,15 +45,6 @@ class ImprintPageTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('imprint.footer_link'));
         $testResponse->assertSeeHtml(route('imprint'));
-    }
-
-    public function test_robots_txt_allows_imprint_routes(): void
-    {
-        $robotsContent = file_get_contents(public_path('robots.txt'));
-
-        $this->assertIsString($robotsContent);
-        $this->assertStringNotContainsString('Disallow: /imprint', $robotsContent);
-        $this->assertStringNotContainsString('Disallow: /impressum', $robotsContent);
     }
 
     private function configureImprint(): void

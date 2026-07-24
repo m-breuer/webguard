@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 return [
     'terms_of_use' => [
-        'seo' => [
-            'title' => 'Nutzungsbedingungen | WebGuard',
-            'description' => 'Nutzungsbedingungen für die nicht-kommerzielle WebGuard-Demoplattform.',
-            'keywords' => 'webguard nutzungsbedingungen, rechtliche bedingungen, demo monitoring',
-            'og_title' => 'WebGuard Nutzungsbedingungen',
-            'og_description' => 'Rechtliche Bedingungen für die Nutzung der WebGuard-Demoplattform.',
-        ],
         'hero' => [
             'eyebrow' => 'Rechtliche Bedingungen',
             'title' => 'Nutzungsbedingungen',
@@ -73,13 +66,6 @@ return [
         'footer_link' => 'Nutzungsbedingungen',
     ],
     'privacy_policy' => [
-        'seo' => [
-            'title' => 'DSGVO-Datenschutzhinweise | WebGuard',
-            'description' => 'Datenschutz- und DSGVO-Informationen für WebGuard.',
-            'keywords' => 'webguard dsgvo, datenschutz, datenschutzhinweise',
-            'og_title' => 'WebGuard DSGVO-Datenschutzhinweise',
-            'og_description' => 'Informationen zur Verarbeitung personenbezogener Daten bei WebGuard.',
-        ],
         'hero' => [
             'eyebrow' => 'Datenschutz',
             'title' => 'DSGVO-Datenschutzhinweise',

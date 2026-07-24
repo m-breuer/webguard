@@ -1,7 +1,5 @@
 <x-public-layout>
     <x-slot name="head">
-        <meta name="robots" content="noindex">
-        <link rel="canonical" href="{{ route('public-status-pages.show', $statusPage) }}">
         <title>{{ __('status_page.public.title', ['statusPage' => $statusPage->name]) }}</title>
     </x-slot>
 

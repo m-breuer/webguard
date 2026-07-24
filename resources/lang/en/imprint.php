@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 return [
-    'seo' => [
-        'title' => 'Imprint | WebGuard',
-        'description' => 'Legal notice and contact details for WebGuard.',
-        'keywords' => 'webguard imprint, legal notice, operator contact',
-        'og_title' => 'WebGuard Imprint',
-        'og_description' => 'Legal operator details and contact information for WebGuard.',
-    ],
     'hero' => [
         'eyebrow' => 'Legal Notice',
         'title' => 'Imprint',

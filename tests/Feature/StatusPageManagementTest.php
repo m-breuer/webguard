@@ -71,7 +71,7 @@ class StatusPageManagementTest extends TestCase
         $this->assertStringNotContainsString('acme-status', $canonicalUrl);
         $this->assertNotSame($canonicalUrl, $sameNameCanonicalUrl);
 
-        $this->get($canonicalUrl)->assertOk()->assertSeeHtml('<link rel="canonical" href="' . $canonicalUrl . '">');
+        $this->get($canonicalUrl)->assertOk();
         $this->get($sameNameCanonicalUrl)->assertOk();
         $this->get(route('legacy-public-status-pages.show', 'acme-status'))
             ->assertRedirect($canonicalUrl)

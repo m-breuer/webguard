@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\AuthenticateInstance;
 use App\Http\Middleware\CheckUserRole;
+use App\Http\Middleware\PreventCrawling;
 use App\Http\Middleware\SetLocaleMiddleware;
 use App\Http\Middleware\SetPublicCacheHeaders;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/status',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(PreventCrawling::class);
         $middleware->web(SetLocaleMiddleware::class);
         $middleware->preventRequestsDuringMaintenance([
             'api/v1/internal/*',
