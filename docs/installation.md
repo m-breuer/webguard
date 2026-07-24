@@ -137,15 +137,13 @@ Optional:
 
 The production Dockerfile uses BuildKit cache mounts for Composer and Bun dependency downloads. Keep BuildKit enabled in Docker, Docker Compose, or your deployment platform so repeated builds can reuse those caches.
 
-The production web container regenerates `robots.txt` from `APP_URL` on startup. Optional sitemap and Scribe generation remain disabled by default to keep deploys and restarts faster:
+The production web container ships a static `robots.txt` that disallows all crawlers. The app also sends an `X-Robots-Tag` header on every response. SEO metadata, sitemap generation, and crawler-facing routes are intentionally not part of the core app; public discovery belongs to the separately deployed marketing website.
 
 ```env
-AUTORUN_LARAVEL_ROBOTS_GENERATE=true
-AUTORUN_LARAVEL_SITEMAP_GENERATE=false
 AUTORUN_LARAVEL_SCRIBE_GENERATE=false
 ```
 
-The robots file is regenerated from `APP_URL` during startup by default. Set `AUTORUN_LARAVEL_ROBOTS_GENERATE=false` only when you manage that file separately. Set the sitemap or Scribe flags to `true` when the container should regenerate those static artifacts during startup. The entrypoint scripts remain installed in the image and skip work unless the matching flag is enabled.
+Scribe generation remains optional and is unrelated to public search indexing.
 
 ### External Database and Redis
 
@@ -296,8 +294,6 @@ DOCKER_MAILPIT_UI_PORT=8025
 DOCKER_SSL_MODE=off
 WEBGUARD_NETWORK=webguard-network
 COMPOSE_PROFILES=internal-services
-AUTORUN_LARAVEL_ROBOTS_GENERATE=true
-AUTORUN_LARAVEL_SITEMAP_GENERATE=false
 AUTORUN_LARAVEL_SCRIBE_GENERATE=false
 ```
 
@@ -309,12 +305,6 @@ Run migrations:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate
-```
-
-Regenerate `public/robots.txt` from the configured `APP_URL`:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan robots:generate
 ```
 
 Run one queue job:

@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 return [
-    'seo' => [
-        'title' => 'Privacy Policy | WebGuard',
-        'description' => 'Privacy Policy according to GDPR for WebGuard.',
-        'keywords' => 'privacy policy, gdpr, data protection, webguard',
-        'og_title' => 'WebGuard Privacy Policy',
-        'og_description' => 'How WebGuard processes personal data under GDPR.',
-    ],
     'footer_link' => 'Privacy Policy',
     'hero' => [
         'eyebrow' => 'Data Protection',

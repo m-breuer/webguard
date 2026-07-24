@@ -59,14 +59,6 @@ class ConsoleCommandRegistrationTest extends TestCase
                 'notifications:send-weekly-monitoring-digest',
                 'Sends weekly email summaries with uptime, incidents, downtime, and expiry warnings.',
             ],
-            'generate sitemap' => [
-                'sitemap:generate',
-                'Generate the sitemap.',
-            ],
-            'generate robots.txt' => [
-                'robots:generate',
-                'Generate robots.txt.',
-            ],
             'create admin user' => [
                 'user:create-admin',
                 'Create a new admin user with a default password.',

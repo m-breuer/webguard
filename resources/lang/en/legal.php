@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 return [
     'terms_of_use' => [
-        'seo' => [
-            'title' => 'Terms of Use | WebGuard',
-            'description' => 'Terms of Use for the non-commercial WebGuard demonstration platform.',
-            'keywords' => 'webguard terms of use, legal terms, demo monitoring terms',
-            'og_title' => 'WebGuard Terms of Use',
-            'og_description' => 'Legal terms for using the WebGuard demonstration and testing platform.',
-        ],
         'hero' => [
             'eyebrow' => 'Legal Terms',
             'title' => 'Terms of Use',
@@ -73,13 +66,6 @@ return [
         'footer_link' => 'Terms of Use',
     ],
     'privacy_policy' => [
-        'seo' => [
-            'title' => 'GDPR Privacy Notice | WebGuard',
-            'description' => 'Privacy and data protection information for WebGuard.',
-            'keywords' => 'webguard gdpr, privacy policy, data protection',
-            'og_title' => 'WebGuard GDPR Privacy Notice',
-            'og_description' => 'Information about personal data processing on WebGuard.',
-        ],
         'hero' => [
             'eyebrow' => 'Data Protection',
             'title' => 'GDPR Privacy Notice',

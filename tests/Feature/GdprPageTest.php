@@ -30,7 +30,7 @@ class GdprPageTest extends TestCase
         $testResponse->assertDontSeeText('+49 1512 3456789');
         $testResponse->assertSeeHtml('data-email-payload=');
         $testResponse->assertSeeHtml('data-phone-payload=');
-        $testResponse->assertSeeHtml('<meta name="robots" content="index, follow">');
+        $testResponse->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex');
     }
 
     public function test_gdpr_contact_section_uses_the_default_card_style(): void
@@ -88,14 +88,6 @@ class GdprPageTest extends TestCase
         $testResponse->assertRedirect(route('gdpr'));
     }
 
-    public function test_gdpr_page_is_included_in_sitemap(): void
-    {
-        $testResponse = $this->get(route('sitemap'));
-
-        $testResponse->assertOk();
-        $testResponse->assertSeeHtml(route('gdpr'));
-    }
-
     public function test_footer_contains_gdpr_link(): void
     {
         $testResponse = $this->get(route('gdpr'));
@@ -103,16 +95,6 @@ class GdprPageTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('gdpr.footer_link'));
         $testResponse->assertSeeHtml(route('gdpr'));
-    }
-
-    public function test_robots_txt_allows_gdpr_routes(): void
-    {
-        $robotsContent = file_get_contents(public_path('robots.txt'));
-
-        $this->assertIsString($robotsContent);
-        $this->assertStringNotContainsString('Disallow: /gdpr', $robotsContent);
-        $this->assertStringNotContainsString('Disallow: /datenschutz', $robotsContent);
-        $this->assertStringNotContainsString('Disallow: /privacy-policy', $robotsContent);
     }
 
     public function test_accept_language_header_is_used_for_gdpr_page(): void

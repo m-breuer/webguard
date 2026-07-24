@@ -1,10 +1,5 @@
 <x-legal-layout>
-    <x-slot:title>{{ __('imprint.seo.title') }}</x-slot:title>
-    <x-slot:description>{{ __('imprint.seo.description') }}</x-slot:description>
-    <x-slot:keywords>{{ __('imprint.seo.keywords') }}</x-slot:keywords>
-    <x-slot:ogTitle>{{ __('imprint.seo.og_title') }}</x-slot:ogTitle>
-    <x-slot:ogDescription>{{ __('imprint.seo.og_description') }}</x-slot:ogDescription>
-    <x-slot:canonical>{{ route('imprint') }}</x-slot:canonical>
+    <x-slot:title>{{ __('imprint.hero.title') }}</x-slot:title>
 
     <main class="py-14 lg:py-20">
         <x-main class="w-full space-y-8 lg:space-y-10">

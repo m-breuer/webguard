@@ -1,6 +1,5 @@
 <x-public-layout>
     <x-slot name="head">
-        <meta name="robots" content="noindex">
         <title>{{ __('monitoring.public_label.subscribe.unsubscribe_title', ['monitoringName' => $monitoring->name]) }}</title>
     </x-slot>
 

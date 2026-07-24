@@ -8,12 +8,7 @@
 @endphp
 
 <x-legal-layout>
-    <x-slot:title>{{ __('gdpr.seo.title') }}</x-slot:title>
-    <x-slot:description>{{ __('gdpr.seo.description') }}</x-slot:description>
-    <x-slot:keywords>{{ __('gdpr.seo.keywords') }}</x-slot:keywords>
-    <x-slot:ogTitle>{{ __('gdpr.seo.og_title') }}</x-slot:ogTitle>
-    <x-slot:ogDescription>{{ __('gdpr.seo.og_description') }}</x-slot:ogDescription>
-    <x-slot:canonical>{{ route('gdpr') }}</x-slot:canonical>
+    <x-slot:title>{{ __('gdpr.hero.title') }}</x-slot:title>
 
     <main class="py-14 lg:py-20">
         <x-main class="w-full space-y-8 lg:space-y-10">

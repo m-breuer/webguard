@@ -130,7 +130,7 @@ Prioritize tests around these project-specific risks:
 
 - Monitoring state transitions, failure confirmation thresholds, and lifecycle status.
 - Response time, uptime, SLA, heatmap, and calendar aggregation calculations.
-- Status pages, incident updates, subscribers, and public indexing behavior.
+- Status pages, incident updates, subscribers, and public crawl protection behavior.
 - Notification routing, channel delivery history, digest commands, expiry warnings,
   and unread reminders.
 - Heartbeat monitoring and dedicated heartbeat queue behavior.

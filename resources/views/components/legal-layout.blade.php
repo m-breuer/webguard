@@ -5,18 +5,7 @@
         $theme = 'system';
     }
 
-    $seoTitle = isset($title) ? trim((string) $title) : __('app.title');
-    $seoDescription = isset($description) ? trim((string) $description) : __('app.description');
-    $seoKeywords = isset($keywords) ? trim((string) $keywords) : __('app.keywords');
-    $seoCanonical = isset($canonical) ? trim((string) $canonical) : url('/');
-    $seoOgTitle = isset($ogTitle) ? trim((string) $ogTitle) : __('app.og_title');
-    $seoOgDescription = isset($ogDescription) ? trim((string) $ogDescription) : __('app.og_description');
-    $seoOgUrl = isset($ogUrl) ? trim((string) $ogUrl) : $seoCanonical;
-    $seoOgImage = isset($ogImage) ? trim((string) $ogImage) : Vite::asset('resources/images/Logo-WebGuard.png');
-    $seoTwitterTitle = isset($twitterTitle) ? trim((string) $twitterTitle) : $seoOgTitle;
-    $seoTwitterDescription = isset($twitterDescription) ? trim((string) $twitterDescription) : $seoOgDescription;
-    $seoTwitterImage = isset($twitterImage) ? trim((string) $twitterImage) : $seoOgImage;
-    $structuredData = \App\Support\Seo\StructuredData::legalPage($seoTitle, $seoDescription, $seoCanonical, Vite::asset('resources/images/Logo-WebGuard.png'));
+    $pageTitle = isset($title) ? trim((string) $title) : __('app.title');
     $homeUrl = config('app.marketing_url') ?: route('login');
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
@@ -24,35 +13,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="{{ isset($robots) ? trim($robots) : 'index, follow' }}">
-
     {!! $head ?? '' !!}
 
-    <title>{{ $seoTitle }}</title>
+    <title>{{ $pageTitle }}</title>
 
     <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
-
-    <meta name="description" content="{{ $seoDescription }}">
-    <meta name="keywords" content="{{ $seoKeywords }}">
-    <meta name="author" content="{{ __('app.author') }}">
-
-    <meta property="og:title" content="{{ $seoOgTitle }}">
-    <meta property="og:description" content="{{ $seoOgDescription }}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ $seoOgUrl }}">
-    <meta property="og:image" content="{{ $seoOgImage }}">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seoTwitterTitle }}">
-    <meta name="twitter:description" content="{{ $seoTwitterDescription }}">
-    <meta name="twitter:image" content="{{ $seoTwitterImage }}">
-
-    <link rel="canonical" href="{{ $seoCanonical }}">
-
-    <script type="application/ld+json">
-        {!! \App\Support\Seo\StructuredData::toJson($structuredData) !!}
-    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>

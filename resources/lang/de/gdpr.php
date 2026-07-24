@@ -3,13 +3,6 @@
 declare(strict_types=1);
 
 return [
-    'seo' => [
-        'title' => 'Datenschutzerklärung | WebGuard',
-        'description' => 'Datenschutzerklärung gemäß DSGVO für WebGuard.',
-        'keywords' => 'datenschutz, dsgvo, privacy policy, webguard',
-        'og_title' => 'WebGuard Datenschutzerklärung',
-        'og_description' => 'Wie WebGuard personenbezogene Daten nach DSGVO verarbeitet.',
-    ],
     'footer_link' => 'Datenschutzerklärung',
     'hero' => [
         'eyebrow' => 'Datenschutz',

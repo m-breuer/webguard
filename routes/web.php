@@ -35,7 +35,6 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamInvitationAcceptController;
 use App\Http\Controllers\TeamInvitationController;
 use App\Http\Controllers\TeamMemberController;
-use App\Support\SitemapPages;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -69,14 +68,6 @@ Route::match(['get', 'post'], '/heartbeat/{token}', HeartbeatPingController::cla
 Route::permanentRedirect('/api/docs', '/api/reference')->name('api.docs.redirect');
 Route::get('/team-invitations/{token}/accept', TeamInvitationAcceptController::class)
     ->name('team-invitations.accept');
-
-// Public sitemap.xml
-Route::get('/sitemap.xml', function () {
-    return SitemapPages::sitemap()->toResponse(request());
-})
-    ->withoutMiddleware($sessionlessPublicRoutes)
-    ->middleware('public.cache')
-    ->name('sitemap');
 
 Route::get('/label/{monitoring}', PublicLabelController::class)
     ->name('public-label')
