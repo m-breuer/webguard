@@ -12,7 +12,7 @@
         <div
             id="dashboard-page-content"
             data-dashboard-loader
-            data-endpoint="{{ route('dashboard', request()->query()) }}"
+            data-endpoint="{{ route('dashboard', request()->query(), absolute: false) }}"
             x-data="dashboardLoader()"
             class="space-y-6"
             aria-live="polite"

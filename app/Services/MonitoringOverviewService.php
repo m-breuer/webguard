@@ -129,7 +129,7 @@ class MonitoringOverviewService
             $signalRoomServices->count(),
             10,
             max(1, $servicePage),
-            ['pageName' => 'service_page', 'path' => route('dashboard')],
+            ['pageName' => 'service_page', 'path' => route('dashboard', absolute: false)],
         );
 
         return [
