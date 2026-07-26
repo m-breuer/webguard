@@ -32,7 +32,9 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeHtml('data-dashboard-loader')
             ->assertSeeHtml('x-data="dashboardLoader()"')
             ->assertSeeHtml('data-endpoint="/dashboard"')
-            ->assertSeeText(__('app.loading'))
+            ->assertSeeHtml('data-loading-skeleton="dashboard"')
+            ->assertSeeHtml('class="h-5 w-5 animate-spin text-purple-500"')
+            ->assertDontSeeText(__('app.loading'))
             ->assertDontSeeHtml('data-signal-room');
     }
 

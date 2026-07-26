@@ -28,7 +28,7 @@
             <x-form-modal name="status-page-form-modal" title="{{ __('status_page.title') }}"
                 description="{{ __('status_page.form.components') }}" max-width="5xl">
                 <div class="p-6" x-ref="content">
-                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <x-loading-indicator x-show="loading" x-cloak :show-label="false" class="justify-center" />
                     <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
                     <div x-html="content"></div>
                 </div>
@@ -431,7 +431,7 @@
             <x-form-modal name="monitoring-group-form-modal" title="{{ __('monitoring_group.title') }}"
                 description="{{ __('monitoring_group.form.monitorings') }}" max-width="3xl">
                 <div class="p-6" x-ref="content">
-                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <x-loading-indicator x-show="loading" x-cloak :show-label="false" class="justify-center" />
                     <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
                     <div x-html="content"></div>
                 </div>

@@ -28,7 +28,8 @@ class IncidentWorkflowTest extends TestCase
         $this->actingAs($user)->get(route('incidents.analytics'))
             ->assertOk()
             ->assertSeeHtml('data-incident-analytics-loader')
-            ->assertSeeText(__('app.loading'))
+            ->assertSeeHtml('data-loading-skeleton="section"')
+            ->assertDontSeeText(__('app.loading'))
             ->assertDontSeeHtml('data-incident-overview-table');
     }
 
