@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Data\MonitoringIndexFilters;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
@@ -15,11 +16,11 @@ use App\Models\ServerInstance;
 use App\Models\Team;
 use App\Models\User;
 use App\Queries\MonitoringDetailQuery;
+use App\Queries\MonitoringIndexQuery;
 use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
 use App\Services\RegionalConsensusService;
 use App\Support\MonitoringPayload;
 use Illuminate\Cache\TaggableStore;
-use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,7 +43,8 @@ class MonitoringController extends Controller
      */
     public function index(
         Request $request,
-        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver
+        MonitoringNotificationPreferenceResolver $monitoringNotificationPreferenceResolver,
+        MonitoringIndexQuery $monitoringIndexQuery,
     ): View {
         /** @var User $currentUser */
         $currentUser = $request->user()->loadMissing('package');
@@ -87,109 +89,29 @@ class MonitoringController extends Controller
             'maintenance' => ['nullable', 'string', Rule::in(['active'])],
         ]);
 
-        $query = Monitoring::query()
-            ->select([
-                'id',
-                'name',
-                'target',
-                'type',
-                'status',
-                'public_label_enabled',
-                'maintenance_from',
-                'maintenance_until',
-            ]);
-
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function (Builder $builder) use ($search): void {
-                $builder->where('name', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('target', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('port', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('keyword', 'like', sprintf('%%%s%%', $search));
-            });
-        }
-
-        if ($request->filled('types')) {
-            $types = explode(',', (string) $request->input('types'));
-            $query->whereIn('type', $types);
-        }
-
-        if ($request->filled('lifecycle')) {
-            $query->where('status', $request->lifecycle);
-        }
-
-        if ($request->filled('group_id')) {
-            $query->whereHas('groups', function ($builder) use ($request): void {
-                $builder->where('monitoring_groups.id', $request->string('group_id')->toString());
-            });
-        }
-
-        if ($request->filled('team_id')) {
-            $query->where('team_id', $request->string('team_id')->toString());
-        }
-
-        if ($request->input('ownership') === 'private') {
-            $query->whereNull('team_id');
-        } elseif ($request->input('ownership') === 'team') {
-            $query->whereNotNull('team_id');
-        }
-
-        if ($request->filled('health')) {
-            $healthStatuses = explode(',', (string) $request->input('health'));
-
-            $query->where(function (Builder $builder) use ($healthStatuses): void {
-                if (in_array(MonitoringStatus::UP->value, $healthStatuses, true)) {
-                    $builder->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::UP));
-                }
-
-                if (in_array(MonitoringStatus::DOWN->value, $healthStatuses, true)) {
-                    $builder->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::DOWN));
-                }
-
-                if (in_array(MonitoringStatus::UNKNOWN->value, $healthStatuses, true)) {
-                    $builder->orWhereDoesntHave('latestResponseResult')
-                        ->orWhereHas('latestResponseResult', fn ($query) => $query->where('status', MonitoringStatus::UNKNOWN));
-                }
-            });
-        }
-
-        if ($request->input('maintenance') === 'active') {
-            $query->whereNotNull('maintenance_from')
-                ->where('maintenance_from', '<=', now())
-                ->where(function (Builder $builder): void {
-                    $builder->whereNull('maintenance_until')
-                        ->orWhere('maintenance_until', '>=', now());
-                });
-        }
-
-        $query->orderBy('status');
-
-        match ($request->input('sort')) {
-            'name_desc' => $query->orderByDesc('name'),
-            'created_asc' => $query->oldest('monitorings.created_at'),
-            'created_desc' => $query->latest('monitorings.created_at'),
-            default => $query->orderBy('name'),
-        };
-
-        $summaryMonitoringIds = (clone $query)->select('id')->reorder()->pluck('id')->values();
-        $lengthAwarePaginator = $query->withMaintenanceWindowState()->paginate(5);
-        $hasActiveFilters = $request->filled('search')
-            || $request->filled('types')
-            || $request->filled('lifecycle')
-            || $request->filled('group_id')
-            || $request->filled('team_id')
-            || $request->filled('ownership')
-            || $request->filled('health')
-            || $request->filled('maintenance');
+        $filters = new MonitoringIndexFilters(
+            search: $request->filled('search') ? $request->string('search')->toString() : null,
+            types: $request->filled('types') ? explode(',', $request->string('types')->toString()) : [],
+            healthStatuses: $request->filled('health') ? explode(',', $request->string('health')->toString()) : [],
+            lifecycleStatus: $request->filled('lifecycle')
+                ? MonitoringLifecycleStatus::from($request->string('lifecycle')->toString())
+                : null,
+            groupId: $request->filled('group_id') ? $request->string('group_id')->toString() : null,
+            teamId: $request->filled('team_id') ? $request->string('team_id')->toString() : null,
+            ownership: $request->filled('ownership') ? $request->string('ownership')->toString() : null,
+            onlyActiveMaintenance: $request->string('maintenance')->toString() === 'active',
+            sort: $request->filled('sort') ? $request->string('sort')->toString() : null,
+        );
+        $monitoringIndex = $monitoringIndexQuery->for($currentUser, $filters);
+        $lengthAwarePaginator = $monitoringIndex->monitorings;
+        $summaryMonitoringIds = $monitoringIndex->summaryMonitoringIds;
         $privateMonitoringsTotal = $currentUser->monitorings()->whereNull('team_id')->count();
-        $monitoringsTotal = $hasActiveFilters
-            ? Monitoring::query()->count()
-            : $lengthAwarePaginator->total();
+        $monitoringsTotal = $monitoringIndex->total;
         $monitoringLimit = (int) $currentUser->package->monitoring_limit;
         $canCreateMonitoring = ! $currentUser->isDemo()
             && ($privateMonitoringsTotal < $monitoringLimit || $currentUser->administeredTeams()->exists());
 
-        if (! $hasActiveFilters && $monitoringsTotal === 0) {
+        if (! $filters->hasActiveFilters() && $monitoringsTotal === 0) {
             $request->attributes->set('unread_notifications_count', 0);
         }
 
@@ -198,7 +120,7 @@ class MonitoringController extends Controller
         });
         $openIncidentCount = Incident::query()
             ->whereNull('up_at')
-            ->whereHas('monitoring')
+            ->whereHas('monitoring', fn ($query) => $query->visibleTo($currentUser))
             ->count();
         $statusPageCount = $currentUser->statusPages()->count();
         $modalForm = $request->string('modal')->toString();

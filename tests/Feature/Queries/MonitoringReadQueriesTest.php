@@ -8,6 +8,7 @@ use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\User;
 use App\Queries\MonitoringCardQuery;
+use App\Queries\MonitoringDataQuery;
 use App\Queries\MonitoringDetailQuery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Tests\TestCase;
@@ -43,5 +44,23 @@ class MonitoringReadQueriesTest extends TestCase
         $this->assertSame([$visible->id], $monitorings->modelKeys());
         $this->assertTrue($monitorings->first()->relationLoaded('latestIncident'));
         $this->assertTrue($monitorings->first()->relationLoaded('latestResponseResult'));
+    }
+
+    public function test_data_query_allows_actor_visible_and_public_monitorings_without_leaking_private_ones(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $visible = Monitoring::factory()->for($user)->create();
+        $public = Monitoring::factory()->for($otherUser)->create(['public_label_enabled' => true]);
+        $private = Monitoring::factory()->for($otherUser)->create(['public_label_enabled' => false]);
+
+        $monitoringDataQuery = resolve(MonitoringDataQuery::class);
+
+        $this->assertTrue($monitoringDataQuery->findAccessible($user, $visible->id)->is($visible));
+        $this->assertTrue($monitoringDataQuery->findAccessible($user, $public->id)->is($public));
+        $this->expectException(ModelNotFoundException::class);
+
+        $monitoringDataQuery->findAccessible($user, $private->id);
     }
 }
