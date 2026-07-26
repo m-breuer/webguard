@@ -13,19 +13,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class MonitoringIndexController extends Controller
 {
-    public function __invoke(MonitoringIndexRequest $request, MonitoringOverviewQuery $monitoringOverviewQuery): AnonymousResourceCollection
+    public function __invoke(MonitoringIndexRequest $monitoringIndexRequest, MonitoringOverviewQuery $monitoringOverviewQuery): AnonymousResourceCollection
     {
         /** @var User $user */
-        $user = $request->user();
-        $monitorings = $monitoringOverviewQuery->paginateFor(
+        $user = $monitoringIndexRequest->user();
+        $lengthAwarePaginator = $monitoringOverviewQuery->paginateFor(
             $user,
-            $request->page(),
-            $request->perPage(),
-            $request->search(),
-            $request->lifecycleStatus(),
+            $monitoringIndexRequest->page(),
+            $monitoringIndexRequest->perPage(),
+            $monitoringIndexRequest->search(),
+            $monitoringIndexRequest->lifecycleStatus(),
         );
 
-        return MonitoringResource::collection($monitorings)->additional([
+        return MonitoringResource::collection($lengthAwarePaginator)->additional([
             'meta' => [
                 'as_of' => now()->toIso8601String(),
             ],

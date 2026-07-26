@@ -22,12 +22,12 @@ class MonitoringReadQueriesTest extends TestCase
         $visible = Monitoring::factory()->for($user)->create();
         $hidden = Monitoring::factory()->for($otherUser)->create();
 
-        $query = app(MonitoringDetailQuery::class);
+        $monitoringDetailQuery = resolve(MonitoringDetailQuery::class);
 
-        $this->assertTrue($query->findVisible($user, $visible->id)->is($visible));
+        $this->assertTrue($monitoringDetailQuery->findVisible($user, $visible->id)->is($visible));
         $this->expectException(ModelNotFoundException::class);
 
-        $query->findVisible($user, $hidden->id);
+        $monitoringDetailQuery->findVisible($user, $hidden->id);
     }
 
     public function test_card_query_only_returns_requested_monitorings_visible_to_the_actor(): void
@@ -38,7 +38,7 @@ class MonitoringReadQueriesTest extends TestCase
         $visible = Monitoring::factory()->for($user)->create();
         $hidden = Monitoring::factory()->for($otherUser)->create();
 
-        $monitorings = app(MonitoringCardQuery::class)->for($user, [$visible->id, $hidden->id]);
+        $monitorings = resolve(MonitoringCardQuery::class)->for($user, [$visible->id, $hidden->id]);
 
         $this->assertSame([$visible->id], $monitorings->modelKeys());
         $this->assertTrue($monitorings->first()->relationLoaded('latestIncident'));

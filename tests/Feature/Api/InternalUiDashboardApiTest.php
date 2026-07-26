@@ -39,11 +39,11 @@ class InternalUiDashboardApiTest extends TestCase
         $user = User::factory()->create();
         Monitoring::factory()->count(3)->for($user)->create();
 
-        $response = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
 
-        $response->assertOk();
-        $this->assertLessThanOrEqual(30, (int) $response->headers->get('X-Query-Count'));
-        $this->assertLessThanOrEqual(131072, (int) $response->headers->get('X-Response-Bytes'));
+        $testResponse->assertOk();
+        $this->assertLessThanOrEqual(30, (int) $testResponse->headers->get('X-Query-Count'));
+        $this->assertLessThanOrEqual(131072, (int) $testResponse->headers->get('X-Response-Bytes'));
     }
 
     public function test_unverified_user_cannot_read_the_internal_ui_dashboard(): void
@@ -61,13 +61,13 @@ class InternalUiDashboardApiTest extends TestCase
         $user = User::factory()->create();
         Monitoring::factory()->for($user)->create(['name' => 'Visible API']);
 
-        $firstResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
-        $etag = (string) $firstResponse->headers->get('ETag');
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $etag = (string) $testResponse->headers->get('ETag');
 
-        $firstResponse
+        $testResponse
             ->assertOk();
         $this->assertNotSame('', $etag);
-        $this->assertStringContainsString('private', (string) $firstResponse->headers->get('Cache-Control'));
+        $this->assertStringContainsString('private', (string) $testResponse->headers->get('Cache-Control'));
 
         $this->actingAs($user)
             ->withHeader('If-None-Match', $etag)

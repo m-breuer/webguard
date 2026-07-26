@@ -91,7 +91,7 @@ class MonitoringOverviewService
             )
         )->values();
         $signalRoomServices = $serviceReadModels->map(
-            fn (MonitoringServiceReadModel $service): array => $this->servicePresentation($service)
+            fn (MonitoringServiceReadModel $monitoringServiceReadModel): array => $this->servicePresentation($monitoringServiceReadModel)
         );
         $lengthAwarePaginator = new LengthAwarePaginator(
             $signalRoomServices->forPage(max(1, $servicePage), 10)->values(),
@@ -145,20 +145,20 @@ class MonitoringOverviewService
      */
     public function serviceMap(User $user, int $servicePage = 1): array
     {
-        $servicePaginator = $this->monitoringOverviewQuery->paginateServicesFor($user, $servicePage);
+        $lengthAwarePaginator = $this->monitoringOverviewQuery->paginateServicesFor($user, $servicePage);
 
-        $services = $this->mapSignalRoomServices($servicePaginator->getCollection());
+        $services = $this->mapSignalRoomServices($lengthAwarePaginator->getCollection());
 
         return [
             'services' => $services,
             'pagination' => [
-                'current_page' => $servicePaginator->currentPage(),
-                'last_page' => $servicePaginator->lastPage(),
-                'total' => $servicePaginator->total(),
-                'from' => $servicePaginator->firstItem(),
-                'to' => $servicePaginator->lastItem(),
+                'current_page' => $lengthAwarePaginator->currentPage(),
+                'last_page' => $lengthAwarePaginator->lastPage(),
+                'total' => $lengthAwarePaginator->total(),
+                'from' => $lengthAwarePaginator->firstItem(),
+                'to' => $lengthAwarePaginator->lastItem(),
             ],
-            'total' => $servicePaginator->total(),
+            'total' => $lengthAwarePaginator->total(),
         ];
     }
 
@@ -185,23 +185,23 @@ class MonitoringOverviewService
     /**
      * @return array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}
      */
-    private function servicePresentation(MonitoringServiceReadModel $service): array
+    private function servicePresentation(MonitoringServiceReadModel $monitoringServiceReadModel): array
     {
         return [
-            'id' => $service->id,
-            'name' => $service->name,
-            'target' => $service->target,
-            'status' => $service->status,
-            'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $service->status),
-            'group' => $service->groupName ?? (string) __('dashboard.signal_room.ungrouped'),
-            'lastCheck' => $service->lastCheckedAt !== null
-                ? Carbon::parse($service->lastCheckedAt)->locale(app()->getLocale())->diffForHumans()
+            'id' => $monitoringServiceReadModel->id,
+            'name' => $monitoringServiceReadModel->name,
+            'target' => $monitoringServiceReadModel->target,
+            'status' => $monitoringServiceReadModel->status,
+            'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $monitoringServiceReadModel->status),
+            'group' => $monitoringServiceReadModel->groupName ?? (string) __('dashboard.signal_room.ungrouped'),
+            'lastCheck' => $monitoringServiceReadModel->lastCheckedAt !== null
+                ? Date::parse($monitoringServiceReadModel->lastCheckedAt)->locale(app()->getLocale())->diffForHumans()
                 : (string) __('dashboard.signal_room.no_check'),
-            'responseTime' => $service->responseTimeMs !== null
-                ? number_format($service->responseTimeMs, 0, ',', '.') . ' ms'
+            'responseTime' => $monitoringServiceReadModel->responseTimeMs !== null
+                ? number_format($monitoringServiceReadModel->responseTimeMs, 0, ',', '.') . ' ms'
                 : '—',
-            'openIncident' => $service->hasOpenIncident,
-            'href' => route('monitorings.show', ['monitoring' => $service->id]),
+            'openIncident' => $monitoringServiceReadModel->hasOpenIncident,
+            'href' => route('monitorings.show', ['monitoring' => $monitoringServiceReadModel->id]),
         ];
     }
 

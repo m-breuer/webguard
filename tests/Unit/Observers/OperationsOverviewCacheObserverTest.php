@@ -30,10 +30,10 @@ class OperationsOverviewCacheObserverTest extends TestCase
 
     private function expectOverviewFlush(): void
     {
-        $store = Mockery::mock(TaggableStore::class);
+        $mock = Mockery::mock(TaggableStore::class);
         $taggedCache = Mockery::mock();
 
-        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('getStore')->once()->andReturn($mock);
         Cache::shouldReceive('tags')->once()->with(['operations-overview'])->andReturn($taggedCache);
         $taggedCache->shouldReceive('flush')->once();
     }

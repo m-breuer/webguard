@@ -5,26 +5,25 @@ declare(strict_types=1);
 namespace App\Observers;
 
 use App\Services\OperationsOverviewCache;
-use Illuminate\Database\Eloquent\Model;
 
 final class OperationsOverviewCacheObserver
 {
-    public function created(Model $model): void
+    public function created(): void
     {
         $this->flush();
     }
 
-    public function updated(Model $model): void
+    public function updated(): void
     {
         $this->flush();
     }
 
-    public function deleted(Model $model): void
+    public function deleted(): void
     {
         $this->flush();
     }
 
-    public function restored(Model $model): void
+    public function restored(): void
     {
         $this->flush();
     }
