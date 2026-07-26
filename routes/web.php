@@ -211,4 +211,11 @@ Route::group(
     }
 );
 
+Route::group(
+    ['prefix' => 'api/v1/internal/ui', 'as' => 'api.v1.internal.ui.', 'middleware' => ['auth', 'verified']],
+    function (): void {
+        require __DIR__ . '/api/ui.php';
+    }
+);
+
 require __DIR__ . '/auth.php';

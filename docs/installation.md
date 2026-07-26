@@ -329,10 +329,19 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm nod
 The local stack uses the shared Docker network `webguard-network`.
 Because the local Traefik service also has the network alias `webguard.test`, other containers on the same network can reach WebGuard through the same URL as your browser.
 
-That means `webguard-instance` can use either:
+That means `webguard-instance` can use the legacy compatibility base URL:
 
 - `http://webguard.test/api/v1/internal`
 - `http://webguard-core/api/v1/internal`
+
+Core also exposes the target instance base URL:
+
+- `http://webguard.test/api/v1/internal/instances`
+- `http://webguard-core/api/v1/internal/instances`
+
+Use the target base URL after the coordinated `webguard-instance` migration.
+The required rollout and compatibility rules are documented in the [WebGuard
+Instance API contract](integrations/webguard-instance-api.md).
 
 Example:
 

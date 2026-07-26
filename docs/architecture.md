@@ -4,6 +4,12 @@ This repository contains the WebGuard Management Core & API. It owns the user-fa
 
 Distributed scanning nodes and workers are maintained separately in the [WebGuard Instance Repository](https://github.com/marcel-breuer/webguard-instance).
 
+## API Boundaries
+
+The API boundary decision and migration rules are documented in the
+[API boundaries ADR](architecture/api-boundaries.md). Scanner-instance consumers
+must follow the separate [WebGuard Instance API contract](integrations/webguard-instance-api.md).
+
 ## Backend
 
 - **Framework:** Laravel 13 on PHP 8.5+
