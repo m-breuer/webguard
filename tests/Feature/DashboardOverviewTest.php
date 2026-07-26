@@ -36,7 +36,8 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText('11 ' . __('dashboard.signal_room.active_services'))
             ->assertSeeText('Service 01')
             ->assertDontSeeText('Service 11')
-            ->assertSeeText('1 / 2');
+            ->assertSeeText('1 / 2')
+            ->assertSeeHtml('data-pagination-async');
         $secondPage->assertOk()
             ->assertSeeText('Service 11')
             ->assertSeeText('2 / 2')

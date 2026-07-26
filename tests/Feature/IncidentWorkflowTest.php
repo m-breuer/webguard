@@ -278,6 +278,34 @@ class IncidentWorkflowTest extends TestCase
             ->assertDontSeeText('Search API');
     }
 
+    public function test_incident_analytics_paginates_recent_incidents_by_ten(): void
+    {
+        Date::setTestNow('2026-07-15 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 20]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(1, 11) as $index) {
+            Incident::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'down_at' => Date::now()->subMinutes($index),
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('incidents.analytics', [
+            'async' => 1,
+            'section' => 'incidents',
+        ]));
+
+        $response->assertOk()
+            ->assertSeeHtml('data-incident-overview-table')
+            ->assertSeeText('1 / 2')
+            ->assertSeeText('11');
+
+        expect(mb_substr_count($response->getContent(), 'data-incident-row'))->toBe(10);
+    }
+
     public function test_incident_analytics_presents_monitoring_groups_and_status_pages_together(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
