@@ -53,7 +53,7 @@ FROM base AS ci
 
 # Sometimes CI images need to run as root
 USER root
-RUN install-php-extensions sockets
+RUN install-php-extensions bz2 curl gmp intl ldap mbstring opcache pdo_mysql pdo_sqlite pspell redis snmp sockets sqlite3 tidy xdebug zip
 
 ############################################
 # Production Image

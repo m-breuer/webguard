@@ -6,77 +6,83 @@ on:
   push:
     branches: [ main ]
 
+env:
+  CI_IMAGE: webguard-ci:${{ github.run_id }}
 
 jobs:
-  auto-fixes:
-    name: "Auto-Fixes (Pint & Rector)"
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+  ci:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
+        ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build CI image
+      uses: docker/build-push-action@v6
       with:
-        php-version: '8.5'
-        extensions: redis, sockets, zip
-        tools: composer
+        context: .
+        target: ci
+        tags: ${{ env.CI_IMAGE }}
+        load: true
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Cache Composer dependencies
       uses: actions/cache@v5
-      id: composer-cache
       with:
         path: ~/.cache/composer/files
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-composer-
 
-    - name: Install dependencies
-      run: composer install --no-interaction --prefer-dist --optimize-autoloader
+    - name: Install PHP dependencies
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -v "$HOME/.cache/composer/files:/tmp/composer-cache" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          composer install --no-interaction --prefer-dist --optimize-autoloader
 
     - name: Run Rector
-      run: ./vendor/bin/rector process --ansi --debug
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          ./vendor/bin/rector process --ansi --debug
 
     - name: Run Pint
-      run: ./vendor/bin/pint --parallel
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          ./vendor/bin/pint --parallel
 
     - name: Ensure local PR branch exists
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
       run: git checkout -B "${{ github.head_ref }}"
 
-    - name: Commit changes
+    - name: Commit auto-fixes (internal pull requests only)
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
       uses: stefanzweifel/git-auto-commit-action@v7
       with:
         commit_message: 'ci: auto-fixes from pint and rector'
         commit_options: '--no-verify'
         branch: ${{ github.head_ref }}
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: redis, mbstring, pdo_mysql, curl, intl, gd, zip, bz2, opcache, xdebug, gmp, ldap, pdo_sqlite, sqlite3, pspell, snmp, tidy
-        coverage: xdebug
-
-    - name: Cache Composer dependencies
-      uses: actions/cache@v5
-      with:
-        path: ~/.cache/composer/files
-        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-composer-
-
-    - name: Install Dependencies
-      run: composer install --no-progress --prefer-dist --optimize-autoloader
+    - name: Fail if Rector or Pint would change files
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+      run: |
+        if ! git diff --quiet; then
+          echo "::error::Rector and/or Pint would change tracked files. Run them locally and commit the results."
+          git diff
+          exit 1
+        fi
 
     - name: Setup Bun
       uses: oven-sh/setup-bun@v2
@@ -100,7 +106,11 @@ jobs:
       run: bun run build
 
     - name: Run PHPStan
-      run: composer analyse
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          composer analyse
 
     - name: Run tests with coverage
       env:
@@ -108,12 +118,23 @@ jobs:
         DB_DATABASE: ':memory:'
         XDEBUG_MODE: coverage
       run: |
-        composer test:coverage -- --parallel
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -e DB_CONNECTION \
+          -e DB_DATABASE \
+          -e XDEBUG_MODE \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          composer test:coverage -- --parallel
 
     - name: Verify external OpenAPI contract is current
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: ':memory:'
       run: |
-        php artisan scribe:generate --no-interaction
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -e DB_CONNECTION \
+          -e DB_DATABASE \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          php artisan scribe:generate --no-interaction
         git diff --exit-code -- storage/app/private/scribe/openapi.yaml
