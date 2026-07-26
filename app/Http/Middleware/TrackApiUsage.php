@@ -27,23 +27,26 @@ class TrackApiUsage
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $requestId = Str::uuid()->toString();
+        $request->attributes->set('request_id', $requestId);
+
         if (auth('sanctum')->check()) {
             $user = auth('sanctum')->user();
 
             if ($user) {
                 if ($this->isMobileAppToken($user->currentAccessToken())) {
-                    return $next($request);
+                    return $this->withRequestId($next($request), $requestId);
                 }
 
                 $key = 'api:' . $user->getAuthIdentifier();
 
                 if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
-                    return response()->json([
+                    return $this->withRequestId(response()->json([
                         'message' => 'Too many requests.',
                     ], 429)
                         ->header('Retry-After', (string) RateLimiter::availableIn($key))
                         ->header('X-RateLimit-Limit', (string) self::MAX_ATTEMPTS)
-                        ->header('X-RateLimit-Remaining', '0');
+                        ->header('X-RateLimit-Remaining', '0'), $requestId);
                 }
 
                 RateLimiter::hit($key, self::DECAY_SECONDS);
@@ -57,11 +60,18 @@ class TrackApiUsage
                     (string) max(0, self::MAX_ATTEMPTS - RateLimiter::attempts($key))
                 );
 
-                return $response;
+                return $this->withRequestId($response, $requestId);
             }
         }
 
         abort(403);
+    }
+
+    private function withRequestId(Response $response, string $requestId): Response
+    {
+        $response->headers->set('X-Request-Id', $requestId);
+
+        return $response;
     }
 
     private function isMobileAppToken(mixed $accessToken): bool
