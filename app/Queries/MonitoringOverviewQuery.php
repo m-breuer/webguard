@@ -37,31 +37,31 @@ final class MonitoringOverviewQuery
         int $page,
         int $perPage = 20,
         ?string $search = null,
-        ?MonitoringLifecycleStatus $lifecycleStatus = null,
+        ?MonitoringLifecycleStatus $monitoringLifecycleStatus = null,
     ): LengthAwarePaginator {
         $query = $this->query($user);
 
         if ($search !== null && $search !== '') {
-            $query->where(function (Builder $query) use ($search): void {
-                $query->where('name', 'like', '%' . $search . '%')
+            $query->where(function (Builder $builder) use ($search): void {
+                $builder->where('name', 'like', '%' . $search . '%')
                     ->orWhere('target', 'like', '%' . $search . '%');
             });
         }
 
-        if ($lifecycleStatus !== null) {
-            $query->where('status', $lifecycleStatus);
+        if ($monitoringLifecycleStatus !== null) {
+            $query->where('status', $monitoringLifecycleStatus);
         }
 
         return $this->paginate($query, $page, $perPage, 'page');
     }
 
     /**
-     * @param  Builder<Monitoring>  $query
+     * @param  Builder<Monitoring>  $builder
      * @return LengthAwarePaginator<int, Monitoring>
      */
-    private function paginate(Builder $query, int $page, int $perPage, string $pageName): LengthAwarePaginator
+    private function paginate(Builder $builder, int $page, int $perPage, string $pageName): LengthAwarePaginator
     {
-        return $query->paginate(
+        return $builder->paginate(
             $perPage,
             $this->columns(),
             $pageName,

@@ -41,7 +41,7 @@ final class OperationsOverviewPayloadService
                 'overall_state' => $overview['overallState'],
                 'summary' => $overview['summary'],
                 'services' => $overview['serviceReadModels']->map(
-                    fn (MonitoringServiceReadModel $service): array => $this->servicePayload($service)
+                    fn (MonitoringServiceReadModel $monitoringServiceReadModel): array => $this->servicePayload($monitoringServiceReadModel)
                 )->values()->all(),
                 'attention' => $overview['attentionItems']->map(
                     fn (array $item): array => $this->attentionPayload($item)
@@ -67,18 +67,18 @@ final class OperationsOverviewPayloadService
     /**
      * @return array<string, mixed>
      */
-    private function servicePayload(MonitoringServiceReadModel $service): array
+    private function servicePayload(MonitoringServiceReadModel $monitoringServiceReadModel): array
     {
         return [
-            'id' => $service->id,
-            'name' => $service->name,
-            'target' => $service->target,
-            'type' => $service->type,
-            'group' => $service->groupName,
-            'status' => $service->status,
-            'open_incident' => $service->hasOpenIncident,
-            'last_checked_at' => $service->lastCheckedAt,
-            'response_time_ms' => $service->responseTimeMs,
+            'id' => $monitoringServiceReadModel->id,
+            'name' => $monitoringServiceReadModel->name,
+            'target' => $monitoringServiceReadModel->target,
+            'type' => $monitoringServiceReadModel->type,
+            'group' => $monitoringServiceReadModel->groupName,
+            'status' => $monitoringServiceReadModel->status,
+            'open_incident' => $monitoringServiceReadModel->hasOpenIncident,
+            'last_checked_at' => $monitoringServiceReadModel->lastCheckedAt,
+            'response_time_ms' => $monitoringServiceReadModel->responseTimeMs,
         ];
     }
 

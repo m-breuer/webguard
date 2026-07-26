@@ -25,7 +25,8 @@ use Illuminate\Support\Facades\Date;
 class MonitoringOverviewService
 {
     public function __construct(
-        private readonly MonitoringOverviewQuery $monitoringOverviewQuery
+        private readonly MonitoringOverviewQuery $monitoringOverviewQuery,
+        private readonly MonitoringStateResolver $monitoringStateResolver,
     ) {}
 
     /**
@@ -54,7 +55,7 @@ class MonitoringOverviewService
         $monitorings = $this->monitoringOverviewQuery->monitoringsFor($user);
 
         $statuses = $monitorings->mapWithKeys(
-            fn (Monitoring $monitoring): array => [$monitoring->id => $this->status($monitoring)]
+            fn (Monitoring $monitoring): array => [$monitoring->id => $this->monitoringStateResolver->status($monitoring)]
         );
         $summary = [
             'total' => $monitorings->count(),
@@ -90,7 +91,7 @@ class MonitoringOverviewService
             )
         )->values();
         $signalRoomServices = $serviceReadModels->map(
-            fn (MonitoringServiceReadModel $service): array => $this->servicePresentation($service)
+            fn (MonitoringServiceReadModel $monitoringServiceReadModel): array => $this->servicePresentation($monitoringServiceReadModel)
         );
         $lengthAwarePaginator = new LengthAwarePaginator(
             $signalRoomServices->forPage(max(1, $servicePage), 10)->values(),
@@ -144,20 +145,20 @@ class MonitoringOverviewService
      */
     public function serviceMap(User $user, int $servicePage = 1): array
     {
-        $servicePaginator = $this->monitoringOverviewQuery->paginateServicesFor($user, $servicePage);
+        $lengthAwarePaginator = $this->monitoringOverviewQuery->paginateServicesFor($user, $servicePage);
 
-        $services = $this->mapSignalRoomServices($servicePaginator->getCollection());
+        $services = $this->mapSignalRoomServices($lengthAwarePaginator->getCollection());
 
         return [
             'services' => $services,
             'pagination' => [
-                'current_page' => $servicePaginator->currentPage(),
-                'last_page' => $servicePaginator->lastPage(),
-                'total' => $servicePaginator->total(),
-                'from' => $servicePaginator->firstItem(),
-                'to' => $servicePaginator->lastItem(),
+                'current_page' => $lengthAwarePaginator->currentPage(),
+                'last_page' => $lengthAwarePaginator->lastPage(),
+                'total' => $lengthAwarePaginator->total(),
+                'from' => $lengthAwarePaginator->firstItem(),
+                'to' => $lengthAwarePaginator->lastItem(),
             ],
-            'total' => $servicePaginator->total(),
+            'total' => $lengthAwarePaginator->total(),
         ];
     }
 
@@ -168,7 +169,7 @@ class MonitoringOverviewService
     private function mapSignalRoomServices(Collection $monitorings): Collection
     {
         $statuses = $monitorings->mapWithKeys(
-            fn (Monitoring $monitoring): array => [$monitoring->id => $this->status($monitoring)]
+            fn (Monitoring $monitoring): array => [$monitoring->id => $this->monitoringStateResolver->status($monitoring)]
         );
 
         return $monitorings->map(
@@ -184,47 +185,24 @@ class MonitoringOverviewService
     /**
      * @return array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}
      */
-    private function servicePresentation(MonitoringServiceReadModel $service): array
+    private function servicePresentation(MonitoringServiceReadModel $monitoringServiceReadModel): array
     {
         return [
-            'id' => $service->id,
-            'name' => $service->name,
-            'target' => $service->target,
-            'status' => $service->status,
-            'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $service->status),
-            'group' => $service->groupName ?? (string) __('dashboard.signal_room.ungrouped'),
-            'lastCheck' => $service->lastCheckedAt !== null
-                ? Carbon::parse($service->lastCheckedAt)->locale(app()->getLocale())->diffForHumans()
+            'id' => $monitoringServiceReadModel->id,
+            'name' => $monitoringServiceReadModel->name,
+            'target' => $monitoringServiceReadModel->target,
+            'status' => $monitoringServiceReadModel->status,
+            'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $monitoringServiceReadModel->status),
+            'group' => $monitoringServiceReadModel->groupName ?? (string) __('dashboard.signal_room.ungrouped'),
+            'lastCheck' => $monitoringServiceReadModel->lastCheckedAt !== null
+                ? Date::parse($monitoringServiceReadModel->lastCheckedAt)->locale(app()->getLocale())->diffForHumans()
                 : (string) __('dashboard.signal_room.no_check'),
-            'responseTime' => $service->responseTimeMs !== null
-                ? number_format($service->responseTimeMs, 0, ',', '.') . ' ms'
+            'responseTime' => $monitoringServiceReadModel->responseTimeMs !== null
+                ? number_format($monitoringServiceReadModel->responseTimeMs, 0, ',', '.') . ' ms'
                 : '—',
-            'openIncident' => $service->hasOpenIncident,
-            'href' => route('monitorings.show', ['monitoring' => $service->id]),
+            'openIncident' => $monitoringServiceReadModel->hasOpenIncident,
+            'href' => route('monitorings.show', ['monitoring' => $monitoringServiceReadModel->id]),
         ];
-    }
-
-    private function status(Monitoring $monitoring): string
-    {
-        if ($monitoring->isPaused()) {
-            return MonitoringLifecycleStatus::PAUSED->value;
-        }
-
-        if ($monitoring->isUnderMaintenance()) {
-            return 'maintenance';
-        }
-
-        $latestIncident = $monitoring->latestIncident;
-        if ($latestIncident && $latestIncident->up_at === null) {
-            return MonitoringStatus::DOWN->value;
-        }
-
-        $latestResponse = $monitoring->latestResponseResult;
-        if ($latestResponse === null || $this->isStale($monitoring)) {
-            return MonitoringStatus::UNKNOWN->value;
-        }
-
-        return $latestResponse->status->value;
     }
 
     /**
@@ -288,7 +266,7 @@ class MonitoringOverviewService
         $items = collect();
 
         $eloquentCollection
-            ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::DOWN->value)
+            ->filter(fn (Monitoring $monitoring): bool => $this->monitoringStateResolver->status($monitoring) === MonitoringStatus::DOWN->value)
             ->take(5)
             ->each(function (Monitoring $monitoring) use ($items, $statusPagesByMonitoringId): void {
                 $isOpenIncident = $monitoring->latestIncident?->up_at === null
@@ -303,7 +281,7 @@ class MonitoringOverviewService
             });
 
         $eloquentCollection
-            ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::UNKNOWN->value
+            ->filter(fn (Monitoring $monitoring): bool => $this->monitoringStateResolver->status($monitoring) === MonitoringStatus::UNKNOWN->value
                 && $monitoring->isActive())
             ->take(5)
             ->each(fn (Monitoring $monitoring) => $items->push([
@@ -349,20 +327,6 @@ class MonitoringOverviewService
         }
 
         return $statusPagesByMonitoringId;
-    }
-
-    private function isStale(Monitoring $monitoring): bool
-    {
-        $latestResponse = $monitoring->latestResponseResult;
-        if ($latestResponse === null) {
-            return false;
-        }
-
-        $intervalMinutes = $monitoring->isHeartbeat()
-            ? ((int) ($monitoring->heartbeat_interval_minutes ?? 0) + (int) ($monitoring->heartbeat_grace_minutes ?? 0))
-            : (int) config('monitoring.interval', 5);
-
-        return $latestResponse->created_at->lt(Date::now()->subMinutes(max(10, $intervalMinutes * 3)));
     }
 
     /**

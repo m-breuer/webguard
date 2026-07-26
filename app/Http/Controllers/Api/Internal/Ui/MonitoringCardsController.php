@@ -12,11 +12,11 @@ use Illuminate\Http\JsonResponse;
 
 class MonitoringCardsController extends Controller
 {
-    public function __invoke(MonitoringCardsRequest $request, MonitoringCardDataService $monitoringCardDataService): JsonResponse
+    public function __invoke(MonitoringCardsRequest $monitoringCardsRequest, MonitoringCardDataService $monitoringCardDataService): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
-        $ids = collect($request->monitoringIds());
+        $user = $monitoringCardsRequest->user();
+        $ids = collect($monitoringCardsRequest->monitoringIds());
 
         return response()->json($monitoringCardDataService->for($user, $ids, $ids, true));
     }

@@ -18,10 +18,10 @@ class OperationsOverviewCacheTest extends TestCase
     {
         $user = new User();
         $user->id = 'user-123';
-        $store = Mockery::mock(TaggableStore::class);
+        $mock = Mockery::mock(TaggableStore::class);
         $taggedCache = Mockery::mock();
 
-        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('getStore')->once()->andReturn($mock);
         Cache::shouldReceive('tags')
             ->once()
             ->with(['operations-overview', 'operations-overview:user:user-123'])
@@ -43,10 +43,10 @@ class OperationsOverviewCacheTest extends TestCase
     {
         $user = new User();
         $user->id = 'user-123';
-        $store = Mockery::mock(TaggableStore::class);
+        $mock = Mockery::mock(TaggableStore::class);
         $taggedCache = Mockery::mock();
 
-        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('getStore')->once()->andReturn($mock);
         Cache::shouldReceive('tags')->once()->andReturn($taggedCache);
         $taggedCache->shouldReceive('remember')->once()->andThrow(new RuntimeException('Redis unavailable'));
 
@@ -60,10 +60,10 @@ class OperationsOverviewCacheTest extends TestCase
 
     public function test_it_flushes_all_cached_overviews_after_domain_changes(): void
     {
-        $store = Mockery::mock(TaggableStore::class);
+        $mock = Mockery::mock(TaggableStore::class);
         $taggedCache = Mockery::mock();
 
-        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('getStore')->once()->andReturn($mock);
         Cache::shouldReceive('tags')->once()->with(['operations-overview'])->andReturn($taggedCache);
         $taggedCache->shouldReceive('flush')->once();
 
