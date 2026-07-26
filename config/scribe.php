@@ -16,7 +16,7 @@ return [
     'title' => config('app.name') . ' API Reference',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => 'Stable external REST API v1 for monitoring management, status data, teams, mobile devices, and operations overviews.',
+    'description' => 'Stable external REST API v1 for monitoring management, status data, teams, and operations overviews.',
 
     // The base URL displayed in the docs.
     // If you're using `laravel` type, you can set this to a dynamic string, like '{{ config("app.tenant_url") }}' to get a dynamic base URL.
@@ -42,6 +42,8 @@ return [
             'exclude' => [
                 'api/v1/internal/*',
                 'api/v1/server-health/*',
+                'api/v1/mobile/*',
+                'api/v1/mobile-push-devices*',
             ],
         ],
     ],
