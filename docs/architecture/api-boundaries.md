@@ -95,9 +95,10 @@ issue in that repository before Core implementation begins.
   reverse.
 - Safe read responses may use private cache-control or conditional requests only
   when cache invalidation is defined. Instance write callbacks are not cached.
-- New API work returns a correlation identifier and follows a documented problem
-  response format. Existing contracts retain their current response shapes until
-  a compatible migration is delivered.
+- Authenticated external v1 responses include a server-generated `X-Request-Id`,
+  including rate-limit responses, without changing their JSON bodies. New API
+  work follows the documented problem-response format; existing contracts retain
+  their current response shapes until a compatible migration is delivered.
 
 ## Consequences
 
