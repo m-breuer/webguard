@@ -9,33 +9,29 @@ use Tests\TestCase;
 
 class CiWorkflowRedisExtensionTest extends TestCase
 {
-    public function test_ci_test_job_installs_required_redis_extension(): void
+    public function test_ci_image_installs_required_redis_extension(): void
     {
         $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
 
         $this->assertArrayHasKey('ext-redis', $composerConfig['require']);
 
-        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $testJobSteps = $workflowConfig['jobs']['test']['steps'] ?? [];
-        $setupPhpStep = collect($testJobSteps)->firstWhere('name', 'Setup PHP');
+        $dockerfile = (string) file_get_contents(base_path('Dockerfile'));
+        $ciStage = mb_substr($dockerfile, (int) mb_strpos($dockerfile, 'AS ci'));
+        $installLine = collect(explode("\n", $ciStage))->first(fn (string $line): bool => str_contains($line, 'install-php-extensions'));
 
-        $this->assertIsArray($setupPhpStep);
-        $this->assertIsString($setupPhpStep['with']['extensions'] ?? null);
-        $this->assertStringContainsString('redis', $setupPhpStep['with']['extensions']);
+        $this->assertIsString($installLine);
+        $this->assertStringContainsString('redis', $installLine);
     }
 
-    public function test_ci_jobs_cache_composer_downloads_instead_of_vendor_directory(): void
+    public function test_ci_job_caches_composer_downloads_instead_of_vendor_directory(): void
     {
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+        $cacheStep = collect($workflowConfig['jobs']['ci']['steps'] ?? [])
+            ->firstWhere('name', 'Cache Composer dependencies');
 
-        foreach (['auto-fixes', 'test'] as $jobName) {
-            $cacheStep = collect($workflowConfig['jobs'][$jobName]['steps'] ?? [])
-                ->firstWhere('name', 'Cache Composer dependencies');
-
-            $this->assertIsArray($cacheStep, "Missing Composer cache step for {$jobName}.");
-            $this->assertSame('~/.cache/composer/files', $cacheStep['with']['path'] ?? null);
-            $this->assertNotSame('vendor', $cacheStep['with']['path'] ?? null);
-        }
+        $this->assertIsArray($cacheStep, 'Missing Composer cache step for ci job.');
+        $this->assertSame('~/.cache/composer/files', $cacheStep['with']['path'] ?? null);
+        $this->assertNotSame('vendor', $cacheStep['with']['path'] ?? null);
     }
 
     public function test_ci_runs_phpstan_and_pest_coverage(): void
@@ -49,12 +45,12 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertFileExists(base_path('phpstan.neon'));
 
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $testJobSteps = collect($workflowConfig['jobs']['test']['steps'] ?? []);
-        $phpstanStep = $testJobSteps->firstWhere('name', 'Run PHPStan');
-        $coverageStep = $testJobSteps->firstWhere('name', 'Run tests with coverage');
+        $ciJobSteps = collect($workflowConfig['jobs']['ci']['steps'] ?? []);
+        $phpstanStep = $ciJobSteps->firstWhere('name', 'Run PHPStan');
+        $coverageStep = $ciJobSteps->firstWhere('name', 'Run tests with coverage');
 
         $this->assertIsArray($phpstanStep);
-        $this->assertSame('composer analyse', $phpstanStep['run'] ?? null);
+        $this->assertStringContainsString('composer analyse', $phpstanStep['run'] ?? '');
 
         $this->assertIsArray($coverageStep);
         $this->assertStringContainsString('composer test:coverage', $coverageStep['run'] ?? '');
@@ -67,8 +63,8 @@ class CiWorkflowRedisExtensionTest extends TestCase
     public function test_ci_verifies_the_generated_external_openapi_contract(): void
     {
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $testJobSteps = collect($workflowConfig['jobs']['test']['steps'] ?? []);
-        $openApiStep = $testJobSteps->firstWhere('name', 'Verify external OpenAPI contract is current');
+        $ciJobSteps = collect($workflowConfig['jobs']['ci']['steps'] ?? []);
+        $openApiStep = $ciJobSteps->firstWhere('name', 'Verify external OpenAPI contract is current');
 
         $this->assertIsArray($openApiStep);
         $this->assertStringContainsString('php artisan scribe:generate --no-interaction', $openApiStep['run'] ?? '');
@@ -78,6 +74,32 @@ class CiWorkflowRedisExtensionTest extends TestCase
         );
         $this->assertSame('sqlite', $openApiStep['env']['DB_CONNECTION'] ?? null);
         $this->assertSame(':memory:', $openApiStep['env']['DB_DATABASE'] ?? null);
+    }
+
+    public function test_ci_builds_docker_image_before_rector_pint_and_test_steps(): void
+    {
+        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+        $stepNames = collect($workflowConfig['jobs']['ci']['steps'] ?? [])->pluck('name')->filter()->values();
+
+        $buildIndex = $stepNames->search('Build CI image');
+        $rectorIndex = $stepNames->search('Run Rector');
+        $pintIndex = $stepNames->search('Run Pint');
+        $phpstanIndex = $stepNames->search('Run PHPStan');
+        $coverageIndex = $stepNames->search('Run tests with coverage');
+        $openApiIndex = $stepNames->search('Verify external OpenAPI contract is current');
+
+        $this->assertNotFalse($buildIndex);
+        $this->assertNotFalse($rectorIndex);
+        $this->assertNotFalse($pintIndex);
+        $this->assertNotFalse($phpstanIndex);
+        $this->assertNotFalse($coverageIndex);
+        $this->assertNotFalse($openApiIndex);
+
+        $this->assertTrue($buildIndex < $rectorIndex);
+        $this->assertTrue($rectorIndex < $pintIndex);
+        $this->assertTrue($pintIndex < $phpstanIndex);
+        $this->assertTrue($phpstanIndex < $coverageIndex);
+        $this->assertTrue($coverageIndex < $openApiIndex);
     }
 
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
