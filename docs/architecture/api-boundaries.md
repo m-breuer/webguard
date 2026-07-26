@@ -95,8 +95,9 @@ issue in that repository before Core implementation begins.
   reverse.
 - The operations overview uses a 30-second Redis tagged cache scoped to the
   authenticated user and service page. Monitoring responses and incidents flush
-  the shared overview tag; unsupported or unavailable cache stores serve fresh
-  data instead.
+  the shared overview tag; monitoring and team-membership changes do the same
+  for ownership, maintenance, and role updates. Unsupported or unavailable cache
+  stores serve fresh data instead.
 - Safe read responses may use private cache-control or conditional requests only
   when cache invalidation is defined. Instance write callbacks are not cached.
 - Authenticated external v1 responses include a server-generated `X-Request-Id`,
