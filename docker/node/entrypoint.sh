@@ -15,7 +15,7 @@ if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null)" ]; then
 fi
 
 if ! ls node_modules/@rollup/rollup-linux-* >/dev/null 2>&1; then
-  rm -rf node_modules
+  find node_modules -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
   bun install --frozen-lockfile
 fi
 
