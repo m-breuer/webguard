@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\External\TeamResource;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Teams\TeamMembershipService;
@@ -27,9 +28,12 @@ class TeamController extends Controller
             ->visibleTo($user)
             ->withCount(['memberships', 'monitorings'])
             ->orderBy('name')
+            ->orderBy('id')
             ->get();
 
-        return response()->json(['data' => $teams]);
+        return response()->json(['data' => $teams->map(
+            fn (Team $team): array => TeamResource::make($team)->resolve($request)
+        )->values()]);
     }
 
     public function store(Request $request, TeamMembershipService $teamMembershipService): JsonResponse
@@ -45,7 +49,7 @@ class TeamController extends Controller
 
         $team = $teamMembershipService->createTeam($user, $validated);
 
-        return response()->json(['data' => $team->load('memberships.user')], 201);
+        return response()->json(['data' => TeamResource::make($team->load('memberships.user'))->resolve($request)], 201);
     }
 
     public function show(Request $request, Team $team, TeamMembershipService $teamMembershipService): JsonResponse
@@ -55,8 +59,10 @@ class TeamController extends Controller
         $teamMembershipService->assertMember($team, $user);
 
         return response()->json([
-            'data' => $team->load(['memberships.user', 'invitations' => fn ($builder) => $builder->whereNull('accepted_at')])
-                ->loadCount('monitorings'),
+            'data' => TeamResource::make(
+                $team->load(['memberships.user', 'invitations' => fn ($builder) => $builder->whereNull('accepted_at')])
+                    ->loadCount('monitorings')
+            )->resolve($request),
         ]);
     }
 
@@ -74,7 +80,7 @@ class TeamController extends Controller
 
         $team->update($validated);
 
-        return response()->json(['data' => $team->refresh()]);
+        return response()->json(['data' => TeamResource::make($team->refresh())->resolve($request)]);
     }
 
     public function destroy(Request $request, Team $team, TeamMembershipService $teamMembershipService): JsonResponse

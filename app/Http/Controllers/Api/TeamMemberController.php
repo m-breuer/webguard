@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\External\TeamMembershipResource;
 use App\Models\Team;
 use App\Models\TeamMembership;
 use App\Models\User;
@@ -28,7 +29,9 @@ class TeamMemberController extends Controller
         $teamMembershipService->assertMember($team, $user);
 
         return response()->json([
-            'data' => $team->memberships()->with('user:id,name,email')->oldest()->get(),
+            'data' => $team->memberships()->with('user:id,name,email')->oldest()->orderBy('id')->get()->map(
+                fn (TeamMembership $teamMembership): array => TeamMembershipResource::make($teamMembership)->resolve($request)
+            )->values(),
         ]);
     }
 
@@ -50,7 +53,9 @@ class TeamMemberController extends Controller
 
         $teamMembershipService->changeRole($teamMembership, TeamRole::from((string) $validated['role']));
 
-        return response()->json(['data' => $teamMembership->refresh()->load('user:id,name,email')]);
+        return response()->json([
+            'data' => TeamMembershipResource::make($teamMembership->refresh()->load('user:id,name,email'))->resolve($request),
+        ]);
     }
 
     public function destroy(

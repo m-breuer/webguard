@@ -35,6 +35,7 @@ class ApiControllerTest extends TestCase
         $testResponse->assertJson(['interval' => 300]);
         $testResponse->assertHeader('X-RateLimit-Limit', '5');
         $testResponse->assertHeader('X-RateLimit-Remaining', '4');
+        $this->assertGreaterThan(time(), (int) $testResponse->headers->get('X-RateLimit-Reset'));
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
             (string) $testResponse->headers->get('X-Request-Id')
@@ -83,6 +84,7 @@ class ApiControllerTest extends TestCase
         $this->assertLessThanOrEqual(60, $retryAfter);
         $testResponse->assertHeader('X-RateLimit-Limit', '5');
         $testResponse->assertHeader('X-RateLimit-Remaining', '0');
+        $this->assertGreaterThan(time(), (int) $testResponse->headers->get('X-RateLimit-Reset'));
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
             (string) $testResponse->headers->get('X-Request-Id')
@@ -123,6 +125,29 @@ class ApiControllerTest extends TestCase
         }
 
         $this->assertDatabaseCount('api_logs', 0);
+    }
+
+    public function test_external_token_abilities_can_be_enforced_without_breaking_existing_wildcard_tokens(): void
+    {
+        config()->set('external_api.enforce_token_abilities', true);
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $readToken = $user->createToken('read-only', ['external:read'])->plainTextToken;
+        $legacyToken = $user->createToken('legacy')->plainTextToken;
+
+        $this->withToken($readToken)
+            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->assertOk();
+
+        $this->withToken($readToken)
+            ->deleteJson('/api/v1/monitorings/' . $monitoring->id)
+            ->assertForbidden();
+
+        $this->withToken($legacyToken)
+            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->assertOk();
     }
 
     public function test_all_endpoint_returns_combined_monitoring_payload_without_nested_controller_responses(): void

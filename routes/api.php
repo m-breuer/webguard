@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Mobile\MobileAuthController;
 use App\Http\Controllers\Api\ServerHealthReportController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\PublicStatusPageUptimeCalendarController;
+use App\Http\Middleware\RequireExternalApiAbility;
 use App\Http\Middleware\TrackApiUsage;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +30,7 @@ Route::group(['prefix' => 'mobile', 'as' => 'mobile.', 'middleware' => ['auth:sa
     Route::post('/logout', [MobileAuthController::class, 'logout'])->name('logout');
 });
 
-Route::group(['prefix' => 'v1', 'as' => 'v1.', 'middleware' => ['auth:sanctum', TrackApiUsage::class]], function (): void {
+Route::group(['prefix' => 'v1', 'as' => 'v1.', 'middleware' => ['auth:sanctum', TrackApiUsage::class, RequireExternalApiAbility::class]], function (): void {
     require __DIR__ . '/api/external.php';
 });
 
