@@ -7,10 +7,12 @@ namespace App\Services;
 use App\Data\MonitoringAvailabilityPayload;
 use App\Data\MonitoringAvailabilitySegmentPayload;
 use App\Enums\MonitoringStatus;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Support\MonitoringResponseHistory;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 
 class MonitoringAvailabilityService
@@ -44,8 +46,11 @@ class MonitoringAvailabilityService
      * @param  array<int, int>  $days
      * @return array<string, MonitoringAvailabilityPayload>
      */
-    public function getUptimeDowntimesForRanges(Monitoring $monitoring, array $days): array
-    {
+    public function getUptimeDowntimesForRanges(
+        Monitoring $monitoring,
+        array $days,
+        bool $includeIntradayRawData = true
+    ): array {
         $normalizedDays = collect($days)
             ->map(static fn (mixed $day): ?int => is_numeric($day) ? $day : null)
             ->filter(static fn (?int $day): bool => $day !== null && $day > 0)
@@ -86,17 +91,42 @@ class MonitoringAvailabilityService
                 ->all();
         }
 
-        $trackingStartedAt = $this->getTrackingStartedAtFromDailyResults($monitoring);
+        $maxRangeDays = $normalizedDays->last();
+        $globalStartDate = $now->copy()->subDays($maxRangeDays)->startOfDay();
+        $today = $now->copy()->startOfDay();
+        $historicalEndDate = $today->copy()->subDay()->endOfDay();
 
-        if (! $trackingStartedAt || $trackingStartedAt->gt($endDate)) {
+        $dailyResults = $monitoring->dailyResults()
+            ->whereBetween('date', [$globalStartDate->copy()->startOfDay(), $historicalEndDate->copy()->endOfDay()])
+            ->orderByDesc('date')
+            ->get([
+                'date',
+                'uptime_minutes',
+                'downtime_minutes',
+                'unknown_minutes',
+                'uptime_total',
+                'downtime_total',
+                'unknown_total',
+            ]);
+
+        $liveUptimeDowntime = $includeIntradayRawData && $this->shouldLoadIntradayRawData($monitoring, $today)
+            ? $this->getRawUptimeDowntime($monitoring, $today, $now, false)
+            : null;
+        $trackingStartedAt = $dailyResults->last()?->date
+            ? Date::parse($dailyResults->last()->date)->startOfDay()
+            : ($liveUptimeDowntime?->trackingStartedAt
+                ? Date::parse($liveUptimeDowntime->trackingStartedAt)
+                : null);
+
+        if (! $trackingStartedAt || $trackingStartedAt->gt($now)) {
             return $normalizedDays
-                ->mapWithKeys(function (int $day) use ($now, $endDate, $trackingStartedAt): array {
+                ->mapWithKeys(function (int $day) use ($now, $trackingStartedAt): array {
                     $startDate = $now->copy()->subDays($day)->startOfDay();
 
                     return [
                         (string) $day => $this->buildStats(
                             $startDate,
-                            $endDate,
+                            $now,
                             $trackingStartedAt,
                             0,
                             0,
@@ -111,22 +141,7 @@ class MonitoringAvailabilityService
                 ->all();
         }
 
-        $maxRangeDays = $normalizedDays->last();
-        $globalStartDate = $now->copy()->subDays($maxRangeDays)->startOfDay();
-
-        $dailyResults = $monitoring->dailyResults()
-            ->whereBetween('date', [$globalStartDate->toDateString(), $endDate->toDateString()])
-            ->orderByDesc('date')
-            ->get([
-                'date',
-                'uptime_minutes',
-                'downtime_minutes',
-                'unknown_minutes',
-                'uptime_total',
-                'downtime_total',
-                'unknown_total',
-                'incidents_count',
-            ]);
+        $overlappingIncidents = $this->getOverlappingIncidents($monitoring, $globalStartDate, $now);
 
         $rollingTotals = [
             'uptime_minutes' => 0,
@@ -135,13 +150,12 @@ class MonitoringAvailabilityService
             'uptime_total' => 0,
             'downtime_total' => 0,
             'unknown_total' => 0,
-            'incidents_count' => 0,
         ];
         $dailyResultIndex = 0;
         $dailyResultCount = $dailyResults->count();
 
         return $normalizedDays
-            ->mapWithKeys(function (int $day) use ($dailyResults, $dailyResultCount, &$dailyResultIndex, &$rollingTotals, $endDate, $now, $trackingStartedAt): array {
+            ->mapWithKeys(function (int $day) use ($dailyResults, $dailyResultCount, &$dailyResultIndex, &$rollingTotals, $now, $today, $trackingStartedAt, $liveUptimeDowntime, $overlappingIncidents): array {
                 $startDate = $now->copy()->subDays($day)->startOfDay();
                 $startDateString = $startDate->toDateString();
 
@@ -159,23 +173,44 @@ class MonitoringAvailabilityService
                     $rollingTotals['uptime_total'] += (int) $dailyResult->uptime_total;
                     $rollingTotals['downtime_total'] += (int) $dailyResult->downtime_total;
                     $rollingTotals['unknown_total'] += (int) $dailyResult->unknown_total;
-                    $rollingTotals['incidents_count'] += (int) $dailyResult->incidents_count;
 
                     $dailyResultIndex++;
                 }
 
+                $uptimeMinutes = $rollingTotals['uptime_minutes'];
+                $downtimeMinutes = $rollingTotals['downtime_minutes'];
+                $unknownMinutes = $rollingTotals['unknown_minutes'];
+                $uptimeTotal = $rollingTotals['uptime_total'];
+                $downtimeTotal = $rollingTotals['downtime_total'];
+                $unknownTotal = $rollingTotals['unknown_total'];
+
+                if ($liveUptimeDowntime && $startDate->lte($today)) {
+                    $uptimeMinutes += $liveUptimeDowntime->uptime->minutes;
+                    $downtimeMinutes += $liveUptimeDowntime->downtime->minutes;
+                    $unknownMinutes += $liveUptimeDowntime->unknown->minutes;
+                    $uptimeTotal += $liveUptimeDowntime->uptime->total;
+                    $downtimeTotal += $liveUptimeDowntime->downtime->total;
+                    $unknownTotal += $liveUptimeDowntime->unknown->total;
+                }
+
+                $incidentsCount = $this->countOverlappingIncidentsFromCollection(
+                    $overlappingIncidents,
+                    $startDate,
+                    $now
+                );
+
                 return [
                     (string) $day => $this->buildStats(
                         $startDate,
-                        $endDate,
+                        $now,
                         $trackingStartedAt,
-                        $rollingTotals['uptime_minutes'],
-                        $rollingTotals['downtime_minutes'],
-                        $rollingTotals['unknown_minutes'],
-                        $rollingTotals['uptime_total'],
-                        $rollingTotals['downtime_total'],
-                        $rollingTotals['unknown_total'],
-                        $rollingTotals['incidents_count']
+                        $uptimeMinutes,
+                        $downtimeMinutes,
+                        $unknownMinutes,
+                        $uptimeTotal,
+                        $downtimeTotal,
+                        $unknownTotal,
+                        $incidentsCount
                     ),
                 ];
             })
@@ -206,30 +241,11 @@ class MonitoringAvailabilityService
             return 0;
         }
 
-        $today = Date::today();
-        $historicalEndDate = $includeIntradayRawData
-            ? $endDate->copy()->min($today->copy()->subDay()->endOfDay())
-            : $endDate->copy();
-
-        $incidentsCount = 0;
-
-        if ($startDate->lte($historicalEndDate)) {
-            $incidentsCount += (int) $monitoring->dailyResults()
-                ->whereBetween('date', [$startDate->toDateString(), $historicalEndDate->toDateString()])
-                ->sum('incidents_count');
+        if (! $includeIntradayRawData) {
+            $endDate = $endDate->min(Date::today()->subDay()->endOfDay());
         }
 
-        if (! $includeIntradayRawData || $endDate->lt($today)) {
-            return $incidentsCount;
-        }
-
-        $liveStartDate = $startDate->copy()->max($today);
-
-        if ($liveStartDate->gt($endDate)) {
-            return $incidentsCount;
-        }
-
-        return $incidentsCount + $this->countIncidents($monitoring, $liveStartDate, $endDate);
+        return $this->countOverlappingIncidents($monitoring, $startDate, $endDate);
     }
 
     private function getAggregatedUptimeDowntime(
@@ -268,8 +284,7 @@ class MonitoringAvailabilityService
                     SUM(unknown_minutes) as unknown_minutes,
                     SUM(uptime_total) as uptime_total,
                     SUM(downtime_total) as downtime_total,
-                    SUM(unknown_total) as unknown_total,
-                    SUM(incidents_count) as incidents_count
+                    SUM(unknown_total) as unknown_total
                 ')
                 ->first();
 
@@ -279,7 +294,6 @@ class MonitoringAvailabilityService
             $uptimeTotal += (int) ($aggregatedData->uptime_total ?? 0);
             $downtimeTotal += (int) ($aggregatedData->downtime_total ?? 0);
             $unknownTotal += (int) ($aggregatedData->unknown_total ?? 0);
-            $incidentsCount += (int) ($aggregatedData->incidents_count ?? 0);
         }
 
         if ($includeIntradayRawData && $endDate->gte($today)) {
@@ -292,8 +306,9 @@ class MonitoringAvailabilityService
             $uptimeTotal += $liveUptimeDowntime->uptime->total;
             $downtimeTotal += $liveUptimeDowntime->downtime->total;
             $unknownTotal += $liveUptimeDowntime->unknown->total;
-            $incidentsCount += $liveUptimeDowntime->downtime->incidentsCount ?? 0;
         }
+
+        $incidentsCount = $this->countOverlappingIncidents($monitoring, $startDate, $endDate);
 
         return $this->buildStats(
             $startDate,
@@ -309,9 +324,14 @@ class MonitoringAvailabilityService
         );
     }
 
-    private function getRawUptimeDowntime(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): MonitoringAvailabilityPayload
-    {
-        $trackingStartedAt = $this->getTrackingStartedAt($monitoring);
+    private function getRawUptimeDowntime(
+        Monitoring $monitoring,
+        Carbon $startDate,
+        Carbon $endDate,
+        bool $includeIncidentCount = true,
+        ?Carbon $trackingStartedAt = null
+    ): MonitoringAvailabilityPayload {
+        $trackingStartedAt ??= $this->getTrackingStartedAt($monitoring);
 
         if (! $trackingStartedAt || $trackingStartedAt->gt($endDate)) {
             return $this->buildStats($startDate, $endDate, $trackingStartedAt, 0, 0, 0, 0, 0, 0, 0);
@@ -376,16 +396,21 @@ class MonitoringAvailabilityService
             );
         }
 
-        $data = (clone $builder)
-            ->selectRaw("
-                SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) as uptime_total,
-                SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) as downtime_total,
-                SUM(CASE WHEN status NOT IN ('up', 'down') THEN 1 ELSE 0 END) as unknown_total
-            ")
-            ->whereBetween('created_at', [$effectiveStartDate, $effectiveEndDate])
-            ->first();
+        $uptimeTotal = 0;
+        $downtimeTotal = 0;
+        $unknownTotal = 0;
 
-        $incidentsCount = $this->countOverlappingIncidents($monitoring, $effectiveStartDate, $effectiveEndDate);
+        foreach ($responses as $response) {
+            match ($response->status instanceof MonitoringStatus ? $response->status->value : (string) $response->status) {
+                MonitoringStatus::UP->value => $uptimeTotal++,
+                MonitoringStatus::DOWN->value => $downtimeTotal++,
+                default => $unknownTotal++,
+            };
+        }
+
+        $incidentsCount = $includeIncidentCount
+            ? $this->countOverlappingIncidents($monitoring, $effectiveStartDate, $effectiveEndDate)
+            : 0;
 
         return $this->buildStats(
             $startDate,
@@ -394,9 +419,9 @@ class MonitoringAvailabilityService
             $overallUptimeMinutes,
             $overallDowntimeMinutes,
             $overallUnknownMinutes,
-            (int) ($data->uptime_total ?? 0),
-            (int) ($data->downtime_total ?? 0),
-            (int) ($data->unknown_total ?? 0),
+            $uptimeTotal,
+            $downtimeTotal,
+            $unknownTotal,
             $incidentsCount
         );
     }
@@ -430,6 +455,41 @@ class MonitoringAvailabilityService
             ->where(function (Builder $builder) use ($startDate) {
                 $builder->where('up_at', '>=', $startDate)
                     ->orWhereNull('up_at');
+            })
+            ->count();
+    }
+
+    private function shouldLoadIntradayRawData(Monitoring $monitoring, Carbon $today): bool
+    {
+        return $monitoring->latestResponseResult?->created_at?->gte($today) ?? false;
+    }
+
+    /**
+     * @return Collection<int, Incident>
+     */
+    private function getOverlappingIncidents(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
+    {
+        return $monitoring->incidents()
+            ->where('down_at', '<=', $endDate)
+            ->where(function (Builder $builder) use ($startDate): void {
+                $builder->where('up_at', '>=', $startDate)
+                    ->orWhereNull('up_at');
+            })
+            ->get(['down_at', 'up_at']);
+    }
+
+    /**
+     * @param  Collection<int, Incident>  $incidents
+     */
+    private function countOverlappingIncidentsFromCollection(
+        Collection $incidents,
+        Carbon $startDate,
+        Carbon $endDate
+    ): int {
+        return $incidents
+            ->filter(function (Incident $incident) use ($startDate, $endDate): bool {
+                return $incident->down_at->lte($endDate)
+                    && ($incident->up_at === null || $incident->up_at->gte($startDate));
             })
             ->count();
     }

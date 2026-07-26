@@ -68,12 +68,20 @@ class MonitoringAvailabilityServiceTest extends TestCase
 
         Package::factory()->create();
         $user = User::factory()->create();
+        $referenceNow = Date::parse('2026-04-12 12:00:00');
         $monitoring = Monitoring::factory()->for($user)->create([
-            'created_at' => Date::now()->subDays(30),
+            'created_at' => $referenceNow->copy()->subDays(30),
         ]);
 
         foreach (range(1, 30) as $daysAgo) {
-            $this->createDailyResult($monitoring, Date::now()->subDays($daysAgo)->toDateString());
+            $date = $referenceNow->copy()->subDays($daysAgo)->toDateString();
+            $this->createDailyResult($monitoring, $date);
+
+            Incident::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'down_at' => Date::parse($date)->addHour(),
+                'up_at' => Date::parse($date)->addHours(2),
+            ]);
         }
 
         DB::enableQueryLog();
@@ -92,7 +100,36 @@ class MonitoringAvailabilityServiceTest extends TestCase
         $this->assertSame(3_000, $statsByRange['30']->uptime->minutes);
         $this->assertSame(300, $statsByRange['30']->downtime->minutes);
         $this->assertSame(30, $statsByRange['30']->downtime->incidentsCount);
-        $this->assertCount(2, DB::getQueryLog());
+        $this->assertSame(1, collect(DB::getQueryLog())
+            ->filter(static fn (array $query): bool => str_contains($query['query'], 'monitoring_daily_results'))
+            ->count());
+    }
+
+    public function test_multi_range_summary_includes_current_day_and_cross_boundary_incidents(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-12 12:00:00')->subDays(30),
+        ]);
+
+        $this->createDailyResult($monitoring, '2026-04-11');
+        $this->createResponse($monitoring, MonitoringStatus::UP, '2026-04-12 00:00:00');
+        $this->createResponse($monitoring, MonitoringStatus::DOWN, '2026-04-12 11:00:00');
+
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => Date::parse('2026-04-04 23:00:00'),
+            'up_at' => null,
+        ]);
+
+        $statsByRange = resolve(MonitoringAvailabilityService::class)->getUptimeDowntimesForRanges($monitoring, [7]);
+
+        $this->assertSame(70, $statsByRange['7']->downtime->minutes);
+        $this->assertSame(1, $statsByRange['7']->downtime->incidentsCount);
+        $this->assertSame(Date::now()->toIso8601String(), $statsByRange['7']->to->toIso8601String());
     }
 
     private function createResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus, string $checkedAt): void

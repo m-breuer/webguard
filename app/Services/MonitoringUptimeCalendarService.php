@@ -37,7 +37,7 @@ class MonitoringUptimeCalendarService
         $historicalData = MonitoringDailyResult::query()
             ->where('monitoring_id', $monitoring->id)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->select(['date', 'uptime_percentage', 'uptime_minutes', 'downtime_minutes'])
+            ->select(['date', 'uptime_minutes', 'downtime_minutes'])
             ->get()
             ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
 
@@ -62,9 +62,12 @@ class MonitoringUptimeCalendarService
 
                 if ($currentDay->between($startDate, $endDate) && $historicalData->has($dateString)) {
                     $result = $historicalData[$dateString];
-                    $uptimePercentage = $result->uptime_percentage;
                     $uptimeMinutes = (int) ($result->uptime_minutes ?? 0);
                     $downtimeMinutes = (int) ($result->downtime_minutes ?? 0);
+                    $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
+                    $uptimePercentage = $totalTrackedMinutes > 0
+                        ? ($uptimeMinutes / $totalTrackedMinutes) * 100
+                        : null;
                 }
 
                 $monthlyMinutes[$monthYear]['uptime_minutes'] += $uptimeMinutes;

@@ -101,6 +101,12 @@ class UptimeDowntimeApiTest extends TestCase
             'incidents_count' => 1,
         ]);
 
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => $aggregatedDate->copy()->addHour(),
+            'up_at' => $aggregatedDate->copy()->addHours(2),
+        ]);
+
         $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
 
         $testResponse->assertOk();
@@ -161,12 +167,13 @@ class UptimeDowntimeApiTest extends TestCase
 
         Package::factory()->create();
         $user = User::factory()->create();
+        $referenceNow = Date::parse('2026-04-12 12:00:00');
         $monitoring = Monitoring::factory()->for($user)->create([
-            'created_at' => Date::now()->subDays(120),
+            'created_at' => $referenceNow->copy()->subDays(120),
         ]);
 
         foreach (range(1, 90) as $daysAgo) {
-            $date = Date::now()->subDays($daysAgo)->startOfDay();
+            $date = $referenceNow->copy()->subDays($daysAgo)->startOfDay();
 
             MonitoringDailyResult::query()->create([
                 'monitoring_id' => $monitoring->id,
@@ -184,6 +191,12 @@ class UptimeDowntimeApiTest extends TestCase
                 'min_response_time' => 100,
                 'max_response_time' => 180,
                 'incidents_count' => 1,
+            ]);
+
+            Incident::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'down_at' => $date->copy()->addHour(),
+                'up_at' => $date->copy()->addHours(2),
             ]);
         }
 
