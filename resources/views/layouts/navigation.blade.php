@@ -90,7 +90,8 @@
         </div>
 
         <div class="mt-6 hidden space-y-4 lg:block">
-            <div data-notifications-navigation class="flex items-center gap-2">
+            <div data-notifications-navigation class="flex items-center gap-2"
+                :class="{ 'flex-col justify-center': sidebarCollapsed }">
                 <a id="notifications-bell-desktop" href="{{ route('notifications.index') }}"
                     aria-label="{{ __('notifications.title') }}" title="{{ __('notifications.title') }}"
                     @class([
@@ -112,12 +113,13 @@
             <div data-navigation-utilities>
             <x-dropdown align="right" placement="top" width="48" contentClasses="bg-white py-2 dark:bg-slate-900">
                 <x-slot name="trigger">
-                    <button id="profile-menu-desktop" class="flex w-full items-center justify-between gap-3 rounded-xl border border-purple-800 px-3 py-2 text-left text-sm font-medium text-purple-100 transition hover:border-purple-600 hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300">
+                    <button id="profile-menu-desktop" class="flex w-full items-center justify-between gap-3 rounded-xl border border-purple-800 px-3 py-2 text-left text-sm font-medium text-purple-100 transition hover:border-purple-600 hover:bg-purple-900 focus:outline-hidden focus:ring-2 focus:ring-purple-300"
+                        :class="{ 'lg:justify-center lg:px-0': sidebarCollapsed }">
                         <span class="flex min-w-0 items-center gap-2">
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-700 font-bold text-white">{{ mb_strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}</span>
-                            <span class="truncate">{{ Auth::user()->name }}</span>
+                            <span class="truncate" x-show="! sidebarCollapsed" x-cloak>{{ Auth::user()->name }}</span>
                         </span>
-                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 0 1 1.414 0L10 10.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414Z" clip-rule="evenodd" /></svg>
+                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" x-show="! sidebarCollapsed" x-cloak><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 0 1 1.414 0L10 10.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414Z" clip-rule="evenodd" /></svg>
                     </button>
                 </x-slot>
                 <x-slot name="content">
