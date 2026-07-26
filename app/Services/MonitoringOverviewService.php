@@ -25,7 +25,8 @@ use Illuminate\Support\Facades\Date;
 class MonitoringOverviewService
 {
     public function __construct(
-        private readonly MonitoringOverviewQuery $monitoringOverviewQuery
+        private readonly MonitoringOverviewQuery $monitoringOverviewQuery,
+        private readonly MonitoringStateResolver $monitoringStateResolver,
     ) {}
 
     /**
@@ -54,7 +55,7 @@ class MonitoringOverviewService
         $monitorings = $this->monitoringOverviewQuery->monitoringsFor($user);
 
         $statuses = $monitorings->mapWithKeys(
-            fn (Monitoring $monitoring): array => [$monitoring->id => $this->status($monitoring)]
+            fn (Monitoring $monitoring): array => [$monitoring->id => $this->monitoringStateResolver->status($monitoring)]
         );
         $summary = [
             'total' => $monitorings->count(),
@@ -168,7 +169,7 @@ class MonitoringOverviewService
     private function mapSignalRoomServices(Collection $monitorings): Collection
     {
         $statuses = $monitorings->mapWithKeys(
-            fn (Monitoring $monitoring): array => [$monitoring->id => $this->status($monitoring)]
+            fn (Monitoring $monitoring): array => [$monitoring->id => $this->monitoringStateResolver->status($monitoring)]
         );
 
         return $monitorings->map(
@@ -202,29 +203,6 @@ class MonitoringOverviewService
             'openIncident' => $service->hasOpenIncident,
             'href' => route('monitorings.show', ['monitoring' => $service->id]),
         ];
-    }
-
-    private function status(Monitoring $monitoring): string
-    {
-        if ($monitoring->isPaused()) {
-            return MonitoringLifecycleStatus::PAUSED->value;
-        }
-
-        if ($monitoring->isUnderMaintenance()) {
-            return 'maintenance';
-        }
-
-        $latestIncident = $monitoring->latestIncident;
-        if ($latestIncident && $latestIncident->up_at === null) {
-            return MonitoringStatus::DOWN->value;
-        }
-
-        $latestResponse = $monitoring->latestResponseResult;
-        if ($latestResponse === null || $this->isStale($monitoring)) {
-            return MonitoringStatus::UNKNOWN->value;
-        }
-
-        return $latestResponse->status->value;
     }
 
     /**
@@ -288,7 +266,7 @@ class MonitoringOverviewService
         $items = collect();
 
         $eloquentCollection
-            ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::DOWN->value)
+            ->filter(fn (Monitoring $monitoring): bool => $this->monitoringStateResolver->status($monitoring) === MonitoringStatus::DOWN->value)
             ->take(5)
             ->each(function (Monitoring $monitoring) use ($items, $statusPagesByMonitoringId): void {
                 $isOpenIncident = $monitoring->latestIncident?->up_at === null
@@ -303,7 +281,7 @@ class MonitoringOverviewService
             });
 
         $eloquentCollection
-            ->filter(fn (Monitoring $monitoring): bool => $this->status($monitoring) === MonitoringStatus::UNKNOWN->value
+            ->filter(fn (Monitoring $monitoring): bool => $this->monitoringStateResolver->status($monitoring) === MonitoringStatus::UNKNOWN->value
                 && $monitoring->isActive())
             ->take(5)
             ->each(fn (Monitoring $monitoring) => $items->push([
@@ -349,20 +327,6 @@ class MonitoringOverviewService
         }
 
         return $statusPagesByMonitoringId;
-    }
-
-    private function isStale(Monitoring $monitoring): bool
-    {
-        $latestResponse = $monitoring->latestResponseResult;
-        if ($latestResponse === null) {
-            return false;
-        }
-
-        $intervalMinutes = $monitoring->isHeartbeat()
-            ? ((int) ($monitoring->heartbeat_interval_minutes ?? 0) + (int) ($monitoring->heartbeat_grace_minutes ?? 0))
-            : (int) config('monitoring.interval', 5);
-
-        return $latestResponse->created_at->lt(Date::now()->subMinutes(max(10, $intervalMinutes * 3)));
     }
 
     /**
