@@ -26,7 +26,7 @@ final class MaintenanceOverviewService
         int $perPage,
     ): array {
         $manageableMonitoringIds = $this->maintenanceOverviewQuery->manageableMonitoringIdsFor($user);
-        $windows = $this->maintenanceOverviewQuery->paginateWindowsFor(
+        $lengthAwarePaginator = $this->maintenanceOverviewQuery->paginateWindowsFor(
             $user,
             $search,
             $status,
@@ -35,7 +35,7 @@ final class MaintenanceOverviewService
             $direction,
             $perPage,
         );
-        $windowData = $windows->through(static fn (Monitoring $monitoring): array => [
+        $windowData = $lengthAwarePaginator->through(static fn (Monitoring $monitoring): array => [
             'id' => (string) $monitoring->id,
             'name' => $monitoring->name,
             'target' => $monitoring->target,

@@ -10,12 +10,12 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class MonitoringDataQuery
 {
-    public function findAccessible(?User $actor, string $monitoringId): Monitoring
+    public function findAccessible(?User $user, string $monitoringId): Monitoring
     {
         return Monitoring::query()
-            ->where(function (Builder $builder) use ($actor): void {
-                if ($actor !== null) {
-                    $builder->visibleTo($actor);
+            ->where(function (Builder $builder) use ($user): void {
+                if ($user !== null) {
+                    $builder->visibleTo($user);
                 }
 
                 $builder->orWhere('public_label_enabled', true);

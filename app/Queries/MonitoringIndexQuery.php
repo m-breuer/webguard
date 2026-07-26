@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Date;
 
 final class MonitoringIndexQuery
 {
-    public function for(User $user, MonitoringIndexFilters $filters, int $perPage = 5): MonitoringIndexReadModel
+    public function for(User $user, MonitoringIndexFilters $monitoringIndexFilters, int $perPage = 5): MonitoringIndexReadModel
     {
-        $query = $this->query($user, $filters);
+        $query = $this->query($user, $monitoringIndexFilters);
         $summaryMonitoringIds = (clone $query)->select('id')->reorder()->pluck('id')->values();
         $monitorings = $query->withMaintenanceWindowState()->paginate($perPage);
 
@@ -30,7 +30,7 @@ final class MonitoringIndexQuery
     /**
      * @return Builder<Monitoring>
      */
-    private function query(User $user, MonitoringIndexFilters $filters): Builder
+    private function query(User $user, MonitoringIndexFilters $monitoringIndexFilters): Builder
     {
         $query = Monitoring::query()
             ->visibleTo($user)
@@ -45,57 +45,57 @@ final class MonitoringIndexQuery
                 'maintenance_until',
             ]);
 
-        if ($filters->search !== null) {
-            $query->where(function (Builder $builder) use ($filters): void {
-                $builder->where('name', 'like', '%' . $filters->search . '%')
-                    ->orWhere('target', 'like', '%' . $filters->search . '%')
-                    ->orWhere('port', 'like', '%' . $filters->search . '%')
-                    ->orWhere('keyword', 'like', '%' . $filters->search . '%');
+        if ($monitoringIndexFilters->search !== null) {
+            $query->where(function (Builder $builder) use ($monitoringIndexFilters): void {
+                $builder->where('name', 'like', '%' . $monitoringIndexFilters->search . '%')
+                    ->orWhere('target', 'like', '%' . $monitoringIndexFilters->search . '%')
+                    ->orWhere('port', 'like', '%' . $monitoringIndexFilters->search . '%')
+                    ->orWhere('keyword', 'like', '%' . $monitoringIndexFilters->search . '%');
             });
         }
 
-        if ($filters->types !== []) {
-            $query->whereIn('type', $filters->types);
+        if ($monitoringIndexFilters->types !== []) {
+            $query->whereIn('type', $monitoringIndexFilters->types);
         }
 
-        if ($filters->lifecycleStatus !== null) {
-            $query->where('status', $filters->lifecycleStatus);
+        if ($monitoringIndexFilters->lifecycleStatus !== null) {
+            $query->where('status', $monitoringIndexFilters->lifecycleStatus);
         }
 
-        if ($filters->groupId !== null) {
-            $query->whereHas('groups', function (Builder $builder) use ($filters): void {
-                $builder->where('monitoring_groups.id', $filters->groupId);
+        if ($monitoringIndexFilters->groupId !== null) {
+            $query->whereHas('groups', function (Builder $builder) use ($monitoringIndexFilters): void {
+                $builder->where('monitoring_groups.id', $monitoringIndexFilters->groupId);
             });
         }
 
-        if ($filters->teamId !== null) {
-            $query->where('team_id', $filters->teamId);
+        if ($monitoringIndexFilters->teamId !== null) {
+            $query->where('team_id', $monitoringIndexFilters->teamId);
         }
 
-        if ($filters->ownership === 'private') {
+        if ($monitoringIndexFilters->ownership === 'private') {
             $query->whereNull('team_id');
-        } elseif ($filters->ownership === 'team') {
+        } elseif ($monitoringIndexFilters->ownership === 'team') {
             $query->whereNotNull('team_id');
         }
 
-        if ($filters->healthStatuses !== []) {
-            $query->where(function (Builder $builder) use ($filters): void {
-                if (in_array(MonitoringStatus::UP->value, $filters->healthStatuses, true)) {
-                    $builder->orWhereHas('latestResponseResult', fn (Builder $query) => $query->where('status', MonitoringStatus::UP));
+        if ($monitoringIndexFilters->healthStatuses !== []) {
+            $query->where(function (Builder $builder) use ($monitoringIndexFilters): void {
+                if (in_array(MonitoringStatus::UP->value, $monitoringIndexFilters->healthStatuses, true)) {
+                    $builder->orWhereHas('latestResponseResult', fn (Builder $builder) => $builder->where('status', MonitoringStatus::UP));
                 }
 
-                if (in_array(MonitoringStatus::DOWN->value, $filters->healthStatuses, true)) {
-                    $builder->orWhereHas('latestResponseResult', fn (Builder $query) => $query->where('status', MonitoringStatus::DOWN));
+                if (in_array(MonitoringStatus::DOWN->value, $monitoringIndexFilters->healthStatuses, true)) {
+                    $builder->orWhereHas('latestResponseResult', fn (Builder $builder) => $builder->where('status', MonitoringStatus::DOWN));
                 }
 
-                if (in_array(MonitoringStatus::UNKNOWN->value, $filters->healthStatuses, true)) {
+                if (in_array(MonitoringStatus::UNKNOWN->value, $monitoringIndexFilters->healthStatuses, true)) {
                     $builder->orWhereDoesntHave('latestResponseResult')
-                        ->orWhereHas('latestResponseResult', fn (Builder $query) => $query->where('status', MonitoringStatus::UNKNOWN));
+                        ->orWhereHas('latestResponseResult', fn (Builder $builder) => $builder->where('status', MonitoringStatus::UNKNOWN));
                 }
             });
         }
 
-        if ($filters->onlyActiveMaintenance) {
+        if ($monitoringIndexFilters->onlyActiveMaintenance) {
             $now = Date::now();
             $query->whereNotNull('maintenance_from')
                 ->where('maintenance_from', '<=', $now)
@@ -107,7 +107,7 @@ final class MonitoringIndexQuery
 
         $query->orderBy('status');
 
-        match ($filters->sort) {
+        match ($monitoringIndexFilters->sort) {
             'name_desc' => $query->orderByDesc('name'),
             'created_asc' => $query->oldest('monitorings.created_at'),
             'created_desc' => $query->latest('monitorings.created_at'),

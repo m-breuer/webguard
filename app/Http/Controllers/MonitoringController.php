@@ -89,7 +89,7 @@ class MonitoringController extends Controller
             'maintenance' => ['nullable', 'string', Rule::in(['active'])],
         ]);
 
-        $filters = new MonitoringIndexFilters(
+        $monitoringIndexFilters = new MonitoringIndexFilters(
             search: $request->filled('search') ? $request->string('search')->toString() : null,
             types: $request->filled('types') ? explode(',', $request->string('types')->toString()) : [],
             healthStatuses: $request->filled('health') ? explode(',', $request->string('health')->toString()) : [],
@@ -102,16 +102,16 @@ class MonitoringController extends Controller
             onlyActiveMaintenance: $request->string('maintenance')->toString() === 'active',
             sort: $request->filled('sort') ? $request->string('sort')->toString() : null,
         );
-        $monitoringIndex = $monitoringIndexQuery->for($currentUser, $filters);
-        $lengthAwarePaginator = $monitoringIndex->monitorings;
-        $summaryMonitoringIds = $monitoringIndex->summaryMonitoringIds;
+        $monitoringIndexReadModel = $monitoringIndexQuery->for($currentUser, $monitoringIndexFilters);
+        $lengthAwarePaginator = $monitoringIndexReadModel->monitorings;
+        $summaryMonitoringIds = $monitoringIndexReadModel->summaryMonitoringIds;
         $privateMonitoringsTotal = $currentUser->monitorings()->whereNull('team_id')->count();
-        $monitoringsTotal = $monitoringIndex->total;
+        $monitoringsTotal = $monitoringIndexReadModel->total;
         $monitoringLimit = (int) $currentUser->package->monitoring_limit;
         $canCreateMonitoring = ! $currentUser->isDemo()
             && ($privateMonitoringsTotal < $monitoringLimit || $currentUser->administeredTeams()->exists());
 
-        if (! $filters->hasActiveFilters() && $monitoringsTotal === 0) {
+        if (! $monitoringIndexFilters->hasActiveFilters() && $monitoringsTotal === 0) {
             $request->attributes->set('unread_notifications_count', 0);
         }
 

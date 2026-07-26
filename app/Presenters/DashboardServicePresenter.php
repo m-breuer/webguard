@@ -16,21 +16,21 @@ final class DashboardServicePresenter
      */
     public function present(Collection $services): Collection
     {
-        return $services->map(fn (MonitoringServiceReadModel $service): array => [
-            'id' => $service->id,
-            'name' => $service->name,
-            'target' => $service->target,
-            'status' => $service->status,
-            'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $service->status),
-            'group' => $service->groupName ?? (string) __('dashboard.signal_room.ungrouped'),
-            'lastCheck' => $service->lastCheckedAt !== null
-                ? Date::parse($service->lastCheckedAt)->locale(app()->getLocale())->diffForHumans()
+        return $services->map(fn (MonitoringServiceReadModel $monitoringServiceReadModel): array => [
+            'id' => $monitoringServiceReadModel->id,
+            'name' => $monitoringServiceReadModel->name,
+            'target' => $monitoringServiceReadModel->target,
+            'status' => $monitoringServiceReadModel->status,
+            'statusLabel' => (string) __('dashboard.signal_room.statuses.' . $monitoringServiceReadModel->status),
+            'group' => $monitoringServiceReadModel->groupName ?? (string) __('dashboard.signal_room.ungrouped'),
+            'lastCheck' => $monitoringServiceReadModel->lastCheckedAt !== null
+                ? Date::parse($monitoringServiceReadModel->lastCheckedAt)->locale(app()->getLocale())->diffForHumans()
                 : (string) __('dashboard.signal_room.no_check'),
-            'responseTime' => $service->responseTimeMs !== null
-                ? number_format($service->responseTimeMs, 0, ',', '.') . ' ms'
+            'responseTime' => $monitoringServiceReadModel->responseTimeMs !== null
+                ? number_format($monitoringServiceReadModel->responseTimeMs, 0, ',', '.') . ' ms'
                 : '—',
-            'openIncident' => $service->hasOpenIncident,
-            'href' => route('monitorings.show', ['monitoring' => $service->id]),
+            'openIncident' => $monitoringServiceReadModel->hasOpenIncident,
+            'href' => route('monitorings.show', ['monitoring' => $monitoringServiceReadModel->id]),
         ])->values();
     }
 }

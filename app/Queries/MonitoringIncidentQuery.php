@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Queries;
 
+use App\Models\Incident;
 use App\Models\Monitoring;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 final class MonitoringIncidentQuery
 {
     /**
-     * @return Collection<int, \App\Models\Incident>
+     * @return Collection<int, Incident>
      */
     public function for(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): Collection
     {

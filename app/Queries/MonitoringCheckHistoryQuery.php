@@ -46,11 +46,11 @@ final class MonitoringCheckHistoryQuery
             }
         }
 
-        $live = $this->sourceQuery(self::LIVE_TABLE, 'live', $monitoringId, $startDate, $startDate !== null ? $endDate : null);
+        $builder = $this->sourceQuery(self::LIVE_TABLE, 'live', $monitoringId, $startDate, $startDate !== null ? $endDate : null);
         $archived = $this->sourceQuery(self::ARCHIVED_TABLE, 'archived', $monitoringId, $startDate, $startDate !== null ? $endDate : null);
 
         return DB::query()
-            ->fromSub($live->unionAll($archived), 'monitoring_results')
+            ->fromSub($builder->unionAll($archived), 'monitoring_results')
             ->latest()
             ->orderByDesc('id')
             ->offset($offset)

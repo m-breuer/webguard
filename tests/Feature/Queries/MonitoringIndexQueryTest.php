@@ -21,12 +21,12 @@ class MonitoringIndexQueryTest extends TestCase
         $visibleMonitorings = Monitoring::factory()->count(3)->for($user)->create();
         Monitoring::factory()->for($otherUser)->create(['name' => 'Hidden monitoring']);
 
-        $readModel = resolve(MonitoringIndexQuery::class)->for($user, $this->filters(), 2);
+        $monitoringIndexReadModel = resolve(MonitoringIndexQuery::class)->for($user, $this->filters(), 2);
 
-        $this->assertSame(3, $readModel->total);
-        $this->assertCount(2, $readModel->monitorings);
-        $this->assertEqualsCanonicalizing($visibleMonitorings->modelKeys(), $readModel->summaryMonitoringIds->all());
-        $this->assertNotContains('Hidden monitoring', $readModel->monitorings->pluck('name')->all());
+        $this->assertSame(3, $monitoringIndexReadModel->total);
+        $this->assertCount(2, $monitoringIndexReadModel->monitorings);
+        $this->assertEqualsCanonicalizing($visibleMonitorings->modelKeys(), $monitoringIndexReadModel->summaryMonitoringIds->all());
+        $this->assertNotContains('Hidden monitoring', $monitoringIndexReadModel->monitorings->pluck('name')->all());
     }
 
     private function filters(): MonitoringIndexFilters
