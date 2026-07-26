@@ -77,13 +77,7 @@
     </div>
 
     <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]">
-        <div
-            x-data="serviceMapLoader()"
-            data-service-map-loader
-            data-services='@json($services)'
-            data-endpoint="{{ route('dashboard', absolute: false) }}"
-            class="min-w-0"
-        >
+        <div class="min-w-0">
         <section id="dashboard-service-list" data-services='@json($services)' class="min-w-0 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-labelledby="signal-room-services-heading">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700 sm:px-6">
                 <div>
@@ -139,7 +133,7 @@
                 @endforeach
             </div>
         @if ($pagination)
-            <x-pagination id="dashboard-service-pagination" :paginator="$pagination" page-param="service_page" :async="true" class="border-t border-gray-100 px-5 py-4 dark:border-gray-700 sm:px-6" />
+            <x-pagination id="dashboard-service-pagination" :paginator="$pagination" page-param="service_page" class="border-t border-gray-100 px-5 py-4 dark:border-gray-700 sm:px-6" />
         @endif
         </section>
         </div>

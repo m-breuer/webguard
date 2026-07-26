@@ -16,15 +16,6 @@ class DashboardController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if ($request->boolean('service_fragment')) {
-            $serviceMap = $monitoringOverviewService->serviceMap(
-                $user,
-                max(1, $request->integer('service_page', 1)),
-            );
-
-            return view('components.dashboard.service-map-fragment', $serviceMap);
-        }
-
         if (! $request->boolean('async')) {
             return view('dashboard-shell');
         }
