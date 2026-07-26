@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
+use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
+use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
 class InternalUiDashboardApiTest extends TestCase
 {
+    use AssertsApiContracts;
+
     public function test_guest_cannot_read_the_internal_ui_dashboard(): void
     {
         $this->getJson(route('api.v1.internal.ui.dashboard'))
@@ -24,7 +29,9 @@ class InternalUiDashboardApiTest extends TestCase
         $visibleMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Visible API']);
         Monitoring::factory()->create(['name' => 'Hidden API']);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+
+        $testResponse
             ->assertOk()
             ->assertJsonPath('data.summary.total', 1)
             ->assertJsonPath('data.services.0.id', $visibleMonitoring->id)
@@ -37,6 +44,8 @@ class InternalUiDashboardApiTest extends TestCase
             ->assertJsonStructure([
                 'meta' => ['as_of', 'service_pagination'],
             ]);
+
+        $this->assertInternalUiTelemetry($testResponse, 30, 131072);
     }
 
     public function test_dashboard_projection_stays_within_its_response_budget(): void
@@ -48,8 +57,7 @@ class InternalUiDashboardApiTest extends TestCase
         $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
 
         $testResponse->assertOk();
-        $this->assertLessThanOrEqual(30, (int) $testResponse->headers->get('X-Query-Count'));
-        $this->assertLessThanOrEqual(131072, (int) $testResponse->headers->get('X-Response-Bytes'));
+        $this->assertInternalUiTelemetry($testResponse, 30, 131072);
     }
 
     public function test_unverified_user_cannot_read_the_internal_ui_dashboard(): void
@@ -80,5 +88,33 @@ class InternalUiDashboardApiTest extends TestCase
             ->getJson(route('api.v1.internal.ui.dashboard'))
             ->assertNotModified()
             ->assertHeader('ETag', $etag);
+    }
+
+    public function test_dashboard_projection_rejects_an_invalid_page_and_changes_its_etag_after_a_monitoring_result(): void
+    {
+        Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Cache contract API']);
+
+        $this->actingAs($user)
+            ->getJson(route('api.v1.internal.ui.dashboard', ['service_page' => 0]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('service_page');
+
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $firstEtag = (string) $testResponse->headers->get('ETag');
+
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'response_time' => 120,
+        ]);
+
+        $secondResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+
+        $secondResponse
+            ->assertOk()
+            ->assertJsonPath('data.services.0.status', 'up');
+        $this->assertNotSame($firstEtag, (string) $secondResponse->headers->get('ETag'));
     }
 }

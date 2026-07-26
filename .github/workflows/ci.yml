@@ -109,3 +109,11 @@ jobs:
         XDEBUG_MODE: coverage
       run: |
         composer test:coverage -- --parallel
+
+    - name: Verify external OpenAPI contract is current
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: ':memory:'
+      run: |
+        php artisan scribe:generate --no-interaction
+        git diff --exit-code -- storage/app/private/scribe/openapi.yaml

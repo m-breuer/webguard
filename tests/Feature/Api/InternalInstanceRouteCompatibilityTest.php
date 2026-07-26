@@ -9,10 +9,13 @@ use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
 class InternalInstanceRouteCompatibilityTest extends TestCase
 {
+    use AssertsApiContracts;
+
     public function test_legacy_and_target_instance_routes_use_the_same_actions(): void
     {
         foreach ($this->routeNames() as $legacyName => $targetName) {
@@ -53,6 +56,38 @@ class InternalInstanceRouteCompatibilityTest extends TestCase
             ->assertOk()
             ->assertJsonPath('0.id', $assignedMonitoring->id)
             ->assertJsonCount(1);
+    }
+
+    public function test_legacy_and_target_instance_routes_keep_the_same_authentication_and_location_contract(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'contract-instance',
+            'ip_address' => '192.0.2.57',
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+        Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code],
+        ]);
+
+        foreach ([
+            'v1.internal.monitorings.list',
+            'v1.internal.instances.monitorings.list',
+        ] as $routeName) {
+            $this->flushHeaders();
+
+            $this->getJson(route($routeName, ['location' => $serverInstance->code]))
+                ->assertUnauthorized()
+                ->assertJsonPath('message', 'Unauthorized');
+
+            $this->withHeaders($this->instanceHeaders($serverInstance))
+                ->getJson(route($routeName, ['location' => 'different-instance']))
+                ->assertForbidden()
+                ->assertJsonPath('message', 'Unauthorized location');
+        }
     }
 
     /**

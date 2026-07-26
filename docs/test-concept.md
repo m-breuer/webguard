@@ -112,6 +112,9 @@ Every change should include the narrowest useful validation:
   visible text, redirects, validation, and persisted state.
 - API changes: feature tests for authentication, authorization, request validation,
   response schema, pagination, and backward compatibility.
+- External v1 changes: regenerate Scribe and require a clean diff for
+  `storage/app/private/scribe/openapi.yaml`; this makes an undocumented schema
+  drift visible in CI.
 - Jobs and commands: feature tests for scheduling, dispatch behavior, idempotency,
   retries where applicable, and observable side effects.
 - Notifications and mail: feature tests with fakes plus rendering assertions for

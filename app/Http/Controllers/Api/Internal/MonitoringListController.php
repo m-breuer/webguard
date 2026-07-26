@@ -15,18 +15,19 @@ class MonitoringListController extends Controller
 {
     public function __invoke(Request $request)
     {
+        $authenticatedInstanceCode = (string) $request->attributes->get('authenticated_instance_code');
+        $requestedLocation = (string) $request->query('location', '');
+
+        if ($requestedLocation !== '' && $authenticatedInstanceCode !== '' && $requestedLocation !== $authenticatedInstanceCode) {
+            return response()->json(['message' => 'Unauthorized location'], 403);
+        }
+
         $validated = $request->validate([
             'location' => ['required', 'string', Rule::exists('server_instances', 'code')->where('is_active', true)],
             'type' => ['nullable', 'string', Rule::in(array_column(MonitoringType::cases(), 'value'))],
         ]);
 
-        $authenticatedInstanceCode = (string) $request->attributes->get('authenticated_instance_code');
         $location = $validated['location'];
-
-        if ($authenticatedInstanceCode !== '' && $location !== $authenticatedInstanceCode) {
-            return response()->json(['message' => 'Unauthorized location'], 403);
-        }
-
         $type = $validated['type'] ?? null;
 
         $builder = Monitoring::query()
