@@ -68,7 +68,7 @@
                                     @if ($modalForm === 'profile-information')
                                         @include('profile.partials.update-profile-information-form', ['modal' => true])
                                     @else
-                                        <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                                        <x-loading-indicator x-show="loading" x-cloak :show-label="false" class="justify-center" />
                                         <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
                                         <div x-html="content"></div>
                                     @endif
@@ -99,7 +99,7 @@
                                 @if ($modalForm === 'profile-password')
                                     @include('profile.partials.update-password-form', ['modal' => true])
                                 @else
-                                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                                    <x-loading-indicator x-show="loading" x-cloak :show-label="false" class="justify-center" />
                                     <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
                                     <div x-html="content"></div>
                                 @endif

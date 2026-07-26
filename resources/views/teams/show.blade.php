@@ -43,7 +43,7 @@
             <x-form-modal name="team-form-modal" title="{{ __('team.edit.title', ['team' => $team->name]) }}"
                 description="{{ __('team.title') }}" max-width="3xl">
                 <div class="p-6" x-ref="content">
-                    <p x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('app.loading') }}</p>
+                    <x-loading-indicator x-show="loading" x-cloak :show-label="false" class="justify-center" />
                     <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>
                     <div x-html="content"></div>
                 </div>
