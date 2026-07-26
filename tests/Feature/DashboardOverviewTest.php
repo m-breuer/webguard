@@ -21,6 +21,20 @@ use Tests\TestCase;
 
 class DashboardOverviewTest extends TestCase
 {
+    public function test_dashboard_renders_a_shell_before_loading_expensive_components(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->for($user)->create();
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeHtml('data-dashboard-loader')
+            ->assertSeeHtml('x-data="dashboardLoader()"')
+            ->assertSeeText(__('app.loading'))
+            ->assertDontSeeHtml('data-signal-room');
+    }
+
     public function test_dashboard_service_landscape_is_paginated_without_changing_the_global_summary(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 20]);
@@ -29,8 +43,8 @@ class DashboardOverviewTest extends TestCase
             fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
         )->create();
 
-        $testResponse = $this->actingAs($user)->get(route('dashboard'));
-        $secondPage = $this->actingAs($user)->get(route('dashboard', ['service_page' => 2]));
+        $testResponse = $this->actingAs($user)->get(route('dashboard', ['async' => 1]));
+        $secondPage = $this->actingAs($user)->get(route('dashboard', ['async' => 1, 'service_page' => 2]));
 
         $testResponse->assertOk()
             ->assertSeeText('11 ' . __('dashboard.signal_room.active_services'))
@@ -53,6 +67,7 @@ class DashboardOverviewTest extends TestCase
         )->create();
 
         $this->actingAs($user)->get(route('dashboard', [
+            'async' => 1,
             'service_fragment' => 1,
             'service_page' => 2,
         ]))
@@ -68,7 +83,7 @@ class DashboardOverviewTest extends TestCase
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
 
-        $this->actingAs($user)->get(route('dashboard'))
+        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
             ->assertOk()
             ->assertSeeText(__('dashboard.empty.title'))
             ->assertSeeText(__('dashboard.empty.description'))
@@ -103,7 +118,7 @@ class DashboardOverviewTest extends TestCase
         Monitoring::factory()->for($user)->create(['name' => 'Unknown API']);
         Monitoring::factory()->for($otherUser)->create(['name' => 'Private API']);
 
-        $testResponse = $this->actingAs($user)->get(route('dashboard'));
+        $testResponse = $this->actingAs($user)->get(route('dashboard', ['async' => 1]));
 
         $testResponse->assertOk()
             ->assertSeeText(__('dashboard.greeting', ['name' => $user->name]))
@@ -143,7 +158,7 @@ class DashboardOverviewTest extends TestCase
             'status' => MonitoringStatus::UP,
         ]);
 
-        $this->actingAs($user)->get(route('dashboard'))
+        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
             ->assertOk()
             ->assertSeeText(__('dashboard.state.healthy.title'))
             ->assertSeeText(__('dashboard.attention.empty'))
@@ -176,7 +191,7 @@ class DashboardOverviewTest extends TestCase
             'incident_id' => $incident->id,
         ]) . '#incident-workbench-' . $incident->id;
 
-        $this->actingAs($user)->get(route('dashboard'))
+        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
             ->assertOk()
             ->assertSeeHtml('href="' . $incidentWorkspaceUrl . '"')
             ->assertSeeText(__('dashboard.attention.open_incident'))
@@ -216,7 +231,7 @@ class DashboardOverviewTest extends TestCase
             'error_message' => 'Webhook unavailable',
         ]);
 
-        $this->actingAs($user)->get(route('dashboard'))
+        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
             ->assertOk()
             ->assertSeeText(__('dashboard.maintenance.heading'))
             ->assertSeeText(__('dashboard.maintenance.upcoming'))
