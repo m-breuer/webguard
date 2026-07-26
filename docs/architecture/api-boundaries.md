@@ -50,6 +50,11 @@ The first internal UI projection is `GET /api/v1/internal/ui/dashboard`. It
 returns raw operations data and pagination metadata; the Blade dashboard remains
 the progressive-enhancement shell until the frontend migration is complete.
 
+The dashboard shell hydrates this projection with a same-origin JSON client. It
+does not parse server-rendered dashboard fragments, keeping the internal API
+contract independent from Blade markup. The former asynchronous HTML endpoint
+remains temporarily as a reversible compatibility fallback.
+
 ## Current-to-target migration
 
 The current scanner routes are the compatibility baseline. Core now exposes the
