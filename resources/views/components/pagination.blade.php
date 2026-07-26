@@ -53,7 +53,8 @@
             @if ($pagination['current_page'] > 1)
                 <a href="{{ $previousUrl }}"
                     @if ($async) data-pagination-async @endif
-                    class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-purple-500 dark:hover:bg-purple-950/30 dark:hover:text-purple-200">
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-purple-500 dark:hover:bg-purple-950/30 dark:hover:text-purple-200">
+                    <x-icon name="arrow-left" data-pagination-icon="previous" class="h-4 w-4" />
                     {{ __('pagination.previous') }}
                 </a>
             @endif
@@ -65,8 +66,9 @@
             @if ($pagination['current_page'] < $pagination['last_page'])
                 <a href="{{ $nextUrl }}"
                     @if ($async) data-pagination-async @endif
-                    class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-purple-500 dark:hover:bg-purple-950/30 dark:hover:text-purple-200">
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-purple-500 dark:hover:bg-purple-950/30 dark:hover:text-purple-200">
                     {{ __('pagination.next') }}
+                    <x-icon name="arrow-right" data-pagination-icon="next" class="h-4 w-4" />
                 </a>
             @endif
         </nav>

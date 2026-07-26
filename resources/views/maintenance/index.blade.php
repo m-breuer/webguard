@@ -247,12 +247,14 @@
                     </span>
                     <div class="flex gap-2">
                         <button type="button" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100"
+                            title="{{ __('pagination.previous') }}" aria-label="{{ __('pagination.previous') }}"
                             x-bind:disabled="pagination.current_page <= 1 || loading" @click="load(pagination.current_page - 1)">
-                            &laquo;
+                            <x-icon name="arrow-left" class="h-4 w-4" />
                         </button>
                         <button type="button" class="rounded-md bg-gray-100 px-3 py-2 font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100"
+                            title="{{ __('pagination.next') }}" aria-label="{{ __('pagination.next') }}"
                             x-bind:disabled="pagination.current_page >= pagination.last_page || loading" @click="load(pagination.current_page + 1)">
-                            &raquo;
+                            <x-icon name="arrow-right" class="h-4 w-4" />
                         </button>
                     </div>
                 </div>

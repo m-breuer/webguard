@@ -46,6 +46,10 @@
             <path d="m15 18-6-6 6-6" />
             <path d="M9 12h12" />
             @break
+        @case('arrow-right')
+            <path d="m9 18 6-6-6-6" />
+            <path d="M3 12h12" />
+            @break
         @case('chart')
             <path d="M4 19V5M4 19h16" />
             <path d="m7 15 3-4 3 2 5-6" />
