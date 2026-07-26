@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Enums\MonitoringStatus;
+use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
@@ -141,5 +144,115 @@ class InternalUiMonitoringApiTest extends TestCase
         $testResponse->assertJsonPath('data.id', $monitoring->id)
             ->assertJsonPath('data.name', 'Scoped detail API');
         $this->assertInternalUiTelemetry($testResponse, 15, 131072);
+    }
+
+    public function test_internal_ui_monitoring_cards_scope_heatmap_data_to_the_authenticated_user(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $ownedMonitoring = Monitoring::factory()->for($user)->create();
+        $foreignMonitoring = Monitoring::factory()->for($otherUser)->create();
+
+        $foreignCheckedAt = Date::now()->subMinutes(5);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $foreignMonitoring->id,
+            'status' => MonitoringStatus::DOWN,
+            'http_status_code' => 500,
+            'response_time' => 321.0,
+            'created_at' => $foreignCheckedAt,
+            'updated_at' => $foreignCheckedAt,
+        ]);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+            'ids' => [$ownedMonitoring->id, $foreignMonitoring->id],
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.' . $ownedMonitoring->id . '.heatmap.0.uptime', 0)
+            ->assertJsonMissingPath('data.' . $foreignMonitoring->id);
+    }
+
+    public function test_internal_ui_monitoring_cards_accept_a_full_page_of_requested_ids(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $package = Package::factory()->create(['monitoring_limit' => 50]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+
+        $monitorings = Monitoring::factory()->count(26)->for($user)->create();
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+            'ids' => $monitorings->pluck('id')->all(),
+        ]))
+            ->assertOk()
+            ->assertJsonCount(26, 'data')
+            ->assertJsonPath('data.' . $monitorings->first()->id . '.heatmap.0.uptime', 0);
+    }
+
+    public function test_internal_ui_monitoring_cards_batch_query_count_stays_bounded(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $user = User::factory()->create();
+        $monitorings = Monitoring::factory()->count(3)->for($user)->create();
+
+        foreach ($monitorings as $index => $monitoring) {
+            foreach (range(0, 2) as $hourOffset) {
+                $checkedAt = Date::now()->subHours($hourOffset)->subMinutes($index + 1);
+
+                MonitoringResponse::query()->create([
+                    'monitoring_id' => $monitoring->id,
+                    'status' => $index === 1 ? MonitoringStatus::DOWN : MonitoringStatus::UP,
+                    'http_status_code' => $index === 1 ? 503 : 200,
+                    'response_time' => 120.0 + $index,
+                    'created_at' => $checkedAt,
+                    'updated_at' => $checkedAt,
+                ]);
+            }
+        }
+
+        Incident::query()->create([
+            'monitoring_id' => $monitorings[1]->id,
+            'down_at' => Date::now()->subHours(2),
+            'up_at' => null,
+            'created_at' => Date::now()->subHours(2),
+            'updated_at' => Date::now()->subHours(2),
+        ]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        foreach ($monitorings as $monitoring) {
+            $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/status')->assertOk();
+            $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/heatmap')->assertOk();
+        }
+
+        $unbatchedSelectCount = $this->selectQueryCount();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+            'ids' => $monitorings->pluck('id')->all(),
+        ]));
+
+        $testResponse->assertOk();
+        $testResponse->assertJsonPath('data.' . $monitorings[0]->id . '.status', MonitoringStatus::UP->value);
+        $testResponse->assertJsonPath('data.' . $monitorings[1]->id . '.status', MonitoringStatus::DOWN->value);
+        $testResponse->assertJsonCount(24, 'data.' . $monitorings[2]->id . '.heatmap');
+
+        $batchedSelectCount = $this->selectQueryCount();
+
+        $this->assertGreaterThan($batchedSelectCount, $unbatchedSelectCount);
+        $this->assertLessThanOrEqual(4, $batchedSelectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
+    }
+
+    private function selectQueryCount(): int
+    {
+        return collect(DB::getQueryLog())
+            ->filter(static fn (array $entry): bool => str_starts_with(mb_strtolower($entry['query']), 'select'))
+            ->count();
     }
 }

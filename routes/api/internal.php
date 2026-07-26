@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\MaintenanceDataController;
-use App\Http\Controllers\Api\MonitoringCardDataController;
 use App\Http\Controllers\Api\NotificationBoardController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\MaintenanceController as WebMaintenanceController;
@@ -16,7 +15,6 @@ Route::post('/maintenance', [WebMaintenanceController::class, 'store'])->name('m
 Route::delete('/maintenance', [WebMaintenanceController::class, 'destroy'])->name('maintenance.destroy');
 
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {
-    Route::get('/card-data', MonitoringCardDataController::class)->middleware('auth')->name('card-data');
     Route::get('/{monitoring}', [ApiController::class, 'all']);
 
     Route::get('/{monitoring}/status', [ApiController::class, 'status']);
