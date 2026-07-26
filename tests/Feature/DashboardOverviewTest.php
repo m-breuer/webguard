@@ -54,34 +54,11 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText('11 ' . __('dashboard.signal_room.active_services'))
             ->assertSeeText('Service 01')
             ->assertDontSeeText('Service 11')
-            ->assertSeeText('1 / 2')
-            ->assertSeeHtml('data-pagination-async')
-            ->assertSeeHtml('href="/dashboard?');
+            ->assertSeeText('1 / 2');
         $secondPage->assertOk()
             ->assertSeeText('Service 11')
             ->assertSeeText('2 / 2')
             ->assertSeeHtml('service_page=1');
-    }
-
-    public function test_dashboard_service_landscape_page_can_be_loaded_as_a_bounded_fragment(): void
-    {
-        $package = Package::factory()->create(['monitoring_limit' => 20]);
-        $user = User::factory()->create(['package_id' => $package->id]);
-        Monitoring::factory()->count(11)->for($user)->sequence(
-            fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
-        )->create();
-
-        $this->actingAs($user)->get(route('dashboard', [
-            'async' => 1,
-            'service_fragment' => 1,
-            'service_page' => 2,
-        ]))
-            ->assertOk()
-            ->assertSeeHtml('id="dashboard-service-list"')
-            ->assertSeeHtml('href="/dashboard?')
-            ->assertSeeText('Service 11')
-            ->assertDontSeeText('Service 01')
-            ->assertDontSeeText(__('dashboard.greeting', ['name' => $user->name]));
     }
 
     public function test_new_user_sees_a_clear_dashboard_empty_state(): void

@@ -19,7 +19,6 @@ import maintenancePage from './components/maintenance-page';
 import confirmDialog, { registerConfirmableForms } from './components/confirm-dialog';
 import formModalLoader from './components/form-modal-loader';
 import signalRoom from './components/signal-room';
-import serviceMapLoader from './components/service-map-loader';
 import dashboardLoader from './components/dashboard-loader';
 import incidentAnalyticsLoader from './components/incident-analytics-loader';
 
@@ -32,7 +31,6 @@ Alpine.data('maintenancePage', maintenancePage);
 Alpine.data('confirmDialog', confirmDialog);
 Alpine.data('formModalLoader', formModalLoader);
 Alpine.data('signalRoom', signalRoom);
-Alpine.data('serviceMapLoader', serviceMapLoader);
 Alpine.data('dashboardLoader', dashboardLoader);
 Alpine.data('incidentAnalyticsLoader', incidentAnalyticsLoader);
 
