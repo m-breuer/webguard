@@ -52,6 +52,22 @@ class MonitoringManagementApiTest extends TestCase
         $this->assertSoftDeleted('monitorings', ['id' => $monitoring->id]);
     }
 
+    public function test_monitoring_list_uses_a_stable_name_and_id_order(): void
+    {
+        Package::factory()->create(['monitoring_limit' => 5]);
+        $user = User::factory()->create();
+        $first = Monitoring::factory()->for($user)->create(['name' => 'Same name']);
+        $second = Monitoring::factory()->for($user)->create(['name' => 'Same name']);
+        Sanctum::actingAs($user);
+
+        $testResponse = $this->getJson('/api/v1/monitorings?per_page=2');
+
+        $testResponse->assertOk();
+        $expectedIds = collect([$first->id, $second->id])->sort()->values()->all();
+        $testResponse->assertJsonPath('data.0.id', $expectedIds[0]);
+        $testResponse->assertJsonPath('data.1.id', $expectedIds[1]);
+    }
+
     public function test_user_can_move_manageable_monitoring_between_private_and_team_ownership(): void
     {
         Package::factory()->create(['monitoring_limit' => 5]);

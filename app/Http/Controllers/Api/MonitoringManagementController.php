@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MonitoringRequest;
+use App\Http\Resources\External\MonitoringResource;
 use App\Models\Monitoring;
 use App\Models\Team;
 use App\Models\User;
@@ -30,7 +31,12 @@ class MonitoringManagementController extends Controller
         $monitorings = Monitoring::query()
             ->visibleTo($user)
             ->orderBy('name')
+            ->orderBy('id')
             ->paginate(min(max((int) $request->integer('per_page', 25), 1), 100));
+
+        $monitorings->setCollection($monitorings->getCollection()->map(
+            fn (Monitoring $monitoring): array => MonitoringResource::make($monitoring)->resolve($request)
+        ));
 
         return response()->json($monitorings);
     }
@@ -62,7 +68,7 @@ class MonitoringManagementController extends Controller
             $monitoring = $user->monitorings()->create($payload);
         }
 
-        return response()->json(['data' => $monitoring], 201);
+        return response()->json(['data' => MonitoringResource::make($monitoring)->resolve($monitoringRequest)], 201);
     }
 
     public function update(MonitoringRequest $monitoringRequest, Monitoring $monitoring): JsonResponse
@@ -82,7 +88,7 @@ class MonitoringManagementController extends Controller
 
         $monitoring->update($payload);
 
-        return response()->json(['data' => $monitoring->refresh()]);
+        return response()->json(['data' => MonitoringResource::make($monitoring->refresh())->resolve($monitoringRequest)]);
     }
 
     public function destroy(Request $request, Monitoring $monitoring): JsonResponse
@@ -122,7 +128,7 @@ class MonitoringManagementController extends Controller
         $team = Team::query()->findOrFail($validated['team_id']);
 
         return response()->json([
-            'data' => $monitoringOwnershipService->moveToTeam($monitoring, $team, $user),
+            'data' => MonitoringResource::make($monitoringOwnershipService->moveToTeam($monitoring, $team, $user))->resolve($request),
         ]);
     }
 
@@ -136,7 +142,7 @@ class MonitoringManagementController extends Controller
         abort_if($user->isDemo(), 403);
 
         return response()->json([
-            'data' => $monitoringOwnershipService->moveToPrivate($monitoring, $user),
+            'data' => MonitoringResource::make($monitoringOwnershipService->moveToPrivate($monitoring, $user))->resolve($request),
         ]);
     }
 }

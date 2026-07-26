@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\External\TeamInvitationResource;
+use App\Http\Resources\External\TeamResource;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
@@ -29,7 +31,9 @@ class TeamInvitationController extends Controller
         $teamMembershipService->assertAdmin($team, $user);
 
         return response()->json([
-            'data' => $team->invitations()->whereNull('accepted_at')->latest()->get(),
+            'data' => $team->invitations()->whereNull('accepted_at')->latest()->orderByDesc('id')->get()->map(
+                fn (TeamInvitation $teamInvitation): array => TeamInvitationResource::make($teamInvitation)->resolve($request)
+            )->values(),
         ]);
     }
 
@@ -56,7 +60,7 @@ class TeamInvitationController extends Controller
             TeamRole::from((string) $validated['role'])
         );
 
-        return response()->json(['data' => $teamInvitation], 201);
+        return response()->json(['data' => TeamInvitationResource::make($teamInvitation)->resolve($request)], 201);
     }
 
     public function destroy(
@@ -82,6 +86,6 @@ class TeamInvitationController extends Controller
         $user = $request->user();
         $team = $teamInvitationService->accept($token, $user);
 
-        return response()->json(['data' => $team]);
+        return response()->json(['data' => TeamResource::make($team)->resolve($request)]);
     }
 }

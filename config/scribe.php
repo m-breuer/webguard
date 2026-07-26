@@ -16,7 +16,7 @@ return [
     'title' => config('app.name') . ' API Reference',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => 'Programmatic access to monitoring status, uptime history, incidents, SSL metadata, and server health reports.',
+    'description' => 'Stable external REST API v1 for monitoring management, status data, teams, mobile devices, and operations overviews.',
 
     // The base URL displayed in the docs.
     // If you're using `laravel` type, you can set this to a dynamic string, like '{{ config("app.tenant_url") }}' to get a dynamic base URL.
@@ -41,6 +41,7 @@ return [
             // Exclude these routes even if they matched the rules above.
             'exclude' => [
                 'api/v1/internal/*',
+                'api/v1/server-health/*',
             ],
         ],
     ],
@@ -120,11 +121,11 @@ return [
         'placeholder' => '{YOUR_AUTH_KEY}',
 
         // Any extra authentication-related info for your users. Markdown and HTML are supported.
-        'extra_info' => 'You can retrieve your token by visiting your dashboard and clicking <b>Generate API token</b>.',
+        'extra_info' => 'You can retrieve your token by visiting your dashboard and clicking <b>Generate API token</b>. Responses include <code>X-Request-Id</code>. Non-mobile tokens are limited to five requests per minute and include standard <code>X-RateLimit-*</code> headers.',
     ],
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
-    'intro_text' => '',
+    'intro_text' => 'This reference documents the stable `/api/v1` integration contract. Existing response bodies remain backward compatible. The repository guide `docs/api/external-v1.md` defines pagination, errors, idempotency, and deprecation policy.',
 
     // Example requests for each endpoint will be shown in each of these languages.
     // Supported options are: bash, javascript, php, python

@@ -8,6 +8,7 @@ use App\Enums\NotificationChannel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreMobilePushDeviceRequest;
 use App\Http\Requests\Api\UpdateMobilePushDeviceRequest;
+use App\Http\Resources\External\MobilePushDeviceResource;
 use App\Models\MobilePushDevice;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -24,8 +25,9 @@ class MobilePushDeviceController extends Controller
             'data' => $user->mobilePushDevices()
                 ->latest('last_registered_at')
                 ->latest()
+                ->orderByDesc('id')
                 ->get()
-                ->map(fn (MobilePushDevice $mobilePushDevice): array => $this->devicePayload($mobilePushDevice))
+                ->map(fn (MobilePushDevice $mobilePushDevice): array => MobilePushDeviceResource::make($mobilePushDevice)->resolve($request))
                 ->values(),
         ]);
     }
@@ -67,7 +69,7 @@ class MobilePushDeviceController extends Controller
         }
 
         return response()->json([
-            'data' => $this->devicePayload($mobilePushDevice),
+            'data' => MobilePushDeviceResource::make($mobilePushDevice)->resolve($storeMobilePushDeviceRequest),
         ], $wasRecentlyCreated ? 201 : 200);
     }
 
@@ -91,7 +93,7 @@ class MobilePushDeviceController extends Controller
         }
 
         return response()->json([
-            'data' => $this->devicePayload($mobilePushDevice),
+            'data' => MobilePushDeviceResource::make($mobilePushDevice)->resolve($updateMobilePushDeviceRequest),
         ]);
     }
 
@@ -110,29 +112,6 @@ class MobilePushDeviceController extends Controller
         $this->disableMobilePushChannelWhenNoActiveDevicesRemain($user);
 
         return response()->json(null, 204);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function devicePayload(MobilePushDevice $mobilePushDevice): array
-    {
-        return [
-            'id' => $mobilePushDevice->id,
-            'platform' => $mobilePushDevice->platform,
-            'push_provider' => $mobilePushDevice->push_provider,
-            'device_name' => $mobilePushDevice->device_name,
-            'app_version' => $mobilePushDevice->app_version,
-            'locale' => $mobilePushDevice->locale,
-            'timezone' => $mobilePushDevice->timezone,
-            'enabled' => $mobilePushDevice->enabled,
-            'notifications_authorized_at' => $mobilePushDevice->notifications_authorized_at?->toIso8601String(),
-            'last_registered_at' => $mobilePushDevice->last_registered_at?->toIso8601String(),
-            'last_seen_at' => $mobilePushDevice->last_seen_at?->toIso8601String(),
-            'revoked_at' => $mobilePushDevice->revoked_at?->toIso8601String(),
-            'created_at' => $mobilePushDevice->created_at?->toIso8601String(),
-            'updated_at' => $mobilePushDevice->updated_at?->toIso8601String(),
-        ];
     }
 
     private function enableMobilePushChannel(User $user): void

@@ -46,7 +46,8 @@ class TrackApiUsage
                     ], 429)
                         ->header('Retry-After', (string) RateLimiter::availableIn($key))
                         ->header('X-RateLimit-Limit', (string) self::MAX_ATTEMPTS)
-                        ->header('X-RateLimit-Remaining', '0'), $requestId);
+                        ->header('X-RateLimit-Remaining', '0')
+                        ->header('X-RateLimit-Reset', (string) now()->addSeconds(RateLimiter::availableIn($key))->getTimestamp()), $requestId);
                 }
 
                 RateLimiter::hit($key, self::DECAY_SECONDS);
@@ -58,6 +59,10 @@ class TrackApiUsage
                 $response->headers->set(
                     'X-RateLimit-Remaining',
                     (string) max(0, self::MAX_ATTEMPTS - RateLimiter::attempts($key))
+                );
+                $response->headers->set(
+                    'X-RateLimit-Reset',
+                    (string) now()->addSeconds(RateLimiter::availableIn($key))->getTimestamp()
                 );
 
                 return $this->withRequestId($response, $requestId);
