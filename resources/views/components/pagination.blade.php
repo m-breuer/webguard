@@ -19,6 +19,27 @@
 
     $previousUrl = $pagination['previous_url'] ?? request()->fullUrlWithQuery([$pageParam => $pagination['current_page'] - 1]);
     $nextUrl = $pagination['next_url'] ?? request()->fullUrlWithQuery([$pageParam => $pagination['current_page'] + 1]);
+
+    $toRelativeUrl = static function (?string $url): ?string {
+        if ($url === null) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+
+        if ($parts === false || ! isset($parts['host'])) {
+            return $url;
+        }
+
+        return ($parts['path'] ?? '/')
+            . (isset($parts['query']) ? '?' . $parts['query'] : '')
+            . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+    };
+
+    if ($async) {
+        $previousUrl = $toRelativeUrl($previousUrl);
+        $nextUrl = $toRelativeUrl($nextUrl);
+    }
 @endphp
 
 @if ($pagination['last_page'] > 1)

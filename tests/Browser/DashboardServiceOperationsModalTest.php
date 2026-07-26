@@ -34,7 +34,7 @@ it('opens the dashboard monitoring create actions in a responsive modal', functi
         $trigger = 'a[data-form-modal-name="monitoring-form-modal"][href$="/monitorings/create"]';
         $modal = '[data-form-modal="monitoring-form-modal"]';
 
-        $webpage->waitFor($trigger)
+        $webpage->waitForText(__('dashboard.empty.title'))
             ->assertCount($trigger, 1)
             ->click($trigger)
             ->wait(1)

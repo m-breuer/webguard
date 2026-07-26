@@ -36,7 +36,7 @@ it('supports desktop service selection and keeps the Signal Room inside the view
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/dashboard')
-        ->waitFor('[data-signal-room]')
+        ->waitForText(__('dashboard.signal_room.heading'))
         ->resize(1280, 800);
 
     $webpage->assertVisible('[data-signal-room]')
@@ -135,6 +135,50 @@ JS, true)
         ->assertNoJavaScriptErrors();
 });
 
+it('loads the next dashboard service page when its pagination button is clicked', function (): void {
+    if (! file_exists(public_path('build/manifest.json'))) {
+        $this->markTestSkipped('Browser test requires built Vite assets in public/build.');
+    }
+
+    $this->withVite();
+
+    $package = Package::factory()->create(['monitoring_limit' => 20]);
+    $user = User::factory()->create([
+        'package_id' => $package->id,
+        'password' => Hash::make('password'),
+    ]);
+    Monitoring::factory()->count(11)->for($user)->sequence(
+        fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
+    )->create();
+
+    $webpage = visit('/login')
+        ->type('email', $user->email)
+        ->type('password', 'password')
+        ->press('form[action$="/login"] button[type="submit"]')
+        ->navigate('/dashboard')
+        ->waitForText(__('dashboard.signal_room.heading'))
+        ->assertScript(<<<'JS'
+function () {
+    const link = document.querySelector('#dashboard-service-pagination a[data-pagination-async]');
+    const href = link?.getAttribute('href') ?? '';
+
+    return href.startsWith('/dashboard?') && !href.startsWith('http://');
+}
+JS, true)
+        ->click('#dashboard-service-pagination a[data-pagination-async]')
+        ->waitForText('Service 11')
+        ->assertScript(<<<'JS'
+function () {
+    const serviceList = document.querySelector('#dashboard-service-list');
+
+    return serviceList !== null
+        && serviceList.textContent.includes('Service 11')
+        && !serviceList.textContent.includes('Service 01');
+}
+JS, true)
+        ->assertNoJavaScriptErrors();
+});
+
 it('supports mobile filtering, service details and Escape to close the detail sheet', function (): void {
     if (! file_exists(public_path('build/manifest.json'))) {
         $this->markTestSkipped('Browser test requires built Vite assets in public/build.');
@@ -159,7 +203,7 @@ it('supports mobile filtering, service details and Escape to close the detail sh
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/dashboard')
-        ->waitFor('[data-signal-room]')
+        ->waitForText(__('dashboard.signal_room.heading'))
         ->resize(390, 640);
 
     $webpage->click('[data-signal-filter="attention"]')

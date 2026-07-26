@@ -31,6 +31,7 @@ class DashboardOverviewTest extends TestCase
             ->assertOk()
             ->assertSeeHtml('data-dashboard-loader')
             ->assertSeeHtml('x-data="dashboardLoader()"')
+            ->assertSeeHtml('data-endpoint="/dashboard"')
             ->assertSeeText(__('app.loading'))
             ->assertDontSeeHtml('data-signal-room');
     }
@@ -51,7 +52,8 @@ class DashboardOverviewTest extends TestCase
             ->assertSeeText('Service 01')
             ->assertDontSeeText('Service 11')
             ->assertSeeText('1 / 2')
-            ->assertSeeHtml('data-pagination-async');
+            ->assertSeeHtml('data-pagination-async')
+            ->assertSeeHtml('href="/dashboard?');
         $secondPage->assertOk()
             ->assertSeeText('Service 11')
             ->assertSeeText('2 / 2')
@@ -73,6 +75,7 @@ class DashboardOverviewTest extends TestCase
         ]))
             ->assertOk()
             ->assertSeeHtml('id="dashboard-service-list"')
+            ->assertSeeHtml('href="/dashboard?')
             ->assertSeeText('Service 11')
             ->assertDontSeeText('Service 01')
             ->assertDontSeeText(__('dashboard.greeting', ['name' => $user->name]));

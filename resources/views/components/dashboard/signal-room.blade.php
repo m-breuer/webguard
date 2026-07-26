@@ -81,7 +81,7 @@
             x-data="serviceMapLoader()"
             data-service-map-loader
             data-services='@json($services)'
-            data-endpoint="{{ route('dashboard') }}"
+            data-endpoint="{{ route('dashboard', absolute: false) }}"
             class="min-w-0"
         >
         <section id="dashboard-service-list" data-services='@json($services)' class="min-w-0 rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-labelledby="signal-room-services-heading">
