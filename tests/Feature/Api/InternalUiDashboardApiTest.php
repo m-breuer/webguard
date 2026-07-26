@@ -24,9 +24,26 @@ class InternalUiDashboardApiTest extends TestCase
             ->assertJsonPath('data.services.0.id', $visibleMonitoring->id)
             ->assertJsonPath('data.services.0.name', 'Visible API')
             ->assertJsonMissing(['name' => 'Hidden API'])
+            ->assertHeader('X-Request-Id')
+            ->assertHeader('X-Query-Count')
+            ->assertHeader('X-Response-Bytes')
+            ->assertHeader('Server-Timing')
             ->assertJsonStructure([
                 'meta' => ['as_of', 'service_pagination'],
             ]);
+    }
+
+    public function test_dashboard_projection_stays_within_its_response_budget(): void
+    {
+        Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create();
+        Monitoring::factory()->count(3)->for($user)->create();
+
+        $response = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+
+        $response->assertOk();
+        $this->assertLessThanOrEqual(30, (int) $response->headers->get('X-Query-Count'));
+        $this->assertLessThanOrEqual(131072, (int) $response->headers->get('X-Response-Bytes'));
     }
 
     public function test_unverified_user_cannot_read_the_internal_ui_dashboard(): void
