@@ -100,6 +100,8 @@ issue in that repository before Core implementation begins.
   stores serve fresh data instead.
 - Safe read responses may use private cache-control or conditional requests only
   when cache invalidation is defined. Instance write callbacks are not cached.
+- `GET /api/v1/internal/ui/dashboard` uses a private ETag derived from the
+  user-scoped projection and returns `304 Not Modified` when it is unchanged.
 - Authenticated external v1 responses include a server-generated `X-Request-Id`,
   including rate-limit responses, without changing their JSON bodies. New API
   work follows the documented problem-response format; existing contracts retain

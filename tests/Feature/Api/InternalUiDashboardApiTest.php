@@ -37,4 +37,25 @@ class InternalUiDashboardApiTest extends TestCase
         $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
             ->assertForbidden();
     }
+
+    public function test_dashboard_projection_supports_private_conditional_get_requests(): void
+    {
+        Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create();
+        Monitoring::factory()->for($user)->create(['name' => 'Visible API']);
+
+        $firstResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $etag = (string) $firstResponse->headers->get('ETag');
+
+        $firstResponse
+            ->assertOk();
+        $this->assertNotSame('', $etag);
+        $this->assertStringContainsString('private', (string) $firstResponse->headers->get('Cache-Control'));
+
+        $this->actingAs($user)
+            ->withHeader('If-None-Match', $etag)
+            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->assertNotModified()
+            ->assertHeader('ETag', $etag);
+    }
 }
