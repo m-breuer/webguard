@@ -221,8 +221,10 @@ The local override adds everything that should only exist during development:
 
    ```bash
    docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan key:generate
-   docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate
+   docker compose -f docker-compose.yml -f docker-compose.override.yml exec php php artisan migrate --seed
    ```
+
+   Seeding in the `local` environment also creates an admin, a demo, and a regular member account (see `database/seeders/UserSeeder.php`), all with password `password`.
 
 `start-dev.sh` builds the local stack, starts it, and opens a shell inside the `php` container.
 
