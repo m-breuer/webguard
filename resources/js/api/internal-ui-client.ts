@@ -1,3 +1,7 @@
+export type InternalUiQueryValue = string | number | boolean | null | undefined;
+
+export type InternalUiQuery = Record<string, InternalUiQueryValue | InternalUiQueryValue[]>;
+
 export type DashboardService = {
     id: string;
     name: string;
@@ -56,58 +60,180 @@ export type DashboardResponse = {
     data: DashboardProjection;
     meta: {
         as_of: string;
-        service_pagination: {
-            current_page: number;
-            last_page: number;
-            total: number;
-            from: number | null;
-            to: number | null;
-        };
+        service_pagination: PaginationMeta;
     };
 };
 
-export class InternalUiApiError extends Error {}
+export type MonitoringProjection = {
+    id: string;
+    name: string;
+    target: string;
+    type: string | null;
+    lifecycle_status: string;
+    groups: Array<{ id: string; name: string }>;
+    latest_check: {
+        status: string;
+        checked_at: string | null;
+        response_time_ms: number | null;
+    } | null;
+    open_incident: boolean;
+    maintenance: {
+        starts_at: string | null;
+        ends_at: string | null;
+        has_recurring_window: boolean;
+    };
+};
 
-export async function getDashboard(
+export type PaginationMeta = {
+    current_page: number;
+    last_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+};
+
+export type MonitoringListResponse = {
+    data: MonitoringProjection[];
+    links: Record<string, string | null>;
+    meta: PaginationMeta & { as_of: string };
+};
+
+export type MonitoringCardPayload = {
+    status?: string;
+    since?: string | null;
+    heatmap?: unknown[];
+};
+
+export type MonitoringCardsResponse = {
+    data: Record<string, MonitoringCardPayload>;
+    summary: {
+        attention: number;
+        healthy: number;
+        paused: number;
+        maintenance: number;
+    };
+};
+
+type InternalUiRequestOptions = {
+    body?: unknown;
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    query?: InternalUiQuery;
+    signal?: AbortSignal;
+};
+
+export class InternalUiApiError extends Error {
+    constructor(
+        message: string,
+        public readonly status: number | null,
+        public readonly errors: Record<string, string[]> = {},
+    ) {
+        super(message);
+        this.name = 'InternalUiApiError';
+    }
+}
+
+export function getDashboard(
     endpoint: string,
     servicePage: number | null,
     signal?: AbortSignal,
 ): Promise<DashboardResponse> {
-    const url = new URL(endpoint, window.location.origin);
-
-    if (servicePage !== null) {
-        url.searchParams.set('service_page', String(servicePage));
-    }
-
-    const response = await fetch(url, {
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-        },
+    return request<DashboardResponse>(endpoint, {
+        query: servicePage === null ? {} : { service_page: servicePage },
         signal,
-    }).catch(() => null);
-
-    if (!response?.ok) {
-        throw new InternalUiApiError('Dashboard request failed.');
-    }
-
-    const payload: unknown = await response.json().catch(() => null);
-    if (!isDashboardResponse(payload)) {
-        throw new InternalUiApiError('Dashboard response is invalid.');
-    }
-
-    return payload;
+    });
 }
 
-function isDashboardResponse(payload: unknown): payload is DashboardResponse {
-    if (!payload || typeof payload !== 'object') {
-        return false;
+export function getMonitorings(
+    endpoint: string,
+    query: InternalUiQuery = {},
+    signal?: AbortSignal,
+): Promise<MonitoringListResponse> {
+    return request<MonitoringListResponse>(endpoint, { query, signal });
+}
+
+export function getMonitoring(endpoint: string, signal?: AbortSignal): Promise<{ data: MonitoringProjection }> {
+    return request<{ data: MonitoringProjection }>(endpoint, { signal });
+}
+
+export function getMonitoringCards(
+    endpoint: string,
+    ids: string[],
+    signal?: AbortSignal,
+): Promise<MonitoringCardsResponse> {
+    return request<MonitoringCardsResponse>(endpoint, {
+        query: { 'ids[]': ids },
+        signal,
+    });
+}
+
+export async function request<T>(endpoint: string, options: InternalUiRequestOptions = {}): Promise<T> {
+    const method = options.method ?? 'GET';
+    const url = new URL(endpoint, window.location.origin);
+    appendQuery(url.searchParams, options.query ?? {});
+
+    const headers = new Headers({ Accept: 'application/json' });
+    const init: RequestInit = {
+        credentials: 'same-origin',
+        headers,
+        method,
+        signal: options.signal,
+    };
+
+    if (options.body !== undefined) {
+        headers.set('Content-Type', 'application/json');
+        init.body = JSON.stringify(options.body);
     }
 
-    const response = payload as Partial<DashboardResponse>;
+    if (!['GET', 'HEAD'].includes(method)) {
+        headers.set('X-CSRF-TOKEN', csrfToken());
+    }
 
-    return response.data !== undefined
-        && response.meta !== undefined
-        && typeof response.data === 'object'
-        && typeof response.meta === 'object';
+    let response: Response;
+    try {
+        response = await fetch(url, init);
+    } catch {
+        throw new InternalUiApiError('The request could not be completed.', null);
+    }
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw errorFromResponse(response.status, payload);
+    }
+
+    if (!payload || typeof payload !== 'object') {
+        throw new InternalUiApiError('The server returned an invalid JSON response.', response.status);
+    }
+
+    return payload as T;
+}
+
+function appendQuery(params: URLSearchParams, query: InternalUiQuery): void {
+    Object.entries(query).forEach(([key, value]) => {
+        const values = Array.isArray(value) ? value : [value];
+
+        values.forEach((item) => {
+            if (item !== null && item !== undefined) {
+                params.append(key, String(item));
+            }
+        });
+    });
+}
+
+function csrfToken(): string {
+    return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+}
+
+function errorFromResponse(status: number, payload: unknown): InternalUiApiError {
+    if (!payload || typeof payload !== 'object') {
+        return new InternalUiApiError('The request failed.', status);
+    }
+
+    const response = payload as { message?: unknown; errors?: unknown };
+    const message = typeof response.message === 'string' ? response.message : 'The request failed.';
+    const errors = typeof response.errors === 'object' && response.errors !== null
+        ? Object.fromEntries(Object.entries(response.errors).filter(([, value]): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string')))
+        : {};
+
+    return new InternalUiApiError(message, status, errors);
 }

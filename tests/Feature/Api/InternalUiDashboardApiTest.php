@@ -11,6 +11,12 @@ use Tests\TestCase;
 
 class InternalUiDashboardApiTest extends TestCase
 {
+    public function test_guest_cannot_read_the_internal_ui_dashboard(): void
+    {
+        $this->getJson(route('api.v1.internal.ui.dashboard'))
+            ->assertUnauthorized();
+    }
+
     public function test_verified_user_can_read_a_scoped_dashboard_projection(): void
     {
         Package::factory()->create(['monitoring_limit' => 10]);
