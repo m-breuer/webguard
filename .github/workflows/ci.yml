@@ -54,7 +54,7 @@ jobs:
         docker run --rm --user "$(id -u):$(id -g)" \
           -v "${{ github.workspace }}:/var/www/html" \
           -w /var/www/html "${{ env.CI_IMAGE }}" \
-          ./vendor/bin/rector process --ansi --debug
+          ./vendor/bin/rector process --ansi
 
     - name: Run Pint
       run: |
