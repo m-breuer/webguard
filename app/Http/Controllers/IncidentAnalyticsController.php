@@ -17,6 +17,8 @@ use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
 use App\Services\MonitoringOverviewService;
 use App\Services\MonitoringStatusService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
@@ -49,6 +51,7 @@ class IncidentAnalyticsController extends Controller
         }
 
         $incidents = $this->incidents($filters, $days);
+        $incidentPaginator = $this->incidentPaginator($filters, $days, $incidentAnalyticsRequest);
         $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
         $durations = $resolvedIncidents->map(
             static fn (Incident $incident): int => (int) $incident->down_at->diffInMinutes($incident->up_at)
@@ -81,6 +84,7 @@ class IncidentAnalyticsController extends Controller
                 'affected_service' => $filters['affected_service'] ?? null,
             ],
             'incidents' => $incidents,
+            'incidentPaginator' => $incidentPaginator,
             'totalCount' => $incidents->count(),
             'resolvedCount' => $resolvedIncidents->count(),
             'openCount' => $incidents->reject(static fn (Incident $incident): bool => $incident->up_at !== null)->count(),
@@ -130,7 +134,7 @@ class IncidentAnalyticsController extends Controller
             'status-pages' => view('incidents.analytics-sections.status-pages', [
                 'statusPages' => $this->statusPages($incidentAnalyticsRequest, $monitoringStatusService),
             ]),
-            'incidents' => view('incidents.analytics-sections.incidents', $this->incidentSectionData($filters, $days)),
+            'incidents' => view('incidents.analytics-sections.incidents', $this->incidentSectionData($filters, $days, $incidentAnalyticsRequest)),
             default => abort(404),
         };
     }
@@ -176,9 +180,9 @@ class IncidentAnalyticsController extends Controller
     }
 
     /**
-     * @return array{filters:array{days:int,incident_type:string|null,severity:string|null,customer_impact:string|null,affected_service:string|null},incidents:EloquentCollection<int, Incident>,totalCount:int,resolvedCount:int,openCount:int,mttrMinutes:int|null,byType:Collection<string,int>,bySeverity:Collection<string,int>,byImpact:Collection<string,int>,byService:Collection<string,int>,repeatServices:Collection<string,int>,incidentTypes:list<IncidentType>,severities:list<IncidentSeverity>,customerImpacts:list<IncidentCustomerImpact>,incidentTrend:array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}}
+     * @return array{filters:array{days:int,incident_type:string|null,severity:string|null,customer_impact:string|null,affected_service:string|null},incidents:EloquentCollection<int, Incident>,incidentPaginator:LengthAwarePaginator,totalCount:int,resolvedCount:int,openCount:int,mttrMinutes:int|null,byType:Collection<string,int>,bySeverity:Collection<string,int>,byImpact:Collection<string,int>,byService:Collection<string,int>,repeatServices:Collection<string,int>,incidentTypes:list<IncidentType>,severities:list<IncidentSeverity>,customerImpacts:list<IncidentCustomerImpact>,incidentTrend:array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}}
      */
-    private function incidentSectionData(array $filters, int $days): array
+    private function incidentSectionData(array $filters, int $days, IncidentAnalyticsRequest $request): array
     {
         $incidents = $this->incidents($filters, $days);
         $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
@@ -194,6 +198,7 @@ class IncidentAnalyticsController extends Controller
                 'affected_service' => $filters['affected_service'] ?? null,
             ],
             'incidents' => $incidents,
+            'incidentPaginator' => $this->incidentPaginator($filters, $days, $request),
             'totalCount' => $incidents->count(),
             'resolvedCount' => $resolvedIncidents->count(),
             'openCount' => $incidents->reject(static fn (Incident $incident): bool => $incident->up_at !== null)->count(),
@@ -216,6 +221,18 @@ class IncidentAnalyticsController extends Controller
      */
     private function incidents(array $filters, int $days): EloquentCollection
     {
+        return $this->incidentQuery($filters, $days)->get();
+    }
+
+    private function incidentPaginator(array $filters, int $days, IncidentAnalyticsRequest $request): LengthAwarePaginator
+    {
+        return $this->incidentQuery($filters, $days)
+            ->paginate(10)
+            ->appends($request->except(['async', 'section', 'page']));
+    }
+
+    private function incidentQuery(array $filters, int $days): Builder
+    {
         $builder = Incident::query()
             ->whereHas('monitoring')
             ->with('monitoring')
@@ -232,7 +249,7 @@ class IncidentAnalyticsController extends Controller
             $builder->where('affected_service', 'like', '%' . $filters['affected_service'] . '%');
         }
 
-        return $builder->get();
+        return $builder;
     }
 
     /**

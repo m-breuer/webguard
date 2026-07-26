@@ -375,7 +375,7 @@
 
                 <x-container>
                     <x-heading type="h2">{{ __('incidents.analytics.sections.recent') }}</x-heading>
-                    @if ($incidents->isEmpty())
+                    @if ($incidentPaginator->isEmpty())
                         <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">{{ __('incidents.analytics.empty') }}</p>
                     @else
                         <div class="mt-4 overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700">
@@ -391,7 +391,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    @foreach ($incidents as $incident)
+                                    @foreach ($incidentPaginator as $incident)
                                         @php($incidentDuration = $incident->up_at ? $incident->down_at->diffForHumans($incident->up_at, true) : __('incidents.analytics.table.ongoing'))
                                         <tr data-incident-row class="group transition hover:bg-purple-50/50 dark:hover:bg-purple-950/20">
                                             <td class="whitespace-nowrap px-4 py-3">
@@ -416,6 +416,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        <x-pagination :paginator="$incidentPaginator" class="mt-4" />
                     @endif
                 </x-container>
 

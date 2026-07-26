@@ -72,6 +72,20 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse->assertSeeHtml('href="' . route('status-pages.index') . '"');
     }
 
+    public function test_monitoring_index_uses_the_shared_table_pagination(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->count(6)->for($user)->create();
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertOk()
+            ->assertSeeHtml('data-table-pagination')
+            ->assertSeeText('1 / 2')
+            ->assertSeeText(__('pagination.next'));
+    }
+
     public function test_default_monitoring_index_reuses_paginator_total_without_extra_monitoring_count_query(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);

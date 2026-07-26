@@ -385,10 +385,12 @@
                                 <div class="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_11rem_7rem_auto] lg:items-center">
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-2">
-                                            <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-gray-300" :class="{
+                                            <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="{
                                                 'bg-emerald-500': statusMap[id] === '{{ MonitoringStatus::UP->value }}',
                                                 'bg-red-500': statusMap[id] === '{{ MonitoringStatus::DOWN->value }}',
-                                                'bg-amber-500': statusMap[id] === '{{ MonitoringStatus::UNKNOWN->value }}' || !statusMap[id]
+                                                'bg-amber-500': statusMap[id] === '{{ MonitoringStatus::UNKNOWN->value }}' || !statusMap[id],
+                                                'bg-purple-500': maintenanceStatusMap[id],
+                                                'bg-gray-400': monitoringStatusMap[id] === 'paused'
                                             }" aria-hidden="true"></span>
                                             <a href="#" x-bind:href="'/monitorings/' + id" class="truncate font-semibold text-gray-900 hover:text-purple-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-100 dark:hover:text-purple-300" x-text="monitoringNames[id] ?? '{{ __('monitoring.general.monitoring_id') }}'.replace(':id', id)"></a>
                                         </div>
@@ -445,9 +447,7 @@
                         </template>
                     </section>
 
-                    <div class="flex justify-center">
-                        {{ $monitorings->withQueryString()->links() }}
-                    </div>
+                    <x-pagination :paginator="$monitorings->withQueryString()" class="mt-1" />
                 </div>
 
                 <aside class="space-y-4 lg:sticky lg:top-6 lg:self-start" aria-label="{{ __('monitoring.index.table.summary') }}">

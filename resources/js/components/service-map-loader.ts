@@ -1,6 +1,7 @@
 interface ServiceMapLoaderComponent {
     loading: boolean;
     loadPage(this: ServiceMapLoaderComponent, url: string): Promise<void>;
+    handlePaginationClick(this: ServiceMapLoaderComponent, event: Event): void;
     init(this: ServiceMapLoaderComponent): void;
 }
 
@@ -49,8 +50,19 @@ export default (): ServiceMapLoaderComponent => ({
         this.loading = false;
     },
 
+    handlePaginationClick(this: ServiceMapLoaderComponent, event: Event): void {
+        const target = event.target as Element | null;
+        const link = target?.closest<HTMLAnchorElement>('[data-pagination-async]');
+
+        if (!link) return;
+
+        event.preventDefault();
+        void this.loadPage(link.href);
+    },
+
     init(this: ServiceMapLoaderComponent): void {
         const root = (this as any).$el as HTMLElement;
+        root.addEventListener('click', (event) => this.handlePaginationClick(event));
         window.dispatchEvent(new CustomEvent('signal-room:services-updated', {
             detail: { services: readServices(root) },
         }));
