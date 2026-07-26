@@ -17,5 +17,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PackageSeeder::class,
         ]);
+
+        if (app()->environment('local')) {
+            $this->call([
+                UserSeeder::class,
+            ]);
+        }
     }
 }

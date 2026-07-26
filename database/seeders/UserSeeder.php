@@ -36,5 +36,14 @@ class UserSeeder extends Seeder
                 'role' => UserRole::DEMO->value,
             ]
         );
+
+        User::query()->updateOrCreate(
+            ['email' => 'member@example.com'],
+            [
+                'name' => 'Member User',
+                'password' => 'password',
+                'role' => UserRole::REGULAR->value,
+            ]
+        );
     }
 }
