@@ -7,6 +7,7 @@ namespace App\Observers;
 use App\Enums\MonitoringStatus;
 use App\Models\Incident;
 use App\Models\MonitoringResponse;
+use App\Services\OperationsOverviewCache;
 use App\Services\RegionalConsensusService;
 
 class MonitoringResponseObserver
@@ -16,6 +17,8 @@ class MonitoringResponseObserver
      */
     public function created(MonitoringResponse $monitoringResponse): void
     {
+        resolve(OperationsOverviewCache::class)->flush();
+
         $monitoring = $monitoringResponse->monitoring;
 
         if (count($monitoring->preferredLocationCodes()) > 1 && $monitoringResponse->location_code !== null) {
