@@ -216,9 +216,8 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $this->assertCount(6, $summaryMonitoringIds);
         $this->assertCount(5, $pageMonitoringIds);
 
-        $this->actingAs($user)->getJson('/api/monitorings/card-data?' . http_build_query([
-            'ids' => $pageMonitoringIds,
-            'summary_ids' => $summaryMonitoringIds->all(),
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+            'ids' => $summaryMonitoringIds->all(),
         ]))
             ->assertOk()
             ->assertJsonPath('summary.attention', 1)

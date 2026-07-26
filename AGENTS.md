@@ -216,7 +216,7 @@ If a command cannot be executed, agents MUST state why.
 ## API and Integration Rules
 
 - API changes MUST validate requests, enforce authentication/authorization, and preserve stable response formats unless a breaking change is explicit.
-- Internal instance APIs under `routes/api/internal.php` are compatibility-sensitive for `webguard-instance`.
+- Internal instance APIs under `routes/api/instance.php` are compatibility-sensitive for `webguard-instance`; see `docs/architecture/api-boundaries.md` and `docs/integrations/webguard-instance-api.md`.
 - Public badge/card/status endpoints MUST avoid leaking private monitoring data.
 - Use appropriate status codes, pagination, error messages, rate limits, and idempotency patterns consistent with existing API code.
 - External notification channels and push integrations MUST handle failures without exposing secrets or blocking unrelated delivery paths.
