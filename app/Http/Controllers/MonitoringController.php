@@ -14,6 +14,7 @@ use App\Models\Monitoring;
 use App\Models\ServerInstance;
 use App\Models\Team;
 use App\Models\User;
+use App\Queries\MonitoringDetailQuery;
 use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
 use App\Services\RegionalConsensusService;
 use App\Support\MonitoringPayload;
@@ -331,20 +332,14 @@ class MonitoringController extends Controller
      * @param  Monitoring  $monitoring  The monitoring instance to display.
      * @return View The view displaying the monitoring details.
      */
-    public function show(Monitoring $monitoring, RegionalConsensusService $regionalConsensusService): View
-    {
+    public function show(
+        Monitoring $monitoring,
+        MonitoringDetailQuery $monitoringDetailQuery,
+        RegionalConsensusService $regionalConsensusService
+    ): View {
         /** @var User $user */
         $user = Auth::user();
-        $monitoring->loadMissing([
-            'domainResult',
-            'groups',
-            'latestIncident',
-            'latestResponseResult',
-            'sslResult',
-            'statusPageComponents.statusPage',
-            'team.users',
-            'user',
-        ]);
+        $monitoring = $monitoringDetailQuery->findVisible($user, (string) $monitoring->getKey());
 
         $notificationRecipients = $monitoring->team_id !== null
             ? ($monitoring->team?->users ?? collect())
