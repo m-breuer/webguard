@@ -10,10 +10,12 @@ use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
 class InternalUiMonitoringApiTest extends TestCase
 {
+    use AssertsApiContracts;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -61,6 +63,12 @@ class InternalUiMonitoringApiTest extends TestCase
                 'meta' => ['as_of'],
             ])
             ->assertJsonMissing(['name' => 'Hidden API']);
+
+        $this->assertInternalUiTelemetry(
+            $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.index')),
+            10,
+            131072,
+        );
     }
 
     public function test_guest_cannot_read_the_internal_ui_monitoring_projections(): void
@@ -107,5 +115,31 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $this->actingAs($unverifiedUser)->getJson(route('api.v1.internal.ui.monitorings.index'))
             ->assertForbidden();
+    }
+
+    public function test_internal_ui_monitoring_projections_validate_bounded_queries_and_return_a_scoped_detail(): void
+    {
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Scoped detail API']);
+
+        $this->actingAs($user)
+            ->getJson(route('api.v1.internal.ui.monitorings.index', ['per_page' => 101]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('per_page');
+        $this->actingAs($user)
+            ->getJson(route('api.v1.internal.ui.monitorings.cards'))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids');
+        $this->actingAs($user)
+            ->getJson(route('api.v1.internal.ui.monitorings.cards', ['ids' => array_fill(0, 101, $monitoring->id)]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('ids');
+
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.show', $monitoring));
+
+        $this->assertDataEnvelope($testResponse, ['data.id', 'data.name']);
+        $testResponse->assertJsonPath('data.id', $monitoring->id)
+            ->assertJsonPath('data.name', 'Scoped detail API');
+        $this->assertInternalUiTelemetry($testResponse, 15, 131072);
     }
 }

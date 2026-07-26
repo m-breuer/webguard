@@ -58,6 +58,43 @@ class OperationsOverviewCacheTest extends TestCase
         $this->assertSame(1, $payload['service_pagination']['total']);
     }
 
+    public function test_it_reuses_the_cached_projection_without_rebuilding_it(): void
+    {
+        $user = new User();
+        $user->id = 'user-123';
+        $mock = Mockery::mock(TaggableStore::class);
+        $taggedCache = Mockery::mock();
+        $cachedPayload = null;
+        $buildCount = 0;
+
+        Cache::shouldReceive('getStore')->twice()->andReturn($mock);
+        Cache::shouldReceive('tags')
+            ->twice()
+            ->with(['operations-overview', 'operations-overview:user:user-123'])
+            ->andReturn($taggedCache);
+        $taggedCache->shouldReceive('remember')
+            ->twice()
+            ->with('operations-overview:user:user-123:page:1', 30, Mockery::type('callable'))
+            ->andReturnUsing(function (string $key, int $ttl, callable $callback) use (&$cachedPayload): array {
+                return $cachedPayload ??= $callback();
+            });
+
+        $payloadFactory = function () use (&$buildCount): array {
+            $buildCount++;
+
+            return [
+                'data' => ['summary' => ['total' => 1]],
+                'service_pagination' => ['current_page' => 1, 'last_page' => 1, 'total' => 1, 'from' => 1, 'to' => 1],
+            ];
+        };
+
+        $operationsOverviewCache = resolve(OperationsOverviewCache::class);
+
+        $this->assertSame(1, $operationsOverviewCache->remember($user, 1, $payloadFactory)['data']['summary']['total']);
+        $this->assertSame(1, $operationsOverviewCache->remember($user, 1, $payloadFactory)['data']['summary']['total']);
+        $this->assertSame(1, $buildCount);
+    }
+
     public function test_it_flushes_all_cached_overviews_after_domain_changes(): void
     {
         $mock = Mockery::mock(TaggableStore::class);

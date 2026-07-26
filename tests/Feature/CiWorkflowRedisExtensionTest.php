@@ -64,6 +64,22 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertSame('coverage', $coverageStep['env']['XDEBUG_MODE'] ?? null);
     }
 
+    public function test_ci_verifies_the_generated_external_openapi_contract(): void
+    {
+        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+        $testJobSteps = collect($workflowConfig['jobs']['test']['steps'] ?? []);
+        $openApiStep = $testJobSteps->firstWhere('name', 'Verify external OpenAPI contract is current');
+
+        $this->assertIsArray($openApiStep);
+        $this->assertStringContainsString('php artisan scribe:generate --no-interaction', $openApiStep['run'] ?? '');
+        $this->assertStringContainsString(
+            'git diff --exit-code -- storage/app/private/scribe/openapi.yaml',
+            $openApiStep['run'] ?? '',
+        );
+        $this->assertSame('sqlite', $openApiStep['env']['DB_CONNECTION'] ?? null);
+        $this->assertSame(':memory:', $openApiStep['env']['DB_DATABASE'] ?? null);
+    }
+
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
     {
         $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
