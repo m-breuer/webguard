@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\Mobile\MobileOverviewController;
-use App\Http\Controllers\Api\MobilePushDeviceController;
-use App\Http\Controllers\Api\MonitoringManagementController;
-use App\Http\Controllers\Api\TeamController;
-use App\Http\Controllers\Api\TeamInvitationController;
-use App\Http\Controllers\Api\TeamMemberController;
-use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Api\External\MobileOverviewController;
+use App\Http\Controllers\Api\External\MobilePushDeviceController;
+use App\Http\Controllers\Api\External\MonitoringDataController;
+use App\Http\Controllers\Api\External\MonitoringManagementController;
+use App\Http\Controllers\Api\External\TeamController;
+use App\Http\Controllers\Api\External\TeamInvitationController;
+use App\Http\Controllers\Api\External\TeamMemberController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -24,17 +24,17 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
     Route::post('/{monitoring}/team-ownership', [MonitoringManagementController::class, 'moveToTeam']);
     Route::delete('/{monitoring}/team-ownership', [MonitoringManagementController::class, 'moveToPrivate']);
 
-    Route::get('/{monitoring}', [ApiController::class, 'all']);
+    Route::get('/{monitoring}', [MonitoringDataController::class, 'all']);
 
-    Route::get('/{monitoring}/status', [ApiController::class, 'status']);
-    Route::get('/{monitoring}/uptime-downtime', [ApiController::class, 'uptimeDowntime']);
-    Route::get('/{monitoring}/uptime-downtime-summary', [ApiController::class, 'uptimeDowntimeSummary']);
-    Route::get('/{monitoring}/response-times', [ApiController::class, 'responseTimes']);
-    Route::get('/{monitoring}/checks', [ApiController::class, 'checks']);
-    Route::get('/{monitoring}/incidents', [ApiController::class, 'incidents']);
-    Route::get('/{monitoring}/heatmap', [ApiController::class, 'uptimeHeatmap']);
-    Route::get('/{monitoring}/ssl', [ApiController::class, 'sslStatus']);
-    Route::get('/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar']);
+    Route::get('/{monitoring}/status', [MonitoringDataController::class, 'status']);
+    Route::get('/{monitoring}/uptime-downtime', [MonitoringDataController::class, 'uptimeDowntime']);
+    Route::get('/{monitoring}/uptime-downtime-summary', [MonitoringDataController::class, 'uptimeDowntimeSummary']);
+    Route::get('/{monitoring}/response-times', [MonitoringDataController::class, 'responseTimes']);
+    Route::get('/{monitoring}/checks', [MonitoringDataController::class, 'checks']);
+    Route::get('/{monitoring}/incidents', [MonitoringDataController::class, 'incidents']);
+    Route::get('/{monitoring}/heatmap', [MonitoringDataController::class, 'uptimeHeatmap']);
+    Route::get('/{monitoring}/ssl', [MonitoringDataController::class, 'sslStatus']);
+    Route::get('/{monitoring}/uptime-calendar', [MonitoringDataController::class, 'uptimeCalendar']);
 });
 
 Route::get('/mobile/overview', MobileOverviewController::class)
