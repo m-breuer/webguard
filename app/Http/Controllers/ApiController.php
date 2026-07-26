@@ -12,6 +12,8 @@ use App\Http\Requests\Api\MonitoringDaysRequest;
 use App\Http\Requests\Api\MonitoringUptimeCalendarRequest;
 use App\Http\Requests\Api\MonitoringUptimeSummaryRequest;
 use App\Models\Monitoring;
+use App\Models\User;
+use App\Queries\MonitoringDataQuery;
 use App\Services\MonitoringAvailabilityService;
 use App\Services\MonitoringBadgePayloadService;
 use App\Services\MonitoringCheckHistoryService;
@@ -35,7 +37,8 @@ use Illuminate\Support\Collection;
 class ApiController extends Controller
 {
     public function __construct(
-        private readonly MonitoringStatsCache $monitoringStatsCache
+        private readonly MonitoringStatsCache $monitoringStatsCache,
+        private readonly MonitoringDataQuery $monitoringDataQuery,
     ) {}
 
     /**
@@ -97,7 +100,7 @@ class ApiController extends Controller
         MonitoringDashboardRequest $monitoringDashboardRequest,
         MonitoringDashboardPayloadService $monitoringDashboardPayloadService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $days = $monitoringDashboardRequest->days();
         $calendarStartDate = $monitoringDashboardRequest->calendarStartDate();
@@ -136,7 +139,7 @@ class ApiController extends Controller
         MonitoringDaysRequest $monitoringDaysRequest,
         MonitoringAvailabilityService $monitoringAvailabilityService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $days = $monitoringDaysRequest->days();
         $monitoringDateRange = $monitoringDaysRequest->dateRange();
@@ -177,7 +180,7 @@ class ApiController extends Controller
         MonitoringUptimeSummaryRequest $monitoringUptimeSummaryRequest,
         MonitoringAvailabilityService $monitoringAvailabilityService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $days = $monitoringUptimeSummaryRequest->days();
 
@@ -211,7 +214,7 @@ class ApiController extends Controller
         MonitoringDaysRequest $monitoringDaysRequest,
         MonitoringResponseTimeService $monitoringResponseTimeService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $days = $monitoringDaysRequest->days();
         $monitoringDateRange = $monitoringDaysRequest->dateRange();
@@ -265,7 +268,7 @@ class ApiController extends Controller
         MonitoringChecksRequest $monitoringChecksRequest,
         MonitoringCheckHistoryService $monitoringCheckHistoryService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $days = $monitoringChecksRequest->days();
         $limit = $monitoringChecksRequest->limit();
@@ -306,7 +309,7 @@ class ApiController extends Controller
         Monitoring $monitoring,
         MonitoringHeatmapService $monitoringHeatmapService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $start_date = now()->subHours(23);
         $end_date = now();
@@ -336,7 +339,7 @@ class ApiController extends Controller
         Monitoring $monitoring,
         MonitoringStatusPayloadService $monitoringStatusPayloadService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         return response()->json($monitoringStatusPayloadService->getPayload($monitoring)->toArray());
     }
@@ -414,7 +417,7 @@ class ApiController extends Controller
         MonitoringDaysRequest $monitoringDaysRequest,
         MonitoringIncidentService $monitoringIncidentService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $days = $monitoringDaysRequest->days();
         $monitoringDateRange = $monitoringDaysRequest->dateRange();
@@ -442,7 +445,7 @@ class ApiController extends Controller
         Monitoring $monitoring,
         MonitoringDashboardPayloadService $monitoringDashboardPayloadService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $data = $this->monitoringStatsCache->remember(
             $monitoring,
@@ -473,7 +476,7 @@ class ApiController extends Controller
         MonitoringUptimeCalendarRequest $monitoringUptimeCalendarRequest,
         MonitoringUptimeCalendarService $monitoringUptimeCalendarService
     ): JsonResponse {
-        $this->authorizeMonitoringDataAccess($monitoring);
+        $monitoring = $this->accessibleMonitoring($monitoring);
 
         $startDate = $monitoringUptimeCalendarRequest->startDate();
         $endDate = $monitoringUptimeCalendarRequest->endDate();
@@ -488,14 +491,11 @@ class ApiController extends Controller
         return response()->json($data);
     }
 
-    private function authorizeMonitoringDataAccess(Monitoring $monitoring): void
+    private function accessibleMonitoring(Monitoring $monitoring): Monitoring
     {
+        /** @var User|null $user */
         $user = request()->user();
 
-        if ($user && $monitoring->isVisibleTo($user)) {
-            return;
-        }
-
-        abort_unless($monitoring->public_label_enabled, 404);
+        return $this->monitoringDataQuery->findAccessible($user, (string) $monitoring->getKey());
     }
 }
