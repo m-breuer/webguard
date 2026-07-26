@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Data\MonitoringServiceReadModel;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\StatusPage;
@@ -21,16 +22,13 @@ final class OperationsOverviewPayloadService
     public function for(User $user, int $servicePage = 1): array
     {
         $overview = $this->monitoringOverviewService->overview($user, $servicePage);
-        $monitorings = $overview['monitorings']->keyBy(
-            fn (Monitoring $monitoring): string => (string) $monitoring->getKey()
-        );
 
         return [
             'data' => [
                 'overall_state' => $overview['overallState'],
                 'summary' => $overview['summary'],
-                'services' => $overview['signalRoomServices']->map(
-                    fn (array $service): array => $this->servicePayload($service, $monitorings->get($service['id']))
+                'services' => $overview['serviceReadModels']->map(
+                    fn (MonitoringServiceReadModel $service): array => $this->servicePayload($service)
                 )->values()->all(),
                 'attention' => $overview['attentionItems']->map(
                     fn (array $item): array => $this->attentionPayload($item)
@@ -54,23 +52,20 @@ final class OperationsOverviewPayloadService
     }
 
     /**
-     * @param  array{id:string,name:string,target:string,status:string,statusLabel:string,group:string,lastCheck:string,responseTime:string,openIncident:bool,href:string}  $service
      * @return array<string, mixed>
      */
-    private function servicePayload(array $service, ?Monitoring $monitoring): array
+    private function servicePayload(MonitoringServiceReadModel $service): array
     {
-        $latestResponse = $monitoring?->latestResponseResult;
-
         return [
-            'id' => $service['id'],
-            'name' => $service['name'],
-            'target' => $service['target'],
-            'type' => $monitoring?->type?->value ?? $monitoring?->type,
-            'group' => $service['group'],
-            'status' => $service['status'],
-            'open_incident' => $service['openIncident'],
-            'last_checked_at' => $latestResponse?->created_at?->toIso8601String(),
-            'response_time_ms' => $latestResponse?->response_time,
+            'id' => $service->id,
+            'name' => $service->name,
+            'target' => $service->target,
+            'type' => $service->type,
+            'group' => $service->groupName,
+            'status' => $service->status,
+            'open_incident' => $service->hasOpenIncident,
+            'last_checked_at' => $service->lastCheckedAt,
+            'response_time_ms' => $service->responseTimeMs,
         ];
     }
 
