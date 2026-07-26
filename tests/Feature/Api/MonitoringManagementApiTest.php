@@ -60,12 +60,12 @@ class MonitoringManagementApiTest extends TestCase
         $second = Monitoring::factory()->for($user)->create(['name' => 'Same name']);
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/monitorings?per_page=2');
+        $testResponse = $this->getJson('/api/v1/monitorings?per_page=2');
 
-        $response->assertOk();
+        $testResponse->assertOk();
         $expectedIds = collect([$first->id, $second->id])->sort()->values()->all();
-        $response->assertJsonPath('data.0.id', $expectedIds[0]);
-        $response->assertJsonPath('data.1.id', $expectedIds[1]);
+        $testResponse->assertJsonPath('data.0.id', $expectedIds[0]);
+        $testResponse->assertJsonPath('data.1.id', $expectedIds[1]);
     }
 
     public function test_user_can_move_manageable_monitoring_between_private_and_team_ownership(): void
