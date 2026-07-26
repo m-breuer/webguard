@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Services;
+
+use App\Models\User;
+use App\Services\OperationsOverviewCache;
+use Illuminate\Cache\TaggableStore;
+use Illuminate\Support\Facades\Cache;
+use Mockery;
+use RuntimeException;
+use Tests\TestCase;
+
+class OperationsOverviewCacheTest extends TestCase
+{
+    public function test_it_scopes_cached_overviews_to_the_user_and_service_page(): void
+    {
+        $user = new User();
+        $user->id = 'user-123';
+        $store = Mockery::mock(TaggableStore::class);
+        $taggedCache = Mockery::mock();
+
+        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('tags')
+            ->once()
+            ->with(['operations-overview', 'operations-overview:user:user-123'])
+            ->andReturn($taggedCache);
+        $taggedCache->shouldReceive('remember')
+            ->once()
+            ->with('operations-overview:user:user-123:page:2', 30, Mockery::type('callable'))
+            ->andReturnUsing(fn (string $key, int $ttl, callable $callback): array => $callback());
+
+        $payload = resolve(OperationsOverviewCache::class)->remember($user, 2, fn (): array => [
+            'data' => ['summary' => ['total' => 1]],
+            'service_pagination' => ['current_page' => 2, 'last_page' => 2, 'total' => 11, 'from' => 11, 'to' => 11],
+        ]);
+
+        $this->assertSame(1, $payload['data']['summary']['total']);
+    }
+
+    public function test_it_serves_fresh_data_when_the_tagged_cache_is_unavailable(): void
+    {
+        $user = new User();
+        $user->id = 'user-123';
+        $store = Mockery::mock(TaggableStore::class);
+        $taggedCache = Mockery::mock();
+
+        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('tags')->once()->andReturn($taggedCache);
+        $taggedCache->shouldReceive('remember')->once()->andThrow(new RuntimeException('Redis unavailable'));
+
+        $payload = resolve(OperationsOverviewCache::class)->remember($user, 1, fn (): array => [
+            'data' => ['summary' => ['total' => 1]],
+            'service_pagination' => ['current_page' => 1, 'last_page' => 1, 'total' => 1, 'from' => 1, 'to' => 1],
+        ]);
+
+        $this->assertSame(1, $payload['service_pagination']['total']);
+    }
+
+    public function test_it_flushes_all_cached_overviews_after_domain_changes(): void
+    {
+        $store = Mockery::mock(TaggableStore::class);
+        $taggedCache = Mockery::mock();
+
+        Cache::shouldReceive('getStore')->once()->andReturn($store);
+        Cache::shouldReceive('tags')->once()->with(['operations-overview'])->andReturn($taggedCache);
+        $taggedCache->shouldReceive('flush')->once();
+
+        resolve(OperationsOverviewCache::class)->flush();
+    }
+}

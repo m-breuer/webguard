@@ -13,13 +13,26 @@ use App\Models\User;
 final class OperationsOverviewPayloadService
 {
     public function __construct(
-        private readonly MonitoringOverviewService $monitoringOverviewService
+        private readonly MonitoringOverviewService $monitoringOverviewService,
+        private readonly OperationsOverviewCache $operationsOverviewCache,
     ) {}
 
     /**
      * @return array{data: array<string, mixed>, service_pagination: array{current_page:int,last_page:int,total:int,from:int|null,to:int|null}}
      */
     public function for(User $user, int $servicePage = 1): array
+    {
+        return $this->operationsOverviewCache->remember(
+            $user,
+            $servicePage,
+            fn (): array => $this->buildPayload($user, $servicePage),
+        );
+    }
+
+    /**
+     * @return array{data: array<string, mixed>, service_pagination: array{current_page:int,last_page:int,total:int,from:int|null,to:int|null}}
+     */
+    private function buildPayload(User $user, int $servicePage): array
     {
         $overview = $this->monitoringOverviewService->overview($user, $servicePage);
 
