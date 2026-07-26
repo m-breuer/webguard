@@ -1,5 +1,6 @@
 import { getCurrentDayjsLocale, humanizeDistance } from "@/utils/dayjs-utils";
 import { renderHeatmap } from "@/utils/heatmap-utils";
+import { getMonitoringCards, type MonitoringCardsResponse } from "../api/internal-ui-client";
 
 interface MonitoringCardLoaderComponent {
     monitoringIds: string[];
@@ -68,21 +69,12 @@ export default (
             this.summaryMonitoringIds.slice(index * 50, (index + 1) * 50)
         );
 
-        const loadBatch = async (ids: string[], summaryIds: string[] = []): Promise<{
-            data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }>;
-            summary?: { attention: number; healthy: number; paused: number; maintenance: number };
-        } | null> => {
-            const query = new URLSearchParams();
-            ids.forEach((id: string) => query.append('ids[]', id));
-            summaryIds.forEach((id: string) => query.append('summary_ids[]', id));
-
-            const response = await fetch(`/api/monitorings/card-data?${query.toString()}`).catch(() => null);
-            if (!response?.ok) return null;
-
-            return await response.json() as {
-                data?: Record<string, { status?: string; since?: string | null; heatmap?: unknown[] }>;
-                summary?: { attention: number; healthy: number; paused: number; maintenance: number };
-            };
+        const loadBatch = async (ids: string[]): Promise<MonitoringCardsResponse | null> => {
+            try {
+                return await getMonitoringCards('/api/v1/internal/ui/monitorings/cards', ids);
+            } catch {
+                return null;
+            }
         };
 
         const cardPayloadPromise = loadBatch(this.monitoringIds);
@@ -120,7 +112,7 @@ export default (
         const loadSummaryWorker = async (): Promise<void> => {
             while (nextBatchIndex < summaryBatches.length) {
                 const batch = summaryBatches[nextBatchIndex++];
-                const payload = await loadBatch([], batch);
+                const payload = await loadBatch(batch);
                 const summary = payload?.summary;
 
                 if (!summary) {

@@ -131,48 +131,6 @@ class MonitoringOverviewService
     }
 
     /**
-     * Load only the bounded service-map page used by async dashboard navigation.
-     *
-     * @return array{services:Collection<int, MonitoringServiceReadModel>,pagination:array{current_page:int,last_page:int,total:int,from:int|null,to:int|null},total:int}
-     */
-    public function serviceMap(User $user, int $servicePage = 1): array
-    {
-        $lengthAwarePaginator = $this->monitoringOverviewQuery->paginateServicesFor($user, $servicePage);
-
-        $services = $this->serviceReadModels($lengthAwarePaginator->getCollection());
-
-        return [
-            'services' => $services,
-            'pagination' => [
-                'current_page' => $lengthAwarePaginator->currentPage(),
-                'last_page' => $lengthAwarePaginator->lastPage(),
-                'total' => $lengthAwarePaginator->total(),
-                'from' => $lengthAwarePaginator->firstItem(),
-                'to' => $lengthAwarePaginator->lastItem(),
-            ],
-            'total' => $lengthAwarePaginator->total(),
-        ];
-    }
-
-    /**
-     * @param  Collection<int, Monitoring>  $monitorings
-     * @return Collection<int, MonitoringServiceReadModel>
-     */
-    private function serviceReadModels(Collection $monitorings): Collection
-    {
-        $statuses = $monitorings->mapWithKeys(
-            fn (Monitoring $monitoring): array => [$monitoring->id => $this->monitoringStateResolver->status($monitoring)]
-        );
-
-        return $monitorings->map(
-            fn (Monitoring $monitoring): MonitoringServiceReadModel => MonitoringServiceReadModel::fromMonitoring(
-                $monitoring,
-                (string) $statuses->get($monitoring->getKey(), MonitoringStatus::UNKNOWN->value),
-            )
-        )->values();
-    }
-
-    /**
      * @param  array{total:int,healthy:int,down:int,unknown:int,paused:int,maintenance:int}  $summary
      */
     private function overallState(array $summary): string

@@ -21,25 +21,23 @@ use Tests\TestCase;
 
 class DashboardOverviewTest extends TestCase
 {
-    public function test_dashboard_renders_a_shell_before_loading_expensive_components(): void
+    public function test_dashboard_renders_a_shell_even_when_legacy_async_parameters_are_present(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
         Monitoring::factory()->for($user)->create();
 
-        $this->actingAs($user)->get(route('dashboard'))
+        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
             ->assertOk()
             ->assertSeeHtml('data-dashboard-loader')
             ->assertSeeHtml('x-data="dashboardLoader()"')
             ->assertSeeHtml('data-api-endpoint="/api/v1/internal/ui/dashboard"')
             ->assertDontSeeHtml('data-endpoint="/dashboard"')
             ->assertSeeHtml('data-loading-skeleton="dashboard"')
-            ->assertSeeHtml('class="h-5 w-5 animate-spin text-purple-500"')
-            ->assertDontSeeText(__('app.loading'))
             ->assertDontSeeHtml('data-signal-room');
     }
 
-    public function test_dashboard_service_landscape_is_paginated_without_changing_the_global_summary(): void
+    public function test_dashboard_api_paginates_the_service_landscape_without_changing_the_global_summary(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 20]);
         $user = User::factory()->create(['package_id' => $package->id]);
@@ -47,35 +45,35 @@ class DashboardOverviewTest extends TestCase
             fn ($sequence) => ['name' => sprintf('Service %02d', $sequence->index + 1)],
         )->create();
 
-        $testResponse = $this->actingAs($user)->get(route('dashboard', ['async' => 1]));
-        $secondPage = $this->actingAs($user)->get(route('dashboard', ['async' => 1, 'service_page' => 2]));
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $secondPage = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard', ['service_page' => 2]));
 
         $testResponse->assertOk()
-            ->assertSeeText('11 ' . __('dashboard.signal_room.active_services'))
-            ->assertSeeText('Service 01')
-            ->assertDontSeeText('Service 11')
-            ->assertSeeText('1 / 2');
+            ->assertJsonPath('data.summary.total', 11)
+            ->assertJsonPath('data.services.0.name', 'Service 01')
+            ->assertJsonMissing(['name' => 'Service 11'])
+            ->assertJsonPath('meta.service_pagination.current_page', 1)
+            ->assertJsonPath('meta.service_pagination.last_page', 2);
         $secondPage->assertOk()
-            ->assertSeeText('Service 11')
-            ->assertSeeText('2 / 2')
-            ->assertSeeHtml('service_page=1');
+            ->assertJsonPath('data.summary.total', 11)
+            ->assertJsonPath('data.services.0.name', 'Service 11')
+            ->assertJsonPath('meta.service_pagination.current_page', 2);
     }
 
-    public function test_new_user_sees_a_clear_dashboard_empty_state(): void
+    public function test_new_user_receives_an_empty_dashboard_projection_with_create_capability(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
 
-        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
             ->assertOk()
-            ->assertSeeText(__('dashboard.empty.title'))
-            ->assertSeeText(__('dashboard.empty.description'))
-            ->assertSeeHtml('data-form-modal-name="monitoring-form-modal"')
-            ->assertSeeHtml('data-form-modal="monitoring-form-modal"')
-            ->assertSeeHtml('href="' . route('monitorings.create') . '"');
+            ->assertJsonPath('data.overall_state', 'new')
+            ->assertJsonPath('data.summary.total', 0)
+            ->assertJsonPath('data.capabilities.can_create_monitoring', true)
+            ->assertJsonPath('data.services', []);
     }
 
-    public function test_dashboard_summarizes_health_attention_and_recent_incidents_for_visible_monitorings(): void
+    public function test_dashboard_api_summarizes_visible_monitoring_health_and_attention(): void
     {
         Date::setTestNow('2026-07-15 12:00:00');
         $package = Package::factory()->create(['monitoring_limit' => 10]);
@@ -101,37 +99,21 @@ class DashboardOverviewTest extends TestCase
         Monitoring::factory()->for($user)->create(['name' => 'Unknown API']);
         Monitoring::factory()->for($otherUser)->create(['name' => 'Private API']);
 
-        $testResponse = $this->actingAs($user)->get(route('dashboard', ['async' => 1]));
-
-        $testResponse->assertOk()
-            ->assertSeeText(__('dashboard.greeting', ['name' => $user->name]))
-            ->assertDontSeeText(__('dashboard.open_monitorings'))
-            ->assertSeeText('Hi ' . $user->name)
-            ->assertDontSeeText('Guten Morgen, ' . $user->name)
-            ->assertSeeText(__('dashboard.signal_room.heading'))
-            ->assertSeeText(__('dashboard.signal_room.service_landscape'))
-            ->assertSeeHtml('overflow-x-auto px-1 py-2')
-            ->assertSeeHtml('focus-visible:ring-2')
-            ->assertSeeText(__('dashboard.signal_room.context.heading'))
-            ->assertSeeText(__('dashboard.signal_room.context.surfaces_heading'))
-            ->assertSeeText(__('dashboard.next_action.heading'))
-            ->assertSeeText(__('dashboard.state.degraded.title'))
-            ->assertSeeText(__('dashboard.summary.healthy'))
-            ->assertSeeText(__('dashboard.summary.down'))
-            ->assertSeeText(__('dashboard.summary.unknown'))
-            ->assertSeeText(__('dashboard.summary.paused'))
-            ->assertSeeText('Checkout API')
-            ->assertSeeText(__('dashboard.signal_room.statuses.down'))
-            ->assertSeeHtml('x-data="signalRoom(')
-            ->assertSeeText('Unknown API')
-            ->assertSeeText(__('dashboard.attention.open'))
-            ->assertSeeText(__('dashboard.incidents.open'))
-            ->assertDontSeeText('Private API')
-            ->assertSeeHtml('href="' . route('monitorings.show', $down) . '"')
-            ->assertSeeHtml('href="' . route('incidents.analytics') . '"');
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
+            ->assertOk()
+            ->assertJsonPath('data.overall_state', 'degraded')
+            ->assertJsonPath('data.summary.total', 4)
+            ->assertJsonPath('data.summary.healthy', 1)
+            ->assertJsonPath('data.summary.down', 1)
+            ->assertJsonPath('data.summary.unknown', 1)
+            ->assertJsonPath('data.summary.paused', 1)
+            ->assertJsonFragment(['name' => 'Checkout API'])
+            ->assertJsonFragment(['status' => MonitoringStatus::DOWN->value])
+            ->assertJsonFragment(['name' => 'Unknown API'])
+            ->assertJsonMissing(['name' => 'Private API']);
     }
 
-    public function test_all_healthy_dashboard_has_a_reassuring_empty_attention_state(): void
+    public function test_all_healthy_dashboard_has_no_attention_items(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
@@ -141,20 +123,19 @@ class DashboardOverviewTest extends TestCase
             'status' => MonitoringStatus::UP,
         ]);
 
-        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
             ->assertOk()
-            ->assertSeeText(__('dashboard.state.healthy.title'))
-            ->assertSeeText(__('dashboard.attention.empty'))
-            ->assertDontSeeText(__('dashboard.attention.incident', ['name' => $monitoring->name]));
+            ->assertJsonPath('data.overall_state', 'healthy')
+            ->assertJsonPath('data.attention', []);
     }
 
-    public function test_open_incident_attention_item_links_to_the_matching_status_page_workbench(): void
+    public function test_open_incident_attention_includes_its_matching_status_page(): void
     {
         Date::setTestNow('2026-07-15 12:00:00');
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $user = User::factory()->create(['package_id' => $package->id]);
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
-        $incident = Incident::query()->create([
+        Incident::query()->create([
             'monitoring_id' => $monitoring->id,
             'down_at' => Date::now()->subMinutes(20),
         ]);
@@ -169,19 +150,14 @@ class DashboardOverviewTest extends TestCase
             'source_type' => StatusPageComponentSource::MANUAL,
         ])->monitorings()->attach($monitoring->id, ['position' => 0]);
 
-        $incidentWorkspaceUrl = route('status-pages.show', [
-            'statusPage' => $statusPage,
-            'incident_id' => $incident->id,
-        ]) . '#incident-workbench-' . $incident->id;
-
-        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
             ->assertOk()
-            ->assertSeeHtml('href="' . $incidentWorkspaceUrl . '"')
-            ->assertSeeText(__('dashboard.attention.open_incident'))
-            ->assertSeeText(__('dashboard.attention.status_page', ['name' => $statusPage->name]));
+            ->assertJsonPath('data.attention.0.type', 'incident')
+            ->assertJsonPath('data.attention.0.status_page_id', $statusPage->id)
+            ->assertJsonPath('data.attention.0.status_page_name', $statusPage->name);
     }
 
-    public function test_dashboard_includes_maintenance_delivery_and_reliability_context(): void
+    public function test_dashboard_api_includes_maintenance_delivery_and_reliability_context(): void
     {
         Date::setTestNow('2026-07-15 12:00:00');
         $package = Package::factory()->create(['monitoring_limit' => 10]);
@@ -214,13 +190,11 @@ class DashboardOverviewTest extends TestCase
             'error_message' => 'Webhook unavailable',
         ]);
 
-        $this->actingAs($user)->get(route('dashboard', ['async' => 1]))
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
             ->assertOk()
-            ->assertSeeText(__('dashboard.maintenance.heading'))
-            ->assertSeeText(__('dashboard.maintenance.upcoming'))
-            ->assertSeeText(__('dashboard.attention.delivery', ['count' => 1]))
-            ->assertSeeText(__('dashboard.trend.heading'))
-            ->assertSeeHtml('href="' . route('maintenance.index') . '"')
-            ->assertSeeHtml('href="' . route('notifications.index') . '"');
+            ->assertJsonPath('data.maintenance.0.monitoring_id', $monitoring->id)
+            ->assertJsonPath('data.maintenance.0.status', 'upcoming')
+            ->assertJsonPath('data.failed_delivery_count', 1)
+            ->assertJsonPath('data.trend.6.date', '2026-07-15');
     }
 }

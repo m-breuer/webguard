@@ -24,14 +24,6 @@ final class MonitoringOverviewQuery
     /**
      * @return LengthAwarePaginator<int, Monitoring>
      */
-    public function paginateServicesFor(User $user, int $page, int $perPage = 10): LengthAwarePaginator
-    {
-        return $this->paginate($this->query($user), $page, $perPage, 'service_page');
-    }
-
-    /**
-     * @return LengthAwarePaginator<int, Monitoring>
-     */
     public function paginateFor(
         User $user,
         int $page,

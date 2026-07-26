@@ -63,6 +63,18 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonMissing(['name' => 'Hidden API']);
     }
 
+    public function test_guest_cannot_read_the_internal_ui_monitoring_projections(): void
+    {
+        $monitoring = Monitoring::factory()->create();
+
+        $this->getJson(route('api.v1.internal.ui.monitorings.index'))
+            ->assertUnauthorized();
+        $this->getJson(route('api.v1.internal.ui.monitorings.show', $monitoring))
+            ->assertUnauthorized();
+        $this->getJson(route('api.v1.internal.ui.monitorings.cards', ['ids' => [$monitoring->id]]))
+            ->assertUnauthorized();
+    }
+
     public function test_internal_ui_monitoring_detail_returns_not_found_for_another_users_monitoring(): void
     {
         $user = User::factory()->create();
