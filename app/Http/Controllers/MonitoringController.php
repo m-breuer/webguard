@@ -86,7 +86,17 @@ class MonitoringController extends Controller
             'maintenance' => ['nullable', 'string', Rule::in(['active'])],
         ]);
 
-        $query = Monitoring::query();
+        $query = Monitoring::query()
+            ->select([
+                'id',
+                'name',
+                'target',
+                'type',
+                'status',
+                'public_label_enabled',
+                'maintenance_from',
+                'maintenance_until',
+            ]);
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -160,8 +170,8 @@ class MonitoringController extends Controller
             default => $query->orderBy('name'),
         };
 
-        $summaryMonitoringIds = (clone $query)->pluck('id')->values();
-        $lengthAwarePaginator = $query->paginate(5);
+        $summaryMonitoringIds = (clone $query)->select('id')->reorder()->pluck('id')->values();
+        $lengthAwarePaginator = $query->withMaintenanceWindowState()->paginate(5);
         $hasActiveFilters = $request->filled('search')
             || $request->filled('types')
             || $request->filled('lifecycle')

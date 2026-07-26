@@ -106,6 +106,35 @@ class MonitoringIndexEmptyStateTest extends TestCase
             ->count();
 
         $this->assertLessThanOrEqual(1, $monitoringCountQueries, $queries->implode(PHP_EOL));
+
+        $summaryIdQueries = $queries
+            ->filter(static fn (string $query): bool => preg_match('/select ["`]?id["`]? from ["`]?monitorings["`]?/i', $query) === 1);
+
+        $this->assertNotEmpty($summaryIdQueries, $queries->implode(PHP_EOL));
+        $this->assertTrue(
+            $summaryIdQueries->every(static fn (string $query): bool => ! str_contains(mb_strtolower($query), 'order by')),
+            $summaryIdQueries->implode(PHP_EOL)
+        );
+    }
+
+    public function test_monitoring_index_loads_maintenance_state_without_one_query_per_monitoring(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->count(6)->for($user)->create();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+
+        $testResponse->assertOk();
+
+        $maintenanceQueries = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->filter(static fn (string $query): bool => str_contains($query, 'maintenance_windows'));
+
+        $this->assertCount(1, $maintenanceQueries, $maintenanceQueries->implode(PHP_EOL));
     }
 
     public function test_demo_user_cannot_access_monitoring_create_route(): void
