@@ -9,10 +9,60 @@
     </x-slot>
 
     <x-main>
+        @php
+            $dashboardCopy = [
+                'emptyTitle' => __('dashboard.empty.title'),
+                'emptyDescription' => __('dashboard.empty.description'),
+                'createMonitoring' => __('dashboard.quick_actions.create'),
+                'serviceLandscape' => __('dashboard.signal_room.service_landscape'),
+                'signalRoomHeading' => __('dashboard.signal_room.heading'),
+                'activeServices' => __('dashboard.signal_room.active_services'),
+                'searchPlaceholder' => __('dashboard.signal_room.search_placeholder'),
+                'allFilter' => __('dashboard.signal_room.filters.all'),
+                'attentionFilter' => __('dashboard.signal_room.filters.attention'),
+                'maintenanceFilter' => __('dashboard.signal_room.filters.maintenance'),
+                'pausedFilter' => __('dashboard.signal_room.filters.paused'),
+                'signalTab' => __('dashboard.signal_room.tabs.signal'),
+                'checksTab' => __('dashboard.signal_room.tabs.checks'),
+                'incidentsTab' => __('dashboard.signal_room.tabs.incidents'),
+                'historyTab' => __('dashboard.signal_room.tabs.history'),
+                'fullDetails' => __('dashboard.signal_room.full_details'),
+                'healthy' => __('dashboard.summary.healthy'),
+                'down' => __('dashboard.summary.down'),
+                'unknown' => __('dashboard.summary.unknown'),
+                'paused' => __('dashboard.summary.paused'),
+                'maintenance' => __('dashboard.summary.maintenance'),
+                'attention' => __('dashboard.attention.heading'),
+                'incidents' => __('dashboard.incidents.open'),
+                'notifications' => __('dashboard.quick_actions.notifications'),
+                'noAttention' => __('dashboard.attention.empty'),
+                'noMaintenance' => __('dashboard.maintenance.empty'),
+                'recentIncidents' => __('dashboard.incidents.heading'),
+                'noIncidents' => __('dashboard.incidents.empty'),
+                'trend' => __('dashboard.trend.heading'),
+                'noTrendData' => __('dashboard.trend.no_data'),
+                'previous' => __('pagination.previous'),
+                'next' => __('pagination.next'),
+                'statusLabels' => [
+                    'up' => __('dashboard.signal_room.statuses.up'),
+                    'down' => __('dashboard.signal_room.statuses.down'),
+                    'unknown' => __('dashboard.signal_room.statuses.unknown'),
+                    'paused' => __('dashboard.signal_room.statuses.paused'),
+                    'maintenance' => __('dashboard.signal_room.statuses.maintenance'),
+                    'healthy' => __('dashboard.state.healthy.title'),
+                    'degraded' => __('dashboard.state.degraded.title'),
+                    'attention' => __('dashboard.state.attention.title'),
+                    'new' => __('dashboard.empty.title'),
+                ],
+            ];
+        @endphp
+
         <div
             id="dashboard-page-content"
             data-dashboard-loader
-            data-endpoint="{{ route('dashboard', request()->query(), absolute: false) }}"
+            data-api-endpoint="{{ route('api.v1.internal.ui.dashboard', request()->only('service_page'), absolute: false) }}"
+            data-error-message="{{ __('search.messages.error') }}"
+            data-copy='@json($dashboardCopy)'
             x-data="dashboardLoader()"
             class="space-y-6"
             aria-live="polite"
