@@ -33,6 +33,8 @@ class ApiControllerTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertJson(['interval' => 300]);
+        $testResponse->assertHeader('X-RateLimit-Limit', '5');
+        $testResponse->assertHeader('X-RateLimit-Remaining', '4');
     }
 
     public function test_returns_status_metadata_and_translation_keys_in_status_endpoint(): void
@@ -75,6 +77,8 @@ class ApiControllerTest extends TestCase
         $retryAfter = (int) $testResponse->headers->get('Retry-After');
         $this->assertGreaterThan(0, $retryAfter);
         $this->assertLessThanOrEqual(60, $retryAfter);
+        $testResponse->assertHeader('X-RateLimit-Limit', '5');
+        $testResponse->assertHeader('X-RateLimit-Remaining', '0');
     }
 
     public function test_api_access_tokens_are_rate_limited_and_logged(): void

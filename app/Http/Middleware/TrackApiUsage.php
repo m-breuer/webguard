@@ -14,6 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TrackApiUsage
 {
+    private const MAX_ATTEMPTS = 5;
+
+    private const DECAY_SECONDS = 60;
+
     /**
      * Middleware to validate API access for internal and external clients.
      *
@@ -33,17 +37,27 @@ class TrackApiUsage
 
                 $key = 'api:' . $user->getAuthIdentifier();
 
-                if (RateLimiter::tooManyAttempts($key, 5)) {
+                if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
                     return response()->json([
                         'message' => 'Too many requests.',
-                    ], 429)->header('Retry-After', (string) RateLimiter::availableIn($key));
+                    ], 429)
+                        ->header('Retry-After', (string) RateLimiter::availableIn($key))
+                        ->header('X-RateLimit-Limit', (string) self::MAX_ATTEMPTS)
+                        ->header('X-RateLimit-Remaining', '0');
                 }
 
-                RateLimiter::hit($key, 60);
+                RateLimiter::hit($key, self::DECAY_SECONDS);
 
                 dispatch(new LogApiUsage((string) $user->getAuthIdentifier(), url()->current()));
 
-                return $next($request);
+                $response = $next($request);
+                $response->headers->set('X-RateLimit-Limit', (string) self::MAX_ATTEMPTS);
+                $response->headers->set(
+                    'X-RateLimit-Remaining',
+                    (string) max(0, self::MAX_ATTEMPTS - RateLimiter::attempts($key))
+                );
+
+                return $response;
             }
         }
 
