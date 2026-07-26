@@ -55,6 +55,12 @@ does not parse server-rendered dashboard fragments, keeping the internal API
 contract independent from Blade markup. The former asynchronous HTML endpoint
 remains temporarily as a reversible compatibility fallback.
 
+The current UI read contract also exposes `GET /api/v1/internal/ui/monitorings`,
+`GET /api/v1/internal/ui/monitorings/{monitoring}`, and the bounded
+`GET /api/v1/internal/ui/monitorings/cards?ids[]=` projection. These routes use
+the session-and-verification boundary, return raw locale-neutral values, and
+scope every result to the authenticated user.
+
 ## Current-to-target migration
 
 The current scanner routes are the compatibility baseline. Core now exposes the

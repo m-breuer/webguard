@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Queries;
 
+use App\Enums\MonitoringLifecycleStatus;
 use App\Models\Monitoring;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,10 +26,45 @@ final class MonitoringOverviewQuery
      */
     public function paginateServicesFor(User $user, int $page, int $perPage = 10): LengthAwarePaginator
     {
-        return $this->query($user)->paginate(
+        return $this->paginate($this->query($user), $page, $perPage, 'service_page');
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, Monitoring>
+     */
+    public function paginateFor(
+        User $user,
+        int $page,
+        int $perPage = 20,
+        ?string $search = null,
+        ?MonitoringLifecycleStatus $lifecycleStatus = null,
+    ): LengthAwarePaginator {
+        $query = $this->query($user);
+
+        if ($search !== null && $search !== '') {
+            $query->where(function (Builder $query) use ($search): void {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('target', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($lifecycleStatus !== null) {
+            $query->where('status', $lifecycleStatus);
+        }
+
+        return $this->paginate($query, $page, $perPage, 'page');
+    }
+
+    /**
+     * @param  Builder<Monitoring>  $query
+     * @return LengthAwarePaginator<int, Monitoring>
+     */
+    private function paginate(Builder $query, int $page, int $perPage, string $pageName): LengthAwarePaginator
+    {
+        return $query->paginate(
             $perPage,
             $this->columns(),
-            'service_page',
+            $pageName,
             max(1, $page),
         );
     }
@@ -39,6 +75,7 @@ final class MonitoringOverviewQuery
     private function query(User $user): Builder
     {
         return Monitoring::query()
+            ->withMaintenanceWindowState()
             ->visibleTo($user)
             ->with([
                 'latestResponseResult' => fn ($query) => $query->select([
