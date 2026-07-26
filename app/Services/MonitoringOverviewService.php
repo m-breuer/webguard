@@ -14,6 +14,7 @@ use App\Models\MonitoringDailyResult;
 use App\Models\NotificationChannelDelivery;
 use App\Models\StatusPage;
 use App\Models\User;
+use App\Queries\MonitoringOverviewQuery;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -22,6 +23,10 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringOverviewService
 {
+    public function __construct(
+        private readonly MonitoringOverviewQuery $monitoringOverviewQuery
+    ) {}
+
     /**
      * @return array{
      *     monitorings: EloquentCollection<int, Monitoring>,
@@ -44,36 +49,7 @@ class MonitoringOverviewService
     {
         $user->loadMissing('package');
 
-        $monitorings = Monitoring::query()
-            ->with([
-                'latestResponseResult' => fn ($query) => $query->select([
-                    'monitoring_response_results.id',
-                    'monitoring_response_results.monitoring_id',
-                    'monitoring_response_results.status',
-                    'monitoring_response_results.response_time',
-                    'monitoring_response_results.created_at',
-                    'monitoring_response_results.updated_at',
-                ]),
-                'latestIncident' => fn ($query) => $query->select([
-                    'incidents.id',
-                    'incidents.monitoring_id',
-                    'incidents.down_at',
-                    'incidents.up_at',
-                ]),
-                'groups:id,name',
-            ])
-            ->orderBy('name')
-            ->get([
-                'id',
-                'name',
-                'target',
-                'type',
-                'status',
-                'maintenance_from',
-                'maintenance_until',
-                'heartbeat_interval_minutes',
-                'heartbeat_grace_minutes',
-            ]);
+        $monitorings = $this->monitoringOverviewQuery->monitoringsFor($user);
 
         $statuses = $monitorings->mapWithKeys(
             fn (Monitoring $monitoring): array => [$monitoring->id => $this->status($monitoring)]
@@ -175,37 +151,7 @@ class MonitoringOverviewService
      */
     public function serviceMap(User $user, int $servicePage = 1): array
     {
-        $servicePaginator = Monitoring::query()
-            ->visibleTo($user)
-            ->with([
-                'latestResponseResult' => fn ($query) => $query->select([
-                    'monitoring_response_results.id',
-                    'monitoring_response_results.monitoring_id',
-                    'monitoring_response_results.status',
-                    'monitoring_response_results.response_time',
-                    'monitoring_response_results.created_at',
-                    'monitoring_response_results.updated_at',
-                ]),
-                'latestIncident' => fn ($query) => $query->select([
-                    'incidents.id',
-                    'incidents.monitoring_id',
-                    'incidents.down_at',
-                    'incidents.up_at',
-                ]),
-                'groups:id,name',
-            ])
-            ->orderBy('name')
-            ->paginate(10, [
-                'id',
-                'name',
-                'target',
-                'type',
-                'status',
-                'maintenance_from',
-                'maintenance_until',
-                'heartbeat_interval_minutes',
-                'heartbeat_grace_minutes',
-            ], 'service_page', max(1, $servicePage));
+        $servicePaginator = $this->monitoringOverviewQuery->paginateServicesFor($user, $servicePage);
 
         $services = $this->mapSignalRoomServices($servicePaginator->getCollection());
 

@@ -1,0 +1,89 @@
+# API boundaries
+
+**Status:** Accepted for phased implementation.  
+**Tracking:** [WebGuard Core #593](https://github.com/marcel-breuer/webguard/issues/593)
+
+## Context
+
+WebGuard Core serves four consumers with different trust boundaries:
+
+- external users and integrations;
+- the authenticated management UI;
+- scanner instances from the separate `webguard-instance` repository; and
+- anonymous public status, badge, and uptime-calendar consumers.
+
+The external API is already versioned under `/api/v1`. Scanner routes currently
+use `/api/v1/internal/*`. The management UI mixes server-rendered HTML fragments
+with JSON endpoints under `/api/*`. Those consumers must not share an implicit
+HTTP contract merely because their data comes from the same application services.
+
+## Decision
+
+The route family, authentication boundary, and owner are as follows.
+
+| Consumer | Route family | Authentication | Compatibility policy |
+| --- | --- | --- | --- |
+| External integrations | `/api/v1/*` | Sanctum personal-access token | Stable public contract; changes are additive or use a new major version. |
+| Management UI | `/api/v1/internal/ui/*` | Authenticated, verified browser session; CSRF protection for unsafe requests | Private application contract; evolve with the Core UI behind reversible rollout switches. |
+| Scanner instances | `/api/v1/internal/instances/*` | `X-INSTANCE-CODE` and `X-API-KEY` through `auth.instance` | Separate compatibility contract shared with `webguard-instance`. |
+| Public read endpoints | `/api/public/*` and explicit public routes | No account authentication; strict allowlisted payloads | Never expose private monitoring, team, token, or notification data. |
+
+The management UI and scanner instances are both internal consumers, but they do
+not share endpoints, middleware, controllers, serializers, cache keys, or
+authorization assumptions. Internal UI routes use the `Api\\Internal\\Ui`
+namespace; instance routes use `Api\\Internal\\Instances`.
+
+Controllers are transport adapters. They authorize a request and invoke a
+client-neutral application query or command. Domain services and typed data
+objects may be shared; HTTP resources and presentation values may not be shared
+by default. UI resources contain raw locale-neutral values, never rendered HTML,
+translated relative timestamps, or named-route URLs.
+
+The first internal UI projection is `GET /api/v1/internal/ui/dashboard`. It
+returns raw operations data and pagination metadata; the Blade dashboard remains
+the progressive-enhancement shell until the frontend migration is complete.
+
+## Current-to-target migration
+
+The current scanner routes are the compatibility baseline. Core now exposes the
+target instance routes with equivalent behavior and keeps the legacy routes
+available. The next steps are to migrate `webguard-instance` and remove the
+legacy adapter only after the documented contract tests pass in both
+repositories.
+
+| Current scanner path | Target scanner path | Required behavior during migration |
+| --- | --- | --- |
+| `/api/v1/internal/monitorings` | `/api/v1/internal/instances/monitorings` | Both paths return the same instance projection. |
+| `/api/v1/internal/monitoring-responses` | `/api/v1/internal/instances/monitoring-responses` | Both paths validate and persist the same response. |
+| `/api/v1/internal/incidents` | `/api/v1/internal/instances/incidents` | Both paths preserve incident semantics. |
+| `/api/v1/internal/incidents/{monitoring}` | `/api/v1/internal/instances/incidents/{monitoring}` | Both paths preserve incident-recovery semantics. |
+| `/api/v1/internal/ssl-results` | `/api/v1/internal/instances/ssl-results` | Both paths preserve the SSL-result contract. |
+| `/api/v1/internal/domain-results` | `/api/v1/internal/instances/domain-results` | Both paths preserve the domain-result contract. |
+
+The scanner implementation work is tracked in
+[webguard-instance #35](https://github.com/marcel-breuer/webguard-instance/issues/35).
+Every later change to the instance contract must create and link a specific
+issue in that repository before Core implementation begins.
+
+## HTTP conventions
+
+- External API pagination, error envelopes, rate-limit headers, and deprecation
+  policy are owned by the external API workstream. Existing `/api/v1` response
+  shapes are not silently changed.
+- Internal UI and instance routes must use explicit request validation,
+  authorization, and bounded response sizes.
+- Cached data must include the consumer and visibility boundary in its cache key.
+  Scanner data must never be returned from a browser-session cache entry, or the
+  reverse.
+- Safe read responses may use private cache-control or conditional requests only
+  when cache invalidation is defined. Instance write callbacks are not cached.
+- New API work returns a correlation identifier and follows a documented problem
+  response format. Existing contracts retain their current response shapes until
+  a compatible migration is delivered.
+
+## Consequences
+
+This adds small route/controller namespaces and compatibility adapters, but
+avoids a big-bang rewrite. It makes UI loading work independent from external
+API stability and gives the instance repository one authoritative contract to
+implement against.
