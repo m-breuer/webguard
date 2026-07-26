@@ -25,6 +25,10 @@ class DashboardController extends Controller
             return view('components.dashboard.service-map-fragment', $serviceMap);
         }
 
+        if (! $request->boolean('async')) {
+            return view('dashboard-shell');
+        }
+
         return view('dashboard', $monitoringOverviewService->overview(
             $user,
             max(1, $request->integer('service_page', 1)),

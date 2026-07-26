@@ -53,9 +53,10 @@
     </x-slot>
 
     <x-main>
-        @if ($summary['total'] === 0)
-            <x-dashboard.empty-state :can-create-monitoring="$canCreateMonitoring" modal />
-        @else
+        <div id="dashboard-content" data-dashboard-content>
+            @if ($summary['total'] === 0)
+                <x-dashboard.empty-state :can-create-monitoring="$canCreateMonitoring" modal />
+            @else
             <x-dashboard.signal-room
                 :services="$signalRoomServices"
                 :pagination="$signalRoomPagination"
@@ -223,7 +224,8 @@
                     </x-dashboard.panel>
                 </div>
             </div>
-        @endif
+            @endif
+        </div>
         <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
             <x-form-modal name="monitoring-form-modal" title="{{ __('monitoring.title') }}"
                 description="{{ __('monitoring.form.sections.basic') }}" max-width="6xl">

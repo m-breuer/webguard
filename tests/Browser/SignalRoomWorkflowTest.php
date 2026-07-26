@@ -36,6 +36,7 @@ it('supports desktop service selection and keeps the Signal Room inside the view
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/dashboard')
+        ->waitFor('[data-signal-room]')
         ->resize(1280, 800);
 
     $webpage->assertVisible('[data-signal-room]')
@@ -158,6 +159,7 @@ it('supports mobile filtering, service details and Escape to close the detail sh
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]')
         ->navigate('/dashboard')
+        ->waitFor('[data-signal-room]')
         ->resize(390, 640);
 
     $webpage->click('[data-signal-filter="attention"]')
