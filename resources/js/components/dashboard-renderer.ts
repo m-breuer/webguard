@@ -1,4 +1,18 @@
 import type { DashboardProjection, DashboardResponse, DashboardService } from '../api/internal-ui-client';
+import {
+    ACTION_SOLID,
+    chevronIcon,
+    escapeAttribute,
+    escapeHtml,
+    PANEL_BODY_DIVIDED,
+    PANEL_EMPTY,
+    PANEL_HEADER,
+    PANEL_HEADER_BORDER,
+    PANEL_ROW,
+    PANEL_SHELL,
+    PANEL_TITLE,
+    TEXT_HEADING,
+} from './dashboard-markup';
 
 export type DashboardCopy = {
     emptyTitle: string;
@@ -64,7 +78,7 @@ function emptyState(data: DashboardProjection, copy: DashboardCopy): string {
             <div class="grid gap-8 px-6 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                 <div>
                     <div class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-100 text-3xl font-light text-purple-700 dark:bg-purple-950/50 dark:text-purple-300" aria-hidden="true">+</div>
-                    <h2 class="text-2xl font-bold text-gray-950 dark:text-white">${escapeHtml(copy.emptyTitle)}</h2>
+                    <h2 class="text-2xl font-bold ${TEXT_HEADING}">${escapeHtml(copy.emptyTitle)}</h2>
                     <p class="mt-4 max-w-xl text-base leading-7 text-gray-600 dark:text-gray-300">${escapeHtml(copy.emptyDescription)}</p>
                     ${data.capabilities.can_create_monitoring ? actionLink('/monitorings/create', copy.createMonitoring, true) : ''}
                 </div>
@@ -88,7 +102,7 @@ function summary(data: DashboardProjection, copy: DashboardCopy): string {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500">${escapeHtml(copy.healthy)} · ${percentage}%</p>
-                    <h2 id="dashboard-health-heading" class="mt-2 text-2xl font-bold text-gray-950 dark:text-white">${escapeHtml(stateLabel(data.overall_state, copy))}</h2>
+                    <h2 id="dashboard-health-heading" class="mt-2 text-2xl font-bold ${TEXT_HEADING}">${escapeHtml(stateLabel(data.overall_state, copy))}</h2>
                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">${data.summary.total} ${escapeHtml(copy.activeServices)}</p>
                 </div>
                 ${data.capabilities.can_create_monitoring ? actionLink('/monitorings/create', copy.createMonitoring, true) : ''}
@@ -113,11 +127,11 @@ function services(data: DashboardProjection, meta: DashboardResponse['meta'], co
     }, {});
 
     return `
-        <section id="dashboard-service-list" data-signal-room class="rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-labelledby="dashboard-services-heading">
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-5 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <section id="dashboard-service-list" data-signal-room class="${PANEL_SHELL}" aria-labelledby="dashboard-services-heading">
+            <div class="flex flex-col gap-4 ${PANEL_HEADER_BORDER} sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p class="text-[11px] font-black uppercase tracking-[0.18em] text-purple-600 dark:text-purple-300">${escapeHtml(copy.signalRoomHeading)}</p>
-                    <h2 id="dashboard-services-heading" class="mt-1 text-xl font-black text-gray-950 dark:text-white">${escapeHtml(copy.serviceLandscape)}</h2>
+                    <h2 id="dashboard-services-heading" class="mt-1 text-xl font-black ${TEXT_HEADING}">${escapeHtml(copy.serviceLandscape)}</h2>
                     <p class="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500">${meta.service_pagination.total} ${escapeHtml(copy.activeServices)}</p>
                 </div>
                 <label class="relative block w-full sm:max-w-sm">
@@ -131,7 +145,7 @@ function services(data: DashboardProjection, meta: DashboardResponse['meta'], co
                 ${filterButton('maintenance', copy.maintenanceFilter)}
                 ${filterButton('paused', copy.pausedFilter)}
             </div>
-            <div data-dashboard-services class="divide-y divide-gray-100 dark:divide-gray-700">
+            <div data-dashboard-services class="${PANEL_BODY_DIVIDED}">
                 ${Object.entries(grouped).sort(([first], [second]) => first.localeCompare(second)).map(([group, services]) => `
                     <div data-dashboard-service-group class="px-5 py-4 sm:px-6">
                         <p class="mb-2 text-[11px] font-black uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">${escapeHtml(group)}</p>
@@ -142,7 +156,7 @@ function services(data: DashboardProjection, meta: DashboardResponse['meta'], co
                 `).join('')}
             </div>
             ${pagination(meta.service_pagination, copy)}
-            <aside class="hidden lg:block border-t border-gray-100 dark:border-gray-700"><div data-signal-detail class="p-5 text-sm text-gray-500 dark:text-gray-400">${escapeHtml(copy.searchPlaceholder)}</div></aside>
+            <aside class="hidden lg:block border-t border-gray-200 dark:border-gray-700"><div data-signal-detail class="p-5 text-sm text-gray-500 dark:text-gray-400">${escapeHtml(copy.searchPlaceholder)}</div></aside>
             <div data-signal-mobile-sheet class="lg:hidden" hidden><div data-signal-mobile-detail class="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] overflow-y-auto rounded-t-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"></div></div>
         </section>
     `;
@@ -152,10 +166,10 @@ function serviceRow(service: DashboardService, copy: DashboardCopy): string {
     const tone = service.status === 'down' ? 'bg-red-500' : service.status === 'unknown' ? 'bg-amber-500' : service.status === 'maintenance' ? 'bg-purple-500' : service.status === 'paused' ? 'bg-gray-400' : 'bg-emerald-500';
 
     return `
-        <button type="button" data-dashboard-service-row data-signal-service="${escapeAttribute(service.id)}" data-dashboard-service-status="${escapeAttribute(service.status)}" class="flex w-full items-center gap-3 rounded-2xl border border-gray-100 px-3.5 py-3 text-start transition hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-700 dark:hover:border-purple-900 dark:hover:bg-purple-950/20">
+        <button type="button" data-dashboard-service-row data-signal-service="${escapeAttribute(service.id)}" data-dashboard-service-status="${escapeAttribute(service.status)}" class="flex w-full items-center gap-3 rounded-2xl border border-gray-200 px-3.5 py-3 text-start transition hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-700 dark:hover:border-purple-900 dark:hover:bg-purple-950/20">
             <span class="h-2.5 w-2.5 shrink-0 rounded-full ${tone}" aria-hidden="true"></span>
             <span class="min-w-0 flex-1">
-                <span data-dashboard-service-name class="block truncate text-sm font-extrabold text-gray-900 dark:text-white">${escapeHtml(service.name)}</span>
+                <span data-dashboard-service-name class="block truncate text-sm font-extrabold ${TEXT_HEADING}">${escapeHtml(service.name)}</span>
                 <span class="mt-1 block truncate text-xs text-gray-500 dark:text-gray-400">${escapeHtml(service.target)}</span>
             </span>
             <span class="shrink-0 text-end">
@@ -167,44 +181,52 @@ function serviceRow(service: DashboardService, copy: DashboardCopy): string {
 }
 
 function attention(data: DashboardProjection, copy: DashboardCopy): string {
-    return panel(copy.attention, data.attention.length === 0
+    const content = data.attention.length === 0
         ? emptyMessage(copy.noAttention)
-        : data.attention.slice(0, 5).map((item) => {
+        : `<div class="${PANEL_BODY_DIVIDED}">${data.attention.slice(0, 5).map((item) => {
             const href = item.type === 'delivery' ? '/notifications' : item.monitoring_id ? `/monitorings/${encodeURIComponent(item.monitoring_id)}` : '/incidents/analytics';
             const name = item.monitoring_name ?? `${item.count ?? 0}`;
 
             return itemLink(href, `${item.type}: ${name}`, item.monitoring_target);
-        }).join(''));
+        }).join('')}</div>`;
+
+    return panel(copy.attention, content);
 }
 
 function maintenance(data: DashboardProjection, copy: DashboardCopy): string {
-    return panel(copy.maintenance, data.maintenance.length === 0
+    const content = data.maintenance.length === 0
         ? emptyMessage(copy.noMaintenance)
-        : data.maintenance.slice(0, 5).map((item) => itemLink('/maintenance', item.monitoring_name, relativeTime(item.starts_at))).join(''));
+        : `<div class="${PANEL_BODY_DIVIDED}">${data.maintenance.slice(0, 5).map((item) => itemLink('/maintenance', item.monitoring_name, relativeTime(item.starts_at))).join('')}</div>`;
+
+    return panel(copy.maintenance, content);
 }
 
 function incidents(data: DashboardProjection, copy: DashboardCopy): string {
-    return panel(copy.recentIncidents, data.recent_incidents.length === 0
+    const content = data.recent_incidents.length === 0
         ? emptyMessage(copy.noIncidents)
-        : data.recent_incidents.slice(0, 5).map((item) => itemLink(
+        : `<div class="${PANEL_BODY_DIVIDED}">${data.recent_incidents.slice(0, 5).map((item) => itemLink(
             item.monitoring_id ? `/monitorings/${encodeURIComponent(item.monitoring_id)}` : '/incidents/analytics',
             item.monitoring_name ?? copy.incidents,
             item.down_at ? new Date(item.down_at).toLocaleString() : '',
-        )).join(''));
+        )).join('')}</div>`;
+
+    return panel(copy.recentIncidents, content);
 }
 
 function trend(data: DashboardProjection, copy: DashboardCopy): string {
     const points = data.trend.filter((point) => point.has_data);
 
-    return panel(copy.trend, points.length === 0
+    const content = points.length === 0
         ? emptyMessage(copy.noTrendData)
-        : `<div class="space-y-3">${points.map((point) => `
+        : `<div class="space-y-3 p-5">${points.map((point) => `
             <div class="flex items-center gap-3 text-sm">
                 <span class="w-12 text-xs font-semibold text-gray-500 dark:text-gray-400">${escapeHtml(point.label)}</span>
                 <span class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"><span class="block h-full rounded-full bg-purple-600" style="width:${Math.max(0, Math.min(100, point.uptime_percentage ?? 0))}%"></span></span>
                 <span class="w-12 text-end font-bold text-gray-800 dark:text-gray-100">${point.uptime_percentage?.toFixed(2) ?? '—'}%</span>
             </div>
-        `).join('')}</div>`);
+        `).join('')}</div>`;
+
+    return panel(copy.trend, content);
 }
 
 function deliveryWarning(data: DashboardProjection, copy: DashboardCopy): string {
@@ -212,23 +234,28 @@ function deliveryWarning(data: DashboardProjection, copy: DashboardCopy): string
         return '';
     }
 
-    return itemLink('/notifications', `${data.failed_delivery_count} ${copy.notifications}`, copy.notifications);
+    return `<div class="${PANEL_SHELL}">${itemLink('/notifications', `${data.failed_delivery_count} ${copy.notifications}`, copy.notifications)}</div>`;
 }
 
 function panel(title: string, content: string): string {
     return `
-        <section class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-6">
-            <h2 class="text-base font-extrabold text-gray-950 dark:text-white">${escapeHtml(title)}</h2>
-            <div class="mt-4 space-y-2">${content}</div>
+        <section class="${PANEL_SHELL}">
+            <div class="${PANEL_HEADER}">
+                <h2 class="${PANEL_TITLE}">${escapeHtml(title)}</h2>
+            </div>
+            ${content}
         </section>
     `;
 }
 
 function itemLink(href: string, title: string, context: string | null): string {
     return `
-        <a href="${escapeAttribute(href)}" class="block rounded-2xl border border-gray-100 px-3 py-3 text-sm transition hover:border-purple-200 hover:bg-purple-50/50 dark:border-gray-700 dark:hover:border-purple-900 dark:hover:bg-purple-950/20">
-            <span class="block truncate font-bold text-gray-800 dark:text-gray-100">${escapeHtml(title)}</span>
-            ${context ? `<span class="mt-1 block truncate text-xs text-gray-500 dark:text-gray-400">${escapeHtml(context)}</span>` : ''}
+        <a href="${escapeAttribute(href)}" class="${PANEL_ROW}">
+            <span class="min-w-0 flex-1">
+                <span class="block truncate font-bold ${TEXT_HEADING}">${escapeHtml(title)}</span>
+                ${context ? `<span class="mt-1 block truncate text-xs text-gray-500 dark:text-gray-400">${escapeHtml(context)}</span>` : ''}
+            </span>
+            ${chevronIcon('h-4 w-4 shrink-0 text-gray-400')}
         </a>
     `;
 }
@@ -239,7 +266,7 @@ function pagination(pagination: DashboardResponse['meta']['service_pagination'],
     }
 
     return `
-        <nav id="dashboard-service-pagination" class="flex items-center justify-between border-t border-gray-100 px-5 py-4 dark:border-gray-700 sm:px-6" aria-label="${escapeAttribute(copy.serviceLandscape)}">
+        <nav id="dashboard-service-pagination" class="flex items-center justify-between border-t border-gray-200 px-5 py-4 dark:border-gray-700 sm:px-6" aria-label="${escapeAttribute(copy.serviceLandscape)}">
             ${pagination.current_page <= 1
         ? `<span class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold opacity-50 dark:border-gray-700">${escapeHtml(copy.previous)}</span>`
         : `<a href="/dashboard?service_page=${pagination.current_page - 1}" data-dashboard-service-page="${pagination.current_page - 1}" data-pagination-async class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold dark:border-gray-700">${escapeHtml(copy.previous)}</a>`}
@@ -252,7 +279,10 @@ function pagination(pagination: DashboardResponse['meta']['service_pagination'],
 }
 
 function actionLink(href: string, label: string, modal = false): string {
-    return `<a href="${escapeAttribute(href)}" ${modal ? 'data-form-modal-trigger data-form-modal-name="monitoring-form-modal"' : ''} class="mt-6 inline-flex items-center justify-center rounded-xl bg-purple-700 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-purple-600 dark:hover:bg-purple-500">${escapeHtml(label)}</a>`;
+    return `<a href="${escapeAttribute(href)}" ${modal ? 'data-form-modal-trigger data-form-modal-name="monitoring-form-modal"' : ''} class="mt-6 ${ACTION_SOLID}">
+        <span>${escapeHtml(label)}</span>
+        ${chevronIcon()}
+    </a>`;
 }
 
 function filterButton(filter: string, label: string): string {
@@ -282,19 +312,5 @@ function relativeTime(value: string | null): string {
 }
 
 function emptyMessage(message: string): string {
-    return `<p class="rounded-2xl border border-dashed border-gray-200 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">${escapeHtml(message)}</p>`;
-}
-
-function escapeHtml(value: string | number): string {
-    return String(value).replace(/[&<>'"]/g, (character) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#039;',
-        '"': '&quot;',
-    })[character] ?? character);
-}
-
-function escapeAttribute(value: string): string {
-    return escapeHtml(value);
+    return `<p class="${PANEL_EMPTY}">${escapeHtml(message)}</p>`;
 }
