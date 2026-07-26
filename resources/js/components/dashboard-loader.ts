@@ -1,4 +1,5 @@
 import { getDashboard, type DashboardService } from '../api/internal-ui-client';
+import { ACTION_SOLID, escapeHtml, TEXT_HEADING } from './dashboard-markup';
 import { renderDashboard, type DashboardCopy } from './dashboard-renderer';
 
 interface DashboardLoaderComponent {
@@ -159,7 +160,7 @@ function detailMarkup(service: DashboardService, copy: DashboardCopy): string {
 
     return `
         <div class="p-5 sm:p-6">
-            <h3 class="truncate text-xl font-black text-gray-950 dark:text-white">${escapeHtml(service.name)}</h3>
+            <h3 class="truncate text-xl font-black ${TEXT_HEADING}">${escapeHtml(service.name)}</h3>
             <div class="mt-5 flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-700" role="tablist">
                 ${[
         ['signal', copy.signalTab],
@@ -168,15 +169,11 @@ function detailMarkup(service: DashboardService, copy: DashboardCopy): string {
         ['history', copy.historyTab],
     ].map(([tab, label], index) => `<button type="button" data-signal-tab="${tab}" role="tab" aria-selected="${index === 0}" class="flex-1 rounded-lg px-2 py-2 text-center text-[11px] font-bold">${escapeHtml(label)}</button>`).join('')}
             </div>
-            <div data-signal-tab-panel="signal" class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${status}</div>
-            <div data-signal-tab-panel="checks" hidden class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${escapeHtml(responseTime)} · ${escapeHtml(checkedAt)}</div>
-            <div data-signal-tab-panel="incidents" hidden class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${service.open_incident ? escapeHtml(copy.incidents) : escapeHtml(copy.noIncidents)}</div>
-            <div data-signal-tab-panel="history" hidden class="mt-5 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${escapeHtml(checkedAt)}</div>
-            <a href="/monitorings/${encodeURIComponent(service.id)}" class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-purple-700 px-4 py-3 text-sm font-bold text-white">${escapeHtml(copy.fullDetails)}</a>
+            <div data-signal-tab-panel="signal" class="mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${status}</div>
+            <div data-signal-tab-panel="checks" hidden class="mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${escapeHtml(responseTime)} · ${escapeHtml(checkedAt)}</div>
+            <div data-signal-tab-panel="incidents" hidden class="mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${service.open_incident ? escapeHtml(copy.incidents) : escapeHtml(copy.noIncidents)}</div>
+            <div data-signal-tab-panel="history" hidden class="mt-5 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/40">${escapeHtml(checkedAt)}</div>
+            <a href="/monitorings/${encodeURIComponent(service.id)}" class="mt-5 ${ACTION_SOLID}">${escapeHtml(copy.fullDetails)}</a>
         </div>
     `;
-}
-
-function escapeHtml(value: string): string {
-    return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' })[character] ?? character);
 }
