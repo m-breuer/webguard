@@ -123,7 +123,7 @@ class MonitoringOverviewService
             'attentionItems' => $attentionItems,
             'recentIncidents' => Incident::query()
                 ->with('monitoring')
-                ->whereHas('monitoring')
+                ->whereHas('monitoring', fn ($query) => $query->visibleTo($user))
                 ->latest('down_at')
                 ->limit(5)
                 ->get(),

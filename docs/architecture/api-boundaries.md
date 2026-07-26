@@ -39,6 +39,13 @@ objects may be shared; HTTP resources and presentation values may not be shared
 by default. UI resources contain raw locale-neutral values, never rendered HTML,
 translated relative timestamps, or named-route URLs.
 
+Monitoring reads follow the same rule: actor-scoped query classes own overview,
+detail, and batch-card data access. Focused services own health derivation,
+history, incidents, and payload assembly. Browser-specific labels, relative
+timestamps, and route URLs remain in Blade presenters, while external API
+resources keep their existing v1 contract until the external API workstream
+introduces explicit adapters.
+
 The first internal UI projection is `GET /api/v1/internal/ui/dashboard`. It
 returns raw operations data and pagination metadata; the Blade dashboard remains
 the progressive-enhancement shell until the frontend migration is complete.
