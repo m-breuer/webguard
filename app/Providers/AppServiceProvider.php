@@ -7,8 +7,13 @@ namespace App\Providers;
 use App\Http\Middleware\RedirectWwwToNonWww;
 use App\Http\View\Composers\NotificationComposer;
 use App\Models\Incident;
+use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
+use App\Models\MonitoringNotification;
 use App\Models\MonitoringResponse;
+use App\Models\NotificationChannelDelivery;
+use App\Models\StatusPage;
+use App\Models\StatusPageComponent;
 use App\Models\TeamMembership;
 use App\Models\User;
 use App\Observers\IncidentObserver;
@@ -64,6 +69,11 @@ class AppServiceProvider extends ServiceProvider
         Monitoring::observe(OperationsOverviewCacheObserver::class);
         MonitoringResponse::observe(MonitoringResponseObserver::class);
         TeamMembership::observe(OperationsOverviewCacheObserver::class);
+        MaintenanceWindow::observe(OperationsOverviewCacheObserver::class);
+        MonitoringNotification::observe(OperationsOverviewCacheObserver::class);
+        NotificationChannelDelivery::observe(OperationsOverviewCacheObserver::class);
+        StatusPage::observe(OperationsOverviewCacheObserver::class);
+        StatusPageComponent::observe(OperationsOverviewCacheObserver::class);
         User::observe(UserObserver::class);
         View::composer('layouts.navigation', NotificationComposer::class);
 

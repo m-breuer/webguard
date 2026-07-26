@@ -102,6 +102,10 @@ issue in that repository before Core implementation begins.
   when cache invalidation is defined. Instance write callbacks are not cached.
 - `GET /api/v1/internal/ui/dashboard` uses a private ETag derived from the
   user-scoped projection and returns `304 Not Modified` when it is unchanged.
+- Internal UI responses expose server-generated request IDs, query counts,
+  response bytes, and application timing without query bindings or request data.
+  Dashboard budgets are 30 queries and 128 KiB per uncached response; cached
+  responses target zero database queries.
 - Authenticated external v1 responses include a server-generated `X-Request-Id`,
   including rate-limit responses, without changing their JSON bodies. New API
   work follows the documented problem-response format; existing contracts retain
