@@ -293,17 +293,17 @@ class IncidentWorkflowTest extends TestCase
             ]);
         }
 
-        $response = $this->actingAs($user)->get(route('incidents.analytics', [
+        $testResponse = $this->actingAs($user)->get(route('incidents.analytics', [
             'async' => 1,
             'section' => 'incidents',
         ]));
 
-        $response->assertOk()
+        $testResponse->assertOk()
             ->assertSeeHtml('data-incident-overview-table')
             ->assertSeeText('1 / 2')
             ->assertSeeText('11');
 
-        expect(mb_substr_count($response->getContent(), 'data-incident-row'))->toBe(10);
+        expect(mb_substr_count($testResponse->getContent(), 'data-incident-row'))->toBe(10);
     }
 
     public function test_incident_analytics_presents_monitoring_groups_and_status_pages_together(): void

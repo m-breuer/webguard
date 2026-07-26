@@ -50,12 +50,35 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
         $this->assertNull($calendar['2026-04']['days'][0]['uptime_percentage']);
     }
 
+    public function test_calendar_uses_tracked_minutes_for_daily_percentage(): void
+    {
+        Date::setTestNow('2026-04-20 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-01 00:00:00'),
+        ]);
+
+        $this->createDailyResult($monitoring, '2026-04-10', 0.0, 90, 30, 60);
+
+        $calendar = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
+            $monitoring,
+            Date::parse('2026-04-01')->startOfDay(),
+            Date::parse('2026-04-30')->endOfDay()
+        )->toArray();
+
+        $this->assertEqualsWithDelta(75.0, (float) $calendar['2026-04']['days'][9]['uptime_percentage'], 0.0001);
+        $this->assertEqualsWithDelta(75.0, (float) $calendar['2026-04']['monthly_average_uptime'], 0.0001);
+    }
+
     private function createDailyResult(
         Monitoring $monitoring,
         string $date,
         float $uptimePercentage,
         int $uptimeMinutes,
-        int $downtimeMinutes
+        int $downtimeMinutes,
+        int $unknownMinutes = 0
     ): void {
         MonitoringDailyResult::query()->create([
             'monitoring_id' => $monitoring->id,
@@ -65,10 +88,12 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
             'unknown_total' => 0,
             'uptime_percentage' => $uptimePercentage,
             'downtime_percentage' => 100 - $uptimePercentage,
-            'unknown_percentage' => 0.0,
+            'unknown_percentage' => $unknownMinutes > 0
+                ? ($unknownMinutes / ($uptimeMinutes + $downtimeMinutes + $unknownMinutes)) * 100
+                : 0.0,
             'uptime_minutes' => $uptimeMinutes,
             'downtime_minutes' => $downtimeMinutes,
-            'unknown_minutes' => 0,
+            'unknown_minutes' => $unknownMinutes,
             'avg_response_time' => 100.0,
             'min_response_time' => 100,
             'max_response_time' => 100,

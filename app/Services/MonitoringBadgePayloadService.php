@@ -87,7 +87,7 @@ class MonitoringBadgePayloadService
                 ->all();
         }
 
-        $statsByRange = $this->monitoringAvailabilityService->getUptimeDowntimesForRanges($monitoring, $days);
+        $statsByRange = $this->monitoringAvailabilityService->getUptimeDowntimesForRanges($monitoring, $days, false);
 
         return collect($days)
             ->mapWithKeys(fn (int $day): array => [

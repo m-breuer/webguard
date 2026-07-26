@@ -182,7 +182,7 @@ class IncidentAnalyticsController extends Controller
     /**
      * @return array{filters:array{days:int,incident_type:string|null,severity:string|null,customer_impact:string|null,affected_service:string|null},incidents:EloquentCollection<int, Incident>,incidentPaginator:LengthAwarePaginator,totalCount:int,resolvedCount:int,openCount:int,mttrMinutes:int|null,byType:Collection<string,int>,bySeverity:Collection<string,int>,byImpact:Collection<string,int>,byService:Collection<string,int>,repeatServices:Collection<string,int>,incidentTypes:list<IncidentType>,severities:list<IncidentSeverity>,customerImpacts:list<IncidentCustomerImpact>,incidentTrend:array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}}
      */
-    private function incidentSectionData(array $filters, int $days, IncidentAnalyticsRequest $request): array
+    private function incidentSectionData(array $filters, int $days, IncidentAnalyticsRequest $incidentAnalyticsRequest): array
     {
         $incidents = $this->incidents($filters, $days);
         $resolvedIncidents = $incidents->filter(static fn (Incident $incident): bool => $incident->up_at !== null);
@@ -198,7 +198,7 @@ class IncidentAnalyticsController extends Controller
                 'affected_service' => $filters['affected_service'] ?? null,
             ],
             'incidents' => $incidents,
-            'incidentPaginator' => $this->incidentPaginator($filters, $days, $request),
+            'incidentPaginator' => $this->incidentPaginator($filters, $days, $incidentAnalyticsRequest),
             'totalCount' => $incidents->count(),
             'resolvedCount' => $resolvedIncidents->count(),
             'openCount' => $incidents->reject(static fn (Incident $incident): bool => $incident->up_at !== null)->count(),
@@ -224,11 +224,11 @@ class IncidentAnalyticsController extends Controller
         return $this->incidentQuery($filters, $days)->get();
     }
 
-    private function incidentPaginator(array $filters, int $days, IncidentAnalyticsRequest $request): LengthAwarePaginator
+    private function incidentPaginator(array $filters, int $days, IncidentAnalyticsRequest $incidentAnalyticsRequest): LengthAwarePaginator
     {
         return $this->incidentQuery($filters, $days)
             ->paginate(10)
-            ->appends($request->except(['async', 'section', 'page']));
+            ->appends($incidentAnalyticsRequest->except(['async', 'section', 'page']));
     }
 
     private function incidentQuery(array $filters, int $days): Builder
