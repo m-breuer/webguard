@@ -79,11 +79,19 @@ class MonitoringIndexEmptyStateTest extends TestCase
         Monitoring::factory()->count(6)->for($user)->create();
 
         $testResponse = $this->actingAs($user)->get(route('monitorings.index'));
+        $previousPage = $this->actingAs($user)->get(route('monitorings.index', ['page' => 2]));
 
         $testResponse->assertOk()
             ->assertSeeHtml('data-table-pagination')
             ->assertSeeText('1 / 2')
-            ->assertSeeText(__('pagination.next'));
+            ->assertSeeText(__('pagination.next'))
+            ->assertSeeHtml('data-pagination-icon="next"')
+            ->assertDontSee('&raquo;');
+        $previousPage->assertOk()
+            ->assertSeeText('2 / 2')
+            ->assertSeeText(__('pagination.previous'))
+            ->assertSeeHtml('data-pagination-icon="previous"')
+            ->assertDontSee('&laquo;');
     }
 
     public function test_default_monitoring_index_reuses_paginator_total_without_extra_monitoring_count_query(): void

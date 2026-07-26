@@ -142,7 +142,7 @@
                 title="{{ __('pagination.previous') }}"
                 aria-label="{{ __('pagination.previous') }}"
                 :disabled="pagination.current_page <= 1 || loading" @click="fetchPage(pagination.current_page - 1)">
-                &laquo;
+                <x-icon name="arrow-left" class="h-4 w-4" />
             </button>
 
             <template x-for="page in pages()" :key="`${page}-${pagination.current_page}`">
@@ -163,7 +163,7 @@
                 aria-label="{{ __('pagination.next') }}"
                 :disabled="pagination.current_page >= pagination.last_page || loading"
                 @click="fetchPage(pagination.current_page + 1)">
-                &raquo;
+                <x-icon name="arrow-right" class="h-4 w-4" />
             </button>
         </nav>
     </div>
