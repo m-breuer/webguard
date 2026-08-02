@@ -85,6 +85,7 @@ class FormModalTeamsProfileTest extends TestCase
             ->assertSeeHtml('id="profile-password"')
             ->assertSeeHtml('id="profile-api"')
             ->assertSeeHtml('id="profile-delete"')
+            ->assertDontSeeHtml('sm:grid-cols-2')
             ->assertDontSeeHtml('data-form-modal-name="profile-information-form-modal"')
             ->assertDontSeeHtml('data-form-modal-name="profile-password-form-modal"');
 

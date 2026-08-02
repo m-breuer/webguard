@@ -13,17 +13,17 @@
                     <p class="px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
                         {{ __('profile.navigation.heading') }}
                     </p>
-                    <nav aria-label="{{ __('profile.navigation.heading') }}" class="mt-1 grid gap-1 text-sm font-semibold sm:grid-cols-2 lg:block">
-                        <a href="#profile-information" class="rounded-lg bg-purple-50 px-3 py-2 text-purple-700 transition hover:bg-purple-100 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-950/50">
+                    <nav aria-label="{{ __('profile.navigation.heading') }}" class="mt-1 space-y-1 text-sm font-semibold">
+                        <a href="#profile-information" class="block w-full rounded-lg bg-purple-50 px-3 py-2 text-purple-700 transition hover:bg-purple-100 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-950/50">
                             {{ __('profile.navigation.account') }}
                         </a>
-                        <a href="#profile-password" class="rounded-lg px-3 py-2 text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <a href="#profile-password" class="block w-full rounded-lg px-3 py-2 text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                             {{ __('profile.navigation.security') }}
                         </a>
-                        <a href="#profile-api" class="rounded-lg px-3 py-2 text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <a href="#profile-api" class="block w-full rounded-lg px-3 py-2 text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                             {{ __('profile.navigation.api') }}
                         </a>
-                        <a href="#profile-delete" class="rounded-lg px-3 py-2 text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                        <a href="#profile-delete" class="block w-full rounded-lg px-3 py-2 text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                             {{ __('profile.navigation.danger_zone') }}
                         </a>
                     </nav>
