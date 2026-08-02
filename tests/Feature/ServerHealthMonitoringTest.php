@@ -185,10 +185,10 @@ class ServerHealthMonitoringTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('status', MonitoringStatus::DOWN->value);
 
-        $response = MonitoringResponse::query()->sole();
+        $monitoringResponse = MonitoringResponse::query()->sole();
 
-        $this->assertNull($response->status);
-        $this->assertSame(MonitoringStatus::DOWN, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $response));
+        $this->assertNull($monitoringResponse->status);
+        $this->assertSame(MonitoringStatus::DOWN, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $monitoringResponse));
     }
 
     public function test_server_health_endpoint_uses_custom_thresholds(): void
