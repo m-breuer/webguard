@@ -32,7 +32,7 @@
                         {{ $notification->translated_message }}
                     </x-paragraph>
                     <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                        <span>{{ $notification->created_at->diffForHumans() }}</span>
+                        <x-date-time :value="$notification->created_at" />
                         @if ($isRead)
                             <x-badge type="info" class="bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                                 {{ __('notifications.read') }}

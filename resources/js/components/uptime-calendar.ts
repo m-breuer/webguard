@@ -62,7 +62,8 @@ export default (monitoringId: string, endpoint: string | null = null, lookbackDa
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: formatDate(day.date, 'L'),
+                        dateTime: day.date,
+                        date: formatDate(day.date),
                     })),
                 };
                 return acc;

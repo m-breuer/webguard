@@ -1,4 +1,4 @@
-import { getCurrentDayjsLocale, humanizeDistance } from "@/utils/dayjs-utils";
+import { formatDateTime, getCurrentDayjsLocale } from "@/utils/dayjs-utils";
 import { renderHeatmap } from "@/utils/heatmap-utils";
 import { getMonitoringCards, type MonitoringCardsResponse } from "../api/internal-ui-client";
 
@@ -91,7 +91,7 @@ export default (
                 this.sinceDateMap = { ...this.sinceDateMap, [monitoringId]: monitoringCardData.since ?? null };
                 this.sinceMap = {
                     ...this.sinceMap,
-                    [monitoringId]: monitoringCardData.since ? humanizeDistance(monitoringCardData.since, { withoutSuffix: true }) : '',
+                    [monitoringId]: monitoringCardData.since ? formatDateTime(monitoringCardData.since) ?? '' : '',
                 };
 
                 const heatmapContainer = document.getElementById(`monitoring-heatmap-${monitoringId}`);
@@ -147,7 +147,7 @@ export default (
     updateSince(this: MonitoringCardLoaderComponent): void {
         for (const monitoringId in this.sinceDateMap) {
             const sinceDate = this.sinceDateMap[monitoringId];
-            this.sinceMap[monitoringId] = sinceDate ? humanizeDistance(sinceDate, { withoutSuffix: true }) : '';
+            this.sinceMap[monitoringId] = sinceDate ? formatDateTime(sinceDate) ?? '' : '';
         }
     },
 

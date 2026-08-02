@@ -54,7 +54,7 @@
                                             {{ __('monitoring.types.' . $monitoringItem['model']->type->value) }}
                                             @if ($monitoringItem['lastCheckedAt'])
                                                 - {{ __('monitoring.detail.last_check') }}
-                                                {{ $monitoringItem['lastCheckedAt']->diffForHumans() }}
+                                                <x-date-time :value="$monitoringItem['lastCheckedAt']" />
                                             @endif
                                         </p>
                                     </div>
@@ -147,10 +147,10 @@
                                     </div>
                                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         {{ __('monitoring.detail.incidents.incident.down_at') }}:
-                                        {{ $incident->down_at->toDayDateTimeString() }}
+                                        <x-date-time :value="$incident->down_at" />
                                         @if ($incident->up_at)
                                             - {{ __('monitoring.detail.incidents.incident.up_at') }}
-                                            {{ $incident->up_at->toDayDateTimeString() }}
+                                            <x-date-time :value="$incident->up_at" />
                                         @endif
                                     </p>
                                     @if ($incident->updates->isNotEmpty())
@@ -162,7 +162,7 @@
                                                             {{ __('status_page.incident_updates.statuses.' . $incidentUpdate->status->value) }}
                                                         </x-badge>
                                                         <span class="text-sm text-gray-500 dark:text-gray-400">
-                                                            {{ $incidentUpdate->created_at->toDayDateTimeString() }}
+                                                            <x-date-time :value="$incidentUpdate->created_at" />
                                                         </span>
                                                     </div>
                                                     <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">

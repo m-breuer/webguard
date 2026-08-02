@@ -21,6 +21,7 @@ use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
 class MailableContractTest extends TestCase
@@ -58,6 +59,29 @@ class MailableContractTest extends TestCase
             route('team-invitations.accept', ['token' => 'invite-token']),
             $teamInvitationMail->content()->with['acceptUrl']
         );
+    }
+
+    public function test_team_invitation_mail_uses_a_localized_absolute_expiry_date(): void
+    {
+        app()->setLocale('de');
+
+        $inviter = User::factory()->create();
+        $team = Team::factory()->create([
+            'name' => 'Operations',
+            'created_by_user_id' => $inviter->id,
+        ]);
+        $teamInvitation = TeamInvitation::query()->create([
+            'team_id' => $team->id,
+            'email' => 'new-member@example.com',
+            'role' => TeamRole::MEMBER,
+            'token_hash' => hash('sha256', 'invite-token'),
+            'invited_by_user_id' => $inviter->id,
+            'expires_at' => Date::parse('2027-01-01 16:53:00'),
+        ]);
+
+        $rendered = (new TeamInvitationMail($teamInvitation, 'invite-token'))->render();
+
+        $this->assertStringContainsString('Diese Einladung läuft am 01.01.2027 um 16:53 Uhr ab.', $rendered);
     }
 
     public function test_status_page_subscription_confirmation_mail_exposes_confirmation_contract(): void

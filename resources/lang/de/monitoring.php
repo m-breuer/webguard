@@ -127,6 +127,7 @@ return [
             'no_groups' => 'Keine Gruppen zugeordnet',
             'domain_ssl' => 'Domain und SSL',
             'valid_until' => 'Gültig bis :date',
+            'valid_until_label' => 'Gültig bis',
             'no_expiry' => 'Kein Ablaufdatum verfügbar',
             'not_available' => 'Keine Domain- oder SSL-Daten verfügbar',
             'regions' => 'Prüfregionen',

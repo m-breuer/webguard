@@ -49,8 +49,8 @@ final class MaintenanceOverviewService
                 $monitoring->maintenance_from !== null => 'expired',
                 default => 'none',
             },
-            'maintenance_from' => $monitoring->maintenance_from?->toDayDateTimeString(),
-            'maintenance_until' => $monitoring->maintenance_until?->toDayDateTimeString(),
+            'maintenance_from' => $monitoring->maintenance_from?->toIso8601String(),
+            'maintenance_until' => $monitoring->maintenance_until?->toIso8601String(),
             'can_manage' => in_array((string) $monitoring->id, $manageableMonitoringIds, true),
         ]);
 
@@ -79,7 +79,7 @@ final class MaintenanceOverviewService
                     'recurrence' => $maintenanceWindow->recurrence->value,
                     'duration_minutes' => $maintenanceWindow->duration_minutes,
                     'timezone' => $maintenanceWindow->timezone,
-                    'starts_at' => $maintenanceWindow->starts_at->setTimezone($maintenanceWindow->timezone)->toDayDateTimeString(),
+                    'starts_at' => $maintenanceWindow->starts_at->toIso8601String(),
                     'can_manage' => $maintenanceWindow->isManageableBy($user),
                 ])
                 ->values()

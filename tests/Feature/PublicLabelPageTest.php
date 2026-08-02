@@ -91,7 +91,7 @@ class PublicLabelPageTest extends TestCase
         $testResponse->assertSeeHtml('id="public-uptime-card-90"');
         $testResponse->assertSeeHtml('id="public-incidents"');
         $testResponse->assertDontSeeHtml('id="incidents-range"');
-        $testResponse->assertSeeText(Date::parse($oldestVisibleIncident->down_at)->toDayDateTimeString());
-        $testResponse->assertDontSeeText(Date::parse($hiddenIncident->down_at)->toDayDateTimeString());
+        $testResponse->assertSeeText(Date::parse($oldestVisibleIncident->down_at)->locale(app()->getLocale())->isoFormat('L LT'));
+        $testResponse->assertDontSeeText(Date::parse($hiddenIncident->down_at)->locale(app()->getLocale())->isoFormat('L LT'));
     }
 }

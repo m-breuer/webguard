@@ -12,6 +12,9 @@
         </a>
     </p>
 
-    <p>{{ __('team.mail.invitation.expires', ['date' => $invitation->expires_at?->toDayDateTimeString()]) }}</p>
+    <p>{{ __('team.mail.invitation.expires', [
+        'date' => $invitation->expires_at?->locale(app()->getLocale())->isoFormat('L'),
+        'time' => $invitation->expires_at?->locale(app()->getLocale())->isoFormat('LT'),
+    ]) }}</p>
     <p>{{ __('team.mail.invitation.outro') }}</p>
 @endsection

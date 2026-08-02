@@ -9,12 +9,6 @@
         $monitoring = $delivery->monitoringNotification?->monitoring;
         $monitoringName = $monitoring?->name ?? data_get($delivery->payload, 'monitoring.name') ?? __('notifications.labels.not_available');
         $monitoringTarget = $monitoring?->target ?? data_get($delivery->payload, 'monitoring.target');
-        $attemptedAt = $delivery->created_at
-            ? $delivery->created_at->locale(app()->getLocale())->isoFormat('L LT')
-            : __('notifications.labels.not_available');
-        $sentAt = $delivery->sent_at
-            ? $delivery->sent_at->locale(app()->getLocale())->isoFormat('L LT')
-            : __('notifications.labels.not_available');
         $statusBadgeType = match ($delivery->status) {
             NotificationDeliveryStatus::SENT => 'success',
             NotificationDeliveryStatus::FAILED => 'danger',
@@ -66,12 +60,12 @@
                         </div>
                         <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
                             <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.attempted_at') }}</dt>
-                            <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ $attemptedAt }}</dd>
+                            <dd class="mt-1 text-slate-800 dark:text-slate-100">@if ($delivery->created_at)<x-date-time :value="$delivery->created_at" />@else{{ __('notifications.labels.not_available') }}@endif</dd>
                         </div>
                         @if ($delivery->status === NotificationDeliveryStatus::SENT)
                             <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
                                 <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.sent_at') }}</dt>
-                                <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ $sentAt }}</dd>
+                                <dd class="mt-1 text-slate-800 dark:text-slate-100">@if ($delivery->sent_at)<x-date-time :value="$delivery->sent_at" />@else{{ __('notifications.labels.not_available') }}@endif</dd>
                             </div>
                         @endif
                     </dl>

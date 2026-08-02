@@ -1,14 +1,14 @@
-import { formatDate, getCurrentDayjsLocale, humanizeDistance, humanizeDuration } from '@/utils/dayjs-utils';
+import { formatDate, formatDateTime, getCurrentDayjsLocale, humanizeDuration } from '@/utils/dayjs-utils';
 import Chart from 'chart.js/auto';
 import dayjs from 'dayjs';
 
 interface MonitoringDetailComponent {
-    sinceDate: any;
+    sinceDate: string | null;
     incidents: any[];
     recentChecks: Array<{
         id: string;
+        checkedAtIso: string;
         checkedAt: string;
-        checkedAtHuman: string | null;
         status: string;
         httpStatusCode: number | null;
         responseTime: number | null;
@@ -29,7 +29,6 @@ interface MonitoringDetailComponent {
     recentChecksPageSize: number;
     lastCheckedAt: string | null;
     nextCheckIn: string | null;
-    lastCheckedAtDate: Date | null;
     nextCheckInDate: Date | null;
     lastCheckedAtHuman: string | null;
     interval: number | null;
@@ -81,8 +80,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     incidents: [] as any[],
     recentChecks: [] as Array<{
         id: string;
+        checkedAtIso: string;
         checkedAt: string;
-        checkedAtHuman: string | null;
         status: string;
         httpStatusCode: number | null;
         responseTime: number | null;
@@ -103,7 +102,6 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     recentChecksPageSize: 5,
     lastCheckedAt: null as string | null,
     nextCheckIn: null as string | null,
-    lastCheckedAtDate: null,
     nextCheckInDate: null,
     lastCheckedAtHuman: null,
     interval: null,
@@ -127,7 +125,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     deferredDataInitialized: false,
     uptimeCalendarLoaded: false,
 
-    sinceDate: null as Date | null,
+    sinceDate: null,
 
     currentLocale: getCurrentDayjsLocale(),
     async loadStatus(this: MonitoringDetailComponent): Promise<void> {
@@ -137,12 +135,11 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.status = responseData.status;
             this.statusCode = responseData.status_code ?? null;
             if (responseData.since) {
-                this.sinceDate = new Date(responseData.since);
-                this.since = humanizeDistance(this.sinceDate, { withoutSuffix: true });
+                this.sinceDate = responseData.since;
+                this.since = formatDateTime(responseData.since);
             }
             if (responseData.checked_at) {
-                this.lastCheckedAtDate = new Date(responseData.checked_at);
-                this.lastCheckedAtHuman = formatDate(this.lastCheckedAtDate, 'L LTS');
+                this.lastCheckedAtHuman = formatDateTime(responseData.checked_at, true);
                 this.lastCheckedAt = responseData.checked_at;
             }
             if (responseData.interval) {
@@ -153,6 +150,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.status = null;
             this.statusCode = null;
             this.since = null;
+            this.sinceDate = null;
             this.lastCheckedAt = null;
             this.lastCheckedAtHuman = null;
             this.interval = null;
@@ -191,8 +189,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
                 return {
                     ...incident,
-                    down_at: formatDate(incident.down_at, 'L LT'),
-                    up_at: incident.up_at ? formatDate(incident.up_at, 'L LT') : null,
+                    down_at: formatDateTime(incident.down_at),
+                    up_at: incident.up_at ? formatDateTime(incident.up_at) : null,
                     duration: humanizeDuration(durationInMinutes, 'minutes'),
                 };
             });
@@ -257,8 +255,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
             const checks = (responseData.data ?? []).map((check) => ({
                 id: check.id,
-                checkedAt: formatDate(check.checked_at, 'L LTS') ?? check.checked_at,
-                checkedAtHuman: humanizeDistance(check.checked_at),
+                checkedAtIso: check.checked_at,
+                checkedAt: formatDateTime(check.checked_at, true) ?? check.checked_at,
                 status: check.status,
                 httpStatusCode: check.http_status_code,
                 responseTime: check.response_time,
@@ -352,9 +350,9 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             const response = await fetch(`/api/monitorings/${monitoringId}/ssl`);
             const responseData = await response.json();
             this.sslValid = responseData.valid;
-            this.sslExpiration = responseData.expiration ? formatDate(responseData.expiration, 'L') : null;
+            this.sslExpiration = responseData.expiration ? formatDate(responseData.expiration) : null;
             this.sslIssuer = responseData.issuer;
-            this.sslIssueDate = responseData.issue_date ? formatDate(responseData.issue_date, 'L') : null;
+            this.sslIssueDate = responseData.issue_date ? formatDate(responseData.issue_date) : null;
         } catch (_) {
             this.sslValid = null;
             this.sslExpiration = null;
@@ -407,7 +405,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
             this.performanceChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: responseData.data.map((entry: { date: string; }) => formatDate(entry.date, 'L LT')),
+                    labels: responseData.data.map((entry: { date: string; }) => formatDateTime(entry.date)),
                     datasets: [
                         {
                             label: this.chartLabels.min,
@@ -508,7 +506,8 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
                     ...responseData[monthYear],
                     days: responseData[monthYear].days.map((day: any) => ({
                         ...day,
-                        date: formatDate(day.date, 'L'),
+                        dateTime: day.date,
+                        date: formatDate(day.date),
                     })),
                 };
                 return acc;

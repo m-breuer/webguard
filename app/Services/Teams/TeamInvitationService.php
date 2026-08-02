@@ -46,7 +46,10 @@ class TeamInvitationService
 
         $invitation->load('team');
 
-        Mail::to($normalizedEmail)->send(new TeamInvitationMail($invitation, $token));
+        Mail::to($normalizedEmail)->send(
+            (new TeamInvitationMail($invitation, $token))
+                ->locale(User::query()->where('email', $normalizedEmail)->value('locale') ?? app()->getLocale())
+        );
 
         return $invitation;
     }

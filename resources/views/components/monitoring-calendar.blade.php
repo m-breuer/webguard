@@ -2,8 +2,8 @@
     <div class="mb-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3 sm:auto-rows-fr">
         <template x-for="(monthData, month) in data" :key="month">
             <div x-data="{
-                monthName: new Date(month + '-02').toLocaleString('{{ app()->getLocale() }}', { month: 'long', year: 'numeric' }),
-                firstDayOfMonth: new Date(monthData.days[0].date).getDay() === 0 ? 7 : new Date(monthData.days[0].date).getDay()
+                monthName: new Date(month + '-02T12:00:00').toLocaleString('{{ app()->getLocale() }}', { month: 'long', year: 'numeric' }),
+                firstDayOfMonth: new Date(monthData.days[0].dateTime.slice(0, 10) + 'T12:00:00').getDay() === 0 ? 7 : new Date(monthData.days[0].dateTime.slice(0, 10) + 'T12:00:00').getDay()
             }" class="h-full">
                 <x-container class="h-full min-w-0">
                     <x-heading type="h3" space=true>
@@ -40,7 +40,7 @@
                             <div></div>
                         </template>
 
-                        <template x-for="day in monthData.days" :key="day.date">
+                        <template x-for="day in monthData.days" :key="day.dateTime">
                             <div x-data="{ tooltip: false }" @mouseenter="tooltip = true" @mouseleave="tooltip = false"
                                 class="relative">
                                 <div class="h-8 w-full rounded-sm"
@@ -50,7 +50,7 @@
                                         'bg-yellow-400': day.uptime_percentage >= 90 && day.uptime_percentage < 97.5,
                                         'bg-red-500': day.uptime_percentage !== null && day.uptime_percentage < 90
                                     }">
-                                    <span class="sr-only" x-text="day.date"></span>
+                                    <time class="sr-only" x-bind:datetime="day.dateTime" x-text="day.date"></time>
                                 </div>
                                 <div x-show="tooltip" x-transitions
                                     class="absolute z-10 rounded-lg bg-gray-900 p-2 text-xs font-medium text-white shadow-sm dark:bg-gray-700"

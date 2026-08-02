@@ -166,6 +166,41 @@ class SendWeeklyMonitoringDigestCommandTest extends TestCase
         $this->assertStringContainsString('overflow-wrap: anywhere;', $rendered);
     }
 
+    public function test_weekly_digest_uses_localized_absolute_dates(): void
+    {
+        app()->setLocale('de');
+
+        $user = User::factory()->make([
+            'locale' => 'de',
+        ]);
+        $mail = new WeeklyMonitoringDigestMail([
+            'period_start' => Date::parse('2026-04-13'),
+            'period_end' => Date::parse('2026-04-19'),
+            'frequency' => 'weekly',
+            'overview' => [
+                'uptime_percentage' => 99.12,
+                'incidents_count' => 0,
+                'longest_downtime_minutes' => 0,
+                'monitorings_count' => 1,
+            ],
+            'monitorings' => [],
+            'ssl_warnings' => [[
+                'name' => 'Storefront',
+                'target' => 'https://example.com',
+                'is_valid' => true,
+                'expires_at' => Date::parse('2027-01-01'),
+            ]],
+            'domain_warnings' => [],
+        ], $user);
+
+        $rendered = $mail->render();
+
+        $this->assertStringContainsString('13.04.2026', $rendered);
+        $this->assertStringContainsString('19.04.2026', $rendered);
+        $this->assertStringContainsString('läuft am 01.01.2027 ab', $rendered);
+        $this->assertStringNotContainsString('2026-04-13', $rendered);
+    }
+
     public function test_weekly_digest_builds_monitoring_summaries_with_constant_query_count(): void
     {
         Date::setTestNow('2026-04-20 09:00:00');

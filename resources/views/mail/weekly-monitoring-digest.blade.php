@@ -1,8 +1,8 @@
 @extends('layouts.mail')
 
 @section('title', __('mail.weekly_monitoring_digest.subject', [
-    'from' => $digest['period_start']->toDateString(),
-    'to' => $digest['period_end']->toDateString(),
+    'from' => $digest['period_start']->locale(app()->getLocale())->isoFormat('L'),
+    'to' => $digest['period_end']->locale(app()->getLocale())->isoFormat('L'),
 ]))
 
 @section('content')
@@ -15,8 +15,8 @@
 
     <p>{{ __('mail.weekly_monitoring_digest.greeting', ['userName' => $user->name]) }}</p>
     <p>{{ __('mail.weekly_monitoring_digest.intro', [
-        'from' => $digest['period_start']->toDateString(),
-        'to' => $digest['period_end']->toDateString(),
+        'from' => $digest['period_start']->locale(app()->getLocale())->isoFormat('L'),
+        'to' => $digest['period_end']->locale(app()->getLocale())->isoFormat('L'),
     ]) }}</p>
 
     <h2>{{ __('mail.weekly_monitoring_digest.overview_heading') }}</h2>
@@ -87,7 +87,7 @@
                     @if (! $warning['is_valid'])
                         {{ __('mail.weekly_monitoring_digest.invalid_warning') }}
                     @elseif ($warning['expires_at'])
-                        {{ __('mail.weekly_monitoring_digest.expires_on', ['date' => $warning['expires_at']->toDateString()]) }}
+                        {{ __('mail.weekly_monitoring_digest.expires_on', ['date' => $warning['expires_at']->locale(app()->getLocale())->isoFormat('L')]) }}
                     @endif
                 </li>
             @endforeach
@@ -104,7 +104,7 @@
                     @if (! $warning['is_valid'])
                         {{ __('mail.weekly_monitoring_digest.invalid_warning') }}
                     @elseif ($warning['expires_at'])
-                        {{ __('mail.weekly_monitoring_digest.expires_on', ['date' => $warning['expires_at']->toDateString()]) }}
+                        {{ __('mail.weekly_monitoring_digest.expires_on', ['date' => $warning['expires_at']->locale(app()->getLocale())->isoFormat('L')]) }}
                     @endif
                 </li>
             @endforeach

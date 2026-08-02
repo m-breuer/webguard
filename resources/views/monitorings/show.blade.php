@@ -145,12 +145,18 @@
                     <span class="text-xl font-black text-gray-950 dark:text-white" x-text="status ? status.toUpperCase() : '—'"></span>
                     <span class="text-sm text-gray-500 dark:text-gray-400" x-text="statusCode ? 'HTTP ' + statusCode : ''"></span>
                 </div>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-show="since" x-text="'{{ __('monitoring.index.table.since') }} ' + since"></p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-show="since">
+                    {{ __('monitoring.index.table.since') }}
+                    <time x-bind:datetime="sinceDate" x-bind:title="since" x-text="since"></time>
+                </p>
             </x-container>
 
             <x-container class="!rounded-2xl !border-gray-200 !shadow-sm dark:!border-gray-700">
                 <p class="text-xs font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">{{ __('monitoring.detail.summary.last_check') }}</p>
-                <p class="mt-3 text-xl font-black text-gray-950 dark:text-white" x-text="lastCheckedAtHuman || '—'"></p>
+                <p class="mt-3 text-xl font-black text-gray-950 dark:text-white">
+                    <time x-show="lastCheckedAtHuman" x-bind:datetime="lastCheckedAt" x-bind:title="lastCheckedAtHuman" x-text="lastCheckedAtHuman"></time>
+                    <span x-show="!lastCheckedAtHuman">—</span>
+                </p>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-text="intervalHuman ? '{{ __('monitoring.detail.interval') }} ' + intervalHuman : '{{ __('monitoring.detail.summary.waiting_for_check') }}'"></p>
             </x-container>
 
@@ -221,7 +227,7 @@
                     </x-paragraph>
                     @if ($monitoring->heartbeat_last_ping_at)
                         <x-paragraph class="text-sm text-gray-500">
-                            {{ __('monitoring.detail.heartbeat.last_ping') }} {{ $monitoring->heartbeat_last_ping_at->diffForHumans() }}
+                            {{ __('monitoring.detail.heartbeat.last_ping') }} <x-date-time :value="$monitoring->heartbeat_last_ping_at" />
                         </x-paragraph>
                     @endif
                 </x-container>
@@ -238,7 +244,7 @@
                         @if ($monitoring->domainResult->expires_at)
                             <x-paragraph>
                                 {{ __('monitoring.detail.domain.expires_at') }}:
-                                {{ $monitoring->domainResult->expires_at->toFormattedDateString() }}
+                                <x-date-time :value="$monitoring->domainResult->expires_at" format="date" />
                             </x-paragraph>
                         @endif
                         @if ($monitoring->domainResult->registrar)
@@ -274,7 +280,7 @@
                     <x-paragraph class="break-all font-mono text-sm text-gray-800 dark:text-gray-100">{{ $monitoring->target }}</x-paragraph>
                     @if ($monitoring->server_health_last_reported_at)
                         <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
-                            {{ __('monitoring.detail.server_health.last_report') }} {{ $monitoring->server_health_last_reported_at->diffForHumans() }}
+                            {{ __('monitoring.detail.server_health.last_report') }} <x-date-time :value="$monitoring->server_health_last_reported_at" />
                         </x-paragraph>
                     @endif
                     <div class="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
@@ -519,10 +525,8 @@
                                                 x-show="index < recentChecks.length - 1"></span>
                                         </div>
                                         <div class="min-w-0">
-                                            <p class="truncate text-sm font-semibold text-gray-950 dark:text-gray-100"
-                                                x-text="check.checkedAt"></p>
-                                            <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400"
-                                                x-text="check.checkedAtHuman"></p>
+                                            <time class="block truncate text-sm font-semibold text-gray-950 dark:text-gray-100"
+                                                x-bind:datetime="check.checkedAtIso" x-bind:title="check.checkedAt" x-text="check.checkedAt"></time>
                                         </div>
                                     </div>
 
@@ -637,7 +641,13 @@
                                     <p class="text-sm font-bold text-gray-950 dark:text-white">{{ __('monitoring.detail.ssl.heading') }}</p>
                                     <span class="h-2.5 w-2.5 rounded-full {{ $monitoring->sslResult->is_valid ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                                 </div>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->sslResult->expires_at ? __('monitoring.detail.context.valid_until', ['date' => $monitoring->sslResult->expires_at->locale(app()->getLocale())->isoFormat('L')]) : __('monitoring.detail.context.no_expiry') }}</p>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    @if ($monitoring->sslResult->expires_at)
+                                        {{ __('monitoring.detail.context.valid_until_label') }} <x-date-time :value="$monitoring->sslResult->expires_at" format="date" />
+                                    @else
+                                        {{ __('monitoring.detail.context.no_expiry') }}
+                                    @endif
+                                </p>
                             </div>
                         @endif
                         @if ($monitoring->domainResult)
@@ -646,7 +656,13 @@
                                     <p class="text-sm font-bold text-gray-950 dark:text-white">{{ __('monitoring.detail.domain.heading') }}</p>
                                     <span class="h-2.5 w-2.5 rounded-full {{ $monitoring->domainResult->is_valid ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                                 </div>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->domainResult->expires_at ? __('monitoring.detail.context.valid_until', ['date' => $monitoring->domainResult->expires_at->locale(app()->getLocale())->isoFormat('L')]) : __('monitoring.detail.context.no_expiry') }}</p>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    @if ($monitoring->domainResult->expires_at)
+                                        {{ __('monitoring.detail.context.valid_until_label') }} <x-date-time :value="$monitoring->domainResult->expires_at" format="date" />
+                                    @else
+                                        {{ __('monitoring.detail.context.no_expiry') }}
+                                    @endif
+                                </p>
                             </div>
                         @endif
                         @if (! $monitoring->sslResult && ! $monitoring->domainResult)
@@ -672,7 +688,7 @@
                     <div class="p-5">
                         @if ($monitoring->maintenance_from)
                             <p class="font-bold text-gray-950 dark:text-white">{{ $monitoring->isUnderMaintenance() ? __('monitoring.detail.context.maintenance_active') : __('monitoring.detail.context.maintenance_scheduled') }}</p>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $monitoring->maintenance_from->locale(app()->getLocale())->isoFormat('L LT') }}@if ($monitoring->maintenance_until) – {{ $monitoring->maintenance_until->locale(app()->getLocale())->isoFormat('L LT') }}@endif</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"><x-date-time :value="$monitoring->maintenance_from" />@if ($monitoring->maintenance_until) – <x-date-time :value="$monitoring->maintenance_until" />@endif</p>
                         @else
                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.context.no_maintenance') }}</p>
                         @endif

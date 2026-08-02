@@ -26,7 +26,7 @@
             @else
                 <div class="mt-4 overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700"><table data-incident-overview-table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"><tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @foreach ($incidentPaginator as $incident)
-                        <tr data-incident-row><td class="px-4 py-3">{{ $incident->up_at ? __('incidents.analytics.table.resolved_state') : __('incidents.analytics.table.open_state') }}</td><td class="px-4 py-3"><a href="{{ route('monitorings.show', $incident->monitoring) }}" class="font-bold text-gray-900 dark:text-gray-100">{{ $incident->monitoring->name }}</a></td><td class="px-4 py-3">{{ $incident->problem_description ?: ($incident->affected_service ?: __('incidents.analytics.unclassified')) }}</td><td class="whitespace-nowrap px-4 py-3">{{ $incident->down_at->toDayDateTimeString() }}</td></tr>
+                        <tr data-incident-row><td class="px-4 py-3">{{ $incident->up_at ? __('incidents.analytics.table.resolved_state') : __('incidents.analytics.table.open_state') }}</td><td class="px-4 py-3"><a href="{{ route('monitorings.show', $incident->monitoring) }}" class="font-bold text-gray-900 dark:text-gray-100">{{ $incident->monitoring->name }}</a></td><td class="px-4 py-3">{{ $incident->problem_description ?: ($incident->affected_service ?: __('incidents.analytics.unclassified')) }}</td><td class="whitespace-nowrap px-4 py-3"><x-date-time :value="$incident->down_at" /></td></tr>
                     @endforeach
                 </tbody></table></div>
                 <x-pagination :paginator="$incidentPaginator" class="mt-4" />

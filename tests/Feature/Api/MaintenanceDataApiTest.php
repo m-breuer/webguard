@@ -28,11 +28,16 @@ class MaintenanceDataApiTest extends TestCase
             'maintenance_from' => Date::now()->subHour(),
         ]);
 
-        $this->actingAs($user)->getJson('/api/maintenance')
+        $testResponse = $this->actingAs($user)->getJson('/api/maintenance')
             ->assertOk()
             ->assertJsonPath('data.stats.total', 1)
             ->assertJsonPath('data.windows.data.0.id', $visible->id)
             ->assertJsonPath('data.windows.data.0.status', 'active')
             ->assertJsonMissing(['name' => 'Hidden maintenance']);
+
+        $this->assertSame(
+            $visible->maintenance_from?->toIso8601String(),
+            $testResponse->json('data.windows.data.0.maintenance_from'),
+        );
     }
 }

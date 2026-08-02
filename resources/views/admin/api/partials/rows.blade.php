@@ -1,6 +1,6 @@
 @forelse ($apiLogs as $log)
     <x-table.row>
-        <x-table.cell>{{ $log->created_at }}</x-table.cell>
+        <x-table.cell><x-date-time :value="$log->created_at" format="datetime_seconds" /></x-table.cell>
         <x-table.cell>{{ $log->user->email }}</x-table.cell>
         <x-table.cell>{{ $log->route }}</x-table.cell>
     </x-table.row>

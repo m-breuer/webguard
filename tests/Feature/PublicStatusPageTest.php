@@ -337,8 +337,8 @@ class PublicStatusPageTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeText(__('monitoring.public_label.maintenance.heading'));
         $testResponse->assertSeeText(__('monitoring.public_label.maintenance.upcoming'));
-        $testResponse->assertSeeText('Mon, May 4, 2026 12:00 PM');
-        $testResponse->assertSeeText('Mon, May 4, 2026 2:00 PM');
+        $testResponse->assertSeeText(Date::now()->addDay()->locale(app()->getLocale())->isoFormat('L LT'));
+        $testResponse->assertSeeText(Date::now()->addDay()->addHours(2)->locale(app()->getLocale())->isoFormat('L LT'));
         $testResponse->assertDontSeeText(__('monitoring.public_label.maintenance.active'));
     }
 
@@ -388,7 +388,7 @@ class PublicStatusPageTest extends TestCase
         $testResponse->assertSeeText(__('monitoring.public_label.maintenance.heading'));
         $testResponse->assertSeeText(__('monitoring.public_label.maintenance.active'));
         $testResponse->assertSeeText(__('monitoring.public_label.maintenance.open_ended'));
-        $testResponse->assertSeeText('Sun, May 3, 2026 11:00 AM');
+        $testResponse->assertSeeText(Date::now()->subHour()->locale(app()->getLocale())->isoFormat('L LT'));
         $testResponse->assertDontSeeText(__('monitoring.public_label.maintenance.upcoming'));
     }
 

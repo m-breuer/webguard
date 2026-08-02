@@ -1,53 +1,92 @@
 import dayjs from 'dayjs';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/de'; // Import German locale data
+import 'dayjs/locale/de';
 import 'dayjs/locale/en';
 
-dayjs.extend(localizedFormat);
 dayjs.extend(duration);
-dayjs.extend(relativeTime);
 
 export function getCurrentDayjsLocale(): string {
     const locale = window.App.locale || 'en';
-    dayjs.locale(locale); // Set global locale for dayjs
+    dayjs.locale(locale);
+
     return locale;
 }
 
-export function formatDate(date: dayjs.Dayjs | string | null, formatStr: string): string | null {
+type DateInput = dayjs.Dayjs | Date | string | null;
+
+function toDate(date: DateInput): Date | null {
     if (!date) {
         return null;
     }
-    return dayjs(date).locale(getCurrentDayjsLocale()).format(formatStr);
+
+    const value = dayjs(date);
+
+    return value.isValid() ? value.toDate() : null;
+}
+
+function format(date: DateInput, options: Intl.DateTimeFormatOptions): string | null {
+    const value = toDate(date);
+
+    return value ? new Intl.DateTimeFormat(getCurrentDayjsLocale(), options).format(value) : null;
+}
+
+export function formatDate(date: DateInput): string | null {
+    const value = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(date)
+        ? new Date(`${date.slice(0, 10)}T12:00:00`)
+        : toDate(date);
+
+    return value ? new Intl.DateTimeFormat(getCurrentDayjsLocale(), {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(value) : null;
+}
+
+export function formatDateTime(date: DateInput, includeSeconds = false, timeZone?: string): string | null {
+    return format(date, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        ...(includeSeconds ? { second: '2-digit' } : {}),
+        ...(timeZone ? { timeZone } : {}),
+    });
+}
+
+export function formatMonthYear(date: DateInput): string | null {
+    return format(date, {
+        year: 'numeric',
+        month: 'long',
+    });
 }
 
 export function humanizeDuration(value: number, unit: dayjs.ManipulateType): string {
-    const duration = dayjs.duration(value, unit);
+    const durationValue = dayjs.duration(value, unit);
+    const days = durationValue.days();
+    const hours = durationValue.hours();
+    const minutes = durationValue.minutes();
+    const locale = getCurrentDayjsLocale();
+    const formatUnit = (amount: number, unit: Intl.NumberFormatOptions['unit']): string => new Intl.NumberFormat(locale, {
+        style: 'unit',
+        unit,
+        unitDisplay: 'long',
+    }).format(amount);
+    const parts: string[] = [];
 
-    const days = duration.days();
-    const hours = duration.hours();
-    const minutes = duration.minutes();
-
-    const parts = [];
     if (days > 0) {
-        parts.push(`${days} day${days > 1 ? 's' : ''}`);
+        parts.push(formatUnit(days, 'day'));
     }
     if (hours > 0) {
-        parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+        parts.push(formatUnit(hours, 'hour'));
     }
     if (minutes > 0) {
-        parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+        parts.push(formatUnit(minutes, 'minute'));
     }
 
     if (parts.length === 0) {
-        return 'less than a minute';
+        return formatUnit(0, 'minute');
     }
 
-    return parts.join(' ');
+    return new Intl.ListFormat(locale, { style: 'long', type: 'unit' }).format(parts);
 }
-
-export function humanizeDistance(date: dayjs.Dayjs | string, options?: { withoutSuffix?: boolean }): string {
-    return dayjs(date).locale(getCurrentDayjsLocale()).fromNow(options?.withoutSuffix);
-}
-

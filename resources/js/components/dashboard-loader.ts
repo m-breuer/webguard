@@ -1,6 +1,7 @@
 import { getDashboard, type DashboardService } from '../api/internal-ui-client';
 import { ACTION_SOLID, escapeHtml, TEXT_HEADING } from './dashboard-markup';
 import { renderDashboard, type DashboardCopy } from './dashboard-renderer';
+import { formatDateTime } from '../utils/dayjs-utils';
 
 interface DashboardLoaderComponent {
     controller: AbortController | null;
@@ -156,7 +157,7 @@ export default (): DashboardLoaderComponent => ({
 function detailMarkup(service: DashboardService, copy: DashboardCopy): string {
     const status = escapeHtml(copy.statusLabels[service.status] ?? service.status);
     const responseTime = service.response_time_ms === null ? '—' : `${Math.round(service.response_time_ms)} ms`;
-    const checkedAt = service.last_checked_at ? new Date(service.last_checked_at).toLocaleString() : '—';
+    const checkedAt = formatDateTime(service.last_checked_at) ?? '—';
 
     return `
         <div class="p-5 sm:p-6">
