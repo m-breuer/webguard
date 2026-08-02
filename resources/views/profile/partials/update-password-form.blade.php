@@ -1,10 +1,9 @@
-<x-container space="true">
-    <x-heading type="h2">{{ __('profile.update_password.heading') }}</x-heading>
+<x-heading type="h2">{{ __('profile.update_password.heading') }}</x-heading>
     <x-paragraph>
         {{ __('profile.update_password.description') }}
     </x-paragraph>
 
-    <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('password.update') }}" class="space-y-6">
         @csrf
         @method('put')
         @if (!empty($modal))
@@ -41,4 +40,3 @@
             @endif
         </div>
     </form>
-</x-container>

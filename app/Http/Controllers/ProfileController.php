@@ -41,7 +41,7 @@ class ProfileController extends Controller
         $isPasswordForm = $modalForm === 'profile-password';
         $showNotificationChannelsHint = false;
 
-        if (($request->boolean('full') || $isProfileInformationForm) && $user
+        if ((! $request->ajax() || $isProfileInformationForm) && $user
             && ! $user->hasEnabledNotificationChannels() && $user->notification_channels_hint_seen_at === null) {
             $user->forceFill([
                 'notification_channels_hint_seen_at' => now(),
@@ -64,7 +64,6 @@ class ProfileController extends Controller
             'user' => $user,
             'token' => $user?->currentAccessToken(),
             'showNotificationChannelsHint' => $showNotificationChannelsHint,
-            'fullPage' => $request->boolean('full'),
             'modalForm' => $modalForm,
         ]);
     }

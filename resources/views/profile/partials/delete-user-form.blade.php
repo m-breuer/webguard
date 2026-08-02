@@ -1,6 +1,5 @@
-<x-container space="true">
-    <x-heading type="h2">{{ __('profile.delete_account.heading') }}</x-heading>
-    <x-paragraph space="true">
+<x-heading type="h2">{{ __('profile.delete_account.heading') }}</x-heading>
+    <x-paragraph>
         {{ __('profile.delete_account.description') }}
     </x-paragraph>
 
@@ -35,4 +34,3 @@
             </div>
         </form>
     </x-modal>
-</x-container>

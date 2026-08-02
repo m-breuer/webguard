@@ -1,8 +1,7 @@
-<x-container space="true">
-    @php
-        $notificationChannels = old('notification_channels', $user->notification_channels ?? []);
-        $notificationChannelKeys = ['slack', 'telegram', 'discord', 'teams', 'webhook'];
-    @endphp
+@php
+    $notificationChannels = old('notification_channels', $user->notification_channels ?? []);
+    $notificationChannelKeys = ['slack', 'telegram', 'discord', 'teams', 'webhook'];
+@endphp
 
     <x-heading type="h2">{{ __('profile.information.heading') }}</x-heading>
     <x-paragraph>
@@ -13,7 +12,7 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="space-y-6">
         @csrf
         @method('patch')
         @if (!empty($modal))
@@ -288,4 +287,3 @@
             @csrf
         </form>
     @endforeach
-</x-container>

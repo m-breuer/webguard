@@ -1,5 +1,4 @@
-<x-container class="mb-4">
-    <x-heading type="h2">
+<x-heading type="h2">
         {{ __('api.configuration.heading') }}
     </x-heading>
 
@@ -7,13 +6,13 @@
         {{ __('api.configuration.description') }}
     </x-paragraph>
 
-    <div class="mt-2 gap-4 md:flex md:items-center">
+    <div class="flex flex-wrap items-center gap-3">
         <form method="POST" action="{{ route('profile.api-generate-token') }}">
             @csrf
             <x-primary-button>{{ __('api.configuration.actions.generate_token') }}</x-primary-button>
         </form>
 
-        <form method="POST" action="{{ route('profile.api-revoke-token') }}" class="mt-4 md:mt-0"
+        <form method="POST" action="{{ route('profile.api-revoke-token') }}"
             data-confirm-message="{{ __('api.configuration.messages.confirm_revoke_token') }}">
             @csrf
             @method('DELETE')
@@ -26,4 +25,3 @@
     @if (Auth::user()->tokens->isNotEmpty())
         <x-api-token-display :token="Auth::user()->tokens->last()->token" />
     @endif
-</x-container>
