@@ -72,6 +72,43 @@ class MonitoringExpectedHttpStatusesTest extends TestCase
         ]);
     }
 
+    public function test_it_persists_optional_response_time_alert_configuration_for_http_monitoring(): void
+    {
+        $testResponse = $this->actingAs($this->user)->post(route('monitorings.store'), $this->httpPayload([
+            'response_time_threshold_ms' => 750,
+            'response_time_confirmation_threshold' => 3,
+        ]));
+
+        $testResponse->assertRedirect(route('monitorings.index'));
+
+        $this->assertDatabaseHas('monitorings', [
+            'name' => 'HTTP Monitoring',
+            'response_time_threshold_ms' => 750,
+            'response_time_confirmation_threshold' => 3,
+        ]);
+    }
+
+    public function test_it_rejects_response_time_alert_configuration_for_non_http_monitoring(): void
+    {
+        $testResponse = $this->from(route('monitorings.create'))
+            ->actingAs($this->user)
+            ->post(route('monitorings.store'), [
+                'name' => 'Ping Monitor',
+                'type' => MonitoringType::PING->value,
+                'target' => '8.8.8.8',
+                'status' => MonitoringLifecycleStatus::ACTIVE->value,
+                'preferred_location' => $this->serverInstance->code,
+                'response_time_threshold_ms' => 750,
+                'response_time_confirmation_threshold' => 3,
+            ]);
+
+        $testResponse->assertRedirect(route('monitorings.create'));
+        $testResponse->assertSessionHasErrors([
+            'response_time_threshold_ms',
+            'response_time_confirmation_threshold',
+        ]);
+    }
+
     public function test_it_updates_expected_http_statuses(): void
     {
         $monitoring = Monitoring::factory()->for($this->user)->create([

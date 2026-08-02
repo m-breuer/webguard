@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\InternalUi;
 
 use App\Models\Monitoring;
+use App\Services\MonitoringHealthEvaluator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,9 +27,14 @@ class MonitoringResource extends JsonResource
                 fn ($group): array => ['id' => $group->id, 'name' => $group->name]
             )->values()->all()),
             'latest_check' => $this->whenLoaded('latestResponseResult', fn (): ?array => $this->latestResponseResult ? [
-                'status' => $this->latestResponseResult->status?->value ?? $this->latestResponseResult->status,
+                'status' => resolve(MonitoringHealthEvaluator::class)->availabilityFor($this->resource, $this->latestResponseResult)->value,
                 'checked_at' => $this->latestResponseResult->created_at?->toIso8601String(),
                 'response_time_ms' => $this->latestResponseResult->response_time,
+            ] : null),
+            'performance' => $this->whenLoaded('performanceState', fn (): ?array => $this->performanceState ? [
+                'status' => $this->performanceState->status?->value,
+                'consecutive_breaches' => $this->performanceState->consecutive_breaches,
+                'degraded_at' => $this->performanceState->degraded_at?->toIso8601String(),
             ] : null),
             'open_incident' => $this->whenLoaded('latestIncident', fn (): bool => $this->latestIncident?->up_at === null),
             'maintenance' => [

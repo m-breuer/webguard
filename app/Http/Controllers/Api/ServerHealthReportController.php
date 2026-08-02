@@ -20,8 +20,8 @@ class ServerHealthReportController extends Controller
      *
      * Use the private endpoint generated for a Server Health monitoring. Send
      * CPU, RAM, and storage percentages from your server agent or cron script.
-     * If no explicit status is supplied, WebGuard marks the report down when
-     * any percentage metric reaches that monitor's configured threshold.
+     * WebGuard derives health from the configured thresholds and reported
+     * metrics. The optional status field is accepted only for older clients.
      *
      * @group Server Health
      *
@@ -76,20 +76,17 @@ class ServerHealthReportController extends Controller
             ], 422);
         }
 
-        $status = isset($validated['status'])
-            ? MonitoringStatus::from($validated['status'])
-            : $this->statusFromMetrics($metrics, $monitoring);
+        $legacyStatus = isset($validated['status']) ? MonitoringStatus::from($validated['status']) : null;
+        $evaluatedStatus = $metrics !== []
+            ? $this->statusFromMetrics($metrics, $monitoring)
+            : ($legacyStatus ?? MonitoringStatus::UNKNOWN);
 
         $timestamp = now();
 
         MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
-            'status' => $status,
-            'http_status_code' => match ($status) {
-                MonitoringStatus::UP => 200,
-                MonitoringStatus::DOWN => 503,
-                MonitoringStatus::UNKNOWN => null,
-            },
+            'status' => $metrics === [] ? $legacyStatus : null,
+            'http_status_code' => null,
             'response_time' => null,
             'server_health_metrics' => $metrics,
             'created_at' => $timestamp,
@@ -102,7 +99,7 @@ class ServerHealthReportController extends Controller
 
         return response()->json([
             'message' => 'Server health report accepted.',
-            'status' => $status->value,
+            'status' => $evaluatedStatus->value,
             'metrics' => $metrics,
             'thresholds' => [
                 'cpu_usage_percent' => $this->thresholdFor($monitoring, 'server_health_cpu_threshold_percent'),

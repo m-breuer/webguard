@@ -8,6 +8,7 @@ use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
+use App\Services\MonitoringHealthEvaluator;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -65,9 +66,9 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
 
                     MonitoringResponse::query()->create([
                         'monitoring_id' => $monitoring->id,
-                        'status' => MonitoringStatus::DOWN,
                         'http_status_code' => 503,
                         'response_time' => null,
+                        'vital_values' => ['heartbeat_overdue' => true],
                     ]);
                 }
             });
@@ -75,7 +76,9 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
 
     private function shouldRecordMissedHeartbeat(Monitoring $monitoring): bool
     {
-        if ($monitoring->latestResponseResult?->status !== MonitoringStatus::DOWN) {
+        $monitoringHealthEvaluator = resolve(MonitoringHealthEvaluator::class);
+
+        if ($monitoring->latestResponseResult === null || $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoring->latestResponseResult) !== MonitoringStatus::DOWN) {
             return true;
         }
 
@@ -93,6 +96,6 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
             return true;
         }
 
-        return $responses->contains(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status !== MonitoringStatus::DOWN);
+        return $responses->contains(fn (MonitoringResponse $monitoringResponse): bool => $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse) !== MonitoringStatus::DOWN);
     }
 }

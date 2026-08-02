@@ -241,6 +241,30 @@ class MonitoringRequest extends FormRequest
                 Rule::exists('monitoring_groups', 'id')->where('user_id', $this->user()?->id),
             ],
             'failure_confirmation_threshold' => ['required', 'integer', 'min:1', 'max:10'],
+            'response_time_threshold_ms' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:60000',
+                Rule::requiredIf(fn (): bool => $this->filled('response_time_confirmation_threshold')),
+                function ($attribute, $value, $fail): void {
+                    if (! in_array(MonitoringType::tryFrom((string) $this->input('type')), [MonitoringType::HTTP, MonitoringType::KEYWORD], true) && $this->filled($attribute)) {
+                        $fail(__('monitoring.validation.response_time_threshold_invalid_config'));
+                    }
+                },
+            ],
+            'response_time_confirmation_threshold' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:10',
+                Rule::requiredIf(fn (): bool => $this->filled('response_time_threshold_ms')),
+                function ($attribute, $value, $fail): void {
+                    if (! in_array(MonitoringType::tryFrom((string) $this->input('type')), [MonitoringType::HTTP, MonitoringType::KEYWORD], true) && $this->filled($attribute)) {
+                        $fail(__('monitoring.validation.response_time_threshold_invalid_config'));
+                    }
+                },
+            ],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
         ];
 
@@ -302,6 +326,8 @@ class MonitoringRequest extends FormRequest
             'team_id' => $this->normalizeTeamId(),
             'group_ids' => $this->normalizeGroupIds(),
             'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 2),
+            'response_time_threshold_ms' => $this->normalizeNullableInteger('response_time_threshold_ms'),
+            'response_time_confirmation_threshold' => $this->normalizeNullableInteger('response_time_confirmation_threshold'),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
         ];
@@ -360,6 +386,13 @@ class MonitoringRequest extends FormRequest
         $teamId = mb_trim((string) $teamId);
 
         return $teamId === '' ? null : $teamId;
+    }
+
+    private function normalizeNullableInteger(string $key): ?int
+    {
+        $value = $this->input($key);
+
+        return is_numeric($value) ? (int) $value : null;
     }
 
     /**

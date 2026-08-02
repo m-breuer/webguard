@@ -353,6 +353,20 @@
                 </div>
             </div>
 
+            @if ($monitoring->response_time_threshold_ms !== null)
+                <x-container class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <x-paragraph class="font-semibold text-gray-900 dark:text-gray-100">{{ __('monitoring.detail.performance.heading') }}</x-paragraph>
+                        <x-paragraph class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.performance.threshold', ['threshold' => $monitoring->response_time_threshold_ms]) }}</x-paragraph>
+                    </div>
+                    @if ($monitoring->performanceState?->status?->value === 'degraded')
+                        <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{{ __('monitoring.detail.performance.degraded') }}</span>
+                    @else
+                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800 dark:bg-green-900/40 dark:text-green-200">{{ __('monitoring.detail.performance.normal') }}</span>
+                    @endif
+                </x-container>
+            @endif
+
             <x-container space="true">
                 <div :class="{ 'hidden': chartLoading }" x-transition.opacity>
                     <canvas id="performance-chart" class="min-h-[40vh]"></canvas>

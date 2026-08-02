@@ -7,6 +7,7 @@ namespace App\Console\Commands\Monitoring;
 use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
+use App\Services\MonitoringHealthEvaluator;
 use Carbon\CarbonInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -21,7 +22,7 @@ class ArchiveMonitoringResponsesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(MonitoringHealthEvaluator $monitoringHealthEvaluator)
     {
         $archiveCutoffDate = Date::now()->subWeek()->startOfDay();
 
@@ -31,17 +32,27 @@ class ArchiveMonitoringResponsesCommand extends Command
         $deletedCount = 0;
         $chunkSize = 1000; // Process in chunks to manage memory
 
-        DB::transaction(function () use ($archiveCutoffDate, &$archivedCount, &$deletedCount, $chunkSize) {
+        DB::transaction(function () use ($archiveCutoffDate, &$archivedCount, &$deletedCount, $chunkSize, $monitoringHealthEvaluator) {
             MonitoringResponse::query()
                 ->with([
                     'monitoring' => fn ($query) => $query
                         ->withTrashed()
-                        ->select(['id', 'maintenance_from', 'maintenance_until']),
+                        ->select([
+                            'id',
+                            'type',
+                            'expected_http_statuses',
+                            'dns_expected_values',
+                            'server_health_cpu_threshold_percent',
+                            'server_health_ram_threshold_percent',
+                            'server_health_storage_threshold_percent',
+                            'maintenance_from',
+                            'maintenance_until',
+                        ]),
                 ])
                 ->where('created_at', '<', $archiveCutoffDate)
-                ->chunkById($chunkSize, function ($responses) use (&$archivedCount, &$deletedCount) {
-                    $dataToArchive = $responses->map(function (MonitoringResponse $monitoringResponse): array {
-                        $status = $monitoringResponse->status->value;
+                ->chunkById($chunkSize, function ($responses) use (&$archivedCount, &$deletedCount, $monitoringHealthEvaluator) {
+                    $dataToArchive = $responses->map(function (MonitoringResponse $monitoringResponse) use ($monitoringHealthEvaluator): array {
+                        $status = $monitoringHealthEvaluator->availabilityFor($monitoringResponse->monitoring, $monitoringResponse)->value;
                         $httpStatusCode = $monitoringResponse->http_status_code;
 
                         if ($this->isArchivedAsUnknown($monitoringResponse)) {
@@ -58,6 +69,9 @@ class ArchiveMonitoringResponsesCommand extends Command
                             'response_time' => $monitoringResponse->response_time,
                             'server_health_metrics' => $monitoringResponse->server_health_metrics !== null
                                 ? json_encode($monitoringResponse->server_health_metrics, JSON_THROW_ON_ERROR)
+                                : null,
+                            'vital_values' => $monitoringResponse->vital_values !== null
+                                ? json_encode($monitoringResponse->vital_values, JSON_THROW_ON_ERROR)
                                 : null,
                             'created_at' => $monitoringResponse->created_at,
                             'updated_at' => $monitoringResponse->updated_at,

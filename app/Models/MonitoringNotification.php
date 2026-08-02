@@ -149,6 +149,15 @@ class MonitoringNotification extends Model
     }
 
     /**
+     * Scope notifications to performance entries.
+     */
+    #[Scope]
+    protected function performance(Builder $builder): Builder
+    {
+        return $builder->ofType(NotificationType::PERFORMANCE);
+    }
+
+    /**
      * Scope notifications to read entries.
      */
     #[Scope]

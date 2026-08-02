@@ -8,6 +8,8 @@ enum NotificationEventType: string
 {
     case INCIDENT = 'incident';
     case RECOVERY = 'recovery';
+    case PERFORMANCE_DEGRADED = 'performance_degraded';
+    case PERFORMANCE_RECOVERED = 'performance_recovered';
     case SSL_EXPIRING = 'ssl_expiring';
     case SSL_EXPIRED = 'ssl_expired';
     case DOMAIN_EXPIRING = 'domain_expiring';

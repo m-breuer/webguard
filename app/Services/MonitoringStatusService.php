@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Date;
 class MonitoringStatusService
 {
     public function __construct(
-        private readonly RegionalConsensusService $regionalConsensusService
+        private readonly RegionalConsensusService $regionalConsensusService,
+        private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator
     ) {}
 
     /**
@@ -33,7 +34,7 @@ class MonitoringStatusService
 
         if (! $latest) {
             return [
-                'status' => $monitoring->latestResponseResult ? $monitoring->latestResponseResult->status->value : MonitoringStatus::UNKNOWN->value,
+                'status' => $monitoring->latestResponseResult ? $this->monitoringHealthEvaluator->availabilityFor($monitoring, $monitoring->latestResponseResult)->value : MonitoringStatus::UNKNOWN->value,
                 'since' => $monitoring->latestResponseResult ? $monitoring->created_at->toIso8601String() : null,
             ];
         }
@@ -62,7 +63,7 @@ class MonitoringStatusService
             $latest = $monitoring->latestResponseResult;
 
             return [
-                'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
+                'status' => $latest ? $this->monitoringHealthEvaluator->availabilityFor($monitoring, $latest) : MonitoringStatus::UNKNOWN->value,
                 'checked_at' => $monitoring->heartbeat_last_ping_at?->toIso8601String(),
                 'next' => $referenceTimestamp->copy()->addSeconds($heartbeatInterval)->toIso8601String(),
                 'interval' => $heartbeatInterval,
@@ -84,7 +85,7 @@ class MonitoringStatusService
         }
 
         return [
-            'status' => $latest ? $latest->status : MonitoringStatus::UNKNOWN->value,
+            'status' => $latest ? $this->monitoringHealthEvaluator->availabilityFor($monitoring, $latest) : MonitoringStatus::UNKNOWN->value,
             'checked_at' => $latest ? $latest->updated_at->toIso8601String() : null,
             'next' => $latest ? $latest->updated_at->addSeconds($cronjobInterval)->toIso8601String() : Date::now()->addSeconds($cronjobInterval)->toIso8601String(),
             'interval' => $cronjobInterval,

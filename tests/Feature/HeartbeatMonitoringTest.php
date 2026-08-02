@@ -10,6 +10,7 @@ use App\Enums\MonitoringType;
 use App\Jobs\EvaluateHeartbeatMonitoringsJob;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
@@ -82,9 +83,10 @@ class HeartbeatMonitoringTest extends TestCase
         $this->assertSame(Date::now()->toIso8601String(), $monitoring->heartbeat_last_ping_at?->toIso8601String());
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::UP->value,
+            'status' => null,
             'http_status_code' => 200,
         ]);
+        $this->assertSame(['heartbeat_received' => true], MonitoringResponse::query()->sole()->vital_values);
 
         $statusResponse = $this->actingAs($this->user)->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
@@ -126,15 +128,15 @@ class HeartbeatMonitoringTest extends TestCase
         $this->assertNotNull($incident->up_at);
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::DOWN->value,
+            'status' => null,
             'http_status_code' => 503,
         ]);
         $this->assertSame(2, $monitoring->responseResults()
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::UP->value,
+            'status' => null,
             'http_status_code' => 200,
         ]);
     }

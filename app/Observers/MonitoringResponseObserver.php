@@ -7,6 +7,8 @@ namespace App\Observers;
 use App\Enums\MonitoringStatus;
 use App\Models\Incident;
 use App\Models\MonitoringResponse;
+use App\Services\MonitoringHealthEvaluator;
+use App\Services\MonitoringPerformanceService;
 use App\Services\OperationsOverviewCache;
 use App\Services\RegionalConsensusService;
 
@@ -20,6 +22,10 @@ class MonitoringResponseObserver
         resolve(OperationsOverviewCache::class)->flush();
 
         $monitoring = $monitoringResponse->monitoring;
+        $monitoringHealthEvaluator = resolve(MonitoringHealthEvaluator::class);
+        $monitoringStatus = $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse);
+
+        resolve(MonitoringPerformanceService::class)->reconcile($monitoring, $monitoringResponse, $monitoringStatus);
 
         if (count($monitoring->preferredLocationCodes()) > 1 && $monitoringResponse->location_code !== null) {
             resolve(RegionalConsensusService::class)->reconcile($monitoring);
@@ -35,7 +41,7 @@ class MonitoringResponseObserver
 
         $latestResponse = $responses->first();
 
-        if ($latestResponse?->status === MonitoringStatus::DOWN) {
+        if ($latestResponse && $monitoringHealthEvaluator->availabilityFor($monitoring, $latestResponse) === MonitoringStatus::DOWN) {
             if ($this->hasConfirmedFailure($monitoringResponse)) {
                 $this->openIncident($monitoringResponse);
             }
@@ -43,7 +49,7 @@ class MonitoringResponseObserver
             return;
         }
 
-        if ($latestResponse?->status === MonitoringStatus::UP) {
+        if ($latestResponse && $monitoringHealthEvaluator->availabilityFor($monitoring, $latestResponse) === MonitoringStatus::UP) {
             // Status changed to UP, close the open incident
             $incident = $monitoring->incidents()->whereNull('up_at')->first();
             if ($incident) {
@@ -63,7 +69,7 @@ class MonitoringResponseObserver
             ->get();
 
         return $responses->count() >= $threshold
-            && $responses->every(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status === MonitoringStatus::DOWN);
+            && $responses->every(fn (MonitoringResponse $monitoringResponse): bool => resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $monitoringResponse) === MonitoringStatus::DOWN);
     }
 
     private function openIncident(MonitoringResponse $monitoringResponse): void

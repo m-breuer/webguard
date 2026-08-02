@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  *
  * @property string $id
  * @property string $monitoring_id
- * @property MonitoringStatus $status
+ * @property MonitoringStatus|null $status
  * @property float $response_time
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
     'http_status_code',
     'response_time',
     'server_health_metrics',
+    'vital_values',
 ])]
 #[Table(name: 'monitoring_response_results', key: 'id', keyType: 'string')]
 #[WithoutIncrementing]
@@ -83,6 +84,7 @@ class MonitoringResponse extends Model
             'http_status_code' => 'integer',
             'response_time' => 'float',
             'server_health_metrics' => 'array',
+            'vital_values' => 'array',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

@@ -10,6 +10,8 @@ The API boundary decision and migration rules are documented in the
 [API boundaries ADR](architecture/api-boundaries.md). Scanner-instance consumers
 must follow the separate [WebGuard Instance API contract](integrations/webguard-instance-api.md).
 The stable external contract is documented in [External API v1 compatibility](api/external-v1.md).
+The staged migration from stored check statuses to health derived from raw
+observations is described in [Derived monitoring health](architecture/derived-monitoring-health.md).
 
 ## Backend
 

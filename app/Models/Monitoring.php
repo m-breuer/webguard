@@ -60,6 +60,8 @@ use Spatie\Activitylog\Support\LogOptions;
     'notification_on_failure',
     'notification_channels',
     'failure_confirmation_threshold',
+    'response_time_threshold_ms',
+    'response_time_confirmation_threshold',
     'ssl_expiry_warning_days',
     'deleted_at',
     'maintenance_from',
@@ -171,6 +173,14 @@ class Monitoring extends Model
     public function latestIncident(): HasOne
     {
         return $this->hasOne(Incident::class, 'monitoring_id')->latestOfMany();
+    }
+
+    /**
+     * @return HasOne<MonitoringPerformanceState, $this>
+     */
+    public function performanceState(): HasOne
+    {
+        return $this->hasOne(MonitoringPerformanceState::class);
     }
 
     /**
@@ -554,6 +564,8 @@ class Monitoring extends Model
             'heartbeat_grace_minutes' => 'integer',
             'notification_channels' => 'array',
             'failure_confirmation_threshold' => 'integer',
+            'response_time_threshold_ms' => 'integer',
+            'response_time_confirmation_threshold' => 'integer',
             'ssl_expiry_warning_days' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

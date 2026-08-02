@@ -49,6 +49,7 @@ class MonitoringResponseArchived extends Model
             'http_status_code' => 'integer',
             'response_time' => 'float',
             'server_health_metrics' => 'array',
+            'vital_values' => 'array',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

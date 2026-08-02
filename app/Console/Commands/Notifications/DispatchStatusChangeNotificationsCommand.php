@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands\Notifications;
 
 use App\Enums\NotificationEventType;
+use App\Enums\NotificationType;
 use App\Mail\PublicStatusPageStatusUpdateMail;
 use App\Mail\StatusPageStatusUpdateMail;
 use App\Models\Monitoring;
@@ -37,7 +38,7 @@ class DispatchStatusChangeNotificationsCommand extends Command
     public function handle(): int
     {
         $notifications = MonitoringNotification::query()
-            ->statusChange()
+            ->whereIn('type', [NotificationType::STATUS_CHANGE, NotificationType::PERFORMANCE])
             ->where('sent', false)
             ->with(['monitoring.user', 'monitoring.team.users'])
             ->get();
@@ -51,25 +52,43 @@ class DispatchStatusChangeNotificationsCommand extends Command
                 continue;
             }
 
-            $identifier = MonitoringNotification::extractStatusChangeIdentifierFromMessage($notification->message);
-            $eventType = $identifier === 'down'
-                ? NotificationEventType::INCIDENT
-                : NotificationEventType::RECOVERY;
+            $isPerformanceNotification = $notification->type === NotificationType::PERFORMANCE;
+            $identifier = $isPerformanceNotification
+                ? mb_strtolower($notification->message)
+                : MonitoringNotification::extractStatusChangeIdentifierFromMessage($notification->message);
+            $eventType = match ($identifier) {
+                'down' => NotificationEventType::INCIDENT,
+                'up' => NotificationEventType::RECOVERY,
+                'degraded' => NotificationEventType::PERFORMANCE_DEGRADED,
+                default => NotificationEventType::PERFORMANCE_RECOVERED,
+            };
 
-            $this->dispatchStatusPageSubscriberEmails($monitoring, $notification, $identifier);
+            if (! $isPerformanceNotification) {
+                $this->dispatchStatusPageSubscriberEmails($monitoring, $notification, $identifier);
+            }
 
             $payload = new NotificationPayload(
                 eventType: $eventType,
-                title: $eventType === NotificationEventType::INCIDENT
-                    ? 'Monitoring incident'
-                    : 'Monitoring recovered',
+                title: match ($eventType) {
+                    NotificationEventType::INCIDENT => 'Monitoring incident',
+                    NotificationEventType::RECOVERY => 'Monitoring recovered',
+                    NotificationEventType::PERFORMANCE_DEGRADED => 'Monitoring performance degraded',
+                    NotificationEventType::PERFORMANCE_RECOVERED => 'Monitoring performance recovered',
+                    default => 'Monitoring update',
+                },
                 message: sprintf(
-                    '%s (%s) changed status to %s.',
+                    $isPerformanceNotification
+                        ? '%s (%s) performance changed to %s.'
+                        : '%s (%s) changed status to %s.',
                     $monitoring->name,
                     $monitoring->target,
                     mb_strtoupper($identifier)
                 ),
-                severity: $eventType === NotificationEventType::INCIDENT ? 'critical' : 'info',
+                severity: match ($eventType) {
+                    NotificationEventType::INCIDENT => 'critical',
+                    NotificationEventType::PERFORMANCE_DEGRADED => 'warning',
+                    default => 'info',
+                },
                 monitoringId: $monitoring->id,
                 monitoringName: $monitoring->name,
                 monitoringTarget: $monitoring->target,

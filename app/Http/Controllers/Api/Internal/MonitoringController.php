@@ -21,13 +21,27 @@ class MonitoringController extends Controller
     {
         $validated = $request->validate([
             'monitoring_id' => ['required', 'exists:monitorings,id'],
-            'status' => ['required', Rule::enum(MonitoringStatus::class)],
+            'status' => ['nullable', Rule::enum(MonitoringStatus::class)],
             'http_status_code' => ['nullable', 'integer', 'between:100,599'],
             'response_time' => ['nullable', 'numeric', 'min:0'],
+            'vital_values' => ['nullable', 'array'],
+            'vital_values.transport_succeeded' => ['nullable', 'boolean'],
+            'vital_values.connection_succeeded' => ['nullable', 'boolean'],
+            'vital_values.heartbeat_received' => ['nullable', 'boolean'],
+            'vital_values.heartbeat_overdue' => ['nullable', 'boolean'],
+            'vital_values.observed_values' => ['nullable', 'array'],
+            'vital_values.observed_values.*' => ['string', 'max:1024'],
+            'vital_values.failure_reason' => ['nullable', 'string', 'max:1024'],
         ]);
 
         if (! $this->isMonitoringAllowedForInstance($request, $validated['monitoring_id'])) {
             return response()->json(['message' => 'Unauthorized monitoring'], 403);
+        }
+
+        if (! isset($validated['status']) && ! isset($validated['http_status_code']) && ! isset($validated['vital_values'])) {
+            return response()->json([
+                'message' => 'Provide raw monitoring evidence or the legacy status during the compatibility period.',
+            ], 422);
         }
 
         $validated['location_code'] = (string) $request->attributes->get('authenticated_instance_code');

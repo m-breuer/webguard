@@ -16,6 +16,8 @@ class EnumHelperTest extends TestCase
         $this->assertSame([
             'incident',
             'recovery',
+            'performance_degraded',
+            'performance_recovered',
             'ssl_expiring',
             'ssl_expired',
             'domain_expiring',
