@@ -17,9 +17,13 @@
                 <x-badge type="success">{{ __('maintenance.status.none') }}</x-badge>
             @endif
         </x-table.cell>
-        <x-table.cell>{{ data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'starts_at')?->format('Y-m-d H:i') ?? ($monitoring->maintenance_from?->format('Y-m-d H:i') ?? '-') }}</x-table.cell>
         <x-table.cell>
-            {{ data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'ends_at')?->format('Y-m-d H:i') ?? ($monitoring->maintenance_until?->format('Y-m-d H:i') ?? ($monitoring->maintenance_from ? __('maintenance.status.open_ended') : '-')) }}
+            @php($startsAt = data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'starts_at') ?? $monitoring->maintenance_from)
+            @if ($startsAt)<x-date-time :value="$startsAt" />@else - @endif
+        </x-table.cell>
+        <x-table.cell>
+            @php($endsAt = data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'ends_at') ?? $monitoring->maintenance_until)
+            @if ($endsAt)<x-date-time :value="$endsAt" />@elseif ($monitoring->maintenance_from){{ __('maintenance.status.open_ended') }}@else - @endif
         </x-table.cell>
         <x-table.cell>
             @if ($monitoring->groups->isNotEmpty())

@@ -1,17 +1,7 @@
-@php
-    use Illuminate\Support\Carbon;
-@endphp
-
 @forelse($entries as $entry)
     @php
         $statusLabel = __($entry['status_key']);
         $statusWithCode = $entry['latest_status_code'] ? $entry['latest_status_code'] . ' ' . $statusLabel : $statusLabel;
-        $latestCheckedAt = $entry['latest_checked_at']
-            ? Carbon::parse($entry['latest_checked_at'])->locale(app()->getLocale())->isoFormat('L LT')
-            : __('notifications.labels.not_available');
-        $latestStatusChangeAt = $entry['latest_status_change_at']
-            ? Carbon::parse($entry['latest_status_change_at'])->locale(app()->getLocale())->isoFormat('L LT')
-            : __('notifications.labels.not_available');
         $isRead = (bool) $entry['read'];
     @endphp
     <x-container space="true"
@@ -49,11 +39,11 @@
                         </div>
                         <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
                             <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.timestamp') }}</dt>
-                            <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ $latestCheckedAt }}</dd>
+                            <dd class="mt-1 text-slate-800 dark:text-slate-100">@if ($entry['latest_checked_at'])<x-date-time :value="$entry['latest_checked_at']" />@else{{ __('notifications.labels.not_available') }}@endif</dd>
                         </div>
                         <div class="rounded-md bg-slate-50 p-3 dark:bg-slate-800/70">
                             <dt class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{{ __('notifications.labels.latest_status_change') }}</dt>
-                            <dd class="mt-1 text-slate-800 dark:text-slate-100">{{ $latestStatusChangeAt }}</dd>
+                            <dd class="mt-1 text-slate-800 dark:text-slate-100">@if ($entry['latest_status_change_at'])<x-date-time :value="$entry['latest_status_change_at']" />@else{{ __('notifications.labels.not_available') }}@endif</dd>
                         </div>
                     </dl>
                 </div>

@@ -37,7 +37,7 @@ class MonitoringBadgePayloadService
             statusIdentifier: MonitoringStatusMeta::statusIdentifier($latestStatusCode, $maintenanceActive),
             statusKey: MonitoringStatusMeta::statusKey($latestStatusCode, $maintenanceActive),
             checkedAt: $checkedAt,
-            checkedAtHuman: $checkedAt ? Date::parse((string) $checkedAt)->diffForHumans() : null,
+            checkedAtHuman: $checkedAt ? Date::parse((string) $checkedAt)->locale(app()->getLocale())->isoFormat('L LT') : null,
             uptime: new MonitoringBadgeUptimePayload(
                 sevenDays: $uptimePercentages[7] ?? null,
                 thirtyDays: $uptimePercentages[30] ?? null,

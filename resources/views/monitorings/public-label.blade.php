@@ -47,13 +47,13 @@
                         @if ($statusSince)
                             <p>
                                 {{ __('monitoring.index.table.since') }}
-                                {{ \Illuminate\Support\Facades\Date::parse($statusSince)->diffForHumans() }}
+                                <x-date-time :value="$statusSince" />
                             </p>
                         @endif
                         @if (data_get($statusNow, 'checked_at'))
                             <p>
                                 {{ __('monitoring.detail.last_check') }}
-                                {{ \Illuminate\Support\Facades\Date::parse(data_get($statusNow, 'checked_at'))->diffForHumans() }}
+                                <x-date-time :value="data_get($statusNow, 'checked_at')" />
                             </p>
                         @endif
                         @if ($monitoring->latestResponseResult?->http_status_code)
@@ -73,7 +73,7 @@
                             @if ($monitoring->sslResult->expires_at)
                                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     {{ __('monitoring.detail.ssl.expires_in') }}:
-                                    {{ $monitoring->sslResult->expires_at->diffForHumans() }}
+                                    <x-date-time :value="$monitoring->sslResult->expires_at" format="date" />
                                 </p>
                             @endif
                         @else
@@ -139,7 +139,7 @@
                                     {{ __('monitoring.public_label.maintenance.starts_at') }}
                                 </dt>
                                 <dd class="mt-1 text-gray-900 dark:text-gray-100">
-                                    {{ $maintenanceWindow['starts_at']->toDayDateTimeString() }}
+                                    <x-date-time :value="$maintenanceWindow['starts_at']" />
                                 </dd>
                             </div>
                             <div>
@@ -147,7 +147,7 @@
                                     {{ __('monitoring.public_label.maintenance.ends_at') }}
                                 </dt>
                                 <dd class="mt-1 text-gray-900 dark:text-gray-100">
-                                    {{ $maintenanceWindow['ends_at']?->toDayDateTimeString() ?? __('monitoring.public_label.maintenance.open_ended') }}
+                                    @if ($maintenanceWindow['ends_at'])<x-date-time :value="$maintenanceWindow['ends_at']" />@else{{ __('monitoring.public_label.maintenance.open_ended') }}@endif
                                 </dd>
                             </div>
                         </dl>
@@ -209,12 +209,12 @@
                                 @php
                                     $downAt = \Illuminate\Support\Facades\Date::parse($incident->downAt);
                                     $upAt = $incident->upAt ? \Illuminate\Support\Facades\Date::parse($incident->upAt) : null;
-                                    $duration = $downAt->diffForHumans($upAt ?? now(), true);
+                                    $duration = $downAt->locale(app()->getLocale())->diffForHumans($upAt ?? now(), true);
                                 @endphp
                                 <div class="py-3">
                                     <div class="flex flex-wrap items-center justify-between gap-2">
                                         <span class="font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $downAt->toDayDateTimeString() }}
+                                            <x-date-time :value="$downAt" />
                                         </span>
                                         <x-badge :type="$upAt ? 'success' : 'danger'">
                                             {{ $upAt ? __('monitoring.public_label.resolved') : __('monitoring.public_label.ongoing') }}
@@ -223,7 +223,7 @@
                                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         {{ __('monitoring.detail.incidents.incident.duration') }}: {{ $duration }}
                                         @if ($upAt)
-                                            - {{ __('monitoring.detail.incidents.incident.up_at') }} {{ $upAt->toDayDateTimeString() }}
+                                            - {{ __('monitoring.detail.incidents.incident.up_at') }} <x-date-time :value="$upAt" />
                                         @endif
                                     </p>
                                 </div>

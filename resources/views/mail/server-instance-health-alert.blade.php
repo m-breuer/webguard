@@ -23,14 +23,14 @@
         <p>
             {{ __('mail.server_instance_health_alert.recovery_details', [
                 'ipAddress' => $serverInstance->ip_address ?: __('admin.server_instances.fields.none'),
-                'lastSeenAt' => $serverInstance->last_seen_at?->toDayDateTimeString() ?: __('admin.server_instances.health.never_seen'),
+                'lastSeenAt' => $serverInstance->last_seen_at?->locale(app()->getLocale())->isoFormat('L LT') ?: __('admin.server_instances.health.never_seen'),
             ]) }}
         </p>
     @else
         <p>
             {{ __('mail.server_instance_health_alert.details', [
                 'ipAddress' => $serverInstance->ip_address ?: __('admin.server_instances.fields.none'),
-                'lastSeenAt' => $serverInstance->last_seen_at?->toDayDateTimeString() ?: __('admin.server_instances.health.never_seen'),
+                'lastSeenAt' => $serverInstance->last_seen_at?->locale(app()->getLocale())->isoFormat('L LT') ?: __('admin.server_instances.health.never_seen'),
                 'staleAfterMinutes' => $staleAfterMinutes,
             ]) }}
         </p>

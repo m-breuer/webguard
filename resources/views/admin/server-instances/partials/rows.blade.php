@@ -30,9 +30,7 @@
         </x-table.cell>
         <x-table.cell>
             @if ($instance->last_seen_at)
-                <span title="{{ $instance->last_seen_at->toDateTimeString() }}">
-                    {{ $instance->last_seen_at->diffForHumans() }}
-                </span>
+                <x-date-time :value="$instance->last_seen_at" />
             @else
                 {{ __('admin.server_instances.fields.never') }}
             @endif
@@ -58,8 +56,8 @@
                 </div>
             @endif
         </x-table.cell>
-        <x-table.cell>{{ $instance->created_at->format('d.m.Y') }}</x-table.cell>
-        <x-table.cell>{{ $instance->updated_at->format('d.m.Y') }}</x-table.cell>
+        <x-table.cell><x-date-time :value="$instance->created_at" format="date" /></x-table.cell>
+        <x-table.cell><x-date-time :value="$instance->updated_at" format="date" /></x-table.cell>
         <x-table.cell>
             <div class="flex items-center gap-2">
                 <x-secondary-button :href="route('admin.server-instances.edit', $instance)" :icon-only="true"

@@ -1,4 +1,5 @@
 import type { DashboardProjection, DashboardResponse, DashboardService } from '../api/internal-ui-client';
+import { formatDateTime } from '../utils/dayjs-utils';
 import {
     ACTION_SOLID,
     chevronIcon,
@@ -174,7 +175,7 @@ function serviceRow(service: DashboardService, copy: DashboardCopy): string {
             </span>
             <span class="shrink-0 text-end">
                 <span class="block text-xs font-bold text-gray-700 dark:text-gray-200">${escapeHtml(copy.statusLabels[service.status] ?? service.status)}</span>
-                <span class="mt-1 block text-[11px] text-gray-400 dark:text-gray-500">${escapeHtml(relativeTime(service.last_checked_at))}</span>
+                <span class="mt-1 block text-[11px] text-gray-400 dark:text-gray-500">${escapeHtml(formatDateTime(service.last_checked_at) ?? '—')}</span>
             </span>
         </button>
     `;
@@ -196,7 +197,7 @@ function attention(data: DashboardProjection, copy: DashboardCopy): string {
 function maintenance(data: DashboardProjection, copy: DashboardCopy): string {
     const content = data.maintenance.length === 0
         ? emptyMessage(copy.noMaintenance)
-        : `<div class="${PANEL_BODY_DIVIDED}">${data.maintenance.slice(0, 5).map((item) => itemLink('/maintenance', item.monitoring_name, relativeTime(item.starts_at))).join('')}</div>`;
+        : `<div class="${PANEL_BODY_DIVIDED}">${data.maintenance.slice(0, 5).map((item) => itemLink('/maintenance', item.monitoring_name, formatDateTime(item.starts_at))).join('')}</div>`;
 
     return panel(copy.maintenance, content);
 }
@@ -207,7 +208,7 @@ function incidents(data: DashboardProjection, copy: DashboardCopy): string {
         : `<div class="${PANEL_BODY_DIVIDED}">${data.recent_incidents.slice(0, 5).map((item) => itemLink(
             item.monitoring_id ? `/monitorings/${encodeURIComponent(item.monitoring_id)}` : '/incidents/analytics',
             item.monitoring_name ?? copy.incidents,
-            item.down_at ? new Date(item.down_at).toLocaleString() : '',
+            formatDateTime(item.down_at),
         )).join('')}</div>`;
 
     return panel(copy.recentIncidents, content);
@@ -291,24 +292,6 @@ function filterButton(filter: string, label: string): string {
 
 function stateLabel(state: string, copy: DashboardCopy): string {
     return copy.statusLabels[state] ?? state;
-}
-
-function relativeTime(value: string | null): string {
-    if (!value) {
-        return '—';
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return '—';
-    }
-
-    const minutes = Math.round((date.getTime() - Date.now()) / 60_000);
-    if (Math.abs(minutes) < 60) {
-        return new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' }).format(minutes, 'minute');
-    }
-
-    return date.toLocaleString();
 }
 
 function emptyMessage(message: string): string {

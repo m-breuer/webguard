@@ -173,8 +173,13 @@
                                         <div class="font-semibold text-gray-900 dark:text-gray-100" x-text="window.target"></div>
                                         <div class="mt-1 text-sm text-gray-500 dark:text-gray-400"
                                             x-text="window.recurrence === 'weekly' ? '{{ __('maintenance.form.recurrences.weekly') }}' : '{{ __('maintenance.form.recurrences.monthly') }}'"></div>
-                                        <div class="mt-1 text-sm text-gray-500 dark:text-gray-400"
-                                            x-text="window.starts_at + ' · ' + window.duration_minutes + ' min · ' + window.timezone"></div>
+                                        <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                            <time x-bind:datetime="window.starts_at" x-bind:title="formatDateTime(window.starts_at, window.timezone)" x-text="formatDateTime(window.starts_at, window.timezone)"></time>
+                                            <span aria-hidden="true"> · </span>
+                                            <span x-text="formatDuration(window.duration_minutes)"></span>
+                                            <span aria-hidden="true"> · </span>
+                                            <span x-text="window.timezone"></span>
+                                        </div>
                                     </div>
                                     <button x-show="window.can_manage" type="button"
                                         class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
@@ -221,12 +226,14 @@
                             <div x-show="monitoring.maintenance_from" class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                                 <div>
                                     <dt class="text-gray-500 dark:text-gray-400">{{ __('maintenance.form.from') }}</dt>
-                                    <dd class="font-medium text-gray-900 dark:text-gray-100" x-text="monitoring.maintenance_from"></dd>
+                                    <dd class="font-medium text-gray-900 dark:text-gray-100"><time x-bind:datetime="monitoring.maintenance_from" x-bind:title="formatDateTime(monitoring.maintenance_from)" x-text="formatDateTime(monitoring.maintenance_from)"></time></dd>
                                 </div>
                                 <div>
                                     <dt class="text-gray-500 dark:text-gray-400">{{ __('maintenance.form.until') }}</dt>
-                                    <dd class="font-medium text-gray-900 dark:text-gray-100"
-                                        x-text="monitoring.maintenance_until || '{{ __('maintenance.status.open_ended') }}'"></dd>
+                                    <dd class="font-medium text-gray-900 dark:text-gray-100">
+                                        <time x-show="monitoring.maintenance_until" x-bind:datetime="monitoring.maintenance_until" x-bind:title="formatDateTime(monitoring.maintenance_until)" x-text="formatDateTime(monitoring.maintenance_until)"></time>
+                                        <span x-show="!monitoring.maintenance_until">{{ __('maintenance.status.open_ended') }}</span>
+                                    </dd>
                                 </div>
                             </div>
 

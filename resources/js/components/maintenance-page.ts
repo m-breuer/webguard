@@ -1,3 +1,5 @@
+import { formatDateTime as formatLocalizedDateTime, humanizeDuration } from '../utils/dayjs-utils';
+
 type MaintenancePagination = {
     current_page: number;
     last_page: number;
@@ -101,6 +103,8 @@ interface MaintenancePageComponent {
     clearWindow(this: MaintenancePageComponent, monitoringId: string): Promise<void>;
     clearRecurringWindow(this: MaintenancePageComponent, windowId: string): Promise<void>;
     statusClasses(this: MaintenancePageComponent, status: MaintenanceWindow['status']): string;
+    formatDateTime(this: MaintenancePageComponent, value: string | null, timeZone?: string): string;
+    formatDuration(this: MaintenancePageComponent, minutes: number): string;
 }
 
 const emptyPagination = (): MaintenancePagination => ({
@@ -165,6 +169,14 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
     submitting: false,
     error: '',
     message: '',
+
+    formatDateTime(this: MaintenancePageComponent, value: string | null, timeZone?: string): string {
+        return formatLocalizedDateTime(value, false, timeZone) ?? '';
+    },
+
+    formatDuration(this: MaintenancePageComponent, minutes: number): string {
+        return humanizeDuration(minutes, 'minutes');
+    },
 
     async load(this: MaintenancePageComponent, page = 1): Promise<void> {
         this.loading = true;

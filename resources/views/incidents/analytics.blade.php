@@ -392,7 +392,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach ($incidentPaginator as $incident)
-                                        @php($incidentDuration = $incident->up_at ? $incident->down_at->diffForHumans($incident->up_at, true) : __('incidents.analytics.table.ongoing'))
+                                        @php($incidentDuration = $incident->up_at ? $incident->down_at->locale(app()->getLocale())->diffForHumans($incident->up_at, true) : __('incidents.analytics.table.ongoing'))
                                         <tr data-incident-row class="group transition hover:bg-purple-50/50 dark:hover:bg-purple-950/20">
                                             <td class="whitespace-nowrap px-4 py-3">
                                                 <span class="inline-flex items-center gap-2 font-semibold {{ $incident->up_at ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300' }}">
@@ -408,8 +408,8 @@
                                                 <span class="font-medium text-gray-800 dark:text-gray-200">{{ $incident->problem_description ?: ($incident->affected_service ?: __('incidents.analytics.unclassified')) }}</span>
                                                 <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ $incident->incident_type ? __('incidents.types.' . $incident->incident_type->value) : __('incidents.analytics.unclassified') }} · {{ $incident->severity ? __('incidents.severities.' . $incident->severity->value) : __('incidents.analytics.unclassified') }}</span>
                                             </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">{{ $incident->down_at->toDayDateTimeString() }}</td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">{{ $incident->up_at?->toDayDateTimeString() ?? __('incidents.analytics.metrics.not_available') }}</td>
+                                            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300"><x-date-time :value="$incident->down_at" /></td>
+                                            <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">@if ($incident->up_at)<x-date-time :value="$incident->up_at" />@else{{ __('incidents.analytics.metrics.not_available') }}@endif</td>
                                             <td class="whitespace-nowrap px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ $incidentDuration }}</td>
                                         </tr>
                                     @endforeach

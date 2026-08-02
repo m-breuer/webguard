@@ -82,7 +82,7 @@ return [
             'heading' => 'You have been invited to :team',
             'intro' => 'Accept this invitation to view team monitorings for :team.',
             'action' => 'Accept invitation',
-            'expires' => 'This invitation expires on :date.',
+            'expires' => 'This invitation expires on :date at :time.',
             'outro' => 'If you did not expect this invitation, you can ignore this email.',
         ],
     ],

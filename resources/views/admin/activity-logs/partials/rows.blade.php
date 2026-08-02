@@ -30,7 +30,9 @@
 @forelse ($activities as $activity)
     <x-table.row>
         <td class="whitespace-nowrap px-6 py-4 text-gray-900 dark:text-gray-100">
-            {{ $activity->created_at?->format('Y-m-d H:i:s') }}
+            @if ($activity->created_at)
+                <x-date-time :value="$activity->created_at" format="datetime_seconds" />
+            @endif
         </td>
         <td class="whitespace-nowrap px-6 py-4 text-gray-900 dark:text-gray-100">
             {{ $actorLabel($activity->causer) }}

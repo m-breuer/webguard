@@ -190,12 +190,12 @@ class MonitoringNotification extends Model
     }
 
     /**
-     * Get the created_at attribute formatted for humans.
+     * Get the created_at attribute formatted for display.
      */
     protected function createdAtForHumans(): Attribute
     {
         return Attribute::make(get: function () {
-            return $this->created_at->diffForHumans();
+            return $this->created_at->locale(app()->getLocale())->isoFormat('L LT');
         });
     }
 

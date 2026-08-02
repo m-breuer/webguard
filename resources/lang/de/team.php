@@ -82,7 +82,7 @@ return [
             'heading' => 'Sie wurden zu :team eingeladen',
             'intro' => 'Nehmen Sie die Einladung an, um Team-Überwachungen für :team zu sehen.',
             'action' => 'Einladung annehmen',
-            'expires' => 'Diese Einladung läuft am :date ab.',
+            'expires' => 'Diese Einladung läuft am :date um :time Uhr ab.',
             'outro' => 'Falls Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail ignorieren.',
         ],
     ],

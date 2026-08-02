@@ -355,7 +355,7 @@ class ApiController extends Controller
      *   "status_identifier": "status.success",
      *   "status_key": "notifications.status.success",
      *   "checked_at": "2026-04-12T10:00:00Z",
-     *   "checked_at_human": "5 minutes ago",
+     *   "checked_at_human": "04/12/2026 10:00 AM",
      *   "uptime": {
      *     "7_days": 100,
      *     "30_days": 99.9,

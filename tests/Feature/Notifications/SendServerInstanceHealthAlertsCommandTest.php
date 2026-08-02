@@ -399,6 +399,7 @@ class SendServerInstanceHealthAlertsCommandTest extends TestCase
         $this->assertStringContainsString('Hallo Marcel Breuer,', $rendered);
         $this->assertStringContainsString('Die Scanner-Instanz &quot;de-1&quot; hat aktuell den Status &quot;Nicht erreichbar&quot;.', $rendered);
         $this->assertStringContainsString('IP-Adresse: 217.154.152.5.', $rendered);
+        $this->assertStringContainsString('Letzter erfolgreicher Bericht: 21.06.2026 17:04.', $rendered);
         $this->assertStringContainsString('gelten nach 10 Minuten ohne erfolgreichen Bericht als nicht erreichbar', $rendered);
     }
 
