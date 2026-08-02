@@ -66,7 +66,7 @@ final class MonitoringCheckHistoryQuery
         ?Carbon $endDate,
     ): Builder {
         $builder = DB::table($table)
-            ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, server_health_metrics, created_at")
+            ->selectRaw("'{$source}' as source, id, status, http_status_code, response_time, server_health_metrics, vital_values, created_at")
             ->where('monitoring_id', $monitoringId);
 
         if ($startDate !== null && $endDate !== null) {

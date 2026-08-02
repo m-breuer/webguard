@@ -19,6 +19,7 @@ final class MonitoringDetailQuery
                 'groups',
                 'latestIncident',
                 'latestResponseResult',
+                'performanceState',
                 'sslResult',
                 'statusPageComponents.statusPage',
                 'team.users',

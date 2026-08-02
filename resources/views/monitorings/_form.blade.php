@@ -358,6 +358,23 @@
     </template>
 
     <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+                <x-input-label for="response_time_threshold_ms" :value="__('monitoring.form.response_time_threshold_ms')" />
+                <x-text-input id="response_time_threshold_ms" type="number" min="1" max="60000" name="response_time_threshold_ms" :value="old('response_time_threshold_ms', isset($monitoring) ? $monitoring->response_time_threshold_ms : null)" class="mt-1 block w-full" />
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring.form.response_time_threshold_ms_help') }}</p>
+                <x-input-error :messages="$errors->get('response_time_threshold_ms')" />
+            </div>
+            <div>
+                <x-input-label for="response_time_confirmation_threshold" :value="__('monitoring.form.response_time_confirmation_threshold')" />
+                <x-text-input id="response_time_confirmation_threshold" type="number" min="1" max="10" name="response_time_confirmation_threshold" :value="old('response_time_confirmation_threshold', isset($monitoring) ? $monitoring->response_time_confirmation_threshold : null)" class="mt-1 block w-full" />
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring.form.response_time_confirmation_threshold_help') }}</p>
+                <x-input-error :messages="$errors->get('response_time_confirmation_threshold')" />
+            </div>
+        </div>
+    </template>
+
+    <template x-if="type === '{{ MonitoringType::HTTP->value }}' || type === '{{ MonitoringType::KEYWORD->value }}'">
         <div class="mt-4">
             <x-input-label for="http_method" :value="__('monitoring.form.http_method')" />
             <x-select-input id="http_method" class="mt-1 block w-full" name="http_method">

@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Date;
 
 class RegionalConsensusService
 {
+    public function __construct(private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator) {}
+
     /**
      * @return array{status: RegionalConsensusStatus, total_locations: int, reporting_locations: int, required_failures: int, affected_locations: list<string>, locations: list<array{code: string, status: string, checked_at: string|null}>}
      */
@@ -27,7 +29,7 @@ class RegionalConsensusService
             ->filter(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->created_at->gte($freshAfter));
 
         $affectedLocations = $latestByLocation
-            ->filter(static fn (MonitoringResponse $monitoringResponse): bool => $monitoringResponse->status === MonitoringStatus::DOWN)
+            ->filter(fn (MonitoringResponse $monitoringResponse): bool => $this->monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse) === MonitoringStatus::DOWN)
             ->keys()
             ->values()
             ->all();
@@ -40,12 +42,12 @@ class RegionalConsensusService
             'reporting_locations' => $latestByLocation->count(),
             'required_failures' => $requiredFailures,
             'affected_locations' => $affectedLocations,
-            'locations' => collect($locations)->map(function (string $location) use ($latestByLocation): array {
+            'locations' => collect($locations)->map(function (string $location) use ($latestByLocation, $monitoring): array {
                 $response = $latestByLocation->get($location);
 
                 return [
                     'code' => $location,
-                    'status' => $response?->status->value ?? MonitoringStatus::UNKNOWN->value,
+                    'status' => $response ? $this->monitoringHealthEvaluator->availabilityFor($monitoring, $response)->value : MonitoringStatus::UNKNOWN->value,
                     'checked_at' => $response?->created_at->toIso8601String(),
                 ];
             })->all(),

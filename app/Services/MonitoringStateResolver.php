@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Date;
 
 final class MonitoringStateResolver
 {
+    public function __construct(private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator) {}
+
     public function status(Monitoring $monitoring): string
     {
         if ($monitoring->isPaused()) {
@@ -30,7 +32,7 @@ final class MonitoringStateResolver
             return MonitoringStatus::UNKNOWN->value;
         }
 
-        return $latestResponse->status->value;
+        return $this->monitoringHealthEvaluator->availabilityFor($monitoring, $latestResponse)->value;
     }
 
     private function isStale(Monitoring $monitoring): bool

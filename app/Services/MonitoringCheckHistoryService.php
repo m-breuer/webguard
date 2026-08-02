@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
 use App\Queries\MonitoringCheckHistoryQuery;
 use App\Support\MonitoringStatusMeta;
@@ -13,7 +14,10 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringCheckHistoryService
 {
-    public function __construct(private readonly MonitoringCheckHistoryQuery $monitoringCheckHistoryQuery) {}
+    public function __construct(
+        private readonly MonitoringCheckHistoryQuery $monitoringCheckHistoryQuery,
+        private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator
+    ) {}
 
     /**
      * @return array{data: array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>, has_more: bool, next_offset: int|null}
@@ -34,16 +38,16 @@ class MonitoringCheckHistoryService
             $pageSize,
         );
 
-        return $this->paginateRows($rows, $limit, $offset);
+        return $this->paginateRows($monitoring, $rows, $limit, $offset);
     }
 
     /**
      * @param  Collection<int, object>  $rows
      * @return array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>
      */
-    private function formatRows(Collection $rows): array
+    private function formatRows(Monitoring $monitoring, Collection $rows): array
     {
-        return $rows->map(function (object $row): array {
+        return $rows->map(function (object $row) use ($monitoring): array {
             $httpStatusCode = $row->http_status_code !== null ? (int) $row->http_status_code : null;
             $serverHealthMetrics = null;
 
@@ -52,10 +56,25 @@ class MonitoringCheckHistoryService
                 $serverHealthMetrics = is_array($decodedMetrics) ? $decodedMetrics : null;
             }
 
+            $vitalValues = null;
+            if (isset($row->vital_values)) {
+                $decodedVitalValues = json_decode((string) $row->vital_values, true);
+                $vitalValues = is_array($decodedVitalValues) ? $decodedVitalValues : null;
+            }
+
+            $legacyStatus = MonitoringStatus::tryFrom((string) ($row->status ?? ''));
+            $status = $this->monitoringHealthEvaluator->availabilityFromValues(
+                $monitoring,
+                $legacyStatus,
+                $httpStatusCode,
+                $serverHealthMetrics,
+                $vitalValues,
+            )->value;
+
             return [
                 'id' => (string) $row->id,
                 'checked_at' => Date::parse((string) $row->created_at)->toIso8601String(),
-                'status' => (string) $row->status,
+                'status' => $status,
                 'http_status_code' => $httpStatusCode,
                 'response_time' => $row->response_time !== null ? (float) $row->response_time : null,
                 'server_health_metrics' => $serverHealthMetrics,
@@ -70,13 +89,13 @@ class MonitoringCheckHistoryService
      * @param  Collection<int, object>  $rows
      * @return array{data: array<int, array{id: string, checked_at: string, status: string, http_status_code: int|null, response_time: float|null, server_health_metrics: array<string, mixed>|null, status_identifier: string, status_key: string, source: string}>, has_more: bool, next_offset: int|null}
      */
-    private function paginateRows(Collection $rows, int $limit, int $offset): array
+    private function paginateRows(Monitoring $monitoring, Collection $rows, int $limit, int $offset): array
     {
         $hasMore = $rows->count() > $limit;
         $pageRows = $rows->take($limit);
 
         return [
-            'data' => $this->formatRows($pageRows),
+            'data' => $this->formatRows($monitoring, $pageRows),
             'has_more' => $hasMore,
             'next_offset' => $hasMore ? $offset + $pageRows->count() : null,
         ];

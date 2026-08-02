@@ -109,6 +109,47 @@ class DispatchStatusChangeNotificationsCommandTest extends TestCase
         $this->assertDatabaseCount('notification_channel_deliveries', 0);
     }
 
+    public function test_dispatches_a_degraded_performance_notification_without_notifying_status_page_subscribers(): void
+    {
+        Mail::fake();
+
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => [
+                'slack' => [
+                    'enabled' => true,
+                    'webhook_url' => 'https://hooks.slack.test/services/test',
+                ],
+            ],
+        ]);
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['slack'],
+            'public_label_enabled' => true,
+        ]);
+        $monitoringNotification = MonitoringNotification::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::PERFORMANCE,
+            'message' => 'DEGRADED',
+            'read' => false,
+            'sent' => false,
+        ]);
+
+        Http::fake([
+            'https://hooks.slack.test/*' => Http::response(['ok' => true], 200),
+        ]);
+
+        Artisan::call('notifications:dispatch-status-changes');
+
+        $this->assertTrue($monitoringNotification->refresh()->sent);
+        Http::assertSent(fn ($request): bool => data_get($request->data(), 'payload.event_type') === NotificationEventType::PERFORMANCE_DEGRADED->value);
+        Mail::assertNothingSent();
+        $this->assertDatabaseHas('notification_channel_deliveries', [
+            'monitoring_notification_id' => $monitoringNotification->id,
+            'event_type' => NotificationEventType::PERFORMANCE_DEGRADED->value,
+        ]);
+    }
+
     public function test_command_respects_per_monitoring_channel_selection(): void
     {
         Package::factory()->create();

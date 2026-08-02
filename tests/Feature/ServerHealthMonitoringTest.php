@@ -12,6 +12,7 @@ use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
+use App\Services\MonitoringHealthEvaluator;
 use Illuminate\Support\Facades\Date;
 use Tests\TestCase;
 
@@ -141,11 +142,12 @@ class ServerHealthMonitoringTest extends TestCase
         $this->assertSame(Date::now()->toIso8601String(), $monitoring->server_health_last_reported_at?->toIso8601String());
 
         $monitoringResponse = MonitoringResponse::query()->where('monitoring_id', $monitoring->id)->firstOrFail();
-        $this->assertSame(MonitoringStatus::UP, $monitoringResponse->status);
-        $this->assertSame(200, $monitoringResponse->http_status_code);
+        $this->assertNull($monitoringResponse->status);
+        $this->assertNull($monitoringResponse->http_status_code);
         $this->assertSame(42.5, $monitoringResponse->server_health_metrics['cpu_usage_percent']);
         $this->assertSame(68.2, $monitoringResponse->server_health_metrics['ram_usage_percent']);
         $this->assertSame(74.1, $monitoringResponse->server_health_metrics['storage_usage_percent']);
+        $this->assertSame(MonitoringStatus::UP, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $monitoringResponse));
     }
 
     public function test_server_health_endpoint_marks_report_down_when_usage_crosses_default_threshold(): void
@@ -163,9 +165,30 @@ class ServerHealthMonitoringTest extends TestCase
 
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::DOWN->value,
-            'http_status_code' => 503,
+            'status' => null,
+            'http_status_code' => null,
         ]);
+
+        $this->assertSame(
+            MonitoringStatus::DOWN,
+            resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, MonitoringResponse::query()->sole())
+        );
+    }
+
+    public function test_server_health_metrics_take_precedence_over_a_legacy_status(): void
+    {
+        $monitoring = $this->createServerHealthMonitoring();
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'status' => MonitoringStatus::UP->value,
+            'cpu_usage_percent' => 91.0,
+        ])->assertOk()
+            ->assertJsonPath('status', MonitoringStatus::DOWN->value);
+
+        $response = MonitoringResponse::query()->sole();
+
+        $this->assertNull($response->status);
+        $this->assertSame(MonitoringStatus::DOWN, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $response));
     }
 
     public function test_server_health_endpoint_uses_custom_thresholds(): void
@@ -193,8 +216,8 @@ class ServerHealthMonitoringTest extends TestCase
 
         $this->assertDatabaseHas('monitoring_response_results', [
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::DOWN->value,
-            'http_status_code' => 503,
+            'status' => null,
+            'http_status_code' => null,
         ]);
     }
 

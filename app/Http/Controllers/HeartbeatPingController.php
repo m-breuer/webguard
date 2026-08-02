@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use Illuminate\Http\JsonResponse;
@@ -22,9 +21,9 @@ class HeartbeatPingController extends Controller
 
         MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::UP,
             'http_status_code' => 200,
             'response_time' => null,
+            'vital_values' => ['heartbeat_received' => true],
             'created_at' => $timestamp,
             'updated_at' => $timestamp,
         ]);

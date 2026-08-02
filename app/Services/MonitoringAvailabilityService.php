@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringAvailabilityService
 {
+    public function __construct(private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator) {}
+
     public function getUptimeDowntime(
         Monitoring $monitoring,
         Carbon $startDate,
@@ -347,13 +349,13 @@ class MonitoringAvailabilityService
         $builder = MonitoringResponseHistory::queryForEndDate($endDate)
             ->where('monitoring_id', $monitoring->id);
 
-        $statusAtStart = (clone $builder)
+        $responseAtStart = (clone $builder)
             ->where('created_at', '<=', $effectiveStartDate)->latest()
             ->orderByDesc('id')
-            ->value('status');
+            ->first(['id', 'status', 'http_status_code', 'server_health_metrics', 'vital_values', 'created_at']);
 
         $responses = (clone $builder)
-            ->select(['id', 'status', 'created_at'])
+            ->select(['id', 'status', 'http_status_code', 'server_health_metrics', 'vital_values', 'created_at'])
             ->whereBetween('created_at', [$effectiveStartDate, $effectiveEndDate])->oldest()
             ->orderBy('id')
             ->get();
@@ -362,7 +364,7 @@ class MonitoringAvailabilityService
         $overallDowntimeMinutes = 0;
         $overallUnknownMinutes = 0;
         $cursor = $effectiveStartDate->copy();
-        $currentStatus = $statusAtStart;
+        $currentStatus = $responseAtStart ? $this->resolvedStatus($monitoring, $responseAtStart) : null;
 
         foreach ($responses as $response) {
             $responseTimestamp = Date::parse($response->created_at);
@@ -380,9 +382,7 @@ class MonitoringAvailabilityService
                 $cursor = $responseTimestamp;
             }
 
-            $currentStatus = $response->status instanceof MonitoringStatus
-                ? $response->status->value
-                : (string) $response->status;
+            $currentStatus = $this->resolvedStatus($monitoring, $response);
         }
 
         if ($cursor->lt($effectiveEndDate)) {
@@ -401,7 +401,7 @@ class MonitoringAvailabilityService
         $unknownTotal = 0;
 
         foreach ($responses as $response) {
-            match ($response->status instanceof MonitoringStatus ? $response->status->value : (string) $response->status) {
+            match ($this->resolvedStatus($monitoring, $response)) {
                 MonitoringStatus::UP->value => $uptimeTotal++,
                 MonitoringStatus::DOWN->value => $downtimeTotal++,
                 default => $unknownTotal++,
@@ -446,6 +446,22 @@ class MonitoringAvailabilityService
             MonitoringStatus::DOWN->value => $downtimeMinutes += $minutes,
             default => $unknownMinutes += $minutes,
         };
+    }
+
+    private function resolvedStatus(Monitoring $monitoring, object $response): string
+    {
+        $status = $response->status ?? null;
+        $legacyStatus = $status instanceof MonitoringStatus
+            ? $status
+            : MonitoringStatus::tryFrom((string) $status);
+
+        return $this->monitoringHealthEvaluator->availabilityFromValues(
+            $monitoring,
+            $legacyStatus,
+            isset($response->http_status_code) ? (int) $response->http_status_code : null,
+            isset($response->server_health_metrics) && is_array($response->server_health_metrics) ? $response->server_health_metrics : null,
+            isset($response->vital_values) && is_array($response->vital_values) ? $response->vital_values : null,
+        )->value;
     }
 
     private function countOverlappingIncidents(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): int

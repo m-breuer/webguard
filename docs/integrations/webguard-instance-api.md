@@ -4,6 +4,8 @@
 **Core tracking:** [WebGuard Core #593](https://github.com/marcel-breuer/webguard/issues/593)  
 **Instance tracking:** [webguard-instance #35](https://github.com/marcel-breuer/webguard-instance/issues/35)
 
+The derived-health migration is additionally tracked by [WebGuard Core #632](https://github.com/marcel-breuer/webguard/issues/632) and [webguard-instance #42](https://github.com/marcel-breuer/webguard-instance/issues/42).
+
 This document is the implementation contract for the separate
 [`webguard-instance`](https://github.com/marcel-breuer/webguard-instance)
 repository. It is the only Core document that describes scanner-instance API
@@ -89,15 +91,22 @@ An unassigned monitoring returns `403` with
 
 | Endpoint | Required fields | Optional fields | Success response |
 | --- | --- | --- | --- |
-| `POST /monitoring-responses` | `monitoring_id`, `status` | `http_status_code` (100-599), `response_time` (>= 0) | `{"message":"Monitoring response stored successfully."}` |
+| `POST /monitoring-responses` | `monitoring_id` plus legacy `status` or sufficient raw evidence | `http_status_code` (100-599), `response_time` (>= 0), `vital_values` | `{"message":"Monitoring response stored successfully."}` |
 | `POST /incidents` | `monitoring_id`, `down_at` | — | `{"message":"Incident stored successfully."}` |
 | `PUT /incidents/{monitoring}` | `up_at` | — | `{"message":"Incident updated successfully."}` |
 | `POST /ssl-results` | `monitoring_id`, `is_valid` | `expires_at`, `issuer`, `issued_at` | `{"message":"SSL result stored successfully."}` |
 | `POST /domain-results` | `monitoring_id`, `is_valid` | `expires_at`, `registrar`, `checked_at` | `{"message":"Domain expiration result stored successfully."}` |
 
-`status` must be a valid Core monitoring-status enum. Domain-result callbacks
-are valid only for domain-expiration monitorings. Validation failures use
-Laravel's `422` JSON validation response.
+`status` must be a valid Core monitoring-status enum when supplied. It is a
+legacy compatibility fallback; new scanner versions should omit it and send raw
+evidence instead. `vital_values.transport_succeeded` records HTTP/keyword
+transport outcomes, `connection_succeeded` records ping/port outcomes,
+`observed_values` records DNS values, and heartbeat callbacks use
+`heartbeat_received` or `heartbeat_overdue`. Core derives availability from the
+monitoring configuration and this evidence. See [derived monitoring health](../architecture/derived-monitoring-health.md) for the full contract and rollout order.
+
+Domain-result callbacks are valid only for domain-expiration monitorings.
+Validation failures use Laravel's `422` JSON validation response.
 
 For monitorings with more than one preferred location, Core manages incident
 state through regional consensus. Incident open/close callbacks return `200`
