@@ -4,7 +4,15 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [ main ]
+    branches:
+    - '**'
+
+concurrency:
+  group: ci-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
 
 env:
   CI_IMAGE: webguard-ci:${{ github.run_id }}
@@ -69,23 +77,31 @@ jobs:
           -w /var/www/html "${{ env.CI_IMAGE }}" \
           ./vendor/bin/pint --parallel
 
-    - name: Ensure local PR branch exists
-      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-      run: git checkout -B "${{ github.head_ref }}"
+    - name: Ensure writable branch exists
+      if: >
+        github.event_name == 'push' ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+      env:
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+      run: git checkout -B "$BRANCH_NAME"
 
-    - name: Commit auto-fixes (internal pull requests only)
-      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    - name: Commit auto-fixes (internal branches only)
+      if: >
+        (github.event_name == 'push' && github.ref != 'refs/heads/main') ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
       uses: stefanzweifel/git-auto-commit-action@v7
       with:
         commit_message: 'ci: auto-fixes from pint and rector'
         commit_options: '--no-verify'
-        branch: ${{ github.head_ref }}
+        branch: ${{ github.head_ref || github.ref_name }}
 
     - name: Fail if Rector or Pint would change files
-      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+      if: >
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
       run: |
         if ! git diff --quiet; then
-          echo "::error::Rector and/or Pint would change tracked files. Run them locally and commit the results."
+          echo "::error::Rector and/or Pint changed tracked files. The branch must be optimized before it can pass CI."
           git diff
           exit 1
         fi
