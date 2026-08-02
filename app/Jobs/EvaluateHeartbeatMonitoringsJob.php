@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
+use App\Services\MonitoringHealthEvaluator;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -74,9 +76,9 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
 
     private function shouldRecordMissedHeartbeat(Monitoring $monitoring): bool
     {
-        $healthEvaluator = resolve(\App\Services\MonitoringHealthEvaluator::class);
+        $monitoringHealthEvaluator = resolve(MonitoringHealthEvaluator::class);
 
-        if ($monitoring->latestResponseResult === null || $healthEvaluator->availabilityFor($monitoring, $monitoring->latestResponseResult) !== \App\Enums\MonitoringStatus::DOWN) {
+        if ($monitoring->latestResponseResult === null || $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoring->latestResponseResult) !== MonitoringStatus::DOWN) {
             return true;
         }
 
@@ -94,6 +96,6 @@ class EvaluateHeartbeatMonitoringsJob implements ShouldBeUnique, ShouldQueue
             return true;
         }
 
-        return $responses->contains(fn (MonitoringResponse $monitoringResponse): bool => $healthEvaluator->availabilityFor($monitoring, $monitoringResponse) !== \App\Enums\MonitoringStatus::DOWN);
+        return $responses->contains(fn (MonitoringResponse $monitoringResponse): bool => $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse) !== MonitoringStatus::DOWN);
     }
 }

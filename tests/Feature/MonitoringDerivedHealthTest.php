@@ -25,15 +25,15 @@ class MonitoringDerivedHealthTest extends TestCase
     {
         Package::factory()->create();
         $user = User::factory()->create();
-        $instance = $this->serverInstance();
+        $serverInstance = $this->serverInstance();
         $monitoring = Monitoring::factory()->for($user)->create([
             'type' => 'http',
-            'preferred_location' => $instance->code,
+            'preferred_location' => $serverInstance->code,
             'expected_http_statuses' => '200-299',
         ]);
 
         $this->withHeaders([
-            'X-INSTANCE-CODE' => $instance->code,
+            'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])->postJson(route('v1.internal.monitoring-responses.store'), [
             'monitoring_id' => $monitoring->id,
@@ -42,10 +42,10 @@ class MonitoringDerivedHealthTest extends TestCase
             'vital_values' => ['transport_succeeded' => true],
         ])->assertOk();
 
-        $response = MonitoringResponse::query()->sole();
+        $monitoringResponse = MonitoringResponse::query()->sole();
 
-        $this->assertNull($response->status);
-        $this->assertSame(MonitoringStatus::UP, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $response));
+        $this->assertNull($monitoringResponse->status);
+        $this->assertSame(MonitoringStatus::UP, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $monitoringResponse));
     }
 
     public function test_raw_transport_failure_opens_an_availability_incident(): void

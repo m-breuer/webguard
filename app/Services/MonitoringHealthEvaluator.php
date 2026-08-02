@@ -12,14 +12,14 @@ use App\Support\HttpStatusCodeRanges;
 
 final class MonitoringHealthEvaluator
 {
-    public function availabilityFor(Monitoring $monitoring, MonitoringResponse $response): MonitoringStatus
+    public function availabilityFor(Monitoring $monitoring, MonitoringResponse $monitoringResponse): MonitoringStatus
     {
         return $this->availabilityFromValues(
             $monitoring,
-            $response->status,
-            $response->http_status_code,
-            $response->server_health_metrics,
-            $response->vital_values,
+            $monitoringResponse->status,
+            $monitoringResponse->http_status_code,
+            $monitoringResponse->server_health_metrics,
+            $monitoringResponse->vital_values,
         );
     }
 
@@ -29,7 +29,7 @@ final class MonitoringHealthEvaluator
      */
     public function availabilityFromValues(
         Monitoring $monitoring,
-        ?MonitoringStatus $legacyStatus,
+        ?MonitoringStatus $monitoringStatus,
         ?int $httpStatusCode,
         ?array $serverHealthMetrics,
         ?array $vitalValues,
@@ -37,17 +37,17 @@ final class MonitoringHealthEvaluator
         $vitalValues ??= [];
 
         return match ($monitoring->type) {
-            MonitoringType::HTTP, MonitoringType::KEYWORD => $this->httpAvailability($monitoring, $legacyStatus, $httpStatusCode, $vitalValues),
-            MonitoringType::PING, MonitoringType::PORT => $this->connectionAvailability($legacyStatus, $vitalValues),
-            MonitoringType::DNS_RECORD => $this->dnsAvailability($monitoring, $legacyStatus, $vitalValues),
-            MonitoringType::HEARTBEAT => $this->heartbeatAvailability($legacyStatus, $vitalValues),
-            MonitoringType::SERVER_HEALTH => $this->serverHealthAvailability($monitoring, $legacyStatus, $serverHealthMetrics),
-            default => $legacyStatus ?? MonitoringStatus::UNKNOWN,
+            MonitoringType::HTTP, MonitoringType::KEYWORD => $this->httpAvailability($monitoring, $monitoringStatus, $httpStatusCode, $vitalValues),
+            MonitoringType::PING, MonitoringType::PORT => $this->connectionAvailability($monitoringStatus, $vitalValues),
+            MonitoringType::DNS_RECORD => $this->dnsAvailability($monitoring, $monitoringStatus, $vitalValues),
+            MonitoringType::HEARTBEAT => $this->heartbeatAvailability($monitoringStatus, $vitalValues),
+            MonitoringType::SERVER_HEALTH => $this->serverHealthAvailability($monitoring, $monitoringStatus, $serverHealthMetrics),
+            default => $monitoringStatus ?? MonitoringStatus::UNKNOWN,
         };
     }
 
     /** @param array<string, mixed> $vitalValues */
-    private function httpAvailability(Monitoring $monitoring, ?MonitoringStatus $legacyStatus, ?int $httpStatusCode, array $vitalValues): MonitoringStatus
+    private function httpAvailability(Monitoring $monitoring, ?MonitoringStatus $monitoringStatus, ?int $httpStatusCode, array $vitalValues): MonitoringStatus
     {
         if (($vitalValues['transport_succeeded'] ?? null) === false) {
             return MonitoringStatus::DOWN;
@@ -59,26 +59,26 @@ final class MonitoringHealthEvaluator
                 : MonitoringStatus::DOWN;
         }
 
-        return $legacyStatus ?? MonitoringStatus::UNKNOWN;
+        return $monitoringStatus ?? MonitoringStatus::UNKNOWN;
     }
 
     /** @param array<string, mixed> $vitalValues */
-    private function connectionAvailability(?MonitoringStatus $legacyStatus, array $vitalValues): MonitoringStatus
+    private function connectionAvailability(?MonitoringStatus $monitoringStatus, array $vitalValues): MonitoringStatus
     {
         if (is_bool($vitalValues['connection_succeeded'] ?? null)) {
             return $vitalValues['connection_succeeded'] ? MonitoringStatus::UP : MonitoringStatus::DOWN;
         }
 
-        return $legacyStatus ?? MonitoringStatus::UNKNOWN;
+        return $monitoringStatus ?? MonitoringStatus::UNKNOWN;
     }
 
     /** @param array<string, mixed> $vitalValues */
-    private function dnsAvailability(Monitoring $monitoring, ?MonitoringStatus $legacyStatus, array $vitalValues): MonitoringStatus
+    private function dnsAvailability(Monitoring $monitoring, ?MonitoringStatus $monitoringStatus, array $vitalValues): MonitoringStatus
     {
         $observedValues = $vitalValues['observed_values'] ?? null;
 
         if (! is_array($observedValues)) {
-            return $legacyStatus ?? MonitoringStatus::UNKNOWN;
+            return $monitoringStatus ?? MonitoringStatus::UNKNOWN;
         }
 
         $expectedValues = $monitoring->dns_expected_values ?? [];
@@ -94,7 +94,7 @@ final class MonitoringHealthEvaluator
     }
 
     /** @param array<string, mixed> $vitalValues */
-    private function heartbeatAvailability(?MonitoringStatus $legacyStatus, array $vitalValues): MonitoringStatus
+    private function heartbeatAvailability(?MonitoringStatus $monitoringStatus, array $vitalValues): MonitoringStatus
     {
         if (($vitalValues['heartbeat_received'] ?? null) === true) {
             return MonitoringStatus::UP;
@@ -104,14 +104,14 @@ final class MonitoringHealthEvaluator
             return MonitoringStatus::DOWN;
         }
 
-        return $legacyStatus ?? MonitoringStatus::UNKNOWN;
+        return $monitoringStatus ?? MonitoringStatus::UNKNOWN;
     }
 
     /** @param array<string, mixed>|null $serverHealthMetrics */
-    private function serverHealthAvailability(Monitoring $monitoring, ?MonitoringStatus $legacyStatus, ?array $serverHealthMetrics): MonitoringStatus
+    private function serverHealthAvailability(Monitoring $monitoring, ?MonitoringStatus $monitoringStatus, ?array $serverHealthMetrics): MonitoringStatus
     {
         if (! is_array($serverHealthMetrics) || $serverHealthMetrics === []) {
-            return $legacyStatus ?? MonitoringStatus::UNKNOWN;
+            return $monitoringStatus ?? MonitoringStatus::UNKNOWN;
         }
 
         foreach ([

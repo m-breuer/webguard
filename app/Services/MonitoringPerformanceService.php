@@ -15,30 +15,30 @@ use App\Models\MonitoringResponse;
 
 final class MonitoringPerformanceService
 {
-    public function reconcile(Monitoring $monitoring, MonitoringResponse $response, MonitoringStatus $availability): void
+    public function reconcile(Monitoring $monitoring, MonitoringResponse $monitoringResponse, MonitoringStatus $monitoringStatus): void
     {
         if (! in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true) || $monitoring->response_time_threshold_ms === null) {
             return;
         }
 
-        $state = MonitoringPerformanceState::query()->firstOrCreate(
+        $monitoringPerformanceState = MonitoringPerformanceState::query()->firstOrCreate(
             ['monitoring_id' => $monitoring->id],
             ['status' => MonitoringPerformanceStatus::NORMAL, 'consecutive_breaches' => 0],
         );
 
-        if ($availability !== MonitoringStatus::UP || $response->response_time === null) {
+        if ($monitoringStatus !== MonitoringStatus::UP || $monitoringResponse->response_time === null) {
             return;
         }
 
-        $isSlow = $response->response_time >= $monitoring->response_time_threshold_ms;
+        $isSlow = $monitoringResponse->response_time >= $monitoring->response_time_threshold_ms;
         $requiredBreaches = max(1, (int) ($monitoring->response_time_confirmation_threshold ?? 2));
 
         if ($isSlow) {
-            $breaches = $state->consecutive_breaches + 1;
-            $state->update(['consecutive_breaches' => $breaches]);
+            $breaches = $monitoringPerformanceState->consecutive_breaches + 1;
+            $monitoringPerformanceState->update(['consecutive_breaches' => $breaches]);
 
-            if ($state->status !== MonitoringPerformanceStatus::DEGRADED && $breaches >= $requiredBreaches) {
-                $state->update([
+            if ($monitoringPerformanceState->status !== MonitoringPerformanceStatus::DEGRADED && $breaches >= $requiredBreaches) {
+                $monitoringPerformanceState->update([
                     'status' => MonitoringPerformanceStatus::DEGRADED,
                     'degraded_at' => now(),
                     'recovered_at' => null,
@@ -49,11 +49,11 @@ final class MonitoringPerformanceService
             return;
         }
 
-        $wasDegraded = $state->status === MonitoringPerformanceStatus::DEGRADED;
-        $state->update([
+        $wasDegraded = $monitoringPerformanceState->status === MonitoringPerformanceStatus::DEGRADED;
+        $monitoringPerformanceState->update([
             'status' => MonitoringPerformanceStatus::NORMAL,
             'consecutive_breaches' => 0,
-            'recovered_at' => $wasDegraded ? now() : $state->recovered_at,
+            'recovered_at' => $wasDegraded ? now() : $monitoringPerformanceState->recovered_at,
         ]);
 
         if ($wasDegraded) {

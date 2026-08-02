@@ -23,9 +23,9 @@ class MonitoringResponseObserver
 
         $monitoring = $monitoringResponse->monitoring;
         $monitoringHealthEvaluator = resolve(MonitoringHealthEvaluator::class);
-        $availability = $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse);
+        $monitoringStatus = $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse);
 
-        resolve(MonitoringPerformanceService::class)->reconcile($monitoring, $monitoringResponse, $availability);
+        resolve(MonitoringPerformanceService::class)->reconcile($monitoring, $monitoringResponse, $monitoringStatus);
 
         if (count($monitoring->preferredLocationCodes()) > 1 && $monitoringResponse->location_code !== null) {
             resolve(RegionalConsensusService::class)->reconcile($monitoring);
