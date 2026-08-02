@@ -81,9 +81,12 @@ class FormModalTeamsProfileTest extends TestCase
         $this->actingAs($user)
             ->get(route('profile.edit'))
             ->assertOk()
-            ->assertSeeHtml('data-form-modal-name="profile-information-form-modal"')
-            ->assertSeeHtml('data-form-modal-name="profile-password-form-modal"')
-            ->assertSeeText(__('profile.actions.open_full_page'));
+            ->assertSeeHtml('id="profile-information"')
+            ->assertSeeHtml('id="profile-password"')
+            ->assertSeeHtml('id="profile-api"')
+            ->assertSeeHtml('id="profile-delete"')
+            ->assertDontSeeHtml('data-form-modal-name="profile-information-form-modal"')
+            ->assertDontSeeHtml('data-form-modal-name="profile-password-form-modal"');
 
         $this->actingAs($user)
             ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])

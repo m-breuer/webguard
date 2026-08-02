@@ -101,7 +101,7 @@ class ProfileNotificationSettingsTest extends TestCase
             'notification_channels_hint_seen_at' => null,
         ]);
 
-        $testResponse = $this->actingAs($user)->get(route('profile.edit', ['full' => 1]));
+        $testResponse = $this->actingAs($user)->get(route('profile.edit'));
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('data-profile-settings')
             ->assertSeeHtml('id="profile-information"')
@@ -118,7 +118,7 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
         $testResponse->assertSeeHtml('data-confirm-message="' . __('api.configuration.messages.confirm_revoke_token') . '"');
 
-        $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit', ['full' => 1]));
+        $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));
         $secondResponse->assertOk();
         $secondResponse->assertDontSeeText(__('profile.notification_settings.hint_banner'));
     }
