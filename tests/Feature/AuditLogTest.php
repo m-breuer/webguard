@@ -10,7 +10,10 @@ use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
+use App\Support\ActivityLog\RedactActivityLogChanges;
 use App\Support\HttpStatusCodeRanges;
+use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -173,6 +176,44 @@ class AuditLogTest extends TestCase
         $this->assertStringNotContainsString('fresh-header-token', $encodedChanges);
         $this->assertStringNotContainsString('fresh-body-secret', $encodedChanges);
         $this->assertStringNotContainsString('fresh-basic-password', $encodedChanges);
+    }
+
+    public function test_monitoring_audit_log_uses_captured_originals_when_eloquent_previous_values_are_empty(): void
+    {
+        Package::factory()->create();
+
+        $monitoring = Monitoring::factory()->for(User::factory())->create([
+            'name' => 'Sensitive HTTP Monitor',
+        ]);
+        $monitoring->disableLogging()->update([
+            'name' => 'Renamed Sensitive HTTP Monitor',
+        ]);
+
+        $this->assertSame('Sensitive HTTP Monitor', data_get($monitoring->activityLogOriginalAttributes(), 'name'));
+
+        Closure::bind(function (): void {
+            $this->previous = [];
+        }, $monitoring, Model::class)();
+
+        $activity = new Activity();
+        $activity->event = 'updated';
+        $activity->setRelation('subject', $monitoring);
+        $activity->attribute_changes = collect([
+            'attributes' => ['name' => 'Renamed Sensitive HTTP Monitor'],
+            'old' => ['name' => null],
+        ]);
+
+        $action = new class extends RedactActivityLogChanges
+        {
+            public function transform(Activity $activity): void
+            {
+                $this->transformChanges($activity);
+            }
+        };
+        $action->transform($activity);
+
+        $this->assertSame('Sensitive HTTP Monitor', data_get($activity->attribute_changes, 'old.name'));
+        $this->assertSame([], $monitoring->activityLogOriginalAttributes());
     }
 
     public function test_heartbeat_monitoring_audit_log_redacts_ping_url_and_token(): void

@@ -42,11 +42,18 @@ class RedactActivityLogChanges extends LogActivityAction
 
     protected function transformChanges(Model $activity): void
     {
-        $activity->attribute_changes = $this->redactCollection(
-            $this->withMissingOldAttributes($activity->attribute_changes ?? collect(), $activity),
-            $activity
-        );
-        $activity->properties = $this->redactCollection($activity->properties ?? collect(), $activity);
+        try {
+            $activity->attribute_changes = $this->redactCollection(
+                $this->withMissingOldAttributes($activity->attribute_changes ?? collect(), $activity),
+                $activity
+            );
+            $activity->properties = $this->redactCollection($activity->properties ?? collect(), $activity);
+        } finally {
+            if ($activity->subject instanceof Model
+                && method_exists($activity->subject, 'forgetActivityLogOriginalAttributes')) {
+                $activity->subject->forgetActivityLogOriginalAttributes();
+            }
+        }
     }
 
     /**
@@ -70,11 +77,15 @@ class RedactActivityLogChanges extends LogActivityAction
             ? $model->subject->getPrevious()
             : [];
 
+        if (method_exists($model->subject, 'activityLogOriginalAttributes')) {
+            $previous = array_replace($previous, $model->subject->activityLogOriginalAttributes());
+        }
+
         foreach (array_keys($changes['attributes']) as $attribute) {
             if (! is_string($attribute)) {
                 continue;
             }
-            if (array_key_exists($attribute, $old)) {
+            if (array_key_exists($attribute, $old) && $old[$attribute] !== null) {
                 continue;
             }
             if (! array_key_exists($attribute, $previous)) {

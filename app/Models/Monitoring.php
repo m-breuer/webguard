@@ -86,6 +86,11 @@ class Monitoring extends Model
     use SoftDeletes;
 
     /**
+     * @var array<string, mixed>
+     */
+    private array $activityLogOriginalAttributes = [];
+
+    /**
      * Get the user that owns the monitoring.
      *
      * @return BelongsTo<User, $this>
@@ -426,12 +431,29 @@ class Monitoring extends Model
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public function activityLogOriginalAttributes(): array
+    {
+        return $this->activityLogOriginalAttributes;
+    }
+
+    public function forgetActivityLogOriginalAttributes(): void
+    {
+        $this->activityLogOriginalAttributes = [];
+    }
+
+    /**
      * Apply the global scope to ensure all queries are restricted to the authenticated user.
      */
     #[Override]
     protected static function booted(): void
     {
         parent::boot();
+
+        static::updating(function (self $monitoring): void {
+            $monitoring->activityLogOriginalAttributes = $monitoring->getRawOriginal();
+        });
 
         static::addGlobalScope('user', function (Builder $builder): void {
             if (Auth::check()) {
