@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Jobs;
 
 use App\Enums\MonitoringLifecycleStatus;
-use App\Enums\MonitoringStatus;
 use App\Jobs\EvaluateHeartbeatMonitoringsJob;
 use App\Models\Incident;
 use App\Models\Monitoring;
@@ -39,7 +38,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(0, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
     }
 
@@ -56,7 +55,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(0, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
     }
 
@@ -74,7 +73,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(0, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
     }
 
@@ -108,7 +107,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::UP,
+            'vital_values' => ['heartbeat_received' => true],
             'http_status_code' => 200,
             'response_time' => null,
             'created_at' => Date::now()->subHours(2),
@@ -127,12 +126,12 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(1, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->where('created_at', Date::now())
             ->count());
         $this->assertSame(2, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
         $this->assertSame(1, Incident::query()
             ->where('monitoring_id', $monitoring->id)
@@ -143,7 +142,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(2, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
         $this->assertSame(1, Incident::query()
             ->where('monitoring_id', $monitoring->id)
@@ -181,7 +180,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         MonitoringResponse::query()->create([
             'monitoring_id' => $monitoring->id,
-            'status' => MonitoringStatus::UP,
+            'vital_values' => ['heartbeat_received' => true],
             'http_status_code' => 200,
             'response_time' => null,
             'created_at' => Date::now()->subHours(2),
@@ -200,7 +199,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(3, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
         $this->assertSame(1, Incident::query()
             ->where('monitoring_id', $monitoring->id)
@@ -211,7 +210,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
         (new EvaluateHeartbeatMonitoringsJob)->handle();
         $this->assertSame(3, MonitoringResponse::query()
             ->where('monitoring_id', $monitoring->id)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
     }
 
@@ -281,7 +280,7 @@ class EvaluateHeartbeatMonitoringsJobTest extends TestCase
 
         $this->assertSame(0, MonitoringResponse::query()
             ->whereIn('monitoring_id', $monitoringIds)
-            ->where('status', MonitoringStatus::DOWN)
+            ->whereJsonContains('vital_values->heartbeat_overdue', true)
             ->count());
         $this->assertSame(0, Incident::query()
             ->whereIn('monitoring_id', $monitoringIds)
