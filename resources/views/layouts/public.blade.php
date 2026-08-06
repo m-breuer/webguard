@@ -26,13 +26,13 @@
     </script>
 </head>
 
-<body class="bg-gray-100 font-sans antialiased dark:bg-gray-900 dark:text-gray-100">
-    <nav class="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
+<body class="min-h-screen bg-slate-50 font-sans antialiased text-gray-900 dark:bg-slate-950 dark:text-gray-100">
+    <nav class="border-b border-purple-100/80 bg-white/95 shadow-sm dark:border-purple-900/50 dark:bg-slate-900/95">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between">
-                <a href="{{ $homeUrl }}" @if ($homeIsExternal) target="_blank" rel="noopener" @endif class="flex items-center">
-                    <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
-                    <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                <a href="{{ $homeUrl }}" @if ($homeIsExternal) target="_blank" rel="noopener" @endif class="flex items-center gap-2.5 rounded-md focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+                    <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="{{ __('app.logo_alt') }}" class="h-8 w-8">
+                    <x-span class="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                         {{ __('app.name') }}
                     </x-span>
                 </a>
@@ -51,7 +51,7 @@
         </header>
     @endisset
 
-    <main class="py-6">
+    <main class="py-8 sm:py-10">
         {{ $slot }}
 
         <x-confirm-dialog />

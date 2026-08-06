@@ -78,6 +78,8 @@ class ComponentStatusPageTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeText('Acme Status');
         $testResponse->assertSeeText(__('status_page.public.overall_status') . ': DOWN');
+        $testResponse->assertSeeHtml('id="status-page-overall-status"');
+        $testResponse->assertSeeText(__('status_page.public.overall_status_description'));
         $testResponse->assertSeeTextInOrder(['API', 'UP', 'Workers', 'DOWN']);
         $testResponse->assertSeeText('Primary API');
         $testResponse->assertSeeText('Queue Worker');

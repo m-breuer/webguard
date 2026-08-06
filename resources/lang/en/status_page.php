@@ -159,6 +159,8 @@ return [
     'public' => [
         'title' => ':statusPage - Status',
         'overall_status' => 'Overall status',
+        'overall_status_description' => 'We monitor the services shown below and update this page when their status changes.',
+        'no_recent_incidents' => 'No recent incidents',
         'recent_incidents' => 'Recent Incidents',
         'calendar' => [
             'heading' => 'Aggregated uptime',

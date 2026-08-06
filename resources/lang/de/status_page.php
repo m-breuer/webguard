@@ -159,6 +159,8 @@ return [
     'public' => [
         'title' => ':statusPage - Status',
         'overall_status' => 'Gesamtstatus',
+        'overall_status_description' => 'Wir überwachen die unten aufgeführten Dienste und aktualisieren diese Seite bei Statusänderungen.',
+        'no_recent_incidents' => 'Keine aktuellen Vorfälle',
         'recent_incidents' => 'Letzte Vorfälle',
         'calendar' => [
             'heading' => 'Aggregierte Verfügbarkeit',

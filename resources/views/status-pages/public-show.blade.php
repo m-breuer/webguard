@@ -4,28 +4,56 @@
     </x-slot>
 
     <x-slot name="header">
-        <div>
-            <x-heading>{{ $statusPage->name }}</x-heading>
+        <div class="mx-auto w-full max-w-4xl text-center">
+            <x-heading class="text-3xl sm:text-4xl">{{ $statusPage->name }}</x-heading>
             @if ($statusPage->description)
-                <p class="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-300">{{ $statusPage->description }}</p>
+                <p class="mx-auto mt-3 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-300">{{ $statusPage->description }}</p>
             @endif
         </div>
-        <x-badge :type="$pageStatusBadgeType">
-            {{ __('status_page.public.overall_status') }}: {{ mb_strtoupper($pageStatus) }}
-        </x-badge>
     </x-slot>
 
     <x-main>
-        <div class="space-y-6">
+        @php
+            $pageStatusSurfaceClasses = match ($pageStatusBadgeType) {
+                'success' => 'border-emerald-200 bg-emerald-50/80 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100',
+                'danger' => 'border-red-200 bg-red-50/80 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100',
+                default => 'border-amber-200 bg-amber-50/80 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100',
+            };
+            $pageStatusDotClasses = match ($pageStatusBadgeType) {
+                'success' => 'bg-emerald-500',
+                'danger' => 'bg-red-500',
+                default => 'bg-amber-500',
+            };
+            $pageStatusLabel = match ($pageStatus) {
+                'up' => __('monitoring.index.workspace.operational'),
+                'down' => __('dashboard.state.attention.title'),
+                default => __('dashboard.summary.unknown'),
+            };
+        @endphp
+
+        <div class="mx-auto max-w-5xl space-y-6">
             @if (session('status_page_subscription_success'))
-                <div class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-800 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
                     {{ session('status_page_subscription_success') }}
                 </div>
             @endif
 
+            <section id="status-page-overall-status" class="rounded-2xl border px-5 py-5 shadow-sm sm:px-6 {{ $pageStatusSurfaceClasses }}">
+                <div class="flex items-center gap-4">
+                    <span class="h-3.5 w-3.5 shrink-0 rounded-full {{ $pageStatusDotClasses }}" aria-hidden="true"></span>
+                    <div>
+                        <p class="text-lg font-bold sm:text-xl">{{ $pageStatusLabel }}</p>
+                        <p class="mt-1 text-sm opacity-80">
+                            <span class="sr-only">{{ __('status_page.public.overall_status') }}: {{ mb_strtoupper($pageStatus) }}</span>
+                            {{ __('status_page.public.overall_status_description') }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 @foreach ($components as $statusPageComponent)
-                    <x-container id="status-page-component-{{ $statusPageComponent['model']->id }}">
+                    <div id="status-page-component-{{ $statusPageComponent['model']->id }}" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <x-heading type="h2">{{ $statusPageComponent['model']->name }}</x-heading>
@@ -67,7 +95,7 @@
                                 </div>
                             @endforeach
                         </div>
-                    </x-container>
+                    </div>
                 @endforeach
             </section>
 
@@ -97,7 +125,7 @@
             @endif
 
             <section id="status-page-subscription">
-                <x-container>
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
                     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
                             <x-heading type="h2">{{ __('status_page.public.subscribe.heading') }}</x-heading>
@@ -122,17 +150,21 @@
                             <x-input-error class="mt-2" :messages="$errors->get('email')" />
                         </form>
                     </div>
-                </x-container>
+                </div>
             </section>
 
             <section id="status-page-incidents">
-                <x-container>
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
                     <x-heading type="h2">{{ __('status_page.public.recent_incidents') }}</x-heading>
 
                     @if ($incidents->isEmpty())
-                        <p class="mt-4 text-gray-500 dark:text-gray-400">
-                            {{ __('monitoring.detail.incidents.no_incidents') }}
-                        </p>
+                        <div class="mt-5 rounded-xl border border-dashed border-gray-200 bg-slate-50 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-950/50">
+                            <span class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300" aria-hidden="true">
+                                <x-icon name="check" class="h-5 w-5" />
+                            </span>
+                            <p class="mt-3 font-semibold text-gray-900 dark:text-gray-100">{{ __('status_page.public.no_recent_incidents') }}</p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.incidents.no_incidents') }}</p>
+                        </div>
                     @else
                         <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($incidents as $incident)
@@ -176,7 +208,7 @@
                             @endforeach
                         </div>
                     @endif
-                </x-container>
+                </div>
             </section>
         </div>
     </x-main>
