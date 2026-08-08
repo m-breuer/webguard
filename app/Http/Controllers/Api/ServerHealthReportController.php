@@ -59,6 +59,12 @@ class ServerHealthReportController extends Controller
             ->where('server_health_token', $token)
             ->firstOrFail();
 
+        return $this->store($serverHealthReportRequest, $monitoring);
+    }
+
+    public function store(ServerHealthReportRequest $serverHealthReportRequest, Monitoring $monitoring): JsonResponse
+    {
+
         $validated = $serverHealthReportRequest->validated();
 
         $metrics = $this->extractMetrics($validated);

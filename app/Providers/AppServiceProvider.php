@@ -27,6 +27,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(Router $router): void
     {
+        Sanctum::usePersonalAccessTokenModel(\App\Models\PersonalAccessToken::class);
+
         if (app()->isProduction()) {
             URL::forceScheme('https');
         }

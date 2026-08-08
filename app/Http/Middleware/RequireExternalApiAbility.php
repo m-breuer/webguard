@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\PersonalAccessToken;
+use App\Services\ApiKeyService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,6 +14,17 @@ class RequireExternalApiAbility
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $token = $request->user()?->currentAccessToken();
+
+        if ($token instanceof PersonalAccessToken && ApiKeyService::isManagedKey($token)) {
+            abort_unless(
+                $token->can('analytics:read') && $request->routeIs('v1.*.analytics.*'),
+                403
+            );
+
+            return $next($request);
+        }
+
         if (! config('external_api.enforce_token_abilities')) {
             return $next($request);
         }

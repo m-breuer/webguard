@@ -23,10 +23,28 @@ trusted local development environment, must not log the URL/token, and must set
 The endpoint has no inbound connection to the customer server and exposes no
 remote-command mechanism.
 
+During the migration window, an agent may instead use a telemetry-only named
+API key created in Profile → API Configuration:
+
+```text
+POST /api/v1/server-health/monitorings/{monitoring-id}
+Authorization: Bearer {telemetry-only-key}
+```
+
+The key needs the `server-health:write` ability, and its owner must be allowed
+to manage the referenced Server Health monitoring. It cannot submit another
+user's monitoring, read reports, access browser routes, or call scanner-instance
+routes. `401` means the bearer token is absent, invalid, or revoked; `403`
+means it lacks the telemetry ability; `404` means the monitoring is not a
+manageable Server Health monitoring. Never log the bearer token.
+
 The report URL is displayed only in the authenticated monitoring detail view.
 An owner can rotate it there; rotation invalidates the previous token
 immediately. The agent should treat a `404` response as a configuration error
 and require the new URL instead of retrying.
+
+The private report URL remains supported throughout this migration. Rotating or
+revoking a named API key does not change that private URL.
 
 ## Version 1 report
 

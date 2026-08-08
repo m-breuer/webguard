@@ -9,6 +9,7 @@ use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Jobs\DeleteUser;
 use App\Models\User;
+use App\Services\ApiKeyService;
 use App\Services\Notifications\NotificationChannelTestService;
 use App\Services\UserDeletionPreparationService;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,7 @@ class ProfileController extends Controller
      * @param  Request  $request  The HTTP request instance.
      * @return View The view for editing the user's profile.
      */
-    public function edit(Request $request): View
+    public function edit(Request $request, ApiKeyService $apiKeyService): View
     {
         $user = $request->user();
         $modalForm = $request->input('modal');
@@ -62,7 +63,7 @@ class ProfileController extends Controller
 
         return view('profile.edit', [
             'user' => $user,
-            'token' => $user?->currentAccessToken(),
+            'apiKeys' => $user instanceof User ? $apiKeyService->paginate($user, 100, null) : null,
             'showNotificationChannelsHint' => $showNotificationChannelsHint,
             'modalForm' => $modalForm,
         ]);
@@ -137,50 +138,6 @@ class ProfileController extends Controller
         $deleteUserRequest->session()->regenerateToken();
 
         return Redirect::to('/');
-    }
-
-    /**
-     * Generate a new API token.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return RedirectResponse A redirect response after generating the token.
-     */
-    public function apiGenerateToken(Request $request): RedirectResponse
-    {
-        $user = $request->user();
-
-        $user->tokens()->delete();
-
-        $user->createToken('api-access');
-
-        activity('user')
-            ->performedOn($user)
-            ->event('api_token_generated')
-            ->withProperties(['action' => 'api_token_generated'])
-            ->log('user_api_token_generated');
-
-        return to_route('profile.edit', ['#api-token']);
-    }
-
-    /**
-     * Revoke the API token.
-     *
-     * @param  Request  $request  The HTTP request instance.
-     * @return RedirectResponse A redirect response after revoking the token.
-     */
-    public function apiRevokeToken(Request $request): RedirectResponse
-    {
-        $user = $request->user();
-
-        $user->tokens()->delete();
-
-        activity('user')
-            ->performedOn($user)
-            ->event('api_token_revoked')
-            ->withProperties(['action' => 'api_token_revoked'])
-            ->log('user_api_token_revoked');
-
-        return back()->with('success', __('api.configuration.messages.tokens_deleted'));
     }
 
     public function sendNotificationChannelTest(

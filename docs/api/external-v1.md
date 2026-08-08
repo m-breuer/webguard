@@ -53,6 +53,42 @@ headers. Mobile app tokens retain their existing separate behavior.
   and mutating methods require `external:write`; existing wildcard tokens
   continue to work.
 
+## Named scoped API keys
+
+Authenticated browser sessions can create, list, inspect, and revoke keys at
+`/api/v1/api-keys`. The endpoints use the same authenticated session and CSRF
+protection as the profile screen; newly created scoped bearer keys cannot manage
+keys themselves. This prevents a telemetry or analytics integration from
+creating another key or escalating its permissions.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/api/v1/api-keys?state=active|revoked&per_page=25` | Paginated non-secret key metadata. |
+| `POST` | `/api/v1/api-keys` | Creates a named key; returns its plaintext value exactly once. |
+| `GET` | `/api/v1/api-keys/{id}` | Returns metadata for one key owned by the authenticated user. |
+| `DELETE` | `/api/v1/api-keys/{id}` | Immediately and idempotently revokes one owned key. |
+
+Creation requires a non-empty, unique-per-user `name` and a non-empty
+`abilities` array. The only new key abilities are:
+
+- `server-health:write`: may only send telemetry to the bearer Server Health
+  endpoint for a monitoring the key owner may manage;
+- `analytics:read`: may only read the documented monitoring reporting routes
+  below; it cannot list or mutate monitorings, teams, devices, or API keys.
+
+Metadata includes the key ID, display name, abilities, non-secret Sanctum
+prefix, creation time, last-use time, and revocation state. It never includes a
+plaintext token, token hash, or authorization header. Deleted key records are
+retained as revoked metadata for auditability and cannot authenticate again.
+
+The analytics routes are `GET /api/v1/monitorings/{monitoring}` and its
+`status`, `uptime-downtime`, `uptime-downtime-summary`, `response-times`,
+`checks`, `incidents`, `heatmap`, `ssl`, and `uptime-calendar` subresources.
+All retain their existing ownership checks and response contracts.
+
+Existing pre-scoped external tokens remain compatible. They are not converted
+to new keys automatically; rotate them from the profile when practical.
+
 Scribe generates the OpenAPI and reference documentation from route metadata,
 request rules, controller annotations, and this configuration. Do not edit the
 generated artifacts manually.

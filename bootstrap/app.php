@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Middleware\AuthenticateInstance;
 use App\Http\Middleware\CheckUserRole;
 use App\Http\Middleware\PreventCrawling;
+use App\Http\Middleware\RequireApiKeyAbility;
+use App\Http\Middleware\RequireApiKeyManagement;
 use App\Http\Middleware\SetLocaleMiddleware;
 use App\Http\Middleware\SetPublicCacheHeaders;
 use Illuminate\Foundation\Application;
@@ -30,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckUserRole::class,
             'auth.instance' => AuthenticateInstance::class,
             'public.cache' => SetPublicCacheHeaders::class,
+            'api-key.ability' => RequireApiKeyAbility::class,
+            'api-key.manage' => RequireApiKeyManagement::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

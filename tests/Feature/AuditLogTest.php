@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\ApiKeyAbility;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
@@ -259,15 +260,18 @@ class AuditLogTest extends TestCase
         ]);
         Activity::query()->delete();
 
-        $testResponse = $this->actingAs($user)->post(route('profile.api-generate-token'));
-        $testResponse->assertRedirect(route('profile.edit', ['#api-token']));
+        $testResponse = $this->actingAs($user)->post(route('profile.api-keys.store'), [
+            'name' => 'Audit key',
+            'abilities' => [ApiKeyAbility::ANALYTICS_READ->value],
+        ]);
+        $testResponse->assertRedirect(route('profile.edit', ['#api-keys']));
 
         $resetResponse = $this->actingAs($user)->delete(route('monitorings.destroyResults', $monitoring));
         $resetResponse->assertRedirect(route('monitorings.show', $monitoring));
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'user',
-            'event' => 'api_token_generated',
+            'event' => 'api_key_created',
             'subject_type' => User::class,
             'subject_id' => $user->id,
             'causer_type' => User::class,
