@@ -47,8 +47,10 @@ class EvaluateServerHealthMonitoringsJob implements ShouldBeUnique, ShouldQueue
                     $referenceTimestamp = $monitoring->server_health_last_reported_at ?? $monitoring->created_at;
                     $intervalMinutes = (int) ($monitoring->server_health_report_interval_minutes ?? 1);
                     $graceMinutes = (int) ($monitoring->server_health_grace_minutes ?? 5);
-
-                    if ($intervalMinutes < 1 || now()->lte($referenceTimestamp->copy()->addMinutes($intervalMinutes + $graceMinutes))) {
+                    if ($intervalMinutes < 1) {
+                        continue;
+                    }
+                    if (now()->lte($referenceTimestamp->copy()->addMinutes($intervalMinutes + $graceMinutes))) {
                         continue;
                     }
 

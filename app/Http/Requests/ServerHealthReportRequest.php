@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\MonitoringStatus;
 use Closure;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 use Throwable;
 
 class ServerHealthReportRequest extends FormRequest
@@ -65,7 +66,7 @@ class ServerHealthReportRequest extends FormRequest
             'service_checks.*.status_code' => ['nullable', 'integer', 'between:100,599'],
             'agent' => ['nullable', 'array:version'],
             'agent.version' => ['nullable', 'string', 'max:50'],
-            'status' => ['nullable', Rule::enum(\App\Enums\MonitoringStatus::class)],
+            'status' => ['nullable', Rule::enum(MonitoringStatus::class)],
             'cpu_usage_percent' => ['nullable', 'numeric', 'between:0,100'],
             'ram_usage_percent' => ['nullable', 'numeric', 'between:0,100'],
             'storage_usage_percent' => ['nullable', 'numeric', 'between:0,100'],

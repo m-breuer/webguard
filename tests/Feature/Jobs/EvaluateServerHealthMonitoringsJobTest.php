@@ -49,7 +49,7 @@ class EvaluateServerHealthMonitoringsJobTest extends TestCase
     {
         Date::setTestNow('2026-08-08 12:00:00');
 
-        $withinGrace = $this->createServerHealthMonitoring([
+        $monitoring = $this->createServerHealthMonitoring([
             'server_health_last_reported_at' => Date::now()->subMinutes(5),
             'server_health_report_interval_minutes' => 1,
             'server_health_grace_minutes' => 5,
@@ -63,7 +63,7 @@ class EvaluateServerHealthMonitoringsJobTest extends TestCase
         (new EvaluateServerHealthMonitoringsJob)->handle();
 
         $this->assertSame(0, MonitoringResponse::query()
-            ->whereIn('monitoring_id', [$withinGrace->id, $underMaintenance->id])
+            ->whereIn('monitoring_id', [$monitoring->id, $underMaintenance->id])
             ->whereJsonContains('vital_values->server_health_report_stale', true)
             ->count());
     }

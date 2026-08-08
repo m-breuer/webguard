@@ -52,14 +52,14 @@ class ServerHealthReportController extends Controller
      *   }
      * }
      */
-    public function __invoke(ServerHealthReportRequest $request, string $token): JsonResponse
+    public function __invoke(ServerHealthReportRequest $serverHealthReportRequest, string $token): JsonResponse
     {
         $monitoring = Monitoring::query()
             ->where('type', MonitoringType::SERVER_HEALTH->value)
             ->where('server_health_token', $token)
             ->firstOrFail();
 
-        $validated = $request->validated();
+        $validated = $serverHealthReportRequest->validated();
 
         $metrics = $this->extractMetrics($validated);
 
