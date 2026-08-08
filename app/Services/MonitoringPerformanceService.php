@@ -17,7 +17,9 @@ final class MonitoringPerformanceService
 {
     public function reconcile(Monitoring $monitoring, MonitoringResponse $monitoringResponse, MonitoringStatus $monitoringStatus): void
     {
-        if (! in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true) || $monitoring->response_time_threshold_ms === null) {
+        $responseTimeThreshold = $this->responseTimeThresholdFor($monitoring);
+
+        if ($responseTimeThreshold === null) {
             return;
         }
 
@@ -26,11 +28,13 @@ final class MonitoringPerformanceService
             ['status' => MonitoringPerformanceStatus::NORMAL, 'consecutive_breaches' => 0],
         );
 
-        if ($monitoringStatus !== MonitoringStatus::UP || $monitoringResponse->response_time === null) {
+        $responseTime = $this->observedResponseTime($monitoring, $monitoringResponse);
+
+        if ($monitoringStatus !== MonitoringStatus::UP || $responseTime === null) {
             return;
         }
 
-        $isSlow = $monitoringResponse->response_time >= $monitoring->response_time_threshold_ms;
+        $isSlow = $responseTime >= $responseTimeThreshold;
         $requiredBreaches = max(1, (int) ($monitoring->response_time_confirmation_threshold ?? 2));
 
         if ($isSlow) {
@@ -70,5 +74,34 @@ final class MonitoringPerformanceService
             'read' => false,
             'sent' => false,
         ]);
+    }
+
+    private function responseTimeThresholdFor(Monitoring $monitoring): ?int
+    {
+        return match ($monitoring->type) {
+            MonitoringType::HTTP, MonitoringType::KEYWORD => $monitoring->response_time_threshold_ms,
+            MonitoringType::SERVER_HEALTH => $monitoring->server_health_service_response_time_threshold_ms,
+            default => null,
+        };
+    }
+
+    private function observedResponseTime(Monitoring $monitoring, MonitoringResponse $monitoringResponse): ?float
+    {
+        if ($monitoring->type !== MonitoringType::SERVER_HEALTH) {
+            return $monitoringResponse->response_time;
+        }
+
+        $serviceChecks = $monitoringResponse->server_health_metrics['service_checks'] ?? [];
+
+        if (! is_array($serviceChecks)) {
+            return null;
+        }
+
+        $responseTimes = collect($serviceChecks)
+            ->filter(static fn (mixed $serviceCheck): bool => is_array($serviceCheck) && ($serviceCheck['success'] ?? false) === true)
+            ->pluck('response_time_ms')
+            ->filter(static fn (mixed $responseTime): bool => is_numeric($responseTime));
+
+        return $responseTimes->isEmpty() ? null : (float) $responseTimes->max();
     }
 }

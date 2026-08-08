@@ -24,6 +24,7 @@ use Illuminate\Cache\TaggableStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -386,5 +387,28 @@ class MonitoringController extends Controller
         dispatch(new DeleteMonitoringResults($monitoring));
 
         return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.results_deleted'));
+    }
+
+    /**
+     * Rotate the private endpoint token used by a Server Health agent.
+     */
+    public function rotateServerHealthToken(Monitoring $monitoring): RedirectResponse
+    {
+        abort_if(Auth::user()->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy(Auth::user()) && $monitoring->isServerHealth(), 403);
+
+        $token = (string) Str::ulid();
+        $monitoring->update([
+            'server_health_token' => $token,
+            'target' => route('v1.server-health.store', ['token' => $token]),
+        ]);
+
+        activity('monitoring')
+            ->performedOn($monitoring)
+            ->event('server_health_token_rotated')
+            ->withProperties(['action' => 'server_health_token_rotated'])
+            ->log('server_health_token_rotated');
+
+        return to_route('monitorings.show', $monitoring)->with('success', __('monitoring.messages.server_health_token_rotated'));
     }
 }

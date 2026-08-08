@@ -43,6 +43,9 @@ Schedule::command('monitoring:aggregate-daily')->dailyAt('00:30');
 // Evaluate passive heartbeat monitorings for missed pings.
 Schedule::command('monitoring:evaluate-heartbeats')->everyMinute()->withoutOverlapping();
 
+// Evaluate passive server-health monitorings for stale reports.
+Schedule::command('monitoring:evaluate-server-health')->everyMinute()->withoutOverlapping();
+
 // Archive old monitoring responses weekly.
 Schedule::command('monitoring:archive-responses')->weekly();
 

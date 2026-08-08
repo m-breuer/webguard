@@ -612,13 +612,13 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         const labels: Record<string, string> = {
             cpu_usage_percent: 'CPU',
             ram_usage_percent: 'RAM',
-            storage_usage_percent: 'Storage',
             load_average: 'Load',
+            load_average_1m: 'Load (1m)',
             uptime_seconds: 'Uptime',
         };
 
         return Object.entries(metrics)
-            .filter(([key]) => key !== 'extra_metrics')
+            .filter(([key]) => !['extra_metrics', 'storage_usage_percent', 'service_checks', 'agent'].includes(key))
             .map(([key, value]) => {
                 if (key.endsWith('_percent')) {
                     return `${labels[key] ?? key}: ${Number(value).toFixed(1)}%`;
@@ -626,6 +626,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
 
                 return `${labels[key] ?? key}: ${value}`;
             })
+            .concat(Array.isArray(metrics.service_checks) && metrics.service_checks.length > 0 ? [`Checks: ${metrics.service_checks.length}`] : [])
             .join(' | ') || '—';
     },
 
@@ -635,7 +636,7 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         }
 
         return Object.entries(metrics)
-            .filter(([key]) => key !== 'extra_metrics')
+            .filter(([key]) => !['extra_metrics', 'storage_usage_percent', 'agent'].includes(key))
             .some(([, value]) => value !== null && value !== undefined && value !== '');
     },
 

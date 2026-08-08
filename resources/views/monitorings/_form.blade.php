@@ -300,20 +300,41 @@
                 <div>
                     <x-input-label for="server_health_cpu_threshold_percent" :value="__('monitoring.form.server_health_cpu_threshold_percent')" />
                     <x-text-input id="server_health_cpu_threshold_percent" type="number" min="1" max="100"
-                        step="0.01" name="server_health_cpu_threshold_percent" :value="old('server_health_cpu_threshold_percent', $monitoring->server_health_cpu_threshold_percent ?? 90)" />
+                        step="0.01" name="server_health_cpu_threshold_percent" :value="old('server_health_cpu_threshold_percent', isset($monitoring) ? $monitoring->server_health_cpu_threshold_percent : 90)" />
                     <x-input-error :messages="$errors->get('server_health_cpu_threshold_percent')" />
                 </div>
                 <div>
                     <x-input-label for="server_health_ram_threshold_percent" :value="__('monitoring.form.server_health_ram_threshold_percent')" />
                     <x-text-input id="server_health_ram_threshold_percent" type="number" min="1" max="100"
-                        step="0.01" name="server_health_ram_threshold_percent" :value="old('server_health_ram_threshold_percent', $monitoring->server_health_ram_threshold_percent ?? 90)" />
+                        step="0.01" name="server_health_ram_threshold_percent" :value="old('server_health_ram_threshold_percent', isset($monitoring) ? $monitoring->server_health_ram_threshold_percent : 90)" />
                     <x-input-error :messages="$errors->get('server_health_ram_threshold_percent')" />
                 </div>
                 <div>
-                    <x-input-label for="server_health_storage_threshold_percent" :value="__('monitoring.form.server_health_storage_threshold_percent')" />
-                    <x-text-input id="server_health_storage_threshold_percent" type="number" min="1" max="100"
-                        step="0.01" name="server_health_storage_threshold_percent" :value="old('server_health_storage_threshold_percent', $monitoring->server_health_storage_threshold_percent ?? 90)" />
-                    <x-input-error :messages="$errors->get('server_health_storage_threshold_percent')" />
+                    <x-input-label for="server_health_load_threshold_per_cpu" :value="__('monitoring.form.server_health_load_threshold_per_cpu')" />
+                    <x-text-input id="server_health_load_threshold_per_cpu" type="number" min="0.01" max="100"
+                        step="0.01" name="server_health_load_threshold_per_cpu" :value="old('server_health_load_threshold_per_cpu', isset($monitoring) ? $monitoring->server_health_load_threshold_per_cpu : '')" />
+                    <x-input-error :messages="$errors->get('server_health_load_threshold_per_cpu')" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                    <x-input-label for="server_health_service_response_time_threshold_ms" :value="__('monitoring.form.server_health_service_response_time_threshold_ms')" />
+                    <x-text-input id="server_health_service_response_time_threshold_ms" type="number" min="1" max="60000"
+                        name="server_health_service_response_time_threshold_ms" :value="old('server_health_service_response_time_threshold_ms', isset($monitoring) ? $monitoring->server_health_service_response_time_threshold_ms : '')" />
+                    <x-input-error :messages="$errors->get('server_health_service_response_time_threshold_ms')" />
+                </div>
+                <div>
+                    <x-input-label for="server_health_report_interval_minutes" :value="__('monitoring.form.server_health_report_interval_minutes')" />
+                    <x-text-input id="server_health_report_interval_minutes" type="number" min="1" max="1440"
+                        name="server_health_report_interval_minutes" :value="old('server_health_report_interval_minutes', isset($monitoring) ? $monitoring->server_health_report_interval_minutes : 1)" />
+                    <x-input-error :messages="$errors->get('server_health_report_interval_minutes')" />
+                </div>
+                <div>
+                    <x-input-label for="server_health_grace_minutes" :value="__('monitoring.form.server_health_grace_minutes')" />
+                    <x-text-input id="server_health_grace_minutes" type="number" min="0" max="1440"
+                        name="server_health_grace_minutes" :value="old('server_health_grace_minutes', isset($monitoring) ? $monitoring->server_health_grace_minutes : 5)" />
+                    <x-input-error :messages="$errors->get('server_health_grace_minutes')" />
                 </div>
             </div>
         </div>

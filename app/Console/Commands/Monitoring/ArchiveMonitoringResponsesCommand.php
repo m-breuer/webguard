@@ -45,6 +45,7 @@ class ArchiveMonitoringResponsesCommand extends Command
                             'server_health_cpu_threshold_percent',
                             'server_health_ram_threshold_percent',
                             'server_health_storage_threshold_percent',
+                            'server_health_load_threshold_per_cpu',
                             'maintenance_from',
                             'maintenance_until',
                         ]),
@@ -70,6 +71,8 @@ class ArchiveMonitoringResponsesCommand extends Command
                             'server_health_metrics' => $monitoringResponse->server_health_metrics !== null
                                 ? json_encode($monitoringResponse->server_health_metrics, JSON_THROW_ON_ERROR)
                                 : null,
+                            'server_health_report_id' => $monitoringResponse->server_health_report_id,
+                            'server_health_sampled_at' => $monitoringResponse->server_health_sampled_at,
                             'vital_values' => $monitoringResponse->vital_values !== null
                                 ? json_encode($monitoringResponse->vital_values, JSON_THROW_ON_ERROR)
                                 : null,

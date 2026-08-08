@@ -76,6 +76,17 @@
                             <x-icon name="pencil" class="h-4 w-4" />
                             <span>{{ __('monitoring.actions.edit') }}</span>
                         </a>
+                        @if ($monitoring->isServerHealth())
+                            <form method="POST" action="{{ route('monitorings.server-health-token.rotate', $monitoring) }}"
+                                data-confirm-message="{{ __('monitoring.actions.server_health_token.rotate_confirmation') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    <x-icon name="refresh" class="h-4 w-4" />
+                                    <span>{{ __('monitoring.actions.server_health_token.rotate') }}</span>
+                                </button>
+                            </form>
+                        @endif
                         <form method="POST" action="{{ route('monitorings.destroyResults', $monitoring) }}"
                             data-confirm-message="{{ __('monitoring.actions.reset.confirmation') }}">
                             @csrf
@@ -293,10 +304,45 @@
                             <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_ram_threshold_percent }}%</x-paragraph>
                         </div>
                         <div>
-                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.storage_threshold') }}</x-paragraph>
-                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_storage_threshold_percent }}%</x-paragraph>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.load_threshold') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_load_threshold_per_cpu ?? '—' }}</x-paragraph>
                         </div>
                     </div>
+                    <div class="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                        <div>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.service_response_time_threshold') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ $monitoring->server_health_service_response_time_threshold_ms ? $monitoring->server_health_service_response_time_threshold_ms . ' ms' : '—' }}</x-paragraph>
+                        </div>
+                        <div>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.report_interval') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ trans_choice('monitoring.detail.server_health.minutes', $monitoring->server_health_report_interval_minutes ?? 1) }}</x-paragraph>
+                        </div>
+                        <div>
+                            <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.grace') }}</x-paragraph>
+                            <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">{{ trans_choice('monitoring.detail.server_health.minutes', $monitoring->server_health_grace_minutes ?? 5) }}</x-paragraph>
+                        </div>
+                    </div>
+                    @php($serverHealthMetrics = $monitoring->latestResponseResult?->server_health_metrics ?? [])
+                    @if ($serverHealthMetrics !== [])
+                        <x-heading type="h3" class="mt-6 text-base">{{ __('monitoring.detail.server_health.current_metrics') }}</x-heading>
+                        <div class="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-4">
+                            @foreach (['cpu_usage_percent' => 'cpu', 'ram_usage_percent' => 'ram', 'load_average_1m' => 'load', 'uptime_seconds' => 'uptime'] as $metric => $label)
+                                @if (array_key_exists($metric, $serverHealthMetrics))
+                                    <div>
+                                        <x-paragraph class="text-gray-500">{{ __('monitoring.detail.server_health.' . $label) }}</x-paragraph>
+                                        <x-paragraph class="font-medium text-gray-800 dark:text-gray-100">
+                                            {{ in_array($metric, ['cpu_usage_percent', 'ram_usage_percent'], true) ? $serverHealthMetrics[$metric] . '%' : $serverHealthMetrics[$metric] }}
+                                        </x-paragraph>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                        @if (is_array($serverHealthMetrics['service_checks'] ?? null) && $serverHealthMetrics['service_checks'] !== [])
+                            <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                                {{ __('monitoring.detail.server_health.service_checks', ['count' => count($serverHealthMetrics['service_checks'])]) }}
+                            </x-paragraph>
+                        @endif
+                    @endif
                     <x-paragraph class="mt-3 text-sm text-gray-600 dark:text-gray-300">
                         <a href="{{ route('scribe') }}" target="_blank" rel="noopener"
                             class="text-purple-800 underline dark:text-purple-400">
