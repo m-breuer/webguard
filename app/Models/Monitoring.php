@@ -75,6 +75,10 @@ use Spatie\Activitylog\Support\LogOptions;
     'server_health_cpu_threshold_percent',
     'server_health_ram_threshold_percent',
     'server_health_storage_threshold_percent',
+    'server_health_load_threshold_per_cpu',
+    'server_health_service_response_time_threshold_ms',
+    'server_health_report_interval_minutes',
+    'server_health_grace_minutes',
 ])]
 #[Table(name: 'monitorings', key: 'id', keyType: 'string')]
 #[WithoutIncrementing]
@@ -599,6 +603,10 @@ class Monitoring extends Model
             'server_health_cpu_threshold_percent' => 'float',
             'server_health_ram_threshold_percent' => 'float',
             'server_health_storage_threshold_percent' => 'float',
+            'server_health_load_threshold_per_cpu' => 'float',
+            'server_health_service_response_time_threshold_ms' => 'integer',
+            'server_health_report_interval_minutes' => 'integer',
+            'server_health_grace_minutes' => 'integer',
             'has_enabled_maintenance_windows' => 'boolean',
         ];
     }

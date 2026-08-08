@@ -124,6 +124,23 @@ final class MonitoringHealthEvaluator
             }
         }
 
+        $serviceChecks = $serverHealthMetrics['service_checks'] ?? [];
+
+        if (is_array($serviceChecks) && collect($serviceChecks)->contains(
+            static fn (mixed $serviceCheck): bool => is_array($serviceCheck) && ($serviceCheck['success'] ?? true) === false,
+        )) {
+            return MonitoringStatus::DOWN;
+        }
+
+        $logicalCpuCount = $serverHealthMetrics['logical_cpu_count'] ?? null;
+        $loadAverage = $serverHealthMetrics['load_average_1m'] ?? null;
+        $loadThreshold = $monitoring->server_health_load_threshold_per_cpu;
+
+        if (is_numeric($logicalCpuCount) && (int) $logicalCpuCount > 0 && is_numeric($loadAverage) && $loadThreshold !== null
+            && ((float) $loadAverage / (int) $logicalCpuCount) >= $loadThreshold) {
+            return MonitoringStatus::DOWN;
+        }
+
         return MonitoringStatus::UP;
     }
 }

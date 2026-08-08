@@ -112,6 +112,42 @@ class MonitoringDerivedHealthTest extends TestCase
         $this->assertDatabaseCount('incidents', 0);
     }
 
+    public function test_slow_server_health_service_checks_use_the_existing_degraded_performance_state(): void
+    {
+        Package::factory()->create();
+        $monitoring = Monitoring::factory()->serverHealth()->for(User::factory())->create([
+            'server_health_service_response_time_threshold_ms' => 250,
+            'response_time_confirmation_threshold' => 2,
+        ]);
+
+        $this->storeServerHealthResponse($monitoring, 300.0);
+        $this->storeServerHealthResponse($monitoring, 300.0);
+
+        $this->assertDatabaseHas('monitoring_performance_states', [
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringPerformanceStatus::DEGRADED->value,
+            'consecutive_breaches' => 2,
+        ]);
+        $this->assertDatabaseHas('monitoring_notifications', [
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::PERFORMANCE->value,
+            'message' => 'DEGRADED',
+        ]);
+
+        $this->storeServerHealthResponse($monitoring, 100.0);
+
+        $this->assertDatabaseHas('monitoring_performance_states', [
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringPerformanceStatus::NORMAL->value,
+            'consecutive_breaches' => 0,
+        ]);
+        $this->assertDatabaseHas('monitoring_notifications', [
+            'monitoring_id' => $monitoring->id,
+            'type' => NotificationType::PERFORMANCE->value,
+            'message' => 'RECOVERED',
+        ]);
+    }
+
     private function storeHttpResponse(Monitoring $monitoring, float $responseTime): void
     {
         MonitoringResponse::query()->create([
@@ -119,6 +155,21 @@ class MonitoringDerivedHealthTest extends TestCase
             'http_status_code' => 200,
             'response_time' => $responseTime,
             'vital_values' => ['transport_succeeded' => true],
+        ]);
+    }
+
+    private function storeServerHealthResponse(Monitoring $monitoring, float $responseTime): void
+    {
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'server_health_metrics' => [
+                'cpu_usage_percent' => 10,
+                'service_checks' => [[
+                    'id' => 'app-health',
+                    'success' => true,
+                    'response_time_ms' => $responseTime,
+                ]],
+            ],
         ]);
     }
 

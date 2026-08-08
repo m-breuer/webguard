@@ -54,6 +54,8 @@ class ServerHealthMonitoringTest extends TestCase
         $testResponse->assertSee(__('monitoring.types.server_health'));
         $testResponse->assertSee(__('monitoring.form.server_health_docs_link'));
         $testResponse->assertSee(route('scribe'));
+        $testResponse->assertSee(__('monitoring.form.server_health_load_threshold_per_cpu'));
+        $testResponse->assertDontSee(__('monitoring.form.server_health_storage_threshold_percent'));
     }
 
     public function test_api_reference_uses_the_renamed_documentation_path(): void
@@ -119,6 +121,24 @@ class ServerHealthMonitoringTest extends TestCase
         $this->assertSame(97.0, $monitoring->server_health_storage_threshold_percent);
     }
 
+    public function test_it_rotates_the_server_health_report_url_and_invalidates_the_previous_url(): void
+    {
+        $monitoring = $this->createServerHealthMonitoring();
+        $previousToken = $monitoring->server_health_token;
+
+        $this->actingAs($this->user)
+            ->post(route('monitorings.server-health-token.rotate', $monitoring))
+            ->assertRedirect(route('monitorings.show', $monitoring));
+
+        $monitoring->refresh();
+
+        $this->assertNotSame($previousToken, $monitoring->server_health_token);
+        $this->assertSame(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), $monitoring->target);
+        $this->postJson(route('v1.server-health.store', ['token' => $previousToken]), [
+            'cpu_usage_percent' => 20,
+        ])->assertNotFound();
+    }
+
     public function test_server_health_endpoint_stores_metrics_and_updates_last_report_timestamp(): void
     {
         Date::setTestNow('2026-05-14 12:00:00');
@@ -148,6 +168,98 @@ class ServerHealthMonitoringTest extends TestCase
         $this->assertSame(68.2, $monitoringResponse->server_health_metrics['ram_usage_percent']);
         $this->assertSame(74.1, $monitoringResponse->server_health_metrics['storage_usage_percent']);
         $this->assertSame(MonitoringStatus::UP, resolve(MonitoringHealthEvaluator::class)->availabilityFor($monitoring, $monitoringResponse));
+    }
+
+    public function test_versioned_server_health_reports_are_stored_once_and_keep_the_sample_timestamp(): void
+    {
+        Date::setTestNow('2026-08-08 12:00:00');
+
+        $monitoring = $this->createServerHealthMonitoring();
+        $reportId = '01d2d2a2-4de7-4a86-b0ad-000000000001';
+        $payload = [
+            'schema_version' => 1,
+            'report_id' => $reportId,
+            'sampled_at' => Date::now()->subSeconds(30)->toIso8601String(),
+            'host' => [
+                'cpu_usage_percent' => 42.5,
+                'logical_cpu_count' => 4,
+                'load_average_1m' => 1.42,
+                'load_average_5m' => 1.10,
+                'load_average_15m' => 0.94,
+                'ram_usage_percent' => 68.2,
+                'swap_usage_percent' => 4.1,
+                'uptime_seconds' => 86400,
+            ],
+            'service_checks' => [[
+                'id' => 'app-health',
+                'success' => true,
+                'response_time_ms' => 38.4,
+                'status_code' => 200,
+            ]],
+            'agent' => ['version' => '1.0.0'],
+        ];
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), $payload)
+            ->assertOk()
+            ->assertJsonPath('deduplicated', false)
+            ->assertJsonPath('metrics.service_checks.0.response_time_ms', 38.4);
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            ...$payload,
+            'host' => ['cpu_usage_percent' => 99],
+        ])
+            ->assertOk()
+            ->assertJsonPath('deduplicated', true)
+            ->assertJsonPath('message', 'Server health report already accepted.')
+            ->assertJsonPath('metrics.cpu_usage_percent', 42.5);
+
+        $monitoringResponse = MonitoringResponse::query()->sole();
+
+        $this->assertSame($reportId, $monitoringResponse->server_health_report_id);
+        $this->assertSame($payload['sampled_at'], $monitoringResponse->server_health_sampled_at?->toIso8601String());
+        $this->assertSame(4, $monitoringResponse->server_health_metrics['logical_cpu_count']);
+        $this->assertSame('1.0.0', $monitoringResponse->server_health_metrics['agent']['version']);
+    }
+
+    public function test_versioned_server_health_reports_evaluate_failed_service_checks_and_normalized_load(): void
+    {
+        $monitoring = $this->createServerHealthMonitoring([
+            'server_health_load_threshold_per_cpu' => 1.5,
+        ]);
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'schema_version' => 1,
+            'report_id' => '01d2d2a2-4de7-4a86-b0ad-000000000002',
+            'sampled_at' => now()->toIso8601String(),
+            'host' => ['logical_cpu_count' => 2, 'load_average_1m' => 3.0],
+        ])->assertOk()->assertJsonPath('status', MonitoringStatus::DOWN->value);
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'schema_version' => 1,
+            'report_id' => '01d2d2a2-4de7-4a86-b0ad-000000000003',
+            'sampled_at' => now()->toIso8601String(),
+            'host' => ['cpu_usage_percent' => 20],
+            'service_checks' => [['id' => 'app-health', 'success' => false]],
+        ])->assertOk()->assertJsonPath('status', MonitoringStatus::DOWN->value);
+    }
+
+    public function test_versioned_server_health_reports_reject_unknown_schema_fields_and_missing_metrics(): void
+    {
+        $monitoring = $this->createServerHealthMonitoring();
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'schema_version' => 1,
+            'report_id' => '01d2d2a2-4de7-4a86-b0ad-000000000004',
+            'sampled_at' => now()->toIso8601String(),
+            'host' => ['filesystem_usage_percent' => 99],
+        ])->assertUnprocessable()->assertJsonValidationErrors(['host']);
+
+        $this->postJson(route('v1.server-health.store', ['token' => $monitoring->server_health_token]), [
+            'schema_version' => 1,
+            'report_id' => '01d2d2a2-4de7-4a86-b0ad-000000000005',
+            'sampled_at' => now()->toIso8601String(),
+            'host' => [],
+        ])->assertUnprocessable()->assertJsonValidationErrors(['metrics']);
     }
 
     public function test_server_health_endpoint_marks_report_down_when_usage_crosses_default_threshold(): void

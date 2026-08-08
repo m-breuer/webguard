@@ -70,6 +70,19 @@ class MonitoringStatusService
             ];
         }
 
+        if ($monitoring->isServerHealth()) {
+            $reportInterval = ((int) ($monitoring->server_health_report_interval_minutes ?? 1)) * 60;
+            $referenceTimestamp = $monitoring->server_health_last_reported_at ?? $monitoring->created_at;
+            $latest = $monitoring->latestResponseResult;
+
+            return [
+                'status' => $latest ? $this->monitoringHealthEvaluator->availabilityFor($monitoring, $latest) : MonitoringStatus::UNKNOWN->value,
+                'checked_at' => $monitoring->server_health_last_reported_at?->toIso8601String(),
+                'next' => $referenceTimestamp->copy()->addSeconds($reportInterval)->toIso8601String(),
+                'interval' => $reportInterval,
+            ];
+        }
+
         $cronjobInterval ??= (int) config('monitoring.interval', 5) * 60;
         $latest = $monitoring->latestResponseResult;
 

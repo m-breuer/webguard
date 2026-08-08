@@ -185,6 +185,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::delete('/monitorings/{monitoring}/reset', [MonitoringController::class, 'destroyResults'])
         ->name('monitorings.destroyResults');
+    Route::post('/monitorings/{monitoring}/server-health-token/rotate', [MonitoringController::class, 'rotateServerHealthToken'])
+        ->name('monitorings.server-health-token.rotate');
 
     Route::group(['prefix' => 'notifications', 'as' => 'notifications.'], function (): void {
         Route::get('/', [NotificationController::class, 'index'])->name('index');

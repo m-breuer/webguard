@@ -36,6 +36,8 @@ use Illuminate\Support\Carbon;
     'http_status_code',
     'response_time',
     'server_health_metrics',
+    'server_health_report_id',
+    'server_health_sampled_at',
     'vital_values',
 ])]
 #[Table(name: 'monitoring_response_results', key: 'id', keyType: 'string')]
@@ -84,6 +86,7 @@ class MonitoringResponse extends Model
             'http_status_code' => 'integer',
             'response_time' => 'float',
             'server_health_metrics' => 'array',
+            'server_health_sampled_at' => 'datetime',
             'vital_values' => 'array',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

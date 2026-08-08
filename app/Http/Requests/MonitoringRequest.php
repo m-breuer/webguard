@@ -95,6 +95,10 @@ class MonitoringRequest extends FormRequest
             'server_health_cpu_threshold_percent' => $this->serverHealthThresholdRules(),
             'server_health_ram_threshold_percent' => $this->serverHealthThresholdRules(),
             'server_health_storage_threshold_percent' => $this->serverHealthThresholdRules(),
+            'server_health_load_threshold_per_cpu' => $this->serverHealthNullableNumberRules(0.01, 100),
+            'server_health_service_response_time_threshold_ms' => $this->serverHealthNullableIntegerRules(1, 60000),
+            'server_health_report_interval_minutes' => $this->serverHealthRequiredIntegerRules(1, 1440),
+            'server_health_grace_minutes' => $this->serverHealthRequiredIntegerRules(0, 1440),
             'timeout' => [
                 function ($attribute, $value, $fail): void {
                     $user = $this->user();
@@ -336,6 +340,10 @@ class MonitoringRequest extends FormRequest
             $prepared['server_health_cpu_threshold_percent'] = $this->input('server_health_cpu_threshold_percent', 90);
             $prepared['server_health_ram_threshold_percent'] = $this->input('server_health_ram_threshold_percent', 90);
             $prepared['server_health_storage_threshold_percent'] = $this->input('server_health_storage_threshold_percent', 90);
+            $prepared['server_health_load_threshold_per_cpu'] = $this->normalizeNullableFloat('server_health_load_threshold_per_cpu');
+            $prepared['server_health_service_response_time_threshold_ms'] = $this->normalizeNullableInteger('server_health_service_response_time_threshold_ms');
+            $prepared['server_health_report_interval_minutes'] = $this->input('server_health_report_interval_minutes', 1);
+            $prepared['server_health_grace_minutes'] = $this->input('server_health_grace_minutes', 5);
         }
 
         $this->merge($prepared);
@@ -393,6 +401,13 @@ class MonitoringRequest extends FormRequest
         $value = $this->input($key);
 
         return is_numeric($value) ? (int) $value : null;
+    }
+
+    private function normalizeNullableFloat(string $key): ?float
+    {
+        $value = $this->input($key);
+
+        return is_numeric($value) ? (float) $value : null;
     }
 
     /**
@@ -480,6 +495,78 @@ class MonitoringRequest extends FormRequest
                 }
 
                 if (! is_numeric($value) || (float) $value < 1 || (float) $value > 100) {
+                    $fail(__('monitoring.validation.server_health_threshold_range'));
+                }
+            },
+        ];
+    }
+
+    /**
+     * @return array<int, ValidationRule|callable|string>
+     */
+    private function serverHealthNullableNumberRules(float $minimum, float $maximum): array
+    {
+        return [
+            'nullable',
+            function ($attribute, $value, $fail) use ($minimum, $maximum): void {
+                $type = MonitoringType::tryFrom((string) $this->input('type'));
+
+                if ($type !== MonitoringType::SERVER_HEALTH) {
+                    if ($this->has($attribute)) {
+                        $fail(__('monitoring.validation.server_health_threshold_invalid_config'));
+                    }
+
+                    return;
+                }
+
+                if ($value !== null && (! is_numeric($value) || (float) $value < $minimum || (float) $value > $maximum)) {
+                    $fail(__('monitoring.validation.server_health_threshold_range'));
+                }
+            },
+        ];
+    }
+
+    /**
+     * @return array<int, ValidationRule|callable|string>
+     */
+    private function serverHealthNullableIntegerRules(int $minimum, int $maximum): array
+    {
+        return [
+            'nullable',
+            function ($attribute, $value, $fail) use ($minimum, $maximum): void {
+                $type = MonitoringType::tryFrom((string) $this->input('type'));
+
+                if ($type !== MonitoringType::SERVER_HEALTH) {
+                    if ($this->has($attribute)) {
+                        $fail(__('monitoring.validation.server_health_threshold_invalid_config'));
+                    }
+
+                    return;
+                }
+
+                if ($value !== null && (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value < $minimum || (int) $value > $maximum)) {
+                    $fail(__('monitoring.validation.server_health_threshold_range'));
+                }
+            },
+        ];
+    }
+
+    /**
+     * @return array<int, ValidationRule|callable|string>
+     */
+    private function serverHealthRequiredIntegerRules(int $minimum, int $maximum): array
+    {
+        return [
+            function ($attribute, $value, $fail) use ($minimum, $maximum): void {
+                if (MonitoringType::tryFrom((string) $this->input('type')) !== MonitoringType::SERVER_HEALTH) {
+                    if ($this->has($attribute)) {
+                        $fail(__('monitoring.validation.server_health_threshold_invalid_config'));
+                    }
+
+                    return;
+                }
+
+                if (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value < $minimum || (int) $value > $maximum) {
                     $fail(__('monitoring.validation.server_health_threshold_range'));
                 }
             },

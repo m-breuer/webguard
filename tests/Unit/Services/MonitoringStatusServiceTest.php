@@ -107,6 +107,25 @@ class MonitoringStatusServiceTest extends TestCase
         $this->assertSame(900, $heartbeatStatus['interval']);
     }
 
+    public function test_status_now_uses_the_server_health_report_interval(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $package = Package::factory()->create();
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->serverHealth()->for($user)->create([
+            'server_health_report_interval_minutes' => 3,
+            'server_health_last_reported_at' => Date::parse('2026-04-12 11:58:00'),
+        ]);
+
+        $statusNow = resolve(MonitoringStatusService::class)->getStatusNow($monitoring->fresh());
+
+        $this->assertSame(MonitoringStatus::UNKNOWN->value, $statusNow['status']);
+        $this->assertSame('2026-04-12T11:58:00+02:00', $statusNow['checked_at']);
+        $this->assertSame('2026-04-12T12:01:00+02:00', $statusNow['next']);
+        $this->assertSame(180, $statusNow['interval']);
+    }
+
     /**
      * @param  array<string, mixed>  $attributes
      */

@@ -154,6 +154,12 @@ final class MonitoringPayload
         $validated['server_health_cpu_threshold_percent'] = (float) ($validated['server_health_cpu_threshold_percent'] ?? 90);
         $validated['server_health_ram_threshold_percent'] = (float) ($validated['server_health_ram_threshold_percent'] ?? 90);
         $validated['server_health_storage_threshold_percent'] = (float) ($validated['server_health_storage_threshold_percent'] ?? 90);
+        $validated['server_health_load_threshold_per_cpu'] = isset($validated['server_health_load_threshold_per_cpu'])
+            ? (float) $validated['server_health_load_threshold_per_cpu']
+            : null;
+        $validated['server_health_service_response_time_threshold_ms'] = $validated['server_health_service_response_time_threshold_ms'] ?? null;
+        $validated['server_health_report_interval_minutes'] = (int) ($validated['server_health_report_interval_minutes'] ?? 1);
+        $validated['server_health_grace_minutes'] = (int) ($validated['server_health_grace_minutes'] ?? 5);
 
         return self::applyNonHttpDefaults($validated);
     }
