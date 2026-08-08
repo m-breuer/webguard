@@ -24,17 +24,17 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
     Route::post('/{monitoring}/team-ownership', [MonitoringManagementController::class, 'moveToTeam']);
     Route::delete('/{monitoring}/team-ownership', [MonitoringManagementController::class, 'moveToPrivate']);
 
-    Route::get('/{monitoring}', [MonitoringDataController::class, 'all']);
+    Route::get('/{monitoring}', [MonitoringDataController::class, 'all'])->name('analytics.all');
 
-    Route::get('/{monitoring}/status', [MonitoringDataController::class, 'status']);
-    Route::get('/{monitoring}/uptime-downtime', [MonitoringDataController::class, 'uptimeDowntime']);
-    Route::get('/{monitoring}/uptime-downtime-summary', [MonitoringDataController::class, 'uptimeDowntimeSummary']);
-    Route::get('/{monitoring}/response-times', [MonitoringDataController::class, 'responseTimes']);
-    Route::get('/{monitoring}/checks', [MonitoringDataController::class, 'checks']);
-    Route::get('/{monitoring}/incidents', [MonitoringDataController::class, 'incidents']);
-    Route::get('/{monitoring}/heatmap', [MonitoringDataController::class, 'uptimeHeatmap']);
-    Route::get('/{monitoring}/ssl', [MonitoringDataController::class, 'sslStatus']);
-    Route::get('/{monitoring}/uptime-calendar', [MonitoringDataController::class, 'uptimeCalendar']);
+    Route::get('/{monitoring}/status', [MonitoringDataController::class, 'status'])->name('analytics.status');
+    Route::get('/{monitoring}/uptime-downtime', [MonitoringDataController::class, 'uptimeDowntime'])->name('analytics.uptime-downtime');
+    Route::get('/{monitoring}/uptime-downtime-summary', [MonitoringDataController::class, 'uptimeDowntimeSummary'])->name('analytics.uptime-downtime-summary');
+    Route::get('/{monitoring}/response-times', [MonitoringDataController::class, 'responseTimes'])->name('analytics.response-times');
+    Route::get('/{monitoring}/checks', [MonitoringDataController::class, 'checks'])->name('analytics.checks');
+    Route::get('/{monitoring}/incidents', [MonitoringDataController::class, 'incidents'])->name('analytics.incidents');
+    Route::get('/{monitoring}/heatmap', [MonitoringDataController::class, 'uptimeHeatmap'])->name('analytics.heatmap');
+    Route::get('/{monitoring}/ssl', [MonitoringDataController::class, 'sslStatus'])->name('analytics.ssl');
+    Route::get('/{monitoring}/uptime-calendar', [MonitoringDataController::class, 'uptimeCalendar'])->name('analytics.uptime-calendar');
 });
 
 Route::get('/mobile/overview', MobileOverviewController::class)

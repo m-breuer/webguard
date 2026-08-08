@@ -19,6 +19,7 @@ use App\Http\Controllers\MonitoringGroupController;
 use App\Http\Controllers\MonitoringNotificationPreferenceController;
 use App\Http\Controllers\MonitoringOwnershipController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileApiKeyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
 use App\Http\Controllers\PublicStatusPageController;
@@ -126,8 +127,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
-        Route::post('/api-generate-token', [ProfileController::class, 'apiGenerateToken'])->name('api-generate-token');
-        Route::delete('/api-revoke-token', [ProfileController::class, 'apiRevokeToken'])->name('api-revoke-token');
+        Route::post('/api-keys', [ProfileApiKeyController::class, 'store'])->name('api-keys.store');
+        Route::delete('/api-keys/{apiKey}', [ProfileApiKeyController::class, 'destroy'])
+            ->whereNumber('apiKey')
+            ->name('api-keys.destroy');
         Route::post('/notification-channels/{channel}/test', [ProfileController::class, 'sendNotificationChannelTest'])
             ->name('notification-channels.test');
     });

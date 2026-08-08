@@ -7,21 +7,33 @@ return [
     'text' => 'Verwalten Sie Ihre API-Schlüssel und Zugriffstoken für sichere API-Interaktionen.',
     'configuration' => [
         'heading' => 'API-Konfiguration',
-        'description' => 'Verwalten Sie Ihre API-Einstellungen und Konfigurationen in diesem Bereich.',
+        'description' => 'Erstellen Sie getrennte Schlüssel mit minimalen Berechtigungen für jede Integration. Ein Schlüssel wird nur einmal angezeigt; danach bleiben nur sichere Metadaten sichtbar.',
         'fields' => [
             'token' => 'Ihr API-Token',
+            'name' => 'Schlüsselname',
+            'abilities' => 'Berechtigungen',
+            'last_used_at' => 'Zuletzt verwendet',
+            'status' => 'Status',
         ],
         'actions' => [
-            'generate_token' => 'Token generieren',
+            'create_key' => 'API-Schlüssel erstellen',
             'copy' => 'Kopieren',
-            'revoke_token' => 'Token widerrufen',
+            'revoke_key' => 'Schlüssel widerrufen',
         ],
         'messages' => [
             'copied' => 'API-Schlüssel in die Zwischenablage kopiert!',
-            'confirm_revoke_token' => 'Möchten Sie Ihren API-Token wirklich widerrufen? Bestehende Integrationen mit diesem Token funktionieren danach nicht mehr.',
-            'tokens_deleted' => 'Token erfolgreich gelöscht.',
+            'confirm_revoke_key' => 'Möchten Sie diesen API-Schlüssel wirklich widerrufen? Integrationen, die ihn verwenden, funktionieren danach sofort nicht mehr.',
+            'created' => 'API-Schlüssel erstellt. Kopieren Sie ihn jetzt: Er wird nicht erneut angezeigt.',
+            'revoked' => 'API-Schlüssel widerrufen.',
             'api_key_confidential_warning' => 'Halten Sie Ihren API-Schlüssel vertraulich. Wenn Sie glauben, dass Ihr Schlüssel kompromittiert wurde, können Sie einen neuen generieren.',
         ],
+        'abilities' => [
+            'server_health_write' => 'Server Health schreiben — nur Telemetrie senden',
+            'analytics_read' => 'Analytics lesen — nur unterstützte Reporting-Endpunkte verwenden',
+        ],
+        'active' => 'Aktiv',
+        'revoked' => 'Widerrufen',
+        'never_used' => 'Nie',
     ],
     'logs' => [
         'title' => 'API-Protokolle',

@@ -116,7 +116,8 @@ class ProfileNotificationSettingsTest extends TestCase
         $testResponse->assertSeeText(__('profile.notification_settings.unread_reminder.heading'));
         $testResponse->assertDontSeeText(__('profile.notification_settings.expiry_warning_days.heading'));
         $testResponse->assertSeeText(__('profile.notification_settings.hint_banner'));
-        $testResponse->assertSeeHtml('data-confirm-message="' . __('api.configuration.messages.confirm_revoke_token') . '"');
+        $testResponse->assertSeeHtml('id="api-keys"')
+            ->assertSeeHtml('name="abilities[]"');
 
         $secondResponse = $this->actingAs($user->fresh())->get(route('profile.edit'));
         $secondResponse->assertOk();

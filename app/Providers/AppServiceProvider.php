@@ -12,6 +12,7 @@ use App\Models\Monitoring;
 use App\Models\MonitoringNotification;
 use App\Models\MonitoringResponse;
 use App\Models\NotificationChannelDelivery;
+use App\Models\PersonalAccessToken;
 use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
 use App\Models\TeamMembership;
@@ -27,6 +28,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(Router $router): void
     {
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
         if (app()->isProduction()) {
             URL::forceScheme('https');
         }
