@@ -21,16 +21,16 @@ class ApiKeyService
         return self::TOKEN_NAME_PREFIX . $displayName;
     }
 
-    public static function displayName(PersonalAccessToken $token): string
+    public static function displayName(PersonalAccessToken $personalAccessToken): string
     {
-        return Str::startsWith($token->name, self::TOKEN_NAME_PREFIX)
-            ? Str::after($token->name, self::TOKEN_NAME_PREFIX)
-            : $token->name;
+        return Str::startsWith($personalAccessToken->name, self::TOKEN_NAME_PREFIX)
+            ? Str::after($personalAccessToken->name, self::TOKEN_NAME_PREFIX)
+            : $personalAccessToken->name;
     }
 
-    public static function isManagedKey(PersonalAccessToken $token): bool
+    public static function isManagedKey(PersonalAccessToken $personalAccessToken): bool
     {
-        return Str::startsWith($token->name, self::TOKEN_NAME_PREFIX);
+        return Str::startsWith($personalAccessToken->name, self::TOKEN_NAME_PREFIX);
     }
 
     /**
@@ -49,8 +49,7 @@ class ApiKeyService
                     ->orWhere('name', self::LEGACY_TOKEN_NAME);
             })
             ->when($state === 'active', fn ($query) => $query->whereNull('revoked_at'))
-            ->when($state === 'revoked', fn ($query) => $query->whereNotNull('revoked_at'))
-            ->orderByDesc('created_at')
+            ->when($state === 'revoked', fn ($query) => $query->whereNotNull('revoked_at'))->latest()
             ->paginate($perPage);
     }
 
@@ -67,13 +66,13 @@ class ApiKeyService
         return $token instanceof PersonalAccessToken ? $token : null;
     }
 
-    public function revoke(PersonalAccessToken $token): bool
+    public function revoke(PersonalAccessToken $personalAccessToken): bool
     {
-        if ($token->revoked_at !== null) {
+        if ($personalAccessToken->revoked_at !== null) {
             return false;
         }
 
-        $token->forceFill(['revoked_at' => now()])->save();
+        $personalAccessToken->forceFill(['revoked_at' => now()])->save();
 
         return true;
     }

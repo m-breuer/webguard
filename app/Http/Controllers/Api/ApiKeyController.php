@@ -24,30 +24,30 @@ class ApiKeyController extends Controller
         $state = $request->string('state')->toString();
         abort_unless(in_array($state, ['', 'active', 'revoked'], true), 422);
 
-        $keys = $this->apiKeyService->paginate($user, min(max($request->integer('per_page', 25), 1), 100), $state ?: null);
+        $lengthAwarePaginator = $this->apiKeyService->paginate($user, min(max($request->integer('per_page', 25), 1), 100), $state ?: null);
 
         return response()->json([
-            'data' => ApiKeyResource::collection($keys->items())->resolve($request),
+            'data' => ApiKeyResource::collection($lengthAwarePaginator->items())->resolve($request),
             'meta' => [
-                'current_page' => $keys->currentPage(),
-                'last_page' => $keys->lastPage(),
-                'per_page' => $keys->perPage(),
-                'total' => $keys->total(),
+                'current_page' => $lengthAwarePaginator->currentPage(),
+                'last_page' => $lengthAwarePaginator->lastPage(),
+                'per_page' => $lengthAwarePaginator->perPage(),
+                'total' => $lengthAwarePaginator->total(),
             ],
         ]);
     }
 
-    public function store(StoreApiKeyRequest $request): JsonResponse
+    public function store(StoreApiKeyRequest $storeApiKeyRequest): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
-        $validated = $request->validated();
-        $newToken = $this->apiKeyService->create($user, $validated['name'], $validated['abilities']);
+        $user = $storeApiKeyRequest->user();
+        $validated = $storeApiKeyRequest->validated();
+        $newAccessToken = $this->apiKeyService->create($user, $validated['name'], $validated['abilities']);
 
         return response()->json([
             'data' => [
-                'token' => $newToken->plainTextToken,
-                'key' => (new ApiKeyResource($newToken->accessToken))->resolve($request),
+                'token' => $newAccessToken->plainTextToken,
+                'key' => (new ApiKeyResource($newAccessToken->accessToken))->resolve($storeApiKeyRequest),
             ],
         ], 201);
     }
@@ -61,11 +61,11 @@ class ApiKeyController extends Controller
 
     public function destroy(Request $request, int $apiKey): JsonResponse
     {
-        $token = $this->tokenForRequest($request, $apiKey);
-        $this->apiKeyService->revoke($token);
+        $personalAccessToken = $this->tokenForRequest($request, $apiKey);
+        $this->apiKeyService->revoke($personalAccessToken);
 
         return response()->json([
-            'data' => new ApiKeyResource($token->fresh()),
+            'data' => new ApiKeyResource($personalAccessToken->fresh()),
         ]);
     }
 

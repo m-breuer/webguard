@@ -29,30 +29,30 @@ class ApiKeyApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->postJson(route('v1.api-keys.store'), [
+        $testResponse = $this->actingAs($user)->postJson(route('v1.api-keys.store'), [
             'name' => 'Server agent',
             'abilities' => [ApiKeyAbility::SERVER_HEALTH_WRITE->value],
         ]);
 
-        $response->assertCreated()
+        $testResponse->assertCreated()
             ->assertJsonPath('data.key.name', 'Server agent')
             ->assertJsonPath('data.key.abilities.0', ApiKeyAbility::SERVER_HEALTH_WRITE->value)
             ->assertJsonPath('data.key.revoked', false);
 
-        $plainTextToken = (string) $response->json('data.token');
-        $token = PersonalAccessToken::query()->sole();
+        $plainTextToken = (string) $testResponse->json('data.token');
+        $personalAccessToken = PersonalAccessToken::query()->sole();
 
         $this->assertStringContainsString('|', $plainTextToken);
-        $this->assertNotSame($plainTextToken, $token->token);
-        $this->assertSame(ApiKeyService::storedName('Server agent'), $token->name);
+        $this->assertNotSame($plainTextToken, $personalAccessToken->token);
+        $this->assertSame(ApiKeyService::storedName('Server agent'), $personalAccessToken->name);
 
         $this->actingAs($user)->getJson(route('v1.api-keys.index'))
             ->assertOk()
-            ->assertJsonPath('data.0.id', $token->id)
+            ->assertJsonPath('data.0.id', $personalAccessToken->id)
             ->assertJsonPath('data.0.name', 'Server agent')
-            ->assertJsonPath('data.0.token_prefix', $token->id . '|')
+            ->assertJsonPath('data.0.token_prefix', $personalAccessToken->id . '|')
             ->assertJsonMissing(['token' => $plainTextToken])
-            ->assertJsonMissing(['token' => $token->token]);
+            ->assertJsonMissing(['token' => $personalAccessToken->token]);
     }
 
     public function test_key_names_are_unique_per_user_and_require_allowed_abilities(): void
@@ -79,12 +79,12 @@ class ApiKeyApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post(route('profile.api-keys.store'), [
+        $testResponse = $this->actingAs($user)->post(route('profile.api-keys.store'), [
             'name' => 'Profile key',
             'abilities' => [ApiKeyAbility::ANALYTICS_READ->value],
         ]);
 
-        $response->assertRedirect(route('profile.edit', ['#api-keys']))
+        $testResponse->assertRedirect(route('profile.edit', ['#api-keys']))
             ->assertSessionHas('api_key_plaintext', fn (string $token): bool => str_contains($token, '|'));
 
         $this->actingAs($user)->get(route('profile.edit'))
@@ -130,8 +130,8 @@ class ApiKeyApiTest extends TestCase
             ->deleteJson('/api/v1/monitorings/' . $monitoring->id)
             ->assertForbidden();
 
-        $token = PersonalAccessToken::query()->where('name', ApiKeyService::storedName('Analytics'))->sole();
-        $this->assertNotNull($token->last_used_at);
+        $personalAccessToken = PersonalAccessToken::query()->where('name', ApiKeyService::storedName('Analytics'))->sole();
+        $this->assertNotNull($personalAccessToken->last_used_at);
     }
 
     public function test_server_health_key_can_submit_only_its_owners_server_health_monitoring(): void

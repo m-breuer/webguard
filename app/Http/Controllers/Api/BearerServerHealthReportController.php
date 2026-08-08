@@ -13,15 +13,15 @@ use Illuminate\Http\JsonResponse;
 class BearerServerHealthReportController extends Controller
 {
     public function __invoke(
-        ServerHealthReportRequest $request,
+        ServerHealthReportRequest $serverHealthReportRequest,
         Monitoring $monitoring,
         ServerHealthReportController $serverHealthReportController
     ): JsonResponse {
         /** @var User $user */
-        $user = $request->user();
+        $user = $serverHealthReportRequest->user();
 
         abort_unless($monitoring->isServerHealth() && $monitoring->isManageableBy($user), 404);
 
-        return $serverHealthReportController->store($request, $monitoring);
+        return $serverHealthReportController->store($serverHealthReportRequest, $monitoring);
     }
 }

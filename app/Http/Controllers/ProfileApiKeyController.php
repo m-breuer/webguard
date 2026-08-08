@@ -15,21 +15,21 @@ class ProfileApiKeyController extends Controller
 {
     public function __construct(private readonly ApiKeyService $apiKeyService) {}
 
-    public function store(StoreApiKeyRequest $request): RedirectResponse
+    public function store(StoreApiKeyRequest $storeApiKeyRequest): RedirectResponse
     {
         /** @var User $user */
-        $user = $request->user();
-        $validated = $request->validated();
-        $newToken = $this->apiKeyService->create($user, $validated['name'], $validated['abilities']);
+        $user = $storeApiKeyRequest->user();
+        $validated = $storeApiKeyRequest->validated();
+        $newAccessToken = $this->apiKeyService->create($user, $validated['name'], $validated['abilities']);
 
         activity('user')
             ->performedOn($user)
             ->event('api_key_created')
-            ->withProperties(['action' => 'api_key_created', 'key_id' => $newToken->accessToken->getKey()])
+            ->withProperties(['action' => 'api_key_created', 'key_id' => $newAccessToken->accessToken->getKey()])
             ->log('user_api_key_created');
 
         return to_route('profile.edit', ['#api-keys'])
-            ->with('api_key_plaintext', $newToken->plainTextToken)
+            ->with('api_key_plaintext', $newAccessToken->plainTextToken)
             ->with('success', __('api.configuration.messages.created'));
     }
 

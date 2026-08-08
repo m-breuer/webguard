@@ -15,9 +15,7 @@ class RequireApiKeyManagement
     {
         $token = $request->user()?->currentAccessToken();
 
-        if ($token instanceof PersonalAccessToken && ! $token->can('*')) {
-            abort(403);
-        }
+        abort_if($token instanceof PersonalAccessToken && ! $token->can('*'), 403);
 
         return $next($request);
     }
