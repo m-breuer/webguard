@@ -35,6 +35,18 @@ final class MaintenanceWindowService
     }
 
     /**
+     * @return array{starts_at: CarbonInterface, ends_at: CarbonInterface, active: bool, recurring: bool}|null
+     */
+    public function occurrence(MaintenanceWindow $maintenanceWindow, ?CarbonInterface $at = null): ?array
+    {
+        if (! $maintenanceWindow->enabled) {
+            return null;
+        }
+
+        return $this->resolveOccurrence($maintenanceWindow, $at ?? Date::now());
+    }
+
+    /**
      * @return Collection<int, MaintenanceWindow>
      */
     private function recurringWindows(Monitoring $monitoring): Collection

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
+use App\Http\Controllers\Api\External\MobileMaintenanceController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
 use App\Http\Controllers\Api\External\MobilePushDeviceController;
 use App\Http\Controllers\Api\External\MobileStatusPageWorkspaceController;
@@ -41,6 +42,15 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
 
 Route::get('/mobile/overview', MobileOverviewController::class)
     ->name('mobile.overview');
+
+Route::group(['prefix' => 'mobile/maintenance', 'as' => 'mobile.maintenance.'], function (): void {
+    Route::get('/capabilities', [MobileMaintenanceController::class, 'capabilities'])->name('capabilities');
+    Route::get('/one-off', [MobileMaintenanceController::class, 'oneOffIndex'])->name('one-off.index');
+    Route::get('/recurring', [MobileMaintenanceController::class, 'recurringIndex'])->name('recurring.index');
+    Route::post('/', [MobileMaintenanceController::class, 'store'])->name('store');
+    Route::patch('/recurring/{maintenanceWindow}', [MobileMaintenanceController::class, 'updateRecurring'])->name('recurring.update');
+    Route::delete('/one-off/{monitoring}', [MobileMaintenanceController::class, 'cancelOneOff'])->name('one-off.destroy');
+});
 
 Route::group(['prefix' => 'mobile/monitoring-groups', 'as' => 'mobile.monitoring-groups.'], function (): void {
     Route::get('/', [MobileMonitoringGroupController::class, 'index'])->name('index');

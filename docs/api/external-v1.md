@@ -42,8 +42,10 @@ headers. Mobile app tokens retain their existing separate behavior.
   support; request tokens and authorization headers are never logged.
 - `GET`, `HEAD`, `PUT`, `PATCH`, and `DELETE` follow their HTTP idempotency
   semantics. `POST /mobile-push-devices` is idempotent for a provider/token
-  pair. Other creation endpoints do not currently accept `Idempotency-Key`, so
-  clients must avoid blind retries after an unknown write outcome.
+  pair. Mobile status-page communications and mobile maintenance scheduling
+  define their required `Idempotency-Key` behavior below. Other creation
+  endpoints do not currently accept `Idempotency-Key`, so clients must avoid
+  blind retries after an unknown write outcome.
 - API changes are additive within v1. A deprecated v1 endpoint will announce a
   successor through `Deprecation`, `Sunset`, and `Link` headers before removal;
   a response-shape change requires v2.
@@ -155,6 +157,38 @@ are recorded in the activity log with the authenticated user as causer; token
 values and authorization headers are never recorded. Public status-page
 endpoints and browser management routes keep their existing contracts and do
 not expose this private workspace payload.
+
+## Mobile maintenance operations
+
+Native clients use the dedicated \`/api/v1/mobile/maintenance\` family rather
+than browser maintenance routes. It returns only windows visible to the token
+owner; an item separately reports \`can_manage\`. Private monitorings are
+manageable by their owner, while team-owned monitorings require the existing
+team-administrator role. A team member can therefore see a window without
+being able to change or cancel it.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| \`GET\` | \`/mobile/maintenance/capabilities\` | Manageable monitoring IDs, ownership metadata, personal monitoring groups, and retry capability. |
+| \`GET\` | \`/mobile/maintenance/one-off?state=active|upcoming|expired\` | Paginated visible one-off windows. |
+| \`GET\` | \`/mobile/maintenance/recurring?state=active|upcoming|expired|disabled\` | Paginated visible recurring windows, including enabled state and next occurrence. |
+| \`POST\` | \`/mobile/maintenance\` | Schedules one-off or recurring maintenance with the existing \`mode\` and \`scope\` request fields. |
+| \`PATCH\` | \`/mobile/maintenance/recurring/{maintenanceWindow}\` | Enables or disables an authorized recurring window. |
+| \`DELETE\` | \`/mobile/maintenance/one-off/{monitoring}\` | Cancels one authorized one-off maintenance window. |
+
+All timestamps are ISO-8601 with offsets. Recurring payloads include their
+IANA timezone, duration, repeat-until boundary, and server-calculated next
+occurrence so the client does not recalculate recurrence or DST rules.
+\`state\` is one of \`active\`, \`upcoming\`, \`expired\`, or \`disabled\`; recurring
+windows report \`disabled\` only when they have been switched off.
+
+\`POST\` requires an \`Idempotency-Key\` header (one to 100 characters). A retry
+with the same key and payload returns the original operation result with \`200\`
+and \`idempotent: true\`; the initial operation returns \`201\`. Reusing a key for
+a different payload yields a field-keyed \`422\` validation error. \`PATCH\` and
+\`DELETE\` retain normal HTTP idempotency semantics. Existing Laravel validation
+errors remain \`{ "message", "errors" }\`, while missing, invisible, or
+unmanageable mutation targets return \`404\`.
 
 Scribe generates the OpenAPI and reference documentation from route metadata,
 request rules, controller annotations, and this configuration. Do not edit the
