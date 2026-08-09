@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\External\MobileMaintenanceController;
 use App\Http\Controllers\Api\External\MobileMonitoringDetailController;
 use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
-use App\Http\Controllers\Api\External\MobileMaintenanceController;
+use App\Http\Controllers\Api\External\MobileMonitoringNotificationPreferenceController;
+use App\Http\Controllers\Api\External\MobileNotificationBoardController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
 use App\Http\Controllers\Api\External\MobilePushDeviceController;
 use App\Http\Controllers\Api\External\MobileStatusPageWorkspaceController;
@@ -45,6 +47,17 @@ Route::get('/mobile/overview', MobileOverviewController::class)
     ->name('mobile.overview');
 Route::get('/mobile/monitorings/{monitoring}', MobileMonitoringDetailController::class)
     ->name('mobile.monitorings.show');
+Route::get('/mobile/monitorings/{monitoring}/notification-preferences', [MobileMonitoringNotificationPreferenceController::class, 'show'])
+    ->name('mobile.monitorings.notification-preferences.show');
+Route::patch('/mobile/monitorings/{monitoring}/notification-preferences', [MobileMonitoringNotificationPreferenceController::class, 'update'])
+    ->name('mobile.monitorings.notification-preferences.update');
+
+Route::get('/mobile/notification-board', [MobileNotificationBoardController::class, 'index'])
+    ->name('mobile.notification-board.index');
+Route::patch('/mobile/notification-board/{notification}/read', [MobileNotificationBoardController::class, 'markRead'])
+    ->name('mobile.notification-board.read');
+Route::patch('/mobile/notification-board/read-all', [MobileNotificationBoardController::class, 'markAllRead'])
+    ->name('mobile.notification-board.read-all');
 
 Route::group(['prefix' => 'mobile/maintenance', 'as' => 'mobile.maintenance.'], function (): void {
     Route::get('/capabilities', [MobileMaintenanceController::class, 'capabilities'])->name('capabilities');
