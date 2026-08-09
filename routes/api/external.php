@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
+use App\Http\Controllers\Api\External\MobileMonitoringDetailController;
 use App\Http\Controllers\Api\External\MobilePushDeviceController;
 use App\Http\Controllers\Api\External\MonitoringDataController;
 use App\Http\Controllers\Api\External\MonitoringManagementController;
@@ -40,6 +41,8 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
 
 Route::get('/mobile/overview', MobileOverviewController::class)
     ->name('mobile.overview');
+Route::get('/mobile/monitorings/{monitoring}', MobileMonitoringDetailController::class)
+    ->name('mobile.monitorings.show');
 
 Route::group(['prefix' => 'mobile/monitoring-groups', 'as' => 'mobile.monitoring-groups.'], function (): void {
     Route::get('/', [MobileMonitoringGroupController::class, 'index'])->name('index');

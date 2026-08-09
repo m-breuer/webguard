@@ -22,4 +22,19 @@ final class MonitoringIncidentQuery
             ->latest('down_at')
             ->get();
     }
+
+    /**
+     * @return Collection<int, Incident>
+     */
+    public function page(Monitoring $monitoring, Carbon $startDate, Carbon $endDate, int $limit, int $offset): Collection
+    {
+        return $monitoring->incidents()
+            ->whereBetween('down_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->select(['id', 'down_at', 'up_at'])
+            ->latest('down_at')
+            ->latest('id')
+            ->offset($offset)
+            ->limit($limit + 1)
+            ->get();
+    }
 }
