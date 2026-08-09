@@ -18,4 +18,15 @@ class ThemePreferenceTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('data-theme="system"');
     }
+
+    public function test_theme_bootstrap_applies_system_dark_mode_before_assets_load(): void
+    {
+        $testResponse = $this->get(route('login'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('<meta name="color-scheme" content="light dark">');
+        $testResponse->assertSeeHtml("html.classList.toggle('dark', isDark);");
+        $testResponse->assertSeeHtml('html.dark {');
+        $testResponse->assertSeeHtml('background-color: #020617;');
+    }
 }

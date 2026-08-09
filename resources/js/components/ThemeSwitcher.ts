@@ -23,7 +23,7 @@ function initializeTheme(): void {
     applyTheme(sessionTheme);
 }
 
-document.addEventListener('DOMContentLoaded', initializeTheme);
+initializeTheme();
 
 window.setTheme = function(theme: string): void {
     // When theme is changed by user, it's saved to the database and applied on next request
