@@ -311,6 +311,7 @@ class MonitoringRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $hasGroupIds = $this->has('group_ids');
         $type = mb_strtolower((string) $this->input('type'));
         $httpHeaders = $this->normalizeHttpHeaders();
         $dnsRecordType = DnsRecordExpectation::normalizeRecordType($this->input('dns_record_type'));
@@ -328,13 +329,16 @@ class MonitoringRequest extends FormRequest
             'notification_on_failure' => $this->boolean('notification_on_failure'),
             'notification_channels' => $this->normalizeNotificationChannels(),
             'team_id' => $this->normalizeTeamId(),
-            'group_ids' => $this->normalizeGroupIds(),
             'failure_confirmation_threshold' => $this->input('failure_confirmation_threshold', 2),
             'response_time_threshold_ms' => $this->normalizeNullableInteger('response_time_threshold_ms'),
             'response_time_confirmation_threshold' => $this->normalizeNullableInteger('response_time_confirmation_threshold'),
             'ssl_expiry_warning_days' => $this->input('ssl_expiry_warning_days', 7),
             'heartbeat_grace_minutes' => $this->input('heartbeat_grace_minutes', 5),
         ];
+
+        if ($hasGroupIds) {
+            $prepared['group_ids'] = $this->normalizeGroupIds();
+        }
 
         if ($type === MonitoringType::SERVER_HEALTH->value) {
             $prepared['server_health_cpu_threshold_percent'] = $this->input('server_health_cpu_threshold_percent', 90);

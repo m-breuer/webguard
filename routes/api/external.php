@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
 use App\Http\Controllers\Api\External\MobilePushDeviceController;
 use App\Http\Controllers\Api\External\MonitoringDataController;
@@ -39,6 +40,15 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
 
 Route::get('/mobile/overview', MobileOverviewController::class)
     ->name('mobile.overview');
+
+Route::group(['prefix' => 'mobile/monitoring-groups', 'as' => 'mobile.monitoring-groups.'], function (): void {
+    Route::get('/', [MobileMonitoringGroupController::class, 'index'])->name('index');
+    Route::get('/assignment-options', [MobileMonitoringGroupController::class, 'assignmentOptions'])->name('assignment-options');
+    Route::post('/', [MobileMonitoringGroupController::class, 'store'])->name('store');
+    Route::get('/{monitoringGroup}', [MobileMonitoringGroupController::class, 'show'])->name('show');
+    Route::patch('/{monitoringGroup}', [MobileMonitoringGroupController::class, 'update'])->name('update');
+    Route::delete('/{monitoringGroup}', [MobileMonitoringGroupController::class, 'destroy'])->name('destroy');
+});
 
 Route::apiResource('mobile-push-devices', MobilePushDeviceController::class)
     ->only(['index', 'store', 'update', 'destroy']);

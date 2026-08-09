@@ -11,6 +11,23 @@ use App\Models\User;
 class MonitoringGroupAssignmentService
 {
     /**
+     * @param  list<string>  $monitoringGroupIds
+     */
+    public function syncGroupsForPrivateMonitoring(
+        Monitoring $monitoring,
+        User $user,
+        array $monitoringGroupIds
+    ): void {
+        abort_unless($monitoring->isPrivateOwned() && $monitoring->user_id === $user->id, 403);
+
+        $ownedGroupIds = $user->monitoringGroups()
+            ->whereKey($monitoringGroupIds)
+            ->pluck('monitoring_groups.id');
+
+        $monitoring->groups()->sync($ownedGroupIds->all());
+    }
+
+    /**
      * @param  list<string>  $monitoringIds
      */
     public function syncAssignableMonitorings(

@@ -89,6 +89,36 @@ All retain their existing ownership checks and response contracts.
 Existing pre-scoped external tokens remain compatible. They are not converted
 to new keys automatically; rotate them from the profile when practical.
 
+## Mobile monitoring groups and ownership
+
+Native clients manage personal monitoring groups through `/api/v1/mobile/monitoring-groups`.
+The list and assignment-options endpoints use the standard Laravel paginator
+(`per_page` 1 through 100, default 25) and order by name and ID. Group payloads
+contain private ownership metadata, the number of safely assignable monitorings,
+and, for a detail or write response, the assigned private monitoring summaries.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/mobile/monitoring-groups` | Paginated groups owned and manageable by the current user. |
+| `GET` | `/mobile/monitoring-groups/{id}` | One group and its safely visible private assignments. |
+| `GET` | `/mobile/monitoring-groups/assignment-options` | Paginated private monitorings available for assignment. |
+| `POST` | `/mobile/monitoring-groups` | Creates a personal group and optional assignments. |
+| `PATCH` | `/mobile/monitoring-groups/{id}` | Renames a group and/or replaces its supplied assignments. |
+| `DELETE` | `/mobile/monitoring-groups/{id}` | Deletes the group; monitorings remain and their pivot assignments are removed. |
+
+Groups are always personal. Only monitorings privately owned by the current user
+can be assigned; team-owned and foreign monitorings are rejected with `422` and
+field-keyed Laravel validation errors. A monitoring moved to team ownership is
+detached from all personal groups. Monitoring management responses now add
+`ownership` and `group_assignments` fields so mobile clients can render the
+result of create, update, and ownership changes without browser-form data.
+
+`POST` does not accept an idempotency key and should not be blindly retried after
+an unknown outcome. `PATCH` replaces assignments only when `monitoring_ids` is
+provided; omitting it leaves existing assignments unchanged. `DELETE` returns
+`404` for an unknown or inaccessible group, so clients should re-list groups
+after an unknown deletion outcome.
+
 Scribe generates the OpenAPI and reference documentation from route metadata,
 request rules, controller annotations, and this configuration. Do not edit the
 generated artifacts manually.
