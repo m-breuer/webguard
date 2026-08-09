@@ -91,6 +91,40 @@ All retain their existing ownership checks and response contracts.
 Existing pre-scoped external tokens remain compatible. They are not converted
 to new keys automatically; rotate them from the profile when practical.
 
+## Mobile monitoring management
+
+Native clients manage monitorings through the external `/api/v1/monitorings`
+family, not browser controllers or authenticated browser sessions. Every route
+uses bearer authentication and applies the same private/team visibility and
+management policy as Core.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/monitorings?per_page=25` | Paginated monitoring configuration visible to the token owner. |
+| `POST` | `/monitorings` | Creates one private or team-owned monitoring. |
+| `PATCH` | `/monitorings/{monitoring}` | Updates one manageable monitoring, including its lifecycle state. |
+| `DELETE` | `/monitorings/{monitoring}` | Soft-deletes one manageable monitoring. |
+| `POST` | `/monitorings/{monitoring}/team-ownership` | Moves a private monitoring to a team administered by the caller. |
+| `DELETE` | `/monitorings/{monitoring}/team-ownership` | Returns one manageable team monitoring to private ownership. |
+
+The validated `type` values are `http`, `ping`, `keyword`, `port`,
+`heartbeat`, `server_health`, `domain_expiration`, and `dns_record`.
+`status` is `active` or `paused`, so a `PATCH` performs the supported
+pause/activate transition. Request validation is type-aware: HTTP and keyword
+settings, ports, DNS expectations, heartbeat configuration, and server-health
+thresholds are accepted only for their matching monitoring type. Successful
+create, update, and ownership responses return the server-confirmed monitoring
+representation, including `ownership.can_manage` and personal
+`group_assignments` where applicable.
+
+Creation does not accept an idempotency key and clients must not blindly retry
+an unknown `POST` outcome. `PATCH` and `DELETE` follow ordinary HTTP retry
+semantics. A completed delete returns `204`; a later retry returns the stable
+`404` not-found outcome. Inaccessible private monitorings also return `404`,
+while a visible but non-manageable team monitoring returns `403`. Validation
+failures retain Laravel's `{ "message", "errors" }` response shape for native
+presentation.
+
 ## Mobile monitoring detail
 
 `GET /api/v1/mobile/monitorings/{monitoring}` is the authenticated native-app

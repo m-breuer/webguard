@@ -46,10 +46,20 @@ class MonitoringManagementApiTest extends TestCase
             'preferred_locations' => [$serverInstance->code],
         ]))->assertOk()
             ->assertJsonPath('data.name', 'API Updated Check')
+            ->assertJsonPath('data.status', MonitoringLifecycleStatus::PAUSED->value)
             ->assertJsonPath('data.public_label_enabled', false);
+
+        $this->patchJson('/api/v1/monitorings/' . $monitoring->id, $this->monitoringPayload([
+            'name' => 'API Updated Check',
+            'target' => 'https://updated.example.test',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'preferred_locations' => [$serverInstance->code],
+        ]))->assertOk()
+            ->assertJsonPath('data.status', MonitoringLifecycleStatus::ACTIVE->value);
 
         $this->deleteJson('/api/v1/monitorings/' . $monitoring->id)->assertNoContent();
         $this->assertSoftDeleted('monitorings', ['id' => $monitoring->id]);
+        $this->deleteJson('/api/v1/monitorings/' . $monitoring->id)->assertNotFound();
     }
 
     public function test_monitoring_list_uses_a_stable_name_and_id_order(): void
@@ -117,6 +127,29 @@ class MonitoringManagementApiTest extends TestCase
             'team_id' => $team->id,
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['team_id']);
+    }
+
+    public function test_team_member_cannot_mutate_a_visible_team_monitoring(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create();
+        $member = User::factory()->create();
+        $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
+        TeamMembership::factory()->for($team)->for($admin)->admin()->create();
+        TeamMembership::factory()->for($team)->for($member)->create(['role' => TeamRole::MEMBER]);
+        $monitoring = Monitoring::factory()->create([
+            'user_id' => null,
+            'team_id' => $team->id,
+            'created_by_user_id' => $admin->id,
+        ]);
+        $serverInstance = $this->serverInstance('api-management-team');
+        Sanctum::actingAs($member);
+
+        $this->patchJson('/api/v1/monitorings/' . $monitoring->id, $this->monitoringPayload([
+            'preferred_locations' => [$serverInstance->code],
+        ]))->assertForbidden();
+
+        $this->deleteJson('/api/v1/monitorings/' . $monitoring->id)->assertForbidden();
     }
 
     /**

@@ -60,15 +60,15 @@ class MobileMaintenanceController extends Controller
         /** @var User $user */
         $user = $request->user();
         $state = $this->state($request, ['active', 'upcoming', 'expired']);
-        $windows = $mobileMaintenanceWorkspaceService->oneOffWindowsFor($user, $state)
+        $lengthAwarePaginator = $mobileMaintenanceWorkspaceService->oneOffWindowsFor($user, $state)
             ->paginate($this->perPage($request));
-        $windows->setCollection($windows->getCollection()->map(
+        $lengthAwarePaginator->setCollection($lengthAwarePaginator->getCollection()->map(
             fn (Monitoring $monitoring): array => MobileOneOffMaintenanceResource::make(
                 $mobileMaintenanceWorkspaceService->decorateOneOff($monitoring, $user)
             )->resolve($request)
         ));
 
-        return response()->json($windows);
+        return response()->json($lengthAwarePaginator);
     }
 
     public function recurringIndex(Request $request, MobileMaintenanceWorkspaceService $mobileMaintenanceWorkspaceService): JsonResponse
@@ -77,10 +77,10 @@ class MobileMaintenanceController extends Controller
         $user = $request->user();
         $state = $this->state($request, ['active', 'upcoming', 'expired', 'disabled']);
         $perPage = $this->perPage($request);
-        $query = $mobileMaintenanceWorkspaceService->recurringWindowsFor($user, $state);
+        $builder = $mobileMaintenanceWorkspaceService->recurringWindowsFor($user, $state);
 
         if (in_array($state, ['active', 'upcoming', 'expired'], true)) {
-            $allWindows = $query->get()
+            $allWindows = $builder->get()
                 ->map(fn (MaintenanceWindow $maintenanceWindow): MaintenanceWindow => $mobileMaintenanceWorkspaceService->decorateRecurring($maintenanceWindow, $user))
                 ->filter(fn (MaintenanceWindow $maintenanceWindow): bool => $maintenanceWindow->getAttribute('mobile_state') === $state)
                 ->values();
@@ -92,7 +92,7 @@ class MobileMaintenanceController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()],
             );
         } else {
-            $windows = $query->paginate($perPage);
+            $windows = $builder->paginate($perPage);
         }
 
         $windows->setCollection($windows->getCollection()->map(
@@ -104,11 +104,11 @@ class MobileMaintenanceController extends Controller
         return response()->json($windows);
     }
 
-    public function store(MobileStoreMaintenanceRequest $request, MobileMaintenanceWorkspaceService $mobileMaintenanceWorkspaceService): JsonResponse
+    public function store(MobileStoreMaintenanceRequest $mobileStoreMaintenanceRequest, MobileMaintenanceWorkspaceService $mobileMaintenanceWorkspaceService): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
-        $result = $mobileMaintenanceWorkspaceService->schedule($user, $request->validated());
+        $user = $mobileStoreMaintenanceRequest->user();
+        $result = $mobileMaintenanceWorkspaceService->schedule($user, $mobileStoreMaintenanceRequest->validated());
 
         return response()->json([
             'data' => $result['operation']->result,
@@ -117,22 +117,22 @@ class MobileMaintenanceController extends Controller
     }
 
     public function updateRecurring(
-        UpdateMobileMaintenanceWindowRequest $request,
+        UpdateMobileMaintenanceWindowRequest $updateMobileMaintenanceWindowRequest,
         string $maintenanceWindow,
         MobileMaintenanceWorkspaceService $mobileMaintenanceWorkspaceService,
     ): JsonResponse {
         /** @var User $user */
-        $user = $request->user();
+        $user = $updateMobileMaintenanceWindowRequest->user();
         $window = $mobileMaintenanceWorkspaceService->updateRecurringEnabled(
             $mobileMaintenanceWorkspaceService->recurringWindowFor($user, $maintenanceWindow),
             $user,
-            $request->boolean('enabled'),
+            $updateMobileMaintenanceWindowRequest->boolean('enabled'),
         );
 
         return response()->json([
             'data' => MobileMaintenanceWindowResource::make(
                 $mobileMaintenanceWorkspaceService->decorateRecurring($window, $user)
-            )->resolve($request),
+            )->resolve($updateMobileMaintenanceWindowRequest),
         ]);
     }
 
