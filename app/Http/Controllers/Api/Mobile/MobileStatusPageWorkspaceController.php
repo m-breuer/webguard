@@ -35,18 +35,18 @@ class MobileStatusPageWorkspaceController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $statusPages = $this->mobileStatusPageWorkspaceService->statusPagesFor($user)
+        $lengthAwarePaginator = $this->mobileStatusPageWorkspaceService->statusPagesFor($user)
             ->latest()
             ->paginate($this->perPage($request));
 
-        $statusPages->getCollection()->each(function (StatusPage $statusPage) use ($user): void {
+        $lengthAwarePaginator->getCollection()->each(function (StatusPage $statusPage) use ($user): void {
             $statusPage->setAttribute('open_incident_count', $this->mobileStatusPageWorkspaceService->openIncidentCount($statusPage, $user));
         });
-        $statusPages->setCollection($statusPages->getCollection()->map(
+        $lengthAwarePaginator->setCollection($lengthAwarePaginator->getCollection()->map(
             fn (StatusPage $statusPage): array => MobileStatusPageResource::make($statusPage)->resolve($request)
         ));
 
-        return response()->json($statusPages);
+        return response()->json($lengthAwarePaginator);
     }
 
     public function show(Request $request, string $statusPage): JsonResponse
@@ -82,7 +82,7 @@ class MobileStatusPageWorkspaceController extends Controller
         $user = $request->user();
         $statusPageModel = $this->mobileStatusPageWorkspaceService->statusPageFor($user, $statusPage);
         $validated = $request->validate(['state' => ['nullable', 'in:open,resolved']]);
-        $incidents = $this->mobileStatusPageWorkspaceService->incidentsFor($statusPageModel, $user)
+        $lengthAwarePaginator = $this->mobileStatusPageWorkspaceService->incidentsFor($statusPageModel, $user)
             ->when(
                 ($validated['state'] ?? null) === 'open',
                 fn ($query) => $query->whereNull('up_at'),
@@ -90,11 +90,11 @@ class MobileStatusPageWorkspaceController extends Controller
             )
             ->paginate($this->perPage($request));
 
-        $incidents->setCollection($incidents->getCollection()->map(
+        $lengthAwarePaginator->setCollection($lengthAwarePaginator->getCollection()->map(
             fn (Incident $incident): array => $this->incidentResource($incident)->resolve($request)
         ));
 
-        return response()->json($incidents);
+        return response()->json($lengthAwarePaginator);
     }
 
     public function showIncident(Request $request, string $statusPage, string $incident): JsonResponse
@@ -106,61 +106,61 @@ class MobileStatusPageWorkspaceController extends Controller
         return response()->json(['data' => $this->incidentResource($incidentModel)->resolve($request)]);
     }
 
-    public function storeIncidentUpdate(MobileStoreIncidentUpdateRequest $request, string $statusPage, string $incident): JsonResponse
+    public function storeIncidentUpdate(MobileStoreIncidentUpdateRequest $mobileStoreIncidentUpdateRequest, string $statusPage, string $incident): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $mobileStoreIncidentUpdateRequest->user();
         $incidentModel = $this->incidentFor($user, $statusPage, $incident);
-        $result = $this->mobileStatusPageWorkspaceService->createUpdate($incidentModel, $user, $request->validated());
+        $result = $this->mobileStatusPageWorkspaceService->createUpdate($incidentModel, $user, $mobileStoreIncidentUpdateRequest->validated());
 
         return response()->json([
-            'data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request),
+            'data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($mobileStoreIncidentUpdateRequest),
         ], $result['created'] ? 201 : 200);
     }
 
-    public function updateMetadata(UpdateIncidentMetadataRequest $request, string $statusPage, string $incident): JsonResponse
+    public function updateMetadata(UpdateIncidentMetadataRequest $updateIncidentMetadataRequest, string $statusPage, string $incident): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $updateIncidentMetadataRequest->user();
         $incidentModel = $this->incidentFor($user, $statusPage, $incident);
-        $this->mobileStatusPageWorkspaceService->updateMetadata($incidentModel, $user, $request->validated());
+        $this->mobileStatusPageWorkspaceService->updateMetadata($incidentModel, $user, $updateIncidentMetadataRequest->validated());
 
-        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request)]);
+        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($updateIncidentMetadataRequest)]);
     }
 
-    public function updateReview(UpdateIncidentReviewRequest $request, string $statusPage, string $incident): JsonResponse
+    public function updateReview(UpdateIncidentReviewRequest $updateIncidentReviewRequest, string $statusPage, string $incident): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $updateIncidentReviewRequest->user();
         $incidentModel = $this->incidentFor($user, $statusPage, $incident);
-        $this->mobileStatusPageWorkspaceService->updateReview($incidentModel, $user, $request->validated());
+        $this->mobileStatusPageWorkspaceService->updateReview($incidentModel, $user, $updateIncidentReviewRequest->validated());
 
-        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request)]);
+        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($updateIncidentReviewRequest)]);
     }
 
-    public function storeFollowUp(MobileStoreIncidentFollowUpRequest $request, string $statusPage, string $incident): JsonResponse
+    public function storeFollowUp(MobileStoreIncidentFollowUpRequest $mobileStoreIncidentFollowUpRequest, string $statusPage, string $incident): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $mobileStoreIncidentFollowUpRequest->user();
         $statusPageModel = $this->mobileStatusPageWorkspaceService->statusPageFor($user, $statusPage);
         $incidentModel = $this->mobileStatusPageWorkspaceService->incidentFor($statusPageModel, $user, $incident);
-        $result = $this->mobileStatusPageWorkspaceService->createFollowUp($incidentModel, $statusPageModel, $user, $request->validated());
+        $result = $this->mobileStatusPageWorkspaceService->createFollowUp($incidentModel, $statusPageModel, $user, $mobileStoreIncidentFollowUpRequest->validated());
 
         return response()->json([
-            'data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request),
+            'data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($mobileStoreIncidentFollowUpRequest),
         ], $result['created'] ? 201 : 200);
     }
 
-    public function updateFollowUp(UpdateIncidentFollowUpRequest $request, string $statusPage, string $incident, string $incidentFollowUp): JsonResponse
+    public function updateFollowUp(UpdateIncidentFollowUpRequest $updateIncidentFollowUpRequest, string $statusPage, string $incident, string $incidentFollowUp): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $updateIncidentFollowUpRequest->user();
         $statusPageModel = $this->mobileStatusPageWorkspaceService->statusPageFor($user, $statusPage);
         $incidentModel = $this->mobileStatusPageWorkspaceService->incidentFor($statusPageModel, $user, $incident);
         $followUp = $this->followUpFor($incidentModel, $incidentFollowUp);
-        $this->mobileStatusPageWorkspaceService->updateFollowUp($followUp, $statusPageModel, $user, $request->validated());
+        $this->mobileStatusPageWorkspaceService->updateFollowUp($followUp, $statusPageModel, $user, $updateIncidentFollowUpRequest->validated());
 
-        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request)]);
+        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($updateIncidentFollowUpRequest)]);
     }
 
     public function destroyFollowUp(Request $request, string $statusPage, string $incident, string $incidentFollowUp): JsonResponse
@@ -173,27 +173,27 @@ class MobileStatusPageWorkspaceController extends Controller
         return response()->json(status: 204);
     }
 
-    public function storeTimelineEvent(MobileStoreIncidentTimelineEventRequest $request, string $statusPage, string $incident): JsonResponse
+    public function storeTimelineEvent(MobileStoreIncidentTimelineEventRequest $mobileStoreIncidentTimelineEventRequest, string $statusPage, string $incident): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $mobileStoreIncidentTimelineEventRequest->user();
         $incidentModel = $this->incidentFor($user, $statusPage, $incident);
-        $result = $this->mobileStatusPageWorkspaceService->createTimelineEvent($incidentModel, $user, $request->validated());
+        $result = $this->mobileStatusPageWorkspaceService->createTimelineEvent($incidentModel, $user, $mobileStoreIncidentTimelineEventRequest->validated());
 
         return response()->json([
-            'data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request),
+            'data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($mobileStoreIncidentTimelineEventRequest),
         ], $result['created'] ? 201 : 200);
     }
 
-    public function updateTimelineEvent(UpdateIncidentTimelineEventRequest $request, string $statusPage, string $incident, string $incidentTimelineEvent): JsonResponse
+    public function updateTimelineEvent(UpdateIncidentTimelineEventRequest $updateIncidentTimelineEventRequest, string $statusPage, string $incident, string $incidentTimelineEvent): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $updateIncidentTimelineEventRequest->user();
         $incidentModel = $this->incidentFor($user, $statusPage, $incident);
         $timelineEvent = $this->timelineEventFor($incidentModel, $incidentTimelineEvent);
-        $this->mobileStatusPageWorkspaceService->updateTimelineEvent($timelineEvent, $user, $request->validated());
+        $this->mobileStatusPageWorkspaceService->updateTimelineEvent($timelineEvent, $user, $updateIncidentTimelineEventRequest->validated());
 
-        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($request)]);
+        return response()->json(['data' => $this->incidentResource($this->incidentFor($user, $statusPage, $incident))->resolve($updateIncidentTimelineEventRequest)]);
     }
 
     public function destroyTimelineEvent(Request $request, string $statusPage, string $incident, string $incidentTimelineEvent): JsonResponse
