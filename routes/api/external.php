@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\External\MobileMonitoringDetailController;
 use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
-use App\Http\Controllers\Api\External\MobileMonitoringDetailController;
 use App\Http\Controllers\Api\External\MobilePushDeviceController;
 use App\Http\Controllers\Api\External\MonitoringDataController;
 use App\Http\Controllers\Api\External\MonitoringManagementController;

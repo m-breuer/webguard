@@ -28,25 +28,25 @@ final class MobileMonitoringDetailPayloadService
     public function for(Monitoring $monitoring, User $user, int $days, int $incidentLimit, int $incidentOffset): array
     {
         $generatedAt = Date::now();
-        $dateRange = MonitoringDateRange::pastDays($days);
+        $monitoringDateRange = MonitoringDateRange::pastDays($days);
         $currentCheck = $this->monitoringStatusPayloadService->getPayload($monitoring, false)->toArray();
         $availability = $this->monitoringAvailabilityService->getUptimeDowntime(
             $monitoring,
-            $dateRange->startDate,
-            $dateRange->endDate,
-            $dateRange->shouldUseUptimeAggregates($monitoring),
-            $dateRange->shouldIncludeIntradayRawData(),
+            $monitoringDateRange->startDate,
+            $monitoringDateRange->endDate,
+            $monitoringDateRange->shouldUseUptimeAggregates($monitoring),
+            $monitoringDateRange->shouldIncludeIntradayRawData(),
         )->toArray();
         $responseTimes = $this->monitoringResponseTimeService->getResponseTimes(
             $monitoring,
-            $dateRange->startDate,
-            $dateRange->endDate,
-            $dateRange->shouldUseResponseTimeAggregates(),
+            $monitoringDateRange->startDate,
+            $monitoringDateRange->endDate,
+            $monitoringDateRange->shouldUseResponseTimeAggregates(),
         )->toArray();
         $incidents = $this->monitoringIncidentService->getIncidentPage(
             $monitoring,
-            $dateRange->startDate,
-            $dateRange->endDate,
+            $monitoringDateRange->startDate,
+            $monitoringDateRange->endDate,
             $incidentLimit,
             $incidentOffset,
         );
@@ -61,7 +61,7 @@ final class MobileMonitoringDetailPayloadService
             ->values()
             ->all();
         $calendar = $this->monitoringUptimeCalendarService
-            ->getGroupedByDateAndMonth($monitoring, $dateRange->startDate, $dateRange->endDate)
+            ->getGroupedByDateAndMonth($monitoring, $monitoringDateRange->startDate, $monitoringDateRange->endDate)
             ->toArray();
         $ssl = $this->monitoringDashboardPayloadService->getSslPayload($monitoring)->toArray();
         $domain = $this->domainPayload($monitoring);
@@ -91,8 +91,8 @@ final class MobileMonitoringDetailPayloadService
                 'generated_at' => $generatedAt->toIso8601String(),
                 'range' => [
                     'days' => $days,
-                    'from' => $dateRange->startDate->toIso8601String(),
-                    'to' => $dateRange->endDate->toIso8601String(),
+                    'from' => $monitoringDateRange->startDate->toIso8601String(),
+                    'to' => $monitoringDateRange->endDate->toIso8601String(),
                 ],
                 'incidents' => [
                     'limit' => $incidentLimit,

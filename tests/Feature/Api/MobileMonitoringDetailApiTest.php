@@ -66,13 +66,13 @@ class MobileMonitoringDetailApiTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
         Incident::query()->create(['monitoring_id' => $monitoring->id, 'down_at' => now()->subHours(3)]);
-        $second = Incident::query()->create(['monitoring_id' => $monitoring->id, 'down_at' => now()->subHours(2)]);
+        $incident = Incident::query()->create(['monitoring_id' => $monitoring->id, 'down_at' => now()->subHours(2)]);
         Incident::query()->create(['monitoring_id' => $monitoring->id, 'down_at' => now()->subHour()]);
         Sanctum::actingAs($user);
 
         $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id . '?incident_limit=1&incident_offset=1')
             ->assertOk()
-            ->assertJsonPath('data.incidents.0.down_at', $second->down_at->toIso8601String())
+            ->assertJsonPath('data.incidents.0.down_at', $incident->down_at->toIso8601String())
             ->assertJsonPath('meta.incidents.offset', 1)
             ->assertJsonPath('meta.incidents.has_more', true)
             ->assertJsonPath('meta.incidents.next_offset', 2);
