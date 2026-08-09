@@ -84,4 +84,21 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertDontSeeText(__('monitoring.detail.response_time.heading'));
         $testResponse->assertDontSeeHtml('id="performance-chart"');
     }
+
+    public function test_server_health_monitoring_detail_page_shows_telemetry_history(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::SERVER_HEALTH,
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.detail.server_health.history'));
+        $testResponse->assertSeeHtml('data-server-health-telemetry');
+        $testResponse->assertSeeHtml('id="server-health-telemetry-range"');
+        $testResponse->assertSeeHtml('id="server-health-telemetry-chart"');
+    }
 }

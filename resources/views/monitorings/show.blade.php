@@ -129,6 +129,9 @@
     loadHeatmap();
     loadUptime();
     loadPerformanceChart(responseTimeRange);
+    @if ($monitoring->type === MonitoringType::SERVER_HEALTH)
+    loadServerHealthTelemetry(serverHealthTelemetryRange);
+    @endif
     loadIncidents(incidentsRange);
     loadChecks();
     initializeDeferredLoads();" x-data="monitoringDetail('{{ $monitoring->id }}', {
@@ -146,6 +149,13 @@
         checkSourceLive: '{{ __('monitoring.detail.checks.sources.live') }}',
         checkSourceArchived: '{{ __('monitoring.detail.checks.sources.archived') }}',
         checkResponseTimeUnavailable: '{{ __('monitoring.detail.checks.response_time_unavailable') }}',
+        serverHealthCpuUsage: '{{ __('monitoring.detail.server_health.cpu_usage') }}',
+        serverHealthRamUsage: '{{ __('monitoring.detail.server_health.ram_usage') }}',
+        serverHealthStorageUsage: '{{ __('monitoring.detail.server_health.storage_usage') }}',
+        serverHealthNormalizedLoad: '{{ __('monitoring.detail.server_health.normalized_load') }}',
+        serverHealthThreshold: '{{ __('monitoring.detail.server_health.threshold') }}',
+        serverHealthPercentAxis: '{{ __('monitoring.detail.server_health.percent_axis') }}',
+        serverHealthLoadAxis: '{{ __('monitoring.detail.server_health.load_axis') }}',
     })">
 
         <section data-monitoring-summary class="mb-6 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="{{ __('monitoring.detail.summary_heading') }}">
@@ -350,6 +360,31 @@
                         </a>
                     </x-paragraph>
                 </x-container>
+
+                <div data-server-health-telemetry class="mb-4">
+                    <div class="mb-2 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <x-heading type="h2">{{ __('monitoring.detail.server_health.history') }}</x-heading>
+                            <x-paragraph class="text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.server_health.history_help') }}</x-paragraph>
+                        </div>
+                        <label for="server-health-telemetry-range" class="sr-only">{{ __('monitoring.filter.heading') }}</label>
+                        <select id="server-health-telemetry-range" x-model="serverHealthTelemetryRange"
+                            @change="loadServerHealthTelemetry(serverHealthTelemetryRange)"
+                            class="rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            <option value="1">{{ __('monitoring.filter.options.today') }}</option>
+                            <option value="7">{{ __('monitoring.filter.options.last_week') }}</option>
+                            <option value="30">{{ __('monitoring.filter.options.last_month') }}</option>
+                        </select>
+                    </div>
+                    <x-container>
+                        <div :class="{ 'hidden': serverHealthTelemetryLoading }" x-transition.opacity>
+                            <canvas id="server-health-telemetry-chart" class="min-h-[24rem]"></canvas>
+                        </div>
+                        <div x-show="serverHealthTelemetryLoading" x-transition.opacity>
+                            <x-loading-indicator>{{ __('monitoring.detail.server_health.history_loading') }}</x-loading-indicator>
+                        </div>
+                    </x-container>
+                </div>
             @endif
 
             @foreach (['7' => 'monitoring.detail.uptime_periods.last_7', '30' => 'monitoring.detail.uptime_periods.last_30', '90' => 'monitoring.detail.uptime_periods.last_90'] as $key => $label)

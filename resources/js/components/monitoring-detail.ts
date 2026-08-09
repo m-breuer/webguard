@@ -40,12 +40,15 @@ interface MonitoringDetailComponent {
     sslIssuer: string | null;
     sslIssueDate: string | null;
     performanceChartInstance: Chart | null;
+    serverHealthTelemetryChartInstance: Chart | null;
     responseStats: Record<string, any>;
     chartLoading: boolean;
+    serverHealthTelemetryLoading: boolean;
     responseStatsLoaded: Record<string, boolean>;
     totalDowntime: string | null;
     isDarkMode: boolean;
     responseTimeRange: string;
+    serverHealthTelemetryRange: string;
     incidentsRange: string;
     uptimeCalendarData: any[];
     uptimeCalendarLoading: boolean;
@@ -61,6 +64,9 @@ interface MonitoringDetailComponent {
     loadUptime(this: MonitoringDetailComponent): Promise<void>;
     loadSslStatus(this: MonitoringDetailComponent): Promise<void>;
     loadPerformanceChart(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
+    loadServerHealthTelemetry(this: MonitoringDetailComponent, days?: string | number): Promise<void>;
+    serverHealthDataset(this: MonitoringDetailComponent, label: string, telemetry: ServerHealthTelemetryPoint[], key: keyof Omit<ServerHealthTelemetryPoint, 'checked_at'>, color: string, yAxisID: string): object;
+    serverHealthThresholdDataset(this: MonitoringDetailComponent, label: string, telemetry: ServerHealthTelemetryPoint[], value: number, color: string, yAxisID: string): object;
     loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void>;
     initializeDeferredLoads(this: MonitoringDetailComponent): void;
     resolveCheckStatusLabel(this: MonitoringDetailComponent, statusIdentifier: string): string;
@@ -70,6 +76,14 @@ interface MonitoringDetailComponent {
     formatServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): string;
     hasServerHealthMetrics(this: MonitoringDetailComponent, metrics: Record<string, any> | null): boolean;
     responseTimeBarWidth(this: MonitoringDetailComponent, responseTime: number | null): number;
+}
+
+interface ServerHealthTelemetryPoint {
+    checked_at: string;
+    cpu_usage_percent: number | null;
+    ram_usage_percent: number | null;
+    storage_usage_percent: number | null;
+    normalized_load: number | null;
 }
 
 interface AlpineThisContext extends MonitoringDetailComponent {
@@ -113,12 +127,15 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
     sslIssuer: null as string | null,
     sslIssueDate: null as string | null,
     performanceChartInstance: null as Chart | null,
+    serverHealthTelemetryChartInstance: null as Chart | null,
     responseStats: {} as Record<string, any>,
     chartLoading: false,
+    serverHealthTelemetryLoading: false,
     responseStatsLoaded: {} as Record<string, boolean>,
     totalDowntime: null as string | null,
     isDarkMode: document.documentElement.classList.contains('dark'),
     responseTimeRange: '1',
+    serverHealthTelemetryRange: '1',
     incidentsRange: '1',
     uptimeCalendarData: [] as any[],
     uptimeCalendarLoading: false,
@@ -483,6 +500,96 @@ export default (monitoringId: string, chartLabels: Record<string, string>): Moni
         } finally {
             this.chartLoading = false;
         }
+    },
+
+    async loadServerHealthTelemetry(this: AlpineThisContext, days: string | number = this.serverHealthTelemetryRange): Promise<void> {
+        this.serverHealthTelemetryRange = days.toString();
+        this.serverHealthTelemetryLoading = true;
+
+        try {
+            const response = await fetch(`/api/monitorings/${monitoringId}/server-health-telemetry?days=${this.serverHealthTelemetryRange}`);
+            if (!response.ok) {
+                throw new Error('Unable to load server health telemetry.');
+            }
+
+            const payload: {
+                data: ServerHealthTelemetryPoint[];
+                thresholds: {
+                    cpu_usage_percent: number;
+                    ram_usage_percent: number;
+                    storage_usage_percent: number;
+                    load_per_cpu: number | null;
+                };
+            } = await response.json();
+
+            const canvas = document.getElementById('server-health-telemetry-chart') as HTMLCanvasElement | null;
+            if (!canvas) {
+                return;
+            }
+
+            if (this.serverHealthTelemetryChartInstance) {
+                this.serverHealthTelemetryChartInstance.destroy();
+            }
+
+            const telemetry = payload.data;
+            const threshold = this.chartLabels.serverHealthThreshold;
+            this.serverHealthTelemetryChartInstance = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: telemetry.map((point) => formatDateTime(point.checked_at)),
+                    datasets: [
+                        this.serverHealthDataset(this.chartLabels.serverHealthCpuUsage, telemetry, 'cpu_usage_percent', '#7c3aed', 'usage'),
+                        this.serverHealthDataset(this.chartLabels.serverHealthRamUsage, telemetry, 'ram_usage_percent', '#0ea5e9', 'usage'),
+                        this.serverHealthDataset(this.chartLabels.serverHealthStorageUsage, telemetry, 'storage_usage_percent', '#f59e0b', 'usage'),
+                        this.serverHealthDataset(this.chartLabels.serverHealthNormalizedLoad, telemetry, 'normalized_load', '#ec4899', 'load'),
+                        this.serverHealthThresholdDataset(`${this.chartLabels.serverHealthCpuUsage} ${threshold}`, telemetry, payload.thresholds.cpu_usage_percent, '#7c3aed', 'usage'),
+                        this.serverHealthThresholdDataset(`${this.chartLabels.serverHealthRamUsage} ${threshold}`, telemetry, payload.thresholds.ram_usage_percent, '#0ea5e9', 'usage'),
+                        this.serverHealthThresholdDataset(`${this.chartLabels.serverHealthStorageUsage} ${threshold}`, telemetry, payload.thresholds.storage_usage_percent, '#f59e0b', 'usage'),
+                        ...(payload.thresholds.load_per_cpu === null
+                            ? []
+                            : [this.serverHealthThresholdDataset(`${this.chartLabels.serverHealthNormalizedLoad} ${threshold}`, telemetry, payload.thresholds.load_per_cpu, '#ec4899', 'load')]),
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        usage: { beginAtZero: true, max: 100, title: { display: true, text: this.chartLabels.serverHealthPercentAxis } },
+                        load: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: this.chartLabels.serverHealthLoadAxis } },
+                    },
+                },
+            });
+        } catch (error) {
+            console.error('Failed to load server health telemetry:', error);
+        } finally {
+            this.serverHealthTelemetryLoading = false;
+        }
+    },
+
+    serverHealthDataset(this: MonitoringDetailComponent, label: string, telemetry: ServerHealthTelemetryPoint[], key: keyof Omit<ServerHealthTelemetryPoint, 'checked_at'>, color: string, yAxisID: string) {
+        return {
+            label,
+            data: telemetry.map((point) => point[key]),
+            borderColor: color,
+            backgroundColor: color,
+            yAxisID,
+            tension: 0.25,
+            spanGaps: true,
+        };
+    },
+
+    serverHealthThresholdDataset(this: MonitoringDetailComponent, label: string, telemetry: ServerHealthTelemetryPoint[], value: number, color: string, yAxisID: string) {
+        return {
+            label,
+            data: telemetry.map(() => value),
+            borderColor: color,
+            borderDash: [6, 6],
+            borderWidth: 1,
+            pointRadius: 0,
+            yAxisID,
+            tension: 0,
+        };
     },
 
     async loadUptimeCalendar(this: MonitoringDetailComponent): Promise<void> {
