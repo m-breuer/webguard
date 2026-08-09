@@ -81,7 +81,7 @@ export default (): FormModalLoader => ({
             }
 
             this.content = await response.text();
-            await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+            await window.Alpine.nextTick();
             const contentElement = (this as any).$refs.content as HTMLElement | undefined;
             if (contentElement) {
                 window.Alpine.initTree(contentElement);
