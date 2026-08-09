@@ -217,6 +217,34 @@ values and authorization headers are never recorded. Public status-page
 endpoints and browser management routes keep their existing contracts and do
 not expose this private workspace payload.
 
+## Mobile notification board and preferences
+
+Native clients use `/api/v1/mobile/notification-board` for a token-scoped
+notification history. Entries include a monitoring summary, event type,
+severity, occurrence time, and the authenticated user's read state. The
+default response excludes read entries; `show_read=true` includes them.
+Results are ordered newest first and use an opaque `next_cursor`, so clients
+must pass the cursor unchanged to fetch the next page.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/mobile/notification-board?cursor=&limit=&event_type=&show_read=` | Cursor-paginated private notification history and unread count. |
+| `PATCH` | `/mobile/notification-board/{notification}/read` | Marks one visible notification read; repeated calls remain successful. |
+| `PATCH` | `/mobile/notification-board/read-all` | Marks the token owner's notifications read; repeated calls remain successful. |
+| `GET` | `/mobile/monitorings/{monitoring}/notification-preferences` | Effective notification settings, source, permitted channels, and mutation capability. |
+| `PATCH` | `/mobile/monitorings/{monitoring}/notification-preferences` | Updates the authenticated user's monitoring preferences. |
+
+The board emits machine-readable incident, recovery, maintenance, performance,
+and SSL/domain expiry events. The `delivery_failure` filter and
+`delivery_status` report a failed channel delivery without changing the
+underlying notification event.
+Notification state is stored per recipient, so a read
+operation never changes another user's history. Preference updates apply to
+the caller's recipient record; private-monitoring updates also synchronize the
+legacy monitoring defaults for compatibility. Missing or invisible resources
+return `404`; malformed cursors and invalid fields use Laravel's normal `422`
+validation response.
+
 ## Mobile maintenance operations
 
 Native clients use the dedicated \`/api/v1/mobile/maintenance\` family rather
