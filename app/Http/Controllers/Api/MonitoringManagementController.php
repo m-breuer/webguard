@@ -10,11 +10,14 @@ use App\Http\Resources\External\MonitoringResource;
 use App\Models\Monitoring;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Monitorings\MonitoringGroupAssignmentService;
 use App\Services\Monitorings\MonitoringOwnershipService;
 use App\Support\MonitoringPayload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @group Monitoring Management
@@ -30,6 +33,10 @@ class MonitoringManagementController extends Controller
 
         $monitorings = Monitoring::query()
             ->visibleTo($user)
+            ->with([
+                'groups' => fn ($query) => $query->where('user_id', $user->id)->select(['id', 'name', 'description']),
+                'team.memberships' => fn ($query) => $query->where('user_id', $user->id),
+            ])
             ->orderBy('name')
             ->orderBy('id')
             ->paginate(min(max((int) $request->integer('per_page', 25), 1), 100));
@@ -41,8 +48,10 @@ class MonitoringManagementController extends Controller
         return response()->json($monitorings);
     }
 
-    public function store(MonitoringRequest $monitoringRequest): JsonResponse
-    {
+    public function store(
+        MonitoringRequest $monitoringRequest,
+        MonitoringGroupAssignmentService $monitoringGroupAssignmentService
+    ): JsonResponse {
         /** @var User $user */
         $user = $monitoringRequest->user();
         abort_if($user->isDemo(), 403);
@@ -54,41 +63,74 @@ class MonitoringManagementController extends Controller
 
         $validated = $monitoringRequest->validated();
         $teamId = $validated['team_id'] ?? null;
+        $groupIds = $validated['group_ids'] ?? [];
         unset($validated['group_ids'], $validated['team_id']);
+
+        if ($teamId !== null && $groupIds !== []) {
+            throw ValidationException::withMessages([
+                'group_ids' => [__('monitoring_group.validation.monitoring_not_manageable')],
+            ]);
+        }
 
         $payload = MonitoringPayload::prepareStore($validated);
 
-        if ($teamId) {
-            $payload['user_id'] = null;
-            $payload['team_id'] = $teamId;
-            $payload['created_by_user_id'] = $user->id;
+        $monitoring = DB::transaction(function () use ($teamId, $payload, $user, $groupIds, $monitoringGroupAssignmentService): Monitoring {
+            if ($teamId) {
+                $payload['user_id'] = null;
+                $payload['team_id'] = $teamId;
+                $payload['created_by_user_id'] = $user->id;
 
-            $monitoring = Monitoring::query()->create($payload);
-        } else {
+                return Monitoring::query()->create($payload);
+            }
+
             $monitoring = $user->monitorings()->create($payload);
-        }
+            $monitoringGroupAssignmentService->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
 
-        return response()->json(['data' => MonitoringResource::make($monitoring)->resolve($monitoringRequest)], 201);
+            return $monitoring;
+        });
+
+        return response()->json(['data' => MonitoringResource::make($monitoring->load([
+            'groups' => fn ($query) => $query->where('user_id', $user->id)->select(['id', 'name', 'description']),
+        ]))->resolve($monitoringRequest)], 201);
     }
 
-    public function update(MonitoringRequest $monitoringRequest, Monitoring $monitoring): JsonResponse
-    {
+    public function update(
+        MonitoringRequest $monitoringRequest,
+        Monitoring $monitoring,
+        MonitoringGroupAssignmentService $monitoringGroupAssignmentService
+    ): JsonResponse {
         /** @var User $user */
         $user = $monitoringRequest->user();
         abort_if($user->isDemo(), 403);
         abort_unless($monitoring->isManageableBy($user), 403);
 
         $validated = $monitoringRequest->validated();
+        $hasGroupIds = array_key_exists('group_ids', $validated);
+        $groupIds = $validated['group_ids'] ?? [];
         unset($validated['group_ids'], $validated['team_id']);
+
+        if ($hasGroupIds && ! $monitoring->isPrivateOwned()) {
+            throw ValidationException::withMessages([
+                'group_ids' => [__('monitoring_group.validation.monitoring_not_manageable')],
+            ]);
+        }
 
         $payload = MonitoringPayload::prepareUpdate($validated, $monitoring);
         if (! isset($payload['public_label_enabled']) || ! $payload['public_label_enabled']) {
             $payload['public_label_enabled'] = false;
         }
 
-        $monitoring->update($payload);
+        DB::transaction(function () use ($monitoring, $payload, $hasGroupIds, $groupIds, $user, $monitoringGroupAssignmentService): void {
+            $monitoring->update($payload);
 
-        return response()->json(['data' => MonitoringResource::make($monitoring->refresh())->resolve($monitoringRequest)]);
+            if ($hasGroupIds) {
+                $monitoringGroupAssignmentService->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
+            }
+        });
+
+        return response()->json(['data' => MonitoringResource::make($monitoring->refresh()->load([
+            'groups' => fn ($query) => $query->where('user_id', $user->id)->select(['id', 'name', 'description']),
+        ]))->resolve($monitoringRequest)]);
     }
 
     public function destroy(Request $request, Monitoring $monitoring): JsonResponse
@@ -128,7 +170,9 @@ class MonitoringManagementController extends Controller
         $team = Team::query()->findOrFail($validated['team_id']);
 
         return response()->json([
-            'data' => MonitoringResource::make($monitoringOwnershipService->moveToTeam($monitoring, $team, $user))->resolve($request),
+            'data' => MonitoringResource::make($monitoringOwnershipService->moveToTeam($monitoring, $team, $user)->load([
+                'groups' => fn ($query) => $query->where('user_id', $user->id)->select(['id', 'name', 'description']),
+            ]))->resolve($request),
         ]);
     }
 
@@ -142,7 +186,9 @@ class MonitoringManagementController extends Controller
         abort_if($user->isDemo(), 403);
 
         return response()->json([
-            'data' => MonitoringResource::make($monitoringOwnershipService->moveToPrivate($monitoring, $user))->resolve($request),
+            'data' => MonitoringResource::make($monitoringOwnershipService->moveToPrivate($monitoring, $user)->load([
+                'groups' => fn ($query) => $query->where('user_id', $user->id)->select(['id', 'name', 'description']),
+            ]))->resolve($request),
         ]);
     }
 }

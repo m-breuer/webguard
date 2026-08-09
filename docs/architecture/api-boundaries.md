@@ -24,6 +24,7 @@ The route family, authentication boundary, and owner are as follows.
 | Consumer | Route family | Authentication | Compatibility policy |
 | --- | --- | --- | --- |
 | External integrations | `/api/v1/*` | Sanctum personal-access token | Stable public contract; changes are additive or use a new major version. |
+| Native mobile clients | `/api/v1/mobile/*` | Sanctum mobile-app token | Stable client contract; browser form payloads are never part of this boundary. |
 | Management UI | `/api/v1/internal/ui/*` | Authenticated, verified browser session; CSRF protection for unsafe requests | Private application contract; evolve with the Core UI behind reversible rollout switches. |
 | Scanner instances | `/api/v1/internal/instances/*` | `X-INSTANCE-CODE` and `X-API-KEY` through `auth.instance` | Separate compatibility contract shared with `webguard-instance`. |
 | Public read endpoints | `/api/public/*` and explicit public routes | No account authentication; strict allowlisted payloads | Never expose private monitoring, team, token, or notification data. |
