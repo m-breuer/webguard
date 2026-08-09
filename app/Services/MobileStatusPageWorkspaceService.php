@@ -13,6 +13,7 @@ use App\Models\StatusPage;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
@@ -35,7 +36,7 @@ class MobileStatusPageWorkspaceService
             ->where('user_id', $user->id)
             ->withCount([
                 'components',
-                'subscriptions as verified_subscriber_count' => fn (Builder $query) => $query->whereNotNull('verified_at'),
+                'subscriptions as verified_subscriber_count' => fn (Builder $builder) => $builder->whereNotNull('verified_at'),
             ]);
     }
 
@@ -47,7 +48,7 @@ class MobileStatusPageWorkspaceService
             'components.monitoringGroup.monitorings' => fn ($query) => $query->manageableBy($user)->orderBy('name')->orderBy('id'),
         ])->loadCount([
             'components',
-            'subscriptions as verified_subscriber_count' => fn (Builder $query) => $query->whereNotNull('verified_at'),
+            'subscriptions as verified_subscriber_count' => fn (Builder $builder) => $builder->whereNotNull('verified_at'),
         ]);
     }
 
@@ -58,7 +59,7 @@ class MobileStatusPageWorkspaceService
     {
         return Incident::query()
             ->whereIn('monitoring_id', $this->statusPageMonitoringIds($statusPage))
-            ->whereHas('monitoring', fn (Builder $query) => $query->manageableBy($user))
+            ->whereHas('monitoring', fn (Builder $builder) => $builder->manageableBy($user))
             ->with([
                 'monitoring',
                 'updates',
@@ -247,9 +248,9 @@ class MobileStatusPageWorkspaceService
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, string>
+     * @return Collection<int, string>
      */
-    private function statusPageMonitoringIds(StatusPage $statusPage): \Illuminate\Support\Collection
+    private function statusPageMonitoringIds(StatusPage $statusPage): Collection
     {
         $statusPage->loadMissing(['components.monitorings:id', 'components.monitoringGroup.monitorings:id']);
 

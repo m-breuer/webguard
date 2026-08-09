@@ -9,6 +9,7 @@ use App\Models\StatusPage;
 use App\Models\StatusPageComponent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * @mixin StatusPage
@@ -36,7 +37,7 @@ final class MobileStatusPageResource extends JsonResource
             'open_incident_count' => (int) ($statusPage->open_incident_count ?? 0),
             'components' => $statusPage->relationLoaded('components')
                 ? $statusPage->components
-                    ->map(fn (StatusPageComponent $component): array => $this->componentPayload($component))
+                    ->map(fn (StatusPageComponent $statusPageComponent): array => $this->componentPayload($statusPageComponent))
                     ->values()
                     ->all()
                 : [],
@@ -48,22 +49,22 @@ final class MobileStatusPageResource extends JsonResource
     /**
      * @return array<string, mixed>
      */
-    private function componentPayload(StatusPageComponent $component): array
+    private function componentPayload(StatusPageComponent $statusPageComponent): array
     {
         return [
-            'id' => $component->id,
-            'name' => $component->name,
-            'description' => $component->description,
-            'position' => $component->position,
-            'source_type' => $component->source_type->value,
-            'monitoring_group' => $component->relationLoaded('monitoringGroup') && $component->monitoringGroup !== null
+            'id' => $statusPageComponent->id,
+            'name' => $statusPageComponent->name,
+            'description' => $statusPageComponent->description,
+            'position' => $statusPageComponent->position,
+            'source_type' => $statusPageComponent->source_type->value,
+            'monitoring_group' => $statusPageComponent->relationLoaded('monitoringGroup') && $statusPageComponent->monitoringGroup !== null
                 ? [
-                    'id' => $component->monitoringGroup->id,
-                    'name' => $component->monitoringGroup->name,
-                    'monitoring_count' => (int) ($component->monitoringGroup->monitorings_count ?? 0),
+                    'id' => $statusPageComponent->monitoringGroup->id,
+                    'name' => $statusPageComponent->monitoringGroup->name,
+                    'monitoring_count' => (int) ($statusPageComponent->monitoringGroup->monitorings_count ?? 0),
                 ]
                 : null,
-            'monitorings' => $this->componentMonitorings($component)
+            'monitorings' => $this->componentMonitorings($statusPageComponent)
                 ->map(fn (Monitoring $monitoring): array => [
                     'id' => $monitoring->id,
                     'name' => $monitoring->name,
@@ -75,14 +76,14 @@ final class MobileStatusPageResource extends JsonResource
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, Monitoring>
+     * @return Collection<int, Monitoring>
      */
-    private function componentMonitorings(StatusPageComponent $component): \Illuminate\Support\Collection
+    private function componentMonitorings(StatusPageComponent $statusPageComponent): Collection
     {
-        if ($component->source_type->value === 'monitoring_group') {
-            return $component->monitoringGroup?->monitorings ?? collect();
+        if ($statusPageComponent->source_type->value === 'monitoring_group') {
+            return $statusPageComponent->monitoringGroup?->monitorings ?? collect();
         }
 
-        return $component->monitorings;
+        return $statusPageComponent->monitorings;
     }
 }

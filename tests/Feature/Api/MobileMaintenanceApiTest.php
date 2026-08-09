@@ -41,7 +41,7 @@ class MobileMaintenanceApiTest extends TestCase
             'name' => 'Hidden API',
             'maintenance_from' => Date::now()->subHour(),
         ]);
-        $recurring = MaintenanceWindow::query()->create([
+        $maintenanceWindow = MaintenanceWindow::query()->create([
             'monitoring_id' => $privateMonitoring->id,
             'starts_at' => '2026-03-22 01:30:00',
             'duration_minutes' => 90,
@@ -65,7 +65,7 @@ class MobileMaintenanceApiTest extends TestCase
 
         $this->getJson('/api/v1/mobile/maintenance/recurring?state=upcoming')
             ->assertOk()
-            ->assertJsonPath('data.0.id', $recurring->id)
+            ->assertJsonPath('data.0.id', $maintenanceWindow->id)
             ->assertJsonPath('data.0.schedule.timezone', 'Europe/Berlin')
             ->assertJsonPath('data.0.kind', 'recurring');
     }
@@ -97,11 +97,11 @@ class MobileMaintenanceApiTest extends TestCase
             ->assertJsonPath('idempotent', true);
         $this->assertDatabaseCount('maintenance_windows', 1);
 
-        $window = MaintenanceWindow::query()->firstOrFail();
-        $this->patchJson('/api/v1/mobile/maintenance/recurring/' . $window->id, ['enabled' => false])
+        $maintenanceWindow = MaintenanceWindow::query()->firstOrFail();
+        $this->patchJson('/api/v1/mobile/maintenance/recurring/' . $maintenanceWindow->id, ['enabled' => false])
             ->assertOk()
             ->assertJsonPath('data.state', 'disabled');
-        $this->patchJson('/api/v1/mobile/maintenance/recurring/' . $window->id, ['enabled' => true])
+        $this->patchJson('/api/v1/mobile/maintenance/recurring/' . $maintenanceWindow->id, ['enabled' => true])
             ->assertOk()
             ->assertJsonPath('data.enabled', true);
 
