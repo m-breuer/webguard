@@ -117,6 +117,11 @@ class MonitoringStatsCache
         return sprintf('monitoring:%s:response:%s:%s', $monitoring->id, $days, $monitoringDateRange->cacheDateSegment());
     }
 
+    public function serverHealthTelemetryKey(Monitoring $monitoring, int $days, MonitoringDateRange $monitoringDateRange): string
+    {
+        return sprintf('monitoring:%s:server-health-telemetry:%s:%s', $monitoring->id, $days, $monitoringDateRange->cacheDateSegment());
+    }
+
     public function checksKey(Monitoring $monitoring, ?int $days, int $limit, int $offset): string
     {
         return sprintf(

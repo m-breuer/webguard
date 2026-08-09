@@ -21,6 +21,7 @@ use App\Services\MonitoringDashboardPayloadService;
 use App\Services\MonitoringHeatmapService;
 use App\Services\MonitoringIncidentService;
 use App\Services\MonitoringResponseTimeService;
+use App\Services\MonitoringServerHealthTelemetryService;
 use App\Services\MonitoringStatsCache;
 use App\Services\MonitoringStatusPayloadService;
 use App\Services\MonitoringUptimeCalendarService;
@@ -228,6 +229,33 @@ class ApiController extends Controller
                 $monitoringDateRange->endDate,
                 $monitoringDateRange->shouldUseResponseTimeAggregates()
             )
+        );
+
+        return response()->json($data);
+    }
+
+    /**
+     * Retrieves aggregated server-health telemetry for a given monitoring instance.
+     *
+     * @queryParam days integer The number of days to retrieve data for. Defaults to 30. Example: 7
+     */
+    public function serverHealthTelemetry(
+        Monitoring $monitoring,
+        MonitoringDaysRequest $monitoringDaysRequest,
+        MonitoringServerHealthTelemetryService $monitoringServerHealthTelemetryService
+    ): JsonResponse {
+        $monitoring = $this->accessibleMonitoring($monitoring);
+        $days = $monitoringDaysRequest->days();
+        $monitoringDateRange = $monitoringDaysRequest->dateRange();
+
+        $data = $this->monitoringStatsCache->remember(
+            $monitoring,
+            $this->monitoringStatsCache->serverHealthTelemetryKey($monitoring, $days, $monitoringDateRange),
+            fn (): array => $monitoringServerHealthTelemetryService->getTelemetry(
+                $monitoring,
+                $monitoringDateRange->startDate,
+                $monitoringDateRange->endDate,
+            ),
         );
 
         return response()->json($data);

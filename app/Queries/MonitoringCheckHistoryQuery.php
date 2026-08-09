@@ -58,6 +58,20 @@ final class MonitoringCheckHistoryQuery
             ->get();
     }
 
+    /**
+     * @return Collection<int, object>
+     */
+    public function forRange(string $monitoringId, Carbon $startDate, Carbon $endDate): Collection
+    {
+        $builder = $this->sourceQuery(self::LIVE_TABLE, 'live', $monitoringId, $startDate, $endDate);
+        $archived = $this->sourceQuery(self::ARCHIVED_TABLE, 'archived', $monitoringId, $startDate, $endDate);
+
+        return DB::query()
+            ->fromSub($builder->unionAll($archived), 'monitoring_results')
+            ->orderBy('created_at')
+            ->get();
+    }
+
     private function sourceQuery(
         string $table,
         string $source,
