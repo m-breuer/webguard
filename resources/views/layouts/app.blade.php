@@ -21,6 +21,7 @@
     <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
     <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
 
+    <x-theme-bootstrap />
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
     <script>
         window.App = {
