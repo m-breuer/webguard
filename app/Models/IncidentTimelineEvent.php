@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'description',
     'occurred_at',
     'source_type',
+    'mobile_idempotency_key',
 ])]
 #[WithoutIncrementing]
 class IncidentTimelineEvent extends Model

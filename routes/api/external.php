@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
 use App\Http\Controllers\Api\External\MobilePushDeviceController;
+use App\Http\Controllers\Api\External\MobileStatusPageWorkspaceController;
 use App\Http\Controllers\Api\External\MonitoringDataController;
 use App\Http\Controllers\Api\External\MonitoringManagementController;
 use App\Http\Controllers\Api\External\TeamController;
@@ -48,6 +49,23 @@ Route::group(['prefix' => 'mobile/monitoring-groups', 'as' => 'mobile.monitoring
     Route::get('/{monitoringGroup}', [MobileMonitoringGroupController::class, 'show'])->name('show');
     Route::patch('/{monitoringGroup}', [MobileMonitoringGroupController::class, 'update'])->name('update');
     Route::delete('/{monitoringGroup}', [MobileMonitoringGroupController::class, 'destroy'])->name('destroy');
+});
+
+Route::group(['prefix' => 'mobile/status-pages', 'as' => 'mobile.status-pages.'], function (): void {
+    Route::get('/', [MobileStatusPageWorkspaceController::class, 'index'])->name('index');
+    Route::get('/{statusPage}', [MobileStatusPageWorkspaceController::class, 'show'])->name('show');
+    Route::patch('/{statusPage}/publication', [MobileStatusPageWorkspaceController::class, 'updatePublication'])->name('publication.update');
+    Route::get('/{statusPage}/incidents', [MobileStatusPageWorkspaceController::class, 'incidents'])->name('incidents.index');
+    Route::get('/{statusPage}/incidents/{incident}', [MobileStatusPageWorkspaceController::class, 'showIncident'])->name('incidents.show');
+    Route::post('/{statusPage}/incidents/{incident}/updates', [MobileStatusPageWorkspaceController::class, 'storeIncidentUpdate'])->name('incidents.updates.store');
+    Route::patch('/{statusPage}/incidents/{incident}/metadata', [MobileStatusPageWorkspaceController::class, 'updateMetadata'])->name('incidents.metadata.update');
+    Route::patch('/{statusPage}/incidents/{incident}/review', [MobileStatusPageWorkspaceController::class, 'updateReview'])->name('incidents.review.update');
+    Route::post('/{statusPage}/incidents/{incident}/follow-ups', [MobileStatusPageWorkspaceController::class, 'storeFollowUp'])->name('incidents.follow-ups.store');
+    Route::patch('/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [MobileStatusPageWorkspaceController::class, 'updateFollowUp'])->name('incidents.follow-ups.update');
+    Route::delete('/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [MobileStatusPageWorkspaceController::class, 'destroyFollowUp'])->name('incidents.follow-ups.destroy');
+    Route::post('/{statusPage}/incidents/{incident}/timeline', [MobileStatusPageWorkspaceController::class, 'storeTimelineEvent'])->name('incidents.timeline.store');
+    Route::patch('/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [MobileStatusPageWorkspaceController::class, 'updateTimelineEvent'])->name('incidents.timeline.update');
+    Route::delete('/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [MobileStatusPageWorkspaceController::class, 'destroyTimelineEvent'])->name('incidents.timeline.destroy');
 });
 
 Route::apiResource('mobile-push-devices', MobilePushDeviceController::class)

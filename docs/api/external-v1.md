@@ -119,6 +119,43 @@ provided; omitting it leaves existing assignments unchanged. `DELETE` returns
 `404` for an unknown or inaccessible group, so clients should re-list groups
 after an unknown deletion outcome.
 
+## Mobile status-page incident workspace
+
+Native clients use `/api/v1/mobile/status-pages` for a private workspace that
+is deliberately separate from public status-page output and browser management
+routes. A status page is visible only to its owner. Incidents are included only
+when their monitoring is manageable by that user; team-owned monitorings
+therefore require the existing team-administrator permission. Inaccessible
+status pages and incidents return `404`, avoiding ownership disclosure.
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/mobile/status-pages` | Paginated private status-page summaries, including publication state, component and verified subscriber counts, and open incident count. |
+| `GET` | `/mobile/status-pages/{statusPage}` | One workspace with safely manageable components and monitoring-group context. |
+| `PATCH` | `/mobile/status-pages/{statusPage}/publication` | Publishes or unpublishes the status page with `is_public`. |
+| `GET` | `/mobile/status-pages/{statusPage}/incidents?state=open|resolved` | Paginated incident workspaces for the status page. |
+| `GET` | `/mobile/status-pages/{statusPage}/incidents/{incident}` | One incident with private metadata, readiness, updates, follow-ups, and timeline. |
+| `POST` | `/mobile/status-pages/{statusPage}/incidents/{incident}/updates` | Creates a public incident update. |
+| `PATCH` | `/mobile/status-pages/{statusPage}/incidents/{incident}/metadata` | Updates incident severity, affected service, and private metadata. |
+| `PATCH` | `/mobile/status-pages/{statusPage}/incidents/{incident}/review` | Updates post-incident review fields. |
+| `POST`, `PATCH`, `DELETE` | `/mobile/status-pages/{statusPage}/incidents/{incident}/follow-ups[/{followUp}]` | Creates, updates, or removes follow-up work. |
+| `POST`, `PATCH`, `DELETE` | `/mobile/status-pages/{statusPage}/incidents/{incident}/timeline[/{timelineEvent}]` | Creates, updates, or removes custom timeline entries. |
+
+`POST` requests for updates, follow-ups, and custom timeline events require an
+`Idempotency-Key` header (one to 100 characters). The key is stored per
+incident and communication type: the first request returns `201`, while a
+retry with the same key returns the original resource with `200` and creates no
+additional update, follow-up, timeline event, or audit record. `PATCH` and
+`DELETE` have normal HTTP idempotency semantics; clients should use the returned
+current resource state or re-read after an unknown outcome rather than infer a
+concurrent write result.
+
+The workspace uses ordinary Laravel field-keyed validation errors. Mutations
+are recorded in the activity log with the authenticated user as causer; token
+values and authorization headers are never recorded. Public status-page
+endpoints and browser management routes keep their existing contracts and do
+not expose this private workspace payload.
+
 Scribe generates the OpenAPI and reference documentation from route metadata,
 request rules, controller annotations, and this configuration. Do not edit the
 generated artifacts manually.

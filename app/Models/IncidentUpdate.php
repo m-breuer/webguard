@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'incident_id',
     'status',
     'message',
+    'mobile_idempotency_key',
 ])]
 #[WithoutIncrementing]
 class IncidentUpdate extends Model
