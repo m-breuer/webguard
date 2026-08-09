@@ -25,7 +25,7 @@ class MobileNotificationBoardApiTest extends TestCase
         Date::setTestNow('2026-08-09 20:00:00');
         $user = $this->user(['notification_channels' => ['mail' => ['enabled' => true]]]);
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
-        $first = $this->notification($monitoring, NotificationType::STATUS_CHANGE, 'Service down', Date::now()->subMinutes(2));
+        $monitoringNotification = $this->notification($monitoring, NotificationType::STATUS_CHANGE, 'Service down', Date::now()->subMinutes(2));
         $second = $this->notification($monitoring, NotificationType::SSL_EXPIRY, 'SSL_EXPIRING', Date::now()->subMinute());
         NotificationChannelDelivery::query()->create([
             'user_id' => $user->id,
@@ -39,7 +39,7 @@ class MobileNotificationBoardApiTest extends TestCase
         $hiddenNotification = $this->notification($hidden, NotificationType::DOMAIN_EXPIRY, 'DOMAIN_EXPIRED', Date::now());
         $this->actingAsMobile($user);
 
-        $response = $this->getJson('/api/v1/mobile/notification-board?limit=1')
+        $testResponse = $this->getJson('/api/v1/mobile/notification-board?limit=1')
             ->assertOk()
             ->assertJsonPath('data.0.id', $second->id)
             ->assertJsonPath('data.0.event_type', 'ssl_expiring')
@@ -48,9 +48,9 @@ class MobileNotificationBoardApiTest extends TestCase
             ->assertJsonPath('meta.unread_count', 2)
             ->assertJsonMissing(['id' => $hiddenNotification->id]);
 
-        $this->getJson('/api/v1/mobile/notification-board?limit=1&cursor=' . urlencode($response->json('meta.next_cursor')))
+        $this->getJson('/api/v1/mobile/notification-board?limit=1&cursor=' . urlencode($testResponse->json('meta.next_cursor')))
             ->assertOk()
-            ->assertJsonPath('data.0.id', $first->id);
+            ->assertJsonPath('data.0.id', $monitoringNotification->id);
         $this->getJson('/api/v1/mobile/notification-board?event_type=delivery_failure')
             ->assertOk()
             ->assertJsonPath('data.0.id', $second->id);
@@ -84,10 +84,10 @@ class MobileNotificationBoardApiTest extends TestCase
 
     public function test_mobile_notification_preferences_are_per_team_member(): void
     {
-        $owner = $this->user();
+        $user = $this->user();
         $member = $this->user(['notification_channels' => ['mail' => ['enabled' => true]]]);
-        $team = Team::factory()->create(['created_by_user_id' => $owner->id]);
-        $team->memberships()->create(['user_id' => $owner->id, 'role' => 'admin']);
+        $team = Team::factory()->create(['created_by_user_id' => $user->id]);
+        $team->memberships()->create(['user_id' => $user->id, 'role' => 'admin']);
         $team->memberships()->create(['user_id' => $member->id, 'role' => 'member']);
         $monitoring = Monitoring::factory()->create([
             'user_id' => null,
@@ -120,16 +120,16 @@ class MobileNotificationBoardApiTest extends TestCase
         return User::factory()->create([...['package_id' => Package::factory()->create()->id], ...$attributes]);
     }
 
-    private function notification(Monitoring $monitoring, NotificationType $type, string $message, mixed $createdAt): MonitoringNotification
+    private function notification(Monitoring $monitoring, NotificationType $notificationType, string $message, mixed $createdAt): MonitoringNotification
     {
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
-            'type' => $type,
+            'type' => $notificationType,
             'message' => $message,
         ]);
-        $notification->update(['created_at' => $createdAt, 'updated_at' => $createdAt]);
+        $monitoringNotification->update(['created_at' => $createdAt, 'updated_at' => $createdAt]);
 
-        return $notification->refresh();
+        return $monitoringNotification->refresh();
     }
 
     private function actingAsMobile(User $user): void

@@ -79,6 +79,30 @@ function () {
 }
 JS, true);
 
+        $webpage->assertScript(<<<'JS'
+function () {
+    const form = document.querySelector('[data-form-modal="monitoring-form-modal"] [x-ref="content"] form');
+    const type = form?.querySelector('select[name="type"]');
+
+    if (! type) {
+        return false;
+    }
+
+    type.value = 'server_health';
+    type.dispatchEvent(new Event('input', { bubbles: true }));
+    type.dispatchEvent(new Event('change', { bubbles: true }));
+
+    const serverHealthFields = form.querySelector('[x-show="type === \'server_health\'"]');
+    const target = form.querySelector('input[name="target"]')?.closest('div[x-show]');
+
+    return type.value === 'server_health'
+        && serverHealthFields instanceof HTMLElement
+        && getComputedStyle(serverHealthFields).display !== 'none'
+        && target instanceof HTMLElement
+        && getComputedStyle(target).display === 'none';
+}
+JS, true);
+
         if ($width === 390) {
             $webpage->assertScript(<<<'JS'
 function () {
