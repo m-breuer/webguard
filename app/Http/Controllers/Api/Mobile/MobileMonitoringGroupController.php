@@ -12,6 +12,7 @@ use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\User;
 use App\Services\Monitorings\MonitoringGroupAssignmentService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -24,16 +25,16 @@ class MobileMonitoringGroupController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $monitoringGroups = $this->ownedGroups($user)
+        $lengthAwarePaginator = $this->ownedGroups($user)
             ->orderBy('name')
             ->orderBy('id')
             ->paginate($this->perPage($request));
 
-        $monitoringGroups->setCollection($monitoringGroups->getCollection()->map(
+        $lengthAwarePaginator->setCollection($lengthAwarePaginator->getCollection()->map(
             fn (MonitoringGroup $monitoringGroup): array => MobileMonitoringGroupResource::make($monitoringGroup)->resolve($request)
         ));
 
-        return response()->json($monitoringGroups);
+        return response()->json($lengthAwarePaginator);
     }
 
     public function show(Request $request, string $monitoringGroup): JsonResponse
@@ -136,9 +137,9 @@ class MobileMonitoringGroupController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<MonitoringGroup>
+     * @return Builder<MonitoringGroup>
      */
-    private function ownedGroups(User $user): \Illuminate\Database\Eloquent\Builder
+    private function ownedGroups(User $user): Builder
     {
         return $user->monitoringGroups()->getQuery()->withCount([
             'monitorings as assignable_monitoring_count' => fn ($query) => $query->privateOwnedBy($user),

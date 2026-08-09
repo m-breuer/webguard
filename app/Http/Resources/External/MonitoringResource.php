@@ -55,7 +55,7 @@ final class MonitoringResource extends CompatibilityResource
 
         if ($monitoring->team?->relationLoaded('memberships')) {
             return $monitoring->team->memberships
-                ->contains(fn (TeamMembership $membership): bool => $membership->user_id === $user->id && $membership->role === TeamRole::ADMIN);
+                ->contains(fn (TeamMembership $teamMembership): bool => $teamMembership->user_id === $user->id && $teamMembership->role === TeamRole::ADMIN);
         }
 
         return $monitoring->isManageableBy($user);

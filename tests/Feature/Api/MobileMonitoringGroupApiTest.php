@@ -30,13 +30,13 @@ class MobileMonitoringGroupApiTest extends TestCase
         $foreignGroup = MonitoringGroup::factory()->for(User::factory()->create())->create(['name' => 'Hidden group']);
         Sanctum::actingAs($user);
 
-        $createResponse = $this->postJson('/api/v1/mobile/monitoring-groups', [
+        $testResponse = $this->postJson('/api/v1/mobile/monitoring-groups', [
             'name' => 'Production',
             'description' => 'Critical services',
             'monitoring_ids' => [$firstMonitoring->id],
         ]);
 
-        $createResponse
+        $testResponse
             ->assertCreated()
             ->assertJsonPath('data.name', 'Production')
             ->assertJsonPath('data.ownership.type', 'private')
@@ -132,17 +132,17 @@ class MobileMonitoringGroupApiTest extends TestCase
         $secondGroup = MonitoringGroup::factory()->for($user)->create(['name' => 'Billing']);
         Sanctum::actingAs($user);
 
-        $createResponse = $this->postJson('/api/v1/monitorings', $this->monitoringPayload($serverInstance, [
+        $testResponse = $this->postJson('/api/v1/monitorings', $this->monitoringPayload($serverInstance, [
             'group_ids' => [$firstGroup->id],
         ]));
 
-        $createResponse
+        $testResponse
             ->assertCreated()
             ->assertJsonPath('data.ownership.type', 'private')
             ->assertJsonPath('data.ownership.can_manage', true)
             ->assertJsonPath('data.group_assignments.0.id', $firstGroup->id);
 
-        $monitoringId = $createResponse->json('data.id');
+        $monitoringId = $testResponse->json('data.id');
 
         $this->patchJson('/api/v1/monitorings/' . $monitoringId, $this->monitoringPayload($serverInstance, [
             'group_ids' => [$secondGroup->id],
