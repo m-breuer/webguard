@@ -26,7 +26,7 @@ class NotificationBoardService
      */
     public function mobileEntries(User $user, ?string $cursor, int $limit, ?string $eventType, bool $showRead): Collection
     {
-        $query = MonitoringNotification::query()
+        $builder = MonitoringNotification::query()
             ->withoutGlobalScopes()
             ->select('monitoring_notifications.*', 'monitoring_notification_states.read_at as user_read_at')
             ->join('monitoring_notification_states', 'monitoring_notification_states.monitoring_notification_id', '=', 'monitoring_notifications.id')
@@ -41,16 +41,16 @@ class NotificationBoardService
                     ->where('notification_channel_deliveries.status', NotificationDeliveryStatus::FAILED),
                 'failed_delivery_count',
             )
-            ->where(function (Builder $query) use ($user): void {
-                $query->where('monitorings.user_id', $user->id)
-                    ->orWhereExists(function (QueryBuilder $query) use ($user): void {
-                        $query->selectRaw('1')->from('team_memberships')
+            ->where(function (Builder $builder) use ($user): void {
+                $builder->where('monitorings.user_id', $user->id)
+                    ->orWhereExists(function (QueryBuilder $queryBuilder) use ($user): void {
+                        $queryBuilder->selectRaw('1')->from('team_memberships')
                             ->whereColumn('team_memberships.team_id', 'monitorings.team_id')
                             ->where('team_memberships.user_id', $user->id);
                     });
             })
-            ->when($eventType !== null, fn (Builder $query) => $this->filterMobileEntriesByEventType($query, $eventType, $user))
-            ->when(! $showRead, fn (Builder $query) => $query->whereNull('monitoring_notification_states.read_at'))
+            ->when($eventType !== null, fn (Builder $builder) => $this->filterMobileEntriesByEventType($builder, $eventType, $user))
+            ->when(! $showRead, fn (Builder $builder) => $builder->whereNull('monitoring_notification_states.read_at'))
             ->with('monitoring:id,name,target')
             ->latest('monitoring_notifications.created_at')
             ->orderByDesc('monitoring_notifications.id')
@@ -61,14 +61,14 @@ class NotificationBoardService
             $query->where(function (Builder $query) use ($createdAt, $id): void {
                 $query->where('monitoring_notifications.created_at', '<', $createdAt)
                     ->orWhere(function (Builder $query) use ($createdAt, $id): void {
-                        $query->where('monitoring_notifications.created_at', $createdAt)
+                        $builder->where('monitoring_notifications.created_at', $createdAt)
                             ->where('monitoring_notifications.id', '<', $id);
                     });
             });
         }
 
-        return $query->get()->map(function (MonitoringNotification $notification): array {
-            $eventType = $this->mobileEventType($notification);
+        return $query->get()->map(function (MonitoringNotification $monitoringNotification): array {
+            $eventType = $this->mobileEventType($monitoringNotification);
             $severity = match ($eventType) {
                 'incident', 'ssl_expired', 'domain_expired' => 'critical',
                 'ssl_expiring', 'domain_expiring', 'performance_degraded', 'delivery_failure' => 'warning',
@@ -76,31 +76,31 @@ class NotificationBoardService
             };
 
             return [
-                'id' => $notification->id,
+                'id' => $monitoringNotification->id,
                 'event_type' => $eventType,
                 'severity' => $severity,
-                'message' => $notification->message,
-                'occurred_at' => $notification->created_at?->toIso8601String(),
-                'read' => $notification->user_read_at !== null,
-                'delivery_status' => (int) $notification->failed_delivery_count > 0 ? 'failed' : 'unknown',
+                'message' => $monitoringNotification->message,
+                'occurred_at' => $monitoringNotification->created_at?->toIso8601String(),
+                'read' => $monitoringNotification->user_read_at !== null,
+                'delivery_status' => (int) $monitoringNotification->failed_delivery_count > 0 ? 'failed' : 'unknown',
                 'monitoring' => [
-                    'id' => $notification->monitoring->id,
-                    'name' => $notification->monitoring->name,
-                    'target' => $notification->monitoring->target,
+                    'id' => $monitoringNotification->monitoring->id,
+                    'name' => $monitoringNotification->monitoring->name,
+                    'target' => $monitoringNotification->monitoring->target,
                 ],
-                'cursor' => $this->encodeCursor($notification),
+                'cursor' => $this->encodeCursor($monitoringNotification),
             ];
         });
     }
 
-    public function markRead(User $user, MonitoringNotification $notification): void
+    public function markRead(User $user, MonitoringNotification $monitoringNotification): void
     {
-        abort_unless($notification->monitoring->isVisibleTo($user), 404);
-        $notificationIds = $notification->type === NotificationType::STATUS_CHANGE
-            ? MonitoringNotification::query()->withoutGlobalScopes()->where('monitoring_id', $notification->monitoring_id)->statusChange()
-                ->where(fn (Builder $query) => $query->where('created_at', '<', $notification->created_at)
-                    ->orWhere(fn (Builder $query) => $query->where('created_at', $notification->created_at)->where('id', '<=', $notification->id)))->pluck('id')
-            : collect([$notification->id]);
+        abort_unless($monitoringNotification->monitoring->isVisibleTo($user), 404);
+        $notificationIds = $monitoringNotification->type === NotificationType::STATUS_CHANGE
+            ? MonitoringNotification::query()->withoutGlobalScopes()->where('monitoring_id', $monitoringNotification->monitoring_id)->statusChange()
+                ->where(fn (Builder $builder) => $builder->where('created_at', '<', $monitoringNotification->created_at)
+                    ->orWhere(fn (Builder $query) => $builder->where('created_at', $monitoringNotification->created_at)->where('id', '<=', $monitoringNotification->id)))->pluck('id')
+            : collect([$monitoringNotification->id]);
 
         MonitoringNotificationState::query()->where('user_id', $user->id)->whereIn('monitoring_notification_id', $notificationIds)
             ->update(['read_at' => Date::now()]);
@@ -319,20 +319,20 @@ class NotificationBoardService
             ->map(fn (int|string $total): int => (int) $total);
     }
 
-    private function filterMobileEntriesByEventType(Builder $query, string $eventType, User $user): Builder
+    private function filterMobileEntriesByEventType(Builder $builder, string $eventType, User $user): Builder
     {
         return match ($eventType) {
-            'incident' => $query->statusChange()->whereRaw('lower(monitoring_notifications.message) like ?', ['%down%']),
-            'recovery' => $query->statusChange()->whereRaw('lower(monitoring_notifications.message) like ?', ['%up%']),
-            'maintenance' => $query->statusChange()->whereRaw('lower(monitoring_notifications.message) like ?', ['%maintenance%']),
-            'performance_degraded' => $query->performance()->whereRaw('lower(monitoring_notifications.message) like ?', ['%degraded%']),
-            'performance_recovered' => $query->performance()->whereRaw('lower(monitoring_notifications.message) not like ?', ['%degraded%']),
-            'ssl_expiring' => $query->sslExpiry()->whereRaw('upper(monitoring_notifications.message) not like ?', ['%EXPIRED%']),
-            'ssl_expired' => $query->sslExpiry()->whereRaw('upper(monitoring_notifications.message) like ?', ['%EXPIRED%']),
-            'domain_expiring' => $query->domainExpiry()->whereRaw('upper(monitoring_notifications.message) not like ?', ['%EXPIRED%']),
-            'domain_expired' => $query->domainExpiry()->whereRaw('upper(monitoring_notifications.message) like ?', ['%EXPIRED%']),
-            'delivery_failure' => $query->whereExists(function (QueryBuilder $query) use ($user): void {
-                $query->selectRaw('1')->from('notification_channel_deliveries')
+            'incident' => $builder->statusChange()->whereRaw('lower(monitoring_notifications.message) like ?', ['%down%']),
+            'recovery' => $builder->statusChange()->whereRaw('lower(monitoring_notifications.message) like ?', ['%up%']),
+            'maintenance' => $builder->statusChange()->whereRaw('lower(monitoring_notifications.message) like ?', ['%maintenance%']),
+            'performance_degraded' => $builder->performance()->whereRaw('lower(monitoring_notifications.message) like ?', ['%degraded%']),
+            'performance_recovered' => $builder->performance()->whereRaw('lower(monitoring_notifications.message) not like ?', ['%degraded%']),
+            'ssl_expiring' => $builder->sslExpiry()->whereRaw('upper(monitoring_notifications.message) not like ?', ['%EXPIRED%']),
+            'ssl_expired' => $builder->sslExpiry()->whereRaw('upper(monitoring_notifications.message) like ?', ['%EXPIRED%']),
+            'domain_expiring' => $builder->domainExpiry()->whereRaw('upper(monitoring_notifications.message) not like ?', ['%EXPIRED%']),
+            'domain_expired' => $builder->domainExpiry()->whereRaw('upper(monitoring_notifications.message) like ?', ['%EXPIRED%']),
+            'delivery_failure' => $builder->whereExists(function (QueryBuilder $queryBuilder) use ($user): void {
+                $queryBuilder->selectRaw('1')->from('notification_channel_deliveries')
                     ->whereColumn('notification_channel_deliveries.monitoring_notification_id', 'monitoring_notifications.id')
                     ->where('notification_channel_deliveries.user_id', $user->id)
                     ->where('notification_channel_deliveries.status', NotificationDeliveryStatus::FAILED);
@@ -340,11 +340,11 @@ class NotificationBoardService
         };
     }
 
-    private function mobileEventType(MonitoringNotification $notification): string
+    private function mobileEventType(MonitoringNotification $monitoringNotification): string
     {
-        $message = mb_strtolower($notification->message);
+        $message = mb_strtolower($monitoringNotification->message);
 
-        return match ($notification->type) {
+        return match ($monitoringNotification->type) {
             NotificationType::STATUS_CHANGE => match (true) {
                 str_contains($message, 'maintenance') => 'maintenance',
                 str_contains($message, 'down') => 'incident',
@@ -352,8 +352,8 @@ class NotificationBoardService
                 default => 'status_change',
             },
             NotificationType::PERFORMANCE => str_contains($message, 'degraded') ? 'performance_degraded' : 'performance_recovered',
-            NotificationType::SSL_EXPIRY => str_contains(mb_strtoupper($notification->message), 'EXPIRED') ? 'ssl_expired' : 'ssl_expiring',
-            NotificationType::DOMAIN_EXPIRY => str_contains(mb_strtoupper($notification->message), 'EXPIRED') ? 'domain_expired' : 'domain_expiring',
+            NotificationType::SSL_EXPIRY => str_contains(mb_strtoupper($monitoringNotification->message), 'EXPIRED') ? 'ssl_expired' : 'ssl_expiring',
+            NotificationType::DOMAIN_EXPIRY => str_contains(mb_strtoupper($monitoringNotification->message), 'EXPIRED') ? 'domain_expired' : 'domain_expiring',
         };
     }
 
@@ -374,8 +374,8 @@ class NotificationBoardService
         return [$createdAt, (string) $decoded['id']];
     }
 
-    private function encodeCursor(MonitoringNotification $notification): string
+    private function encodeCursor(MonitoringNotification $monitoringNotification): string
     {
-        return base64_encode(json_encode(['created_at' => $notification->created_at?->toIso8601String(), 'id' => $notification->id], JSON_THROW_ON_ERROR));
+        return base64_encode(json_encode(['created_at' => $monitoringNotification->created_at?->toIso8601String(), 'id' => $monitoringNotification->id], JSON_THROW_ON_ERROR));
     }
 }
