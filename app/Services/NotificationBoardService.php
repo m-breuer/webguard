@@ -58,10 +58,10 @@ class NotificationBoardService
 
         if ($cursor !== null) {
             [$createdAt, $id] = $this->decodeCursor($cursor);
-            $builder->where(function (Builder $query) use ($createdAt, $id): void {
-                $query->where('monitoring_notifications.created_at', '<', $createdAt)
+            $builder->where(function (Builder $builder) use ($createdAt, $id): void {
+                $builder->where('monitoring_notifications.created_at', '<', $createdAt)
                     ->orWhere(function (Builder $query) use ($createdAt, $id): void {
-                        $query->where('monitoring_notifications.created_at', $createdAt)
+                        $builder->where('monitoring_notifications.created_at', $createdAt)
                             ->where('monitoring_notifications.id', '<', $id);
                     });
             });
