@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\External\MobileMonitoringDetailController;
 use App\Http\Controllers\Api\External\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\External\MobileMaintenanceController;
 use App\Http\Controllers\Api\External\MobileOverviewController;
@@ -42,6 +43,8 @@ Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): v
 
 Route::get('/mobile/overview', MobileOverviewController::class)
     ->name('mobile.overview');
+Route::get('/mobile/monitorings/{monitoring}', MobileMonitoringDetailController::class)
+    ->name('mobile.monitorings.show');
 
 Route::group(['prefix' => 'mobile/maintenance', 'as' => 'mobile.maintenance.'], function (): void {
     Route::get('/capabilities', [MobileMaintenanceController::class, 'capabilities'])->name('capabilities');

@@ -91,6 +91,31 @@ All retain their existing ownership checks and response contracts.
 Existing pre-scoped external tokens remain compatible. They are not converted
 to new keys automatically; rotate them from the profile when practical.
 
+## Mobile monitoring detail
+
+`GET /api/v1/mobile/monitorings/{monitoring}` is the authenticated native-app
+detail contract. It is separate from browser UI and scanner-instance routes and
+only resolves monitorings visible to the current token owner. Unauthenticated
+requests return `401`; a missing or inaccessible monitoring returns `404`.
+
+The response is an envelope with `data` and `meta`. `data` contains the
+monitoring summary, current check state, availability and response-time series,
+recent incidents, heatmap, maintenance context, SSL and domain results, uptime
+calendar, and capability flags. The server derives all monitoring semantics;
+clients must not infer uptime, maintenance, or certificate status from raw
+checks.
+
+`days` is optional, defaults to `30`, and is bounded from `1` through `90`.
+Incident history uses deterministic `down_at`/`id` descending order and supports
+`incident_limit` (default `20`, maximum `50`) plus `incident_offset`. Its
+metadata provides `has_more` and `next_offset` for retry-safe pagination.
+Invalid query values retain Laravel's stable `422` validation envelope.
+
+`meta.sections` has a `state` and `generated_at` entry for every section. The
+state is `current`, `stale`, `empty`, or `unavailable`, allowing a native client
+to render partial detail safely without treating an unavailable SSL or domain
+result as a failed monitoring check.
+
 ## Mobile monitoring groups and ownership
 
 Native clients manage personal monitoring groups through `/api/v1/mobile/monitoring-groups`.
