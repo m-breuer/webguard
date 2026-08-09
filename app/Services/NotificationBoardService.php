@@ -58,16 +58,16 @@ class NotificationBoardService
 
         if ($cursor !== null) {
             [$createdAt, $id] = $this->decodeCursor($cursor);
-            $query->where(function (Builder $query) use ($createdAt, $id): void {
+            $builder->where(function (Builder $query) use ($createdAt, $id): void {
                 $query->where('monitoring_notifications.created_at', '<', $createdAt)
                     ->orWhere(function (Builder $query) use ($createdAt, $id): void {
-                        $builder->where('monitoring_notifications.created_at', $createdAt)
+                        $query->where('monitoring_notifications.created_at', $createdAt)
                             ->where('monitoring_notifications.id', '<', $id);
                     });
             });
         }
 
-        return $query->get()->map(function (MonitoringNotification $monitoringNotification): array {
+        return $builder->get()->map(function (MonitoringNotification $monitoringNotification): array {
             $eventType = $this->mobileEventType($monitoringNotification);
             $severity = match ($eventType) {
                 'incident', 'ssl_expired', 'domain_expired' => 'critical',
