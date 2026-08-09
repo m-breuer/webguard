@@ -67,8 +67,7 @@ final class MonitoringCheckHistoryQuery
         $archived = $this->sourceQuery(self::ARCHIVED_TABLE, 'archived', $monitoringId, $startDate, $endDate);
 
         return DB::query()
-            ->fromSub($builder->unionAll($archived), 'monitoring_results')
-            ->orderBy('created_at')
+            ->fromSub($builder->unionAll($archived), 'monitoring_results')->oldest()
             ->get();
     }
 

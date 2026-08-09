@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Enums\MonitoringStatus;
+use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
-use App\Enums\MonitoringStatus;
-use App\Enums\MonitoringType;
 use Tests\TestCase;
 
 class MonitoringDataAccessTest extends TestCase
