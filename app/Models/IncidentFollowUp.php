@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'due_at',
     'completed_at',
     'external_url',
+    'mobile_idempotency_key',
 ])]
 #[WithoutIncrementing]
 class IncidentFollowUp extends Model
