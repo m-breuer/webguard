@@ -128,6 +128,7 @@
                 </x-paragraph>
             @else
                 <x-text-input id="target" type="text" name="target" required
+                    :value="old('target', $monitoring->target)"
                     placeholder="{{ $targetPlaceholders[$selectedType] ?? '' }}" />
             @endif
         @else
