@@ -1,3 +1,5 @@
+import { initializeMonitoringTypeFields } from './monitoring-type-fields';
+
 type FormModalLoader = {
     content: string;
     error: string;
@@ -82,9 +84,10 @@ export default (): FormModalLoader => ({
 
             this.content = await response.text();
             await window.Alpine.nextTick();
+
             const contentElement = (this as any).$refs.content as HTMLElement | undefined;
             if (contentElement) {
-                window.Alpine.initTree(contentElement);
+                initializeMonitoringTypeFields(contentElement);
             }
         } catch {
             this.error = this.errorMessage;
