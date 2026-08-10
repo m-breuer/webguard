@@ -51,6 +51,7 @@ it('keeps the user monitoring modal usable on desktop and mobile', function (): 
         $submit = $modal . ' form button[type="submit"]';
         $nameField = $modal . ' [x-ref="content"] form input[name="name"]';
         $targetField = $modal . ' [x-ref="content"] form input[name="target"]';
+        $typeField = $modal . ' [x-ref="content"] form select[name="type"]';
 
         $webpage->assertCount($trigger, 1)
             ->click($trigger);
@@ -79,27 +80,17 @@ function () {
 }
 JS, true);
 
-        $webpage->assertScript(<<<'JS'
+        $webpage->select($typeField, 'port')
+            ->assertScript(<<<'JS'
 function () {
     const form = document.querySelector('[data-form-modal="monitoring-form-modal"] [x-ref="content"] form');
     const type = form?.querySelector('select[name="type"]');
 
-    if (! type) {
-        return false;
-    }
+    const port = form?.querySelector('input[name="port"]');
 
-    type.value = 'server_health';
-    type.dispatchEvent(new Event('input', { bubbles: true }));
-    type.dispatchEvent(new Event('change', { bubbles: true }));
-
-    const serverHealthFields = form.querySelector('[x-show="type === \'server_health\'"]');
-    const target = form.querySelector('input[name="target"]')?.closest('div[x-show]');
-
-    return type.value === 'server_health'
-        && serverHealthFields instanceof HTMLElement
-        && getComputedStyle(serverHealthFields).display !== 'none'
-        && target instanceof HTMLElement
-        && getComputedStyle(target).display === 'none';
+    return type?.value === 'port'
+        && port instanceof HTMLInputElement
+        && getComputedStyle(port).display !== 'none';
 }
 JS, true);
 
