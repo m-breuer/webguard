@@ -21,6 +21,7 @@ import formModalLoader from './components/form-modal-loader';
 import signalRoom from './components/signal-room';
 import dashboardLoader from './components/dashboard-loader';
 import incidentAnalyticsLoader from './components/incident-analytics-loader';
+import { initializeMonitoringTypeFields } from './components/monitoring-type-fields';
 
 Alpine.data('monitoringDetail', monitoringDetail);
 Alpine.data('monitoringCardLoader', monitoringCardLoader);
@@ -36,6 +37,8 @@ Alpine.data('incidentAnalyticsLoader', incidentAnalyticsLoader);
 
 window.Alpine = Alpine;
 window.Chart = Chart;
+
+initializeMonitoringTypeFields();
 
 registerConfirmableForms({
     title: document.documentElement.dataset.confirmTitle ?? 'Confirm action',
