@@ -80,7 +80,7 @@
             }
         }
     }
-}" x-init="$watch('type', value => {
+}" x-on:change="if ($event.target.name === 'type') type = $event.target.value" x-init="$watch('type', value => {
     if ((value === '{{ MonitoringType::HTTP->value }}' || value === '{{ MonitoringType::KEYWORD->value }}') && (!target || !target.startsWith('http'))) {
         target = 'https://';
     } else if (value === '{{ MonitoringType::PING->value }}' || value === '{{ MonitoringType::HEARTBEAT->value }}' || value === '{{ MonitoringType::SERVER_HEALTH->value }}' || value === '{{ MonitoringType::DOMAIN_EXPIRATION->value }}' || value === '{{ MonitoringType::DNS_RECORD->value }}') {
@@ -99,7 +99,8 @@
                     <x-text-input id="type" class="cursor-not-allowed" name="type" :value="__('monitoring.types.' . $monitoring->type->value)" readonly />
                     <input type="hidden" name="type" :value="type">
                 @else
-                    <x-select-input id="type" class="mt-1 block w-full" name="type" x-model="type" required autofocus>
+                    <x-select-input id="type" class="mt-1 block w-full" name="type" required
+                        :autofocus="! ($modal ?? false)">
                         <option value="" disabled hidden>{{ __('monitoring.form.select_type') }}</option>
                         @foreach ($types as $enumType)
                             <option value="{{ $enumType->value }}" @selected(old('type') === $enumType->value)>

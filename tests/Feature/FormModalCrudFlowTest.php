@@ -30,7 +30,12 @@ class FormModalCrudFlowTest extends TestCase
         $this->actingAs($user)->get(route('monitorings.create', ['modal' => 1]))
             ->assertOk()
             ->assertSeeHtml('name="modal_form"')
-            ->assertSeeHtml('action="' . route('monitorings.store') . '"');
+            ->assertSeeHtml('action="' . route('monitorings.store') . '"')
+            ->assertSeeHtml('x-on:change="if ($event.target.name === \'type\') type = $event.target.value"')
+            ->assertDontSeeHtml('autofocus');
+        $this->actingAs($user)->get(route('monitorings.create'))
+            ->assertOk()
+            ->assertSeeHtml('autofocus');
         $this->actingAs($user)->get(route('monitorings.edit', [$monitoring, 'modal' => 1]))
             ->assertOk()
             ->assertSeeHtml('name="modal_form"')
