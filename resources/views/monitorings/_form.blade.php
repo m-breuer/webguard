@@ -77,6 +77,7 @@
     publicLabelEnabled: @js(old('public_label_enabled', $monitoring->public_label_enabled ?? false)),
     notificationOnFailure: @js(old('notification_on_failure', $monitoring->notification_on_failure ?? true))
 }" data-monitoring-type-form
+    data-monitoring-current-type="{{ $selectedType }}"
     @if (isset($monitoring)) data-monitoring-existing @endif
     data-monitoring-target-generated-types="{{ $heartbeatTypeValue }} {{ $serverHealthTypeValue }}"
     data-monitoring-url-types="{{ MonitoringType::HTTP->value }} {{ MonitoringType::KEYWORD->value }}"
@@ -249,7 +250,7 @@
             </p>
     </div>
 
-    <div data-monitoring-type-fields="{{ MonitoringType::SERVER_HEALTH->value }}" class="mt-4 space-y-4">
+    <div data-monitoring-type-fields="{{ MonitoringType::SERVER_HEALTH->value }}" {{ $selectedType !== MonitoringType::SERVER_HEALTH->value ? 'hidden' : '' }} class="mt-4 space-y-4">
             <div class="rounded-md border border-gray-200 p-4 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
                 <p>{{ __('monitoring.form.server_health_help') }}</p>
                 <a href="{{ route('scribe') }}" target="_blank" rel="noopener"
@@ -308,7 +309,7 @@
             </div>
     </div>
 
-    <div data-monitoring-type-fields="{{ MonitoringType::DNS_RECORD->value }}" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div data-monitoring-type-fields="{{ MonitoringType::DNS_RECORD->value }}" {{ $selectedType !== MonitoringType::DNS_RECORD->value ? 'hidden' : '' }} class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
                 <x-input-label for="dns_record_type" :value="__('monitoring.form.dns_record_type')" />
                 <x-select-input id="dns_record_type" class="mt-1 block w-full" name="dns_record_type">
