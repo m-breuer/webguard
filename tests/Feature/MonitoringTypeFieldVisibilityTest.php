@@ -51,6 +51,24 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
             ->assertDontSeeHtml('data-monitoring-type-fields="dns_record" hidden');
     }
 
+    public function test_check_configuration_is_hidden_when_the_monitoring_type_has_no_configuration_fields(): void
+    {
+        $user = $this->createUserWithServerInstance();
+        $pingMonitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::PING,
+        ]);
+
+        $this->actingAs($user)->get(route('monitorings.create'))
+            ->assertOk()
+            ->assertSeeHtml('data-monitoring-check-configuration')
+            ->assertSeeHtml('data-monitoring-type-fields="http keyword port heartbeat server_health dns_record"')
+            ->assertDontSeeHtml('data-monitoring-check-configuration data-monitoring-type-fields="http keyword port heartbeat server_health dns_record" hidden');
+
+        $this->actingAs($user)->get(route('monitorings.edit', $pingMonitoring))
+            ->assertOk()
+            ->assertSeeHtml('data-monitoring-check-configuration data-monitoring-type-fields="http keyword port heartbeat server_health dns_record" hidden');
+    }
+
     private function createUserWithServerInstance(): User
     {
         ServerInstance::query()->firstOrCreate(

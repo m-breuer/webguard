@@ -36,42 +36,61 @@ it('shows only the monitoring type-specific fields on initial form load', functi
         'type' => MonitoringType::DNS_RECORD,
         'preferred_location' => $instanceCode,
     ]);
+    $pingMonitoring = Monitoring::factory()->for($user)->create([
+        'type' => MonitoringType::PING,
+        'preferred_location' => $instanceCode,
+    ]);
 
     $webpage = visit('/login')
         ->type('email', $user->email)
         ->type('password', 'password')
         ->press('form[action$="/login"] button[type="submit"]');
 
-    $assertFields = static function (bool $serverHealthVisible, bool $dnsVisible): string {
+    $assertFields = static function (bool $serverHealthVisible, bool $dnsVisible, bool $checkConfigurationVisible): string {
         $serverHealthHidden = $serverHealthVisible ? 'false' : 'true';
         $dnsHidden = $dnsVisible ? 'false' : 'true';
+        $checkConfigurationHidden = $checkConfigurationVisible ? 'false' : 'true';
 
         return <<<JS
 function () {
     const form = document.querySelector('[data-monitoring-type-form]');
     const serverHealthFields = form?.querySelector('[data-monitoring-type-fields="server_health"]');
     const dnsFields = form?.querySelector('[data-monitoring-type-fields="dns_record"]');
+    const checkConfiguration = form?.querySelector('[data-monitoring-check-configuration]');
 
     return serverHealthFields instanceof HTMLElement
         && dnsFields instanceof HTMLElement
+        && checkConfiguration instanceof HTMLDetailsElement
         && serverHealthFields.hidden === {$serverHealthHidden}
-        && dnsFields.hidden === {$dnsHidden};
+        && dnsFields.hidden === {$dnsHidden}
+        && checkConfiguration.hidden === {$checkConfigurationHidden};
 }
 JS;
     };
 
     $webpage->navigate('/monitorings/create')
         ->waitForText(__('monitoring.form.sections.basic'))
-        ->assertScript($assertFields(false, false), true)
+        ->assertScript($assertFields(false, false, true), true)
         ->select('select[name="type"]', MonitoringType::SERVER_HEALTH->value)
-        ->assertScript($assertFields(true, false), true)
+        ->assertScript($assertFields(true, false, true), true)
+        ->click('[data-monitoring-check-configuration] > summary')
+        ->assertScript(<<<'JS'
+function () {
+    return document.querySelector('[data-monitoring-check-configuration]')?.open === true;
+}
+JS, true)
         ->select('select[name="type"]', MonitoringType::DNS_RECORD->value)
-        ->assertScript($assertFields(false, true), true)
+        ->assertScript($assertFields(false, true, true), true)
+        ->select('select[name="type"]', MonitoringType::PING->value)
+        ->assertScript($assertFields(false, false, false), true)
         ->navigate('/monitorings/' . $serverHealthMonitoring->getRouteKey() . '/edit')
         ->waitForText(__('monitoring.edit.title', ['monitoring' => $serverHealthMonitoring->name]))
-        ->assertScript($assertFields(true, false), true)
+        ->assertScript($assertFields(true, false, true), true)
         ->navigate('/monitorings/' . $dnsMonitoring->getRouteKey() . '/edit')
         ->waitForText(__('monitoring.edit.title', ['monitoring' => $dnsMonitoring->name]))
-        ->assertScript($assertFields(false, true), true)
+        ->assertScript($assertFields(false, true, true), true)
+        ->navigate('/monitorings/' . $pingMonitoring->getRouteKey() . '/edit')
+        ->waitForText(__('monitoring.edit.title', ['monitoring' => $pingMonitoring->name]))
+        ->assertScript($assertFields(false, false, false), true)
         ->assertNoJavaScriptErrors();
 });

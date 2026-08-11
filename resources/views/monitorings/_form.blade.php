@@ -18,6 +18,15 @@
     $heartbeatTypeValue = MonitoringType::HEARTBEAT->value;
     $serverHealthTypeValue = MonitoringType::SERVER_HEALTH->value;
     $selectedType = old('type', $monitoring->type->value ?? ($types[0]->value ?? ''));
+    $checkConfigurationTypeValues = [
+        MonitoringType::HTTP->value,
+        MonitoringType::KEYWORD->value,
+        MonitoringType::PORT->value,
+        MonitoringType::HEARTBEAT->value,
+        MonitoringType::SERVER_HEALTH->value,
+        MonitoringType::DNS_RECORD->value,
+    ];
+    $showCheckConfiguration = in_array($selectedType, $checkConfigurationTypeValues, true);
     $targetPlaceholders = [
         MonitoringType::HTTP->value => __('monitoring.form.placeholders.http_target'),
         MonitoringType::PING->value => __('monitoring.form.placeholders.ping_target'),
@@ -215,10 +224,16 @@
             </div>
         </details>
 
-        <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-            <div>
+        <details data-monitoring-check-configuration data-monitoring-type-fields="{{ implode(' ', $checkConfigurationTypeValues) }}" {{ $showCheckConfiguration ? '' : 'hidden' }} class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
                 <x-heading type="h2">{{ __('monitoring.form.sections.check') }}</x-heading>
-            </div>
+                <svg class="size-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 dark:text-gray-400"
+                    viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                </svg>
+            </summary>
+
+            <div class="space-y-4 pt-4">
 
     <div data-monitoring-type-fields="{{ MonitoringType::PORT->value }}" class="mt-4">
             <x-input-label for="port" :value="__('monitoring.form.port')" />
@@ -417,7 +432,8 @@
 
     </details>
 
-        </section>
+            </div>
+        </details>
 
         <details class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
             <summary class="group flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
