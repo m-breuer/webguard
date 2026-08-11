@@ -100,5 +100,7 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('data-server-health-telemetry');
         $testResponse->assertSeeHtml('id="server-health-telemetry-range"');
         $testResponse->assertSeeHtml('id="server-health-telemetry-chart"');
+        $testResponse->assertSeeHtml('loadServerHealthTelemetry(serverHealthTelemetryRange)');
+        $testResponse->assertDontSeeHtml('@if ($monitoring->type === MonitoringType::SERVER_HEALTH)');
     }
 }

@@ -129,9 +129,7 @@
     loadHeatmap();
     loadUptime();
     loadPerformanceChart(responseTimeRange);
-    @if ($monitoring->type === MonitoringType::SERVER_HEALTH)
-    loadServerHealthTelemetry(serverHealthTelemetryRange);
-    @endif
+    {{ $monitoring->type === MonitoringType::SERVER_HEALTH ? 'loadServerHealthTelemetry(serverHealthTelemetryRange);' : '' }}
     loadIncidents(incidentsRange);
     loadChecks();
     initializeDeferredLoads();" x-data="monitoringDetail('{{ $monitoring->id }}', {
