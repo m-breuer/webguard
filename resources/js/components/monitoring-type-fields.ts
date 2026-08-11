@@ -16,12 +16,12 @@ const setDisabled = (container: HTMLElement, disabled: boolean): void => {
 };
 
 const updateForm = (form: HTMLElement): void => {
-    const typeControl = form.querySelector<HTMLSelectElement>(typeControlSelector);
-    if (!typeControl) {
+    const type = form.querySelector<HTMLSelectElement>(typeControlSelector)?.value
+        ?? form.dataset.monitoringCurrentType;
+
+    if (!type) {
         return;
     }
-
-    const type = typeControl.value;
 
     form.querySelectorAll<HTMLElement>(typeFieldsSelector).forEach((container) => {
         const visible = typesFor(container).includes(type);

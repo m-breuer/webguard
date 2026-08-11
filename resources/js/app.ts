@@ -38,8 +38,6 @@ Alpine.data('incidentAnalyticsLoader', incidentAnalyticsLoader);
 window.Alpine = Alpine;
 window.Chart = Chart;
 
-initializeMonitoringTypeFields();
-
 registerConfirmableForms({
     title: document.documentElement.dataset.confirmTitle ?? 'Confirm action',
     confirm: document.documentElement.dataset.confirmConfirm ?? 'Confirm',
@@ -47,3 +45,5 @@ registerConfirmableForms({
 });
 
 Alpine.start();
+
+initializeMonitoringTypeFields();
