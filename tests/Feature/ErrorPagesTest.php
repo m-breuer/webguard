@@ -35,7 +35,7 @@ class ErrorPagesTest extends TestCase
         $testResponse->assertSeeText(__('errors.status.404.title'));
         $testResponse->assertSeeText(__('errors.eyebrow'));
         $testResponse->assertSee(__('app.logo_alt'));
-        $testResponse->assertSeeHtml('<meta name="color-scheme" content="light dark">');
+        $testResponse->assertSeeHtml('<meta name="color-scheme" content="light dark" />');
     }
 
     public function test_error_page_uses_the_active_application_locale(): void

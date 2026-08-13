@@ -21,7 +21,7 @@ class UnreadNotificationsReminderMailTest extends TestCase
 
         $html = (new UnreadNotificationsReminderMail(7, $user))->render();
 
-        $this->assertStringContainsString('font-family: Sen', $html);
+        $this->assertMatchesRegularExpression('/font-family:\\s+Sen,/', $html);
         $this->assertStringContainsString('background-color: #f1f5f9', $html);
         $this->assertStringContainsString('class="mail-logo-mark"', $html);
         $this->assertStringContainsString(e(__('mail.general.brand_subtitle')), $html);

@@ -24,8 +24,8 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('data-monitoring-current-type="http"');
-        $testResponse->assertSeeHtml('data-monitoring-type-fields="server_health" hidden');
-        $testResponse->assertSeeHtml('data-monitoring-type-fields="dns_record" hidden');
+        $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'server_health');
+        $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'dns_record');
     }
 
     public function test_edit_form_uses_the_monitoring_type_to_set_initial_field_visibility(): void
@@ -38,17 +38,21 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
             'type' => MonitoringType::DNS_RECORD,
         ]);
 
-        $this->actingAs($user)->get(route('monitorings.edit', $serverHealthMonitoring))
-            ->assertOk()
-            ->assertSeeHtml('data-monitoring-current-type="server_health"')
-            ->assertSeeHtml('data-monitoring-type-fields="dns_record" hidden')
-            ->assertDontSeeHtml('data-monitoring-type-fields="server_health" hidden');
+        $serverHealthResponse = $this->actingAs($user)->get(route('monitorings.edit', $serverHealthMonitoring));
 
-        $this->actingAs($user)->get(route('monitorings.edit', $dnsMonitoring))
+        $serverHealthResponse
             ->assertOk()
-            ->assertSeeHtml('data-monitoring-current-type="dns_record"')
-            ->assertSeeHtml('data-monitoring-type-fields="server_health" hidden')
-            ->assertDontSeeHtml('data-monitoring-type-fields="dns_record" hidden');
+            ->assertSeeHtml('data-monitoring-current-type="server_health"');
+        $this->assertTypeFieldsAreHidden($serverHealthResponse->getContent(), 'dns_record');
+        $this->assertTypeFieldsAreVisible($serverHealthResponse->getContent(), 'server_health');
+
+        $dnsResponse = $this->actingAs($user)->get(route('monitorings.edit', $dnsMonitoring));
+
+        $dnsResponse
+            ->assertOk()
+            ->assertSeeHtml('data-monitoring-current-type="dns_record"');
+        $this->assertTypeFieldsAreHidden($dnsResponse->getContent(), 'server_health');
+        $this->assertTypeFieldsAreVisible($dnsResponse->getContent(), 'dns_record');
     }
 
     public function test_check_configuration_is_hidden_when_the_monitoring_type_has_no_configuration_fields(): void
@@ -64,9 +68,31 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
             ->assertSeeHtml('data-monitoring-type-fields="http keyword port heartbeat server_health dns_record"')
             ->assertDontSeeHtml('data-monitoring-check-configuration data-monitoring-type-fields="http keyword port heartbeat server_health dns_record" hidden');
 
-        $this->actingAs($user)->get(route('monitorings.edit', $pingMonitoring))
+        $pingResponse = $this->actingAs($user)->get(route('monitorings.edit', $pingMonitoring));
+
+        $pingResponse
             ->assertOk()
-            ->assertSeeHtml('data-monitoring-check-configuration data-monitoring-type-fields="http keyword port heartbeat server_health dns_record" hidden');
+            ->assertSeeHtml('data-monitoring-check-configuration');
+        $this->assertMatchesRegularExpression(
+            '/<details\\s+data-monitoring-check-configuration\\s+data-monitoring-type-fields="http keyword port heartbeat server_health dns_record"\\s+hidden\\b/s',
+            $pingResponse->getContent()
+        );
+    }
+
+    private function assertTypeFieldsAreHidden(string $content, string $type): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/data-monitoring-type-fields="' . preg_quote($type, '/') . '"\\s+hidden\\b/',
+            $content
+        );
+    }
+
+    private function assertTypeFieldsAreVisible(string $content, string $type): void
+    {
+        $this->assertDoesNotMatchRegularExpression(
+            '/data-monitoring-type-fields="' . preg_quote($type, '/') . '"\\s+hidden\\b/',
+            $content
+        );
     }
 
     private function createUserWithServerInstance(): User

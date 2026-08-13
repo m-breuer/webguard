@@ -315,7 +315,10 @@ class MonitoringGroupTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSee('Checkout API');
         $testResponse->assertDontSee('Worker Queue');
-        $testResponse->assertSeeHtml('value="' . $production->id . '" selected');
+        $this->assertMatchesRegularExpression(
+            '/<option\\b(?=[^>]*\\bvalue="' . preg_quote($production->id, '/') . '")(?=[^>]*\\bselected\\b)[^>]*>/s',
+            $testResponse->getContent()
+        );
     }
 
     public function test_monitorings_and_groups_can_exist_without_assignments(): void

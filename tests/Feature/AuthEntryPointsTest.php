@@ -24,8 +24,8 @@ class AuthEntryPointsTest extends TestCase
         $testResponse = $this->get(route('login'));
 
         $testResponse->assertOk();
-        $testResponse->assertSeeHtml('class="order-2 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900 lg:order-1"');
-        $testResponse->assertSeeHtml('class="order-1 rounded-xl border border-gray-200 bg-white p-6 shadow-xs dark:border-gray-700 dark:bg-gray-800 lg:order-2"');
+        $testResponse->assertSeeHtml('class="order-2 rounded-xl border border-gray-200 bg-gray-50 p-4 lg:order-1 dark:border-gray-700 dark:bg-gray-900"');
+        $testResponse->assertSeeHtml('class="order-1 rounded-xl border border-gray-200 bg-white p-6 shadow-xs lg:order-2 dark:border-gray-700 dark:bg-gray-800"');
     }
 
     public function test_register_route_opens_unified_auth_view_in_register_mode(): void
