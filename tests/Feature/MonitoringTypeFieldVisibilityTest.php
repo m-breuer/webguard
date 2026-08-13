@@ -16,7 +16,7 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_create_form_hides_server_health_and_dns_fields_until_their_type_is_selected(): void
+    public function test_create_form_hides_type_specific_fields_and_generated_url_notices_until_their_type_is_selected(): void
     {
         $user = $this->createUserWithServerInstance();
 
@@ -24,8 +24,18 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('data-monitoring-current-type="http"');
+        $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'port');
+        $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'keyword');
+        $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'heartbeat');
         $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'server_health');
         $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'dns_record');
+        $this->assertTypeFieldsAreVisible($testResponse->getContent(), 'http keyword');
+
+        $modalResponse = $this->actingAs($user)->get(route('monitorings.create', ['modal' => 1]));
+
+        $modalResponse->assertOk();
+        $this->assertTypeFieldsAreHidden($modalResponse->getContent(), 'heartbeat');
+        $this->assertTypeFieldsAreHidden($modalResponse->getContent(), 'server_health');
     }
 
     public function test_edit_form_uses_the_monitoring_type_to_set_initial_field_visibility(): void
@@ -53,6 +63,18 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
             ->assertSeeHtml('data-monitoring-current-type="dns_record"');
         $this->assertTypeFieldsAreHidden($dnsResponse->getContent(), 'server_health');
         $this->assertTypeFieldsAreVisible($dnsResponse->getContent(), 'dns_record');
+
+        $httpMonitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+        ]);
+
+        $httpResponse = $this->actingAs($user)->get(route('monitorings.edit', $httpMonitoring));
+
+        $httpResponse
+            ->assertOk()
+            ->assertSeeHtml('data-monitoring-current-type="http"');
+        $this->assertTypeFieldsAreHidden($httpResponse->getContent(), 'heartbeat');
+        $this->assertTypeFieldsAreHidden($httpResponse->getContent(), 'server_health');
     }
 
     public function test_check_configuration_is_hidden_when_the_monitoring_type_has_no_configuration_fields(): void
