@@ -29,27 +29,23 @@
 
 @forelse ($activities as $activity)
     <x-table.row>
-        <td class="whitespace-nowrap px-6 py-4 text-gray-900 dark:text-gray-100">
+        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
             @if ($activity->created_at)
                 <x-date-time :value="$activity->created_at" format="datetime_seconds" />
             @endif
         </td>
-        <td class="whitespace-nowrap px-6 py-4 text-gray-900 dark:text-gray-100">
+        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
             {{ $actorLabel($activity->causer) }}
         </td>
-        <td class="whitespace-nowrap px-6 py-4 text-gray-900 dark:text-gray-100">
-            {{ $activity->log_name }}
-        </td>
-        <td class="whitespace-nowrap px-6 py-4 text-gray-900 dark:text-gray-100">
-            {{ $activity->event }}
-        </td>
-        <td class="max-w-xs whitespace-normal px-6 py-4 text-gray-900 dark:text-gray-100">
+        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ $activity->log_name }}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ $activity->event }}</td>
+        <td class="max-w-xs px-6 py-4 whitespace-normal text-gray-900 dark:text-gray-100">
             {{ $subjectLabel($activity->subject_type, $activity->subject_id) }}
         </td>
-        <td class="max-w-xs whitespace-normal px-6 py-4 text-gray-900 dark:text-gray-100">
+        <td class="max-w-xs px-6 py-4 whitespace-normal text-gray-900 dark:text-gray-100">
             {{ $activity->description }}
         </td>
-        <td class="min-w-96 whitespace-normal px-6 py-4 text-gray-900 dark:text-gray-100">
+        <td class="min-w-96 px-6 py-4 whitespace-normal text-gray-900 dark:text-gray-100">
             <details>
                 <summary class="cursor-pointer text-purple-600 hover:underline dark:text-purple-300">
                     {{ __('admin.activity_logs.messages.show_changes') }}

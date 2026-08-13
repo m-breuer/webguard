@@ -1,9 +1,10 @@
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light dark" />
 <script>
     (() => {
         const html = document.documentElement;
         const theme = html.dataset.theme || 'system';
-        const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark =
+            theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
         html.classList.toggle('dark', isDark);
         html.style.colorScheme = isDark ? 'dark' : 'light';

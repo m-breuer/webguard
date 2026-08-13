@@ -2,7 +2,10 @@
     <x-table.row class="align-top">
         <x-table.cell>
             <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $monitoring->name }}</div>
-            <div class="mt-1 max-w-md truncate text-xs text-gray-500 dark:text-gray-400" title="{{ $monitoring->target }}">
+            <div
+                class="mt-1 max-w-md truncate text-xs text-gray-500 dark:text-gray-400"
+                title="{{ $monitoring->target }}"
+            >
                 {{ $monitoring->target }}
             </div>
         </x-table.cell>
@@ -19,11 +22,21 @@
         </x-table.cell>
         <x-table.cell>
             @php($startsAt = data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'starts_at') ?? $monitoring->maintenance_from)
-            @if ($startsAt)<x-date-time :value="$startsAt" />@else - @endif
+            @if ($startsAt)
+                <x-date-time :value="$startsAt" />
+            @else
+                -
+            @endif
         </x-table.cell>
         <x-table.cell>
             @php($endsAt = data_get($monitoring->currentOrUpcomingMaintenanceWindow(), 'ends_at') ?? $monitoring->maintenance_until)
-            @if ($endsAt)<x-date-time :value="$endsAt" />@elseif ($monitoring->maintenance_from){{ __('maintenance.status.open_ended') }}@else - @endif
+            @if ($endsAt)
+                <x-date-time :value="$endsAt" />
+            @elseif ($monitoring->maintenance_from)
+                {{ __('maintenance.status.open_ended') }}
+            @else
+                -
+            @endif
         </x-table.cell>
         <x-table.cell>
             @if ($monitoring->groups->isNotEmpty())
@@ -42,14 +55,15 @@
                     <form method="POST" action="{{ route('maintenance.destroy') }}" class="inline-flex">
                         @csrf
                         @method('DELETE')
-                        <input type="hidden" name="monitoring_id" value="{{ $monitoring->id }}">
+                        <input type="hidden" name="monitoring_id" value="{{ $monitoring->id }}" />
                         <button
                             type="submit"
-                            class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-purple-600 transition hover:bg-purple-50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-950/40"
+                            class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md text-purple-600 transition hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:outline-hidden dark:text-purple-300 dark:hover:bg-purple-950/40"
                             title="{{ __('maintenance.actions.clear') }}"
                             aria-label="{{ __('maintenance.actions.clear') }}"
                             x-data
-                            x-on:click.prevent="if (confirm('{{ __('maintenance.actions.clear_confirmation') }}')) $el.closest('form').submit()">
+                            x-on:click.prevent="if (confirm('{{ __('maintenance.actions.clear_confirmation') }}')) $el.closest('form').submit()"
+                        >
                             <x-icon name="x" class="h-4 w-4" />
                         </button>
                     </form>

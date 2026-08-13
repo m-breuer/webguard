@@ -1,6 +1,6 @@
 @csrf
 @if (isset($modalForm))
-    <input type="hidden" name="modal_form" value="{{ $modalForm }}">
+    <input type="hidden" name="modal_form" value="{{ $modalForm }}" />
 @endif
 
 <div>
@@ -11,13 +11,19 @@
 
 <div class="mt-4">
     <x-input-label for="ip_address" :value="__('admin.server_instances.fields.ip_address')" />
-    <x-text-input id="ip_address" type="text" name="ip_address" :value="old('ip_address', $instance->ip_address ?? '')" required />
+    <x-text-input
+        id="ip_address"
+        type="text"
+        name="ip_address"
+        :value="old('ip_address', $instance->ip_address ?? '')"
+        required
+    />
     <x-input-error :messages="$errors->get('ip_address')" class="mt-2" />
 </div>
 
 <div class="mt-4">
     <x-input-label for="api_key" :value="__('admin.server_instances.fields.api_key')" />
-    <x-text-input id="api_key" type="text" name="api_key" :value="old('api_key')" :required="!isset($instance)" />
+    <x-text-input id="api_key" type="text" name="api_key" :value="old('api_key')" :required="! isset($instance)" />
     @if (isset($instance))
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {{ __('admin.server_instances.messages.api_key_optional') }}
@@ -27,10 +33,15 @@
 </div>
 
 <div class="mt-4">
-    <input type="hidden" name="is_active" value="0">
+    <input type="hidden" name="is_active" value="0" />
     <label for="is_active" class="inline-flex items-center">
-        <x-checkbox-input id="is_active" name="is_active" type="checkbox" value="1"
-            :checked="old('is_active', $instance->is_active ?? true)" />
+        <x-checkbox-input
+            id="is_active"
+            name="is_active"
+            type="checkbox"
+            value="1"
+            :checked="old('is_active', $instance->is_active ?? true)"
+        />
         <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('admin.server_instances.fields.active') }}</span>
     </label>
     <x-input-error :messages="$errors->get('is_active')" class="mt-2" />
@@ -41,7 +52,10 @@
         {{ isset($instance) ? __('button.update') : __('button.create') }}
     </x-primary-button>
     @if (isset($modalForm))
-        <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'admin-server-instance-form-modal')">
+        <x-secondary-button
+            type="button"
+            x-on:click="$dispatch('close-form-modal', 'admin-server-instance-form-modal')"
+        >
             {{ __('button.cancel') }}
         </x-secondary-button>
     @endif

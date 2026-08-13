@@ -41,7 +41,10 @@ ARG GROUP_ID
 
 # Switch to root so we can set the user ID and group ID
 USER root
-RUN install-php-extensions sockets && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    install-php-extensions sockets && \
     docker-php-serversideup-set-id www-data $USER_ID:$GROUP_ID && \
     docker-php-serversideup-set-file-permissions --owner $USER_ID:$GROUP_ID
 USER www-data
@@ -53,7 +56,10 @@ FROM base AS ci
 
 # Sometimes CI images need to run as root
 USER root
-RUN install-php-extensions bz2 curl gmp intl ldap mbstring opcache pdo_mysql pdo_sqlite pspell redis snmp sockets sqlite3 tidy xdebug zip
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    install-php-extensions bz2 curl gmp intl ldap mbstring opcache pdo_mysql pdo_sqlite pspell redis snmp sockets sqlite3 tidy xdebug zip
 
 ############################################
 # Production Image

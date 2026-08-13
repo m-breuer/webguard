@@ -8,10 +8,16 @@
     </x-slot>
 
     <x-main>
-        <x-async-table id="admin-api-logs-table" :endpoint="route('admin.apis.index')" :paginator="$apiLogs"
-            :filters="$filters" :initial-filters="$activeFilters" :initial-sort="$sort"
+        <x-async-table
+            id="admin-api-logs-table"
+            :endpoint="route('admin.apis.index')"
+            :paginator="$apiLogs"
+            :filters="$filters"
+            :initial-filters="$activeFilters"
+            :initial-sort="$sort"
             :initial-direction="$direction"
-            search-placeholder="{{ __('search.fields.placeholder', ['attribute' => __('api.logs.title')]) }}">
+            search-placeholder="{{ __('search.fields.placeholder', ['attribute' => __('api.logs.title')]) }}"
+        >
             <x-slot name="head">
                 <x-table.heading sort="created_at">{{ __('api.logs.fields.date') }}</x-table.heading>
                 <x-table.heading sort="email">{{ __('user.fields.email') }}</x-table.heading>

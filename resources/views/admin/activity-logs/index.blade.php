@@ -8,10 +8,16 @@
     </x-slot>
 
     <x-main>
-        <x-async-table id="admin-activity-logs-table" :endpoint="route('admin.activity-logs.index')"
-            :paginator="$activities" :filters="$filters" :initial-filters="$activeFilters" :initial-sort="$sort"
+        <x-async-table
+            id="admin-activity-logs-table"
+            :endpoint="route('admin.activity-logs.index')"
+            :paginator="$activities"
+            :filters="$filters"
+            :initial-filters="$activeFilters"
+            :initial-sort="$sort"
             :initial-direction="$direction"
-            search-placeholder="{{ __('search.fields.placeholder', ['attribute' => __('admin.activity_logs.title')]) }}">
+            search-placeholder="{{ __('search.fields.placeholder', ['attribute' => __('admin.activity_logs.title')]) }}"
+        >
             <x-slot name="head">
                 <x-table.heading sort="created_at">{{ __('admin.activity_logs.fields.created_at') }}</x-table.heading>
                 <x-table.heading>{{ __('admin.activity_logs.fields.actor') }}</x-table.heading>

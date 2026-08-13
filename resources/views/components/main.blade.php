@@ -10,6 +10,4 @@
     $classes .= '';
 @endphp
 
-<div {{ $attributes->class($classes)->merge(['id' => $id]) }}>
-    {{ $slot }}
-</div>
+<div {{ $attributes->class($classes)->merge(['id' => $id]) }}>{{ $slot }}</div>

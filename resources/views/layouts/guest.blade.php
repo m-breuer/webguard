@@ -11,19 +11,22 @@
         $theme = 'system';
     }
 @endphp
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $theme === 'dark' ? 'dark' : '' }}" data-theme="{{ $theme }}">
-
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    class="{{ $theme === 'dark' ? 'dark' : '' }}"
+    data-theme="{{ $theme }}"
+>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     {!! $head ?? '' !!}
 
     <title>{{ __('app.title') }}</title>
 
-    <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
-    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png">
+    <link rel="icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png" />
+    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" type="image/png" />
 
     <x-theme-bootstrap />
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
@@ -34,8 +37,12 @@
         <nav class="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
-                    <a href="{{ $homeUrl }}" @if ($homeIsExternal) target="_blank" rel="noopener" @endif class="flex items-center">
-                        <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8">
+                    <a
+                        href="{{ $homeUrl }}"
+                        @if ($homeIsExternal) target="_blank" rel="noopener" @endif
+                        class="flex items-center"
+                    >
+                        <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="h-8 w-8" />
                         <x-span class="ms-2 text-xl font-bold text-gray-800 dark:text-gray-100">
                             {{ __('app.name') }}
                         </x-span>
@@ -56,5 +63,4 @@
 
     @stack('scripts')
 </body>
-
 </html>

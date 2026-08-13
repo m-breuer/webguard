@@ -1,6 +1,6 @@
 @csrf
 @if (isset($modalForm))
-    <input type="hidden" name="modal_form" value="{{ $modalForm }}">
+    <input type="hidden" name="modal_form" value="{{ $modalForm }}" />
 @endif
 
 <div class="mb-4">
@@ -23,8 +23,11 @@
 
 <div class="mb-4">
     <x-input-label for="role" :value="__('user.fields.role')" />
-    <select id="role" name="role"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+    <select
+        id="role"
+        name="role"
+        class="focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+    >
         @foreach (App\Enums\UserRole::cases() as $role)
             <option value="{{ $role->value }}" @selected(old('role', $user->role->value ?? 'regular') === $role->value)>
                 {{ ucfirst($role->value) }}
@@ -37,10 +40,13 @@
 @if (isset($user))
     <div class="mb-4">
         <x-input-label for="package_id" :value="__('user.fields.package')" />
-        <select id="package_id" name="package_id"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+        <select
+            id="package_id"
+            name="package_id"
+            class="focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+        >
             @foreach ($packages as $package)
-                <option value="{{ $package->id }}" @selected(old('package_id', $user->package_id) == $package->id)>
+                <option value="{{ $package->id }}" @selected(old('package_id', $user->package_id) === $package->id)>
                     {{ $package->monitoring_limit }} {{ __('user.fields.monitorings') }}
                 </option>
             @endforeach
@@ -49,9 +55,7 @@
     </div>
 @endif
 
-<x-primary-button>
-    {{ isset($user) ? __('button.update') : __('button.create') }}
-</x-primary-button>
+<x-primary-button> {{ isset($user) ? __('button.update') : __('button.create') }} </x-primary-button>
 
 @if (isset($modalForm))
     <x-secondary-button type="button" x-on:click="$dispatch('close-form-modal', 'admin-user-form-modal')">

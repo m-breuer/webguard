@@ -4,8 +4,8 @@
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@yield('title')</title>
     <style>
         @media only screen and (max-width: 640px) {
@@ -69,7 +69,14 @@
             padding: 0;
             background-color: #f1f5f9;
             color: #334155;
-            font-family: Sen, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family:
+                Sen,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                'Segoe UI',
+                sans-serif;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
@@ -281,11 +288,24 @@
                 <p>&copy; {{ date('Y') }} {{ __('app.name') }}. {{ __('app.legal.footer_content') }}</p>
                 <p class="mail-legal-links">
                     @if (config('app.marketing_url'))
-                        <a href="{{ config('app.marketing_url') }}" target="_blank" rel="noopener">{{ __('app.marketing_site') }}</a>
+                        <a
+                            href="{{ config('app.marketing_url') }}"
+                            target="_blank"
+                            rel="noopener"
+                        >{{ __('app.marketing_site') }}</a>
                     @endif
-                    <a href="{{ \App\Support\LegalLinks::imprint() }}" @if ($legalLinksExternal) target="_blank" rel="noopener" @endif>{{ __('app.legal.imprint') }}</a>
-                    <a href="{{ \App\Support\LegalLinks::termsOfUse() }}" @if ($legalLinksExternal) target="_blank" rel="noopener" @endif>{{ __('app.legal.terms_of_use') }}</a>
-                    <a href="{{ \App\Support\LegalLinks::privacyPolicy() }}" @if ($legalLinksExternal) target="_blank" rel="noopener" @endif>{{ __('app.legal.privacy_policy') }}</a>
+                    <a
+                        href="{{ \App\Support\LegalLinks::imprint() }}"
+                        @if ($legalLinksExternal) target="_blank" rel="noopener" @endif
+                    >{{ __('app.legal.imprint') }}</a>
+                    <a
+                        href="{{ \App\Support\LegalLinks::termsOfUse() }}"
+                        @if ($legalLinksExternal) target="_blank" rel="noopener" @endif
+                    >{{ __('app.legal.terms_of_use') }}</a>
+                    <a
+                        href="{{ \App\Support\LegalLinks::privacyPolicy() }}"
+                        @if ($legalLinksExternal) target="_blank" rel="noopener" @endif
+                    >{{ __('app.legal.privacy_policy') }}</a>
                 </p>
             </div>
         </div>

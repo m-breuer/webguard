@@ -24,9 +24,7 @@
             @endif
         </x-table.cell>
         <x-table.cell>
-            <x-badge :type="$healthBadgeType">
-                {{ __('admin.server_instances.health.' . $healthStatus) }}
-            </x-badge>
+            <x-badge :type="$healthBadgeType"> {{ __('admin.server_instances.health.' . $healthStatus) }} </x-badge>
         </x-table.cell>
         <x-table.cell>
             @if ($instance->last_seen_at)
@@ -40,16 +38,13 @@
         </x-table.cell>
         <x-table.cell>
             @if ($typeCounts->isEmpty())
-                <span class="text-gray-500 dark:text-gray-400">
-                    {{ __('admin.server_instances.fields.none') }}
-                </span>
+                <span class="text-gray-500 dark:text-gray-400"> {{ __('admin.server_instances.fields.none') }} </span>
             @else
                 <div class="flex flex-wrap gap-1">
                     @foreach (MonitoringType::cases() as $type)
                         @if ((int) ($typeCounts->get($type->value) ?? 0) > 0)
                             <x-badge type="info">
-                                {{ __('monitoring.types.' . $type->value) }}:
-                                {{ $typeCounts->get($type->value) }}
+                                {{ __('monitoring.types.' . $type->value) }}: {{ $typeCounts->get($type->value) }}
                             </x-badge>
                         @endif
                     @endforeach
@@ -60,16 +55,29 @@
         <x-table.cell><x-date-time :value="$instance->updated_at" format="date" /></x-table.cell>
         <x-table.cell>
             <div class="flex items-center gap-2">
-                <x-secondary-button :href="route('admin.server-instances.edit', $instance)" :icon-only="true"
-                    data-form-modal-trigger data-form-modal-name="admin-server-instance-form-modal"
-                    title="{{ __('button.edit') }}" aria-label="{{ __('button.edit') }}">
+                <x-secondary-button
+                    :href="route('admin.server-instances.edit', $instance)"
+                    :icon-only="true"
+                    data-form-modal-trigger
+                    data-form-modal-name="admin-server-instance-form-modal"
+                    title="{{ __('button.edit') }}"
+                    aria-label="{{ __('button.edit') }}"
+                >
                     <x-icon name="pencil" class="h-4 w-4" />
                 </x-secondary-button>
-                <form action="{{ route('admin.server-instances.destroy', $instance) }}" method="POST" class="inline-flex"
-                data-confirm-message="{{ __('admin.server_instances.messages.confirm_delete') }}">
-                @csrf
-                @method('DELETE')
-                    <x-danger-button :icon-only="true" title="{{ __('button.delete') }}" aria-label="{{ __('button.delete') }}">
+                <form
+                    action="{{ route('admin.server-instances.destroy', $instance) }}"
+                    method="POST"
+                    class="inline-flex"
+                    data-confirm-message="{{ __('admin.server_instances.messages.confirm_delete') }}"
+                >
+                    @csrf
+                    @method('DELETE')
+                    <x-danger-button
+                        :icon-only="true"
+                        title="{{ __('button.delete') }}"
+                        aria-label="{{ __('button.delete') }}"
+                    >
                         <x-icon name="trash" class="h-4 w-4" />
                     </x-danger-button>
                 </form>

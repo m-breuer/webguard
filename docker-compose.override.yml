@@ -67,6 +67,7 @@ services:
         - GROUP_ID=${GROUP_ID:-1000}
     volumes:
       - ./:/var/www/html
+      - webguard_node_modules:/var/www/html/node_modules
     environment:
       <<: *local-app-environment
       AUTORUN_DEBUG: "true"

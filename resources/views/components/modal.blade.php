@@ -1,17 +1,17 @@
 @props([
     'name',
     'show' => false,
-    'maxWidth' => '2xl'
+    'maxWidth' => '2xl',
 ])
 
 @php
-$maxWidth = [
-    'sm' => 'sm:max-w-sm',
-    'md' => 'sm:max-w-md',
-    'lg' => 'sm:max-w-lg',
-    'xl' => 'sm:max-w-xl',
-    '2xl' => 'sm:max-w-2xl',
-][$maxWidth];
+    $maxWidth = [
+        'sm' => 'sm:max-w-sm',
+        'md' => 'sm:max-w-md',
+        'lg' => 'sm:max-w-lg',
+        'xl' => 'sm:max-w-xl',
+        '2xl' => 'sm:max-w-2xl',
+    ][$maxWidth];
 @endphp
 
 <div
@@ -46,7 +46,7 @@ $maxWidth = [
     x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
     x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
     x-show="show"
-    class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50"
+    class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
     style="display: {{ $show ? 'block' : 'none' }};"
 >
     <div

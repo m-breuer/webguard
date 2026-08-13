@@ -1,12 +1,10 @@
 <x-guest-layout>
     <div class="my-6">
         <x-heading type="h1" class="flex items-center justify-center text-center">
-            <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="me-2 h-12 w-12">
+            <img src="{{ Vite::asset('resources/images/Logo-WebGuard.png') }}" alt="Logo" class="me-2 h-12 w-12" />
             {{ __('auth.forgot_password.title') }}
         </x-heading>
-        <x-paragraph class="mt-2 text-center">
-            {{ __('auth.forgot_password.description') }}
-        </x-paragraph>
+        <x-paragraph class="mt-2 text-center"> {{ __('auth.forgot_password.description') }} </x-paragraph>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -21,9 +19,7 @@
         </div>
 
         <div class="mt-4 flex items-center justify-end">
-            <x-primary-button>
-                {{ __('auth.forgot_password.button') }}
-            </x-primary-button>
+            <x-primary-button> {{ __('auth.forgot_password.button') }} </x-primary-button>
         </div>
     </form>
 </x-guest-layout>

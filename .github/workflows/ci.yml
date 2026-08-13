@@ -61,6 +61,24 @@ jobs:
           -w /var/www/html "${{ env.CI_IMAGE }}" \
           composer install --no-interaction --prefer-dist --optimize-autoloader
 
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: '1.3.11'
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.bun/install/cache
+          node_modules
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+
+    - name: Install frontend dependencies
+      run: bun install --frozen-lockfile
+
     - name: Run Rector
       run: |
         docker run --rm --user "$(id -u):$(id -g)" \
@@ -105,24 +123,6 @@ jobs:
           git diff
           exit 1
         fi
-
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v2
-      with:
-        bun-version: '1.3.11'
-
-    - name: Cache Bun dependencies
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.bun/install/cache
-          node_modules
-        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-bun-
-
-    - name: Install frontend dependencies
-      run: bun install --frozen-lockfile
 
     - name: Build frontend assets
       run: bun run build

@@ -7,7 +7,9 @@
         <div class="mx-auto w-full max-w-4xl text-center">
             <x-heading class="text-3xl sm:text-4xl">{{ $statusPage->name }}</x-heading>
             @if ($statusPage->description)
-                <p class="mx-auto mt-3 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-300">{{ $statusPage->description }}</p>
+                <p class="mx-auto mt-3 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-300">
+                    {{ $statusPage->description }}
+                </p>
             @endif
         </div>
     </x-slot>
@@ -38,9 +40,15 @@
                 </div>
             @endif
 
-            <section id="status-page-overall-status" class="rounded-2xl border px-5 py-5 shadow-sm sm:px-6 {{ $pageStatusSurfaceClasses }}">
+            <section
+                id="status-page-overall-status"
+                class="rounded-2xl border px-5 py-5 shadow-sm sm:px-6 {{ $pageStatusSurfaceClasses }}"
+            >
                 <div class="flex items-center gap-4">
-                    <span class="h-3.5 w-3.5 shrink-0 rounded-full {{ $pageStatusDotClasses }}" aria-hidden="true"></span>
+                    <span
+                        class="h-3.5 w-3.5 shrink-0 rounded-full {{ $pageStatusDotClasses }}"
+                        aria-hidden="true"
+                    ></span>
                     <div>
                         <p class="text-lg font-bold sm:text-xl">{{ $pageStatusLabel }}</p>
                         <p class="mt-1 text-sm opacity-80">
@@ -53,7 +61,10 @@
 
             <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 @foreach ($components as $statusPageComponent)
-                    <div id="status-page-component-{{ $statusPageComponent['model']->id }}" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+                    <div
+                        id="status-page-component-{{ $statusPageComponent['model']->id }}"
+                        class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900"
+                    >
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <x-heading type="h2">{{ $statusPageComponent['model']->name }}</x-heading>
@@ -108,14 +119,17 @@
                         </p>
                     </div>
 
-                    <div x-data="uptimeCalendar('{{ $statusPage->id }}', @js(route('public.status-pages.uptime-calendar', $statusPage)), 30)" x-init="fetchUptimeCalendar">
+                    <div
+                        x-data="uptimeCalendar('{{ $statusPage->id }}', @js(route('public.status-pages.uptime-calendar', $statusPage)), 30)"
+                        x-init="fetchUptimeCalendar"
+                    >
                         <template x-if="isLoading">
                             <x-container>
                                 <p>{{ __('calendar.loading') }}</p>
                             </x-container>
                         </template>
 
-                        <template x-if="!isLoading && calendarData">
+                        <template x-if="! isLoading && calendarData">
                             <div x-data="{ data: calendarData }">
                                 @include('components.monitoring-calendar')
                             </div>
@@ -125,7 +139,7 @@
             @endif
 
             <section id="status-page-subscription">
-                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900">
                     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
                             <x-heading type="h2">{{ __('status_page.public.subscribe.heading') }}</x-heading>
@@ -134,15 +148,27 @@
                             </p>
                         </div>
 
-                        <form method="POST" action="{{ route('public-status-pages.subscribers.store', $statusPage) }}"
-                            class="w-full md:max-w-md">
+                        <form
+                            method="POST"
+                            action="{{ route('public-status-pages.subscribers.store', $statusPage) }}"
+                            class="w-full md:max-w-md"
+                        >
                             @csrf
 
-                            <x-input-label for="status-page-subscriber-email" :value="__('status_page.public.subscribe.email')" />
+                            <x-input-label
+                                for="status-page-subscriber-email"
+                                :value="__('status_page.public.subscribe.email')"
+                            />
                             <div class="mt-2 flex flex-col gap-3 sm:flex-row">
-                                <x-text-input id="status-page-subscriber-email" type="email" name="email"
-                                    :value="old('email')" required autocomplete="email"
-                                    :placeholder="__('status_page.public.subscribe.email_placeholder')" />
+                                <x-text-input
+                                    id="status-page-subscriber-email"
+                                    type="email"
+                                    name="email"
+                                    :value="old('email')"
+                                    required
+                                    autocomplete="email"
+                                    :placeholder="__('status_page.public.subscribe.email_placeholder')"
+                                />
                                 <x-primary-button class="shrink-0 justify-center">
                                     {{ __('status_page.public.subscribe.button') }}
                                 </x-primary-button>
@@ -154,16 +180,23 @@
             </section>
 
             <section id="status-page-incidents">
-                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900">
                     <x-heading type="h2">{{ __('status_page.public.recent_incidents') }}</x-heading>
 
                     @if ($incidents->isEmpty())
                         <div class="mt-5 rounded-xl border border-dashed border-gray-200 bg-slate-50 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-950/50">
-                            <span class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300" aria-hidden="true">
+                            <span
+                                class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                                aria-hidden="true"
+                            >
                                 <x-icon name="check" class="h-5 w-5" />
                             </span>
-                            <p class="mt-3 font-semibold text-gray-900 dark:text-gray-100">{{ __('status_page.public.no_recent_incidents') }}</p>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.incidents.no_incidents') }}</p>
+                            <p class="mt-3 font-semibold text-gray-900 dark:text-gray-100">
+                                {{ __('status_page.public.no_recent_incidents') }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('monitoring.detail.incidents.no_incidents') }}
+                            </p>
                         </div>
                     @else
                         <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
@@ -197,7 +230,7 @@
                                                             <x-date-time :value="$incidentUpdate->created_at" />
                                                         </span>
                                                     </div>
-                                                    <p class="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
+                                                    <p class="mt-2 text-sm whitespace-pre-line text-gray-700 dark:text-gray-300">
                                                         {{ $incidentUpdate->message }}
                                                     </p>
                                                 </div>

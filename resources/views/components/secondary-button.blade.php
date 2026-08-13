@@ -7,13 +7,7 @@
 @endphp
 
 @if ($href)
-    <a href="{{ $href }}"
-        {{ $attributes->merge(['class' => $class]) }}>
-        {{ $slot }}
-    </a>
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => $class]) }}> {{ $slot }} </a>
 @else
-    <button
-        {{ $attributes->merge(['type' => 'submit', 'class' => $class]) }}>
-        {{ $slot }}
-    </button>
+    <button {{ $attributes->merge(['type' => 'submit', 'class' => $class]) }}>{{ $slot }}</button>
 @endif

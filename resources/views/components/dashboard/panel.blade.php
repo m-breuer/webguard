@@ -6,7 +6,7 @@
 ])
 
 <section {{ $attributes->class('overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800') }}>
-    <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 dark:border-gray-700 sm:px-6">
+    <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 sm:px-6 dark:border-gray-700">
         <div>
             <x-heading type="h2" class="!text-lg !font-bold">{{ $heading }}</x-heading>
             @if ($description)

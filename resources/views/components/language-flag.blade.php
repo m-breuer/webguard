@@ -4,7 +4,7 @@
 ])
 
 @php
-    $normalizedLocale = strtolower((string) $locale);
+    $normalizedLocale = mb_strtolower((string) $locale);
     $clipPathId = 'flag-clip-' . uniqid();
 @endphp
 
