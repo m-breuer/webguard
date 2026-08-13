@@ -60,7 +60,10 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3');
         $testResponse->assertSeeHtml('grid grid-cols-12 gap-0.5 sm:flex sm:flex-nowrap');
         $testResponse->assertSeeHtml('grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]');
-        $testResponse->assertSeeHtml('data-monitoring-primary-cards class="mb-4 grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 2xl:grid-cols-3"');
+        $this->assertMatchesRegularExpression(
+            '/data-monitoring-primary-cards\\s+class="mb-4 grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 2xl:grid-cols-3"/',
+            $testResponse->getContent()
+        );
         $testResponse->assertSeeHtml('grid grid-cols-1 gap-4 text-center md:grid-cols-2 2xl:grid-cols-3');
         $testResponse->assertSeeHtml('flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between');
         $testResponse->assertSeeHtml('xl:grid-cols-[minmax(13rem,1.25fr)_minmax(0,3fr)_auto] xl:items-center');

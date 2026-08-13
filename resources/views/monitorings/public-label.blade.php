@@ -5,14 +5,16 @@
 
     <x-slot name="header">
         <div>
-            <x-heading>
-                {{ $monitoring->name }}
-            </x-heading>
+            <x-heading> {{ $monitoring->name }} </x-heading>
             <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                 <x-badge type="info">{{ __('monitoring.types.' . $monitoring->type->value) }}</x-badge>
                 @if ($displayTarget)
-                    <a href="{{ $displayTarget }}" target="_blank" title="{{ $monitoring->name }}"
-                        class="break-all hover:text-gray-700 dark:hover:text-white">
+                    <a
+                        href="{{ $displayTarget }}"
+                        target="_blank"
+                        title="{{ $monitoring->name }}"
+                        class="break-all hover:text-gray-700 dark:hover:text-white"
+                    >
                         {{ $displayTarget }}
                     </a>
                 @else
@@ -34,13 +36,9 @@
                 <x-container id="public-current-status">
                     <x-heading type="h2">{{ __('monitoring.public_label.current_status') }}</x-heading>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <x-badge :type="$statusBadgeType">
-                            {{ mb_strtoupper($status) }}
-                        </x-badge>
+                        <x-badge :type="$statusBadgeType"> {{ mb_strtoupper($status) }} </x-badge>
                         @if ($isUnderMaintenance)
-                            <x-badge type="info">
-                                {{ __('monitoring.index.table.maintenance') }}
-                            </x-badge>
+                            <x-badge type="info"> {{ __('monitoring.index.table.maintenance') }} </x-badge>
                         @endif
                     </div>
                     <div class="mt-4 space-y-1 text-sm text-gray-500 dark:text-gray-400">
@@ -66,8 +64,7 @@
                     <x-heading type="h2">{{ __('monitoring.detail.ssl.heading') }}</x-heading>
                     @if ($monitoring->type === \App\Enums\MonitoringType::HTTP || $monitoring->type === \App\Enums\MonitoringType::KEYWORD)
                         @if ($monitoring->sslResult)
-                            <p
-                                class="mt-3 font-semibold {{ $monitoring->sslResult->is_valid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                            <p class="mt-3 font-semibold {{ $monitoring->sslResult->is_valid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
                                 {{ $monitoring->sslResult->is_valid ? __('monitoring.detail.ssl.valid') : __('monitoring.detail.ssl.expired') }}
                             </p>
                             @if ($monitoring->sslResult->expires_at)
@@ -99,15 +96,27 @@
                             </p>
                         </div>
 
-                        <form method="POST" action="{{ route('public-label.subscribers.store', $monitoring) }}"
-                            class="w-full md:max-w-md">
+                        <form
+                            method="POST"
+                            action="{{ route('public-label.subscribers.store', $monitoring) }}"
+                            class="w-full md:max-w-md"
+                        >
                             @csrf
 
-                            <x-input-label for="status-page-subscriber-email" :value="__('monitoring.public_label.subscribe.email')" />
+                            <x-input-label
+                                for="status-page-subscriber-email"
+                                :value="__('monitoring.public_label.subscribe.email')"
+                            />
                             <div class="mt-2 flex flex-col gap-3 sm:flex-row">
-                                <x-text-input id="status-page-subscriber-email" type="email" name="email"
-                                    :value="old('email')" required autocomplete="email"
-                                    :placeholder="__('monitoring.public_label.subscribe.email_placeholder')" />
+                                <x-text-input
+                                    id="status-page-subscriber-email"
+                                    type="email"
+                                    name="email"
+                                    :value="old('email')"
+                                    required
+                                    autocomplete="email"
+                                    :placeholder="__('monitoring.public_label.subscribe.email_placeholder')"
+                                />
                                 <x-primary-button class="shrink-0 justify-center">
                                     {{ __('monitoring.public_label.subscribe.button') }}
                                 </x-primary-button>
@@ -147,7 +156,11 @@
                                     {{ __('monitoring.public_label.maintenance.ends_at') }}
                                 </dt>
                                 <dd class="mt-1 text-gray-900 dark:text-gray-100">
-                                    @if ($maintenanceWindow['ends_at'])<x-date-time :value="$maintenanceWindow['ends_at']" />@else{{ __('monitoring.public_label.maintenance.open_ended') }}@endif
+                                    @if ($maintenanceWindow['ends_at'])
+                                        <x-date-time :value="$maintenanceWindow['ends_at']" />
+                                    @else
+                                        {{ __('monitoring.public_label.maintenance.open_ended') }}
+                                    @endif
                                 </dd>
                             </div>
                         </dl>
@@ -180,14 +193,17 @@
                 <div class="mb-4">
                     <x-heading type="h2">{{ __('monitoring.detail.calendar.heading') }}</x-heading>
                 </div>
-                <div x-data="uptimeCalendar('{{ $monitoring->id }}', @js(route('public.monitorings.uptime-calendar', $monitoring)))" x-init="fetchUptimeCalendar">
+                <div
+                    x-data="uptimeCalendar('{{ $monitoring->id }}', @js(route('public.monitorings.uptime-calendar', $monitoring)))"
+                    x-init="fetchUptimeCalendar"
+                >
                     <template x-if="isLoading">
                         <x-container>
                             <p>{{ __('calendar.loading') }}</p>
                         </x-container>
                     </template>
 
-                    <template x-if="!isLoading && calendarData">
+                    <template x-if="! isLoading && calendarData">
                         <div x-data="{ data: calendarData }">
                             @include('components.monitoring-calendar')
                         </div>
@@ -223,7 +239,8 @@
                                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         {{ __('monitoring.detail.incidents.incident.duration') }}: {{ $duration }}
                                         @if ($upAt)
-                                            - {{ __('monitoring.detail.incidents.incident.up_at') }} <x-date-time :value="$upAt" />
+                                            - {{ __('monitoring.detail.incidents.incident.up_at') }}
+                                            <x-date-time :value="$upAt" />
                                         @endif
                                     </p>
                                 </div>

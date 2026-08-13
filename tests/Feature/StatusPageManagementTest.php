@@ -410,7 +410,7 @@ class StatusPageManagementTest extends TestCase
             ]));
 
         $this->assertMatchesRegularExpression(
-            '/<details id="incident-workbench-' . $incident->id . '"\s+open\s+class=/',
+            '/<details\s+id="incident-workbench-' . $incident->id . '"(?s:.*?)\s+open\s+class=/',
             $testResponse->getContent()
         );
         $testResponse->assertOk()->assertSeeText(__('status_page.incident_workbench.heading'));

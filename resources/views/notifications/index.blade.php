@@ -47,32 +47,47 @@
     @endphp
 
     <x-slot name="header">
-        <div id="notification-command-center" class="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-center">
+        <div
+            id="notification-command-center"
+            class="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-center"
+        >
             <div class="min-w-0">
-                <x-paragraph class="text-sm font-semibold uppercase tracking-[0.08em] text-purple-700 dark:text-purple-300">
+                <x-paragraph class="text-sm font-semibold tracking-[0.08em] text-purple-700 uppercase dark:text-purple-300">
                     {{ __('notifications.overview.eyebrow') }}
                 </x-paragraph>
                 <x-heading type="h1" class="mt-1 text-slate-950 dark:text-white">
                     {{ __('notifications.title') }}
                 </x-heading>
-                <x-paragraph class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+                <x-paragraph class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base dark:text-slate-300">
                     {{ __('notifications.overview.description') }}
                 </x-paragraph>
             </div>
 
-            <div id="notification-action-panel" class="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+            <div
+                id="notification-action-panel"
+                class="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70"
+            >
                 <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                     <div>
-                        <x-paragraph class="px-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                        <x-paragraph class="px-1 text-xs font-semibold tracking-[0.08em] text-slate-500 uppercase dark:text-slate-400">
                             {{ __('notifications.filters.heading') }}
                         </x-paragraph>
-                        <nav class="mt-2 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm font-semibold dark:bg-slate-800" aria-label="{{ __('notifications.filters.heading') }}">
-                            <a href="{{ route('notifications.index', $showReadDisabledQuery) }}" data-notification-filter-link
-                                class="{{ ! $showRead ? 'bg-purple-600 text-white shadow-sm ring-1 ring-purple-700/20 dark:bg-purple-500 dark:text-white dark:ring-purple-400/30' : 'text-slate-600 hover:bg-white/70 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-purple-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
+                        <nav
+                            class="mt-2 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm font-semibold dark:bg-slate-800"
+                            aria-label="{{ __('notifications.filters.heading') }}"
+                        >
+                            <a
+                                href="{{ route('notifications.index', $showReadDisabledQuery) }}"
+                                data-notification-filter-link
+                                class="{{ ! $showRead ? 'bg-purple-600 text-white shadow-sm ring-1 ring-purple-700/20 dark:bg-purple-500 dark:text-white dark:ring-purple-400/30' : 'text-slate-600 hover:bg-white/70 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-purple-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition"
+                            >
                                 {{ __('notifications.filters.unread') }}
                             </a>
-                            <a href="{{ route('notifications.index', $showReadEnabledQuery) }}" data-notification-filter-link
-                                class="{{ $showRead ? 'bg-purple-600 text-white shadow-sm ring-1 ring-purple-700/20 dark:bg-purple-500 dark:text-white dark:ring-purple-400/30' : 'text-slate-600 hover:bg-white/70 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-purple-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition">
+                            <a
+                                href="{{ route('notifications.index', $showReadEnabledQuery) }}"
+                                data-notification-filter-link
+                                class="{{ $showRead ? 'bg-purple-600 text-white shadow-sm ring-1 ring-purple-700/20 dark:bg-purple-500 dark:text-white dark:ring-purple-400/30' : 'text-slate-600 hover:bg-white/70 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-950/70 dark:hover:text-purple-300' }} inline-flex min-h-10 items-center justify-center rounded-md px-3 text-center transition"
+                            >
                                 {{ __('notifications.filters.all') }}
                             </a>
                         </nav>
@@ -80,9 +95,13 @@
 
                     <form method="POST" action="{{ route('notifications.markAllAsRead') }}" class="sm:pb-1">
                         @csrf
-                        <x-secondary-button type="submit" :icon-only="true"
+                        <x-secondary-button
+                            type="submit"
+                            :icon-only="true"
                             class="!border-purple-600 !bg-purple-600 !text-white hover:!border-purple-700 hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!border-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!border-purple-400 dark:hover:!bg-purple-400 dark:focus:!ring-purple-400"
-                            title="{{ __('notifications.mark_all_as_read') }}" aria-label="{{ __('notifications.mark_all_as_read') }}">
+                            title="{{ __('notifications.mark_all_as_read') }}"
+                            aria-label="{{ __('notifications.mark_all_as_read') }}"
+                        >
                             <x-icon name="check" class="h-4 w-4" />
                         </x-secondary-button>
                     </form>
@@ -91,7 +110,8 @@
         </div>
     </x-slot>
 
-    <x-main x-data="{
+    <x-main
+        x-data="{
         statusChangeOffset: 0,
         sslExpiryOffset: 0,
         domainExpiryOffset: 0,
@@ -212,7 +232,7 @@
                     sectionElement.style.display = response.data.count > 0 ? '' : 'none';
                     loadMoreContainer.style.display = response.data.hasMore ? '' : 'none';
 
-                    if (!initial) {
+                    if (! initial) {
                         this.currentLimit = Math.max(this.currentLimit, nextOffset);
                         this.syncLimitWithUrl(this.currentLimit);
                     }
@@ -228,7 +248,7 @@
             axios.post(route)
                 .then(() => {
                     const entry = document.getElementById(notificationId);
-                    if (!entry) {
+                    if (! entry) {
                         return;
                     }
 
@@ -242,26 +262,43 @@
                     }
                 });
         }
-    }" x-init="syncLimitWithUrl(currentLimit); loadInitialNotifications()" class="space-y-6">
-        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3" aria-label="{{ __('notifications.overview.workflow_label') }}">
+    }"
+        x-init="
+            syncLimitWithUrl(currentLimit);
+            loadInitialNotifications();
+        "
+        class="space-y-6"
+    >
+        <div
+            class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3"
+            aria-label="{{ __('notifications.overview.workflow_label') }}"
+        >
             @foreach (['triage', 'expiry', 'audit'] as $workflowItem)
-                <div class="rounded-lg border border-slate-200 bg-white/75 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/50 sm:p-4">
+                <div class="rounded-lg border border-slate-200 bg-white/75 p-3 shadow-sm sm:p-4 dark:border-slate-800 dark:bg-slate-900/50">
                     <div class="flex items-center justify-between gap-3 sm:block">
-                        <x-paragraph class="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                        <x-paragraph class="text-xs font-semibold tracking-[0.08em] text-slate-500 uppercase dark:text-slate-400">
                             {{ __('notifications.overview.workflow.' . $workflowItem . '.label') }}
                         </x-paragraph>
-                        <x-heading type="h3" class="text-right text-sm font-semibold text-slate-950 dark:text-white sm:mt-2 sm:text-left sm:text-base">
+                        <x-heading
+                            type="h3"
+                            class="text-right text-sm font-semibold text-slate-950 sm:mt-2 sm:text-left sm:text-base dark:text-white"
+                        >
                             {{ __('notifications.overview.workflow.' . $workflowItem . '.title') }}
                         </x-heading>
                     </div>
-                    <x-paragraph class="mt-1 hidden text-sm leading-6 text-slate-600 dark:text-slate-300 sm:block">
+                    <x-paragraph class="mt-1 hidden text-sm leading-6 text-slate-600 sm:block dark:text-slate-300">
                         {{ __('notifications.overview.workflow.' . $workflowItem . '.description') }}
                     </x-paragraph>
                 </div>
             @endforeach
         </div>
 
-        <x-container id="notifications-loading-state" x-cloak x-show="isLoading" class="border border-slate-200 bg-white/90 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+        <x-container
+            id="notifications-loading-state"
+            x-cloak
+            x-show="isLoading"
+            class="border border-slate-200 bg-white/90 shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
+        >
             <div class="flex items-center gap-4">
                 <x-loading-indicator />
                 <div>
@@ -275,7 +312,12 @@
             </div>
         </x-container>
 
-        <x-container id="notifications-empty-state" x-cloak x-show="!isLoading && isEmpty" class="border border-purple-200 bg-purple-50/70 text-center shadow-sm dark:border-purple-300/20 dark:bg-purple-300/10">
+        <x-container
+            id="notifications-empty-state"
+            x-cloak
+            x-show="! isLoading && isEmpty"
+            class="border border-purple-200 bg-purple-50/70 text-center shadow-sm dark:border-purple-300/20 dark:bg-purple-300/10"
+        >
             <div class="mx-auto flex max-w-2xl flex-col items-center">
                 <span class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-white text-purple-700 shadow-sm ring-1 ring-purple-200 dark:bg-slate-900 dark:text-purple-300 dark:ring-purple-300/20">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -291,25 +333,30 @@
             </div>
         </x-container>
 
-        <div x-cloak x-show="!isLoading && !isEmpty" class="space-y-8 sm:space-y-10">
+        <div x-cloak x-show="! isLoading && ! isEmpty" class="space-y-8 sm:space-y-10">
             @foreach ($notificationSections as $section)
-                <section class="notification-section" id="{{ $section['sectionId'] }}" data-notification-section="{{ $section['type'] }}" style="display: none;">
-                    <div class="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
+                <section
+                    class="notification-section"
+                    id="{{ $section['sectionId'] }}"
+                    data-notification-section="{{ $section['type'] }}"
+                    style="display: none"
+                >
+                    <div class="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800">
                         <div class="flex min-w-0 items-start gap-3">
                             <span class="{{ $section['accent'] }} mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white shadow-sm">
-                                @switch($section['type'])
-                                    @case('domain_expiry')
+                                @switch ($section['type'])
+                                    @case ('domain_expiry')
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3c2.5 2.4 2.5 15.6 0 18" />
                                         </svg>
                                         @break
-                                    @case('status_change')
+                                    @case ('status_change')
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h4l3-6 4 12 2-6h3" />
                                         </svg>
                                         @break
-                                    @case('delivery_history')
+                                    @case ('delivery_history')
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M7 12h10M9 17h6" />
                                         </svg>
@@ -334,8 +381,11 @@
 
                     <div id="{{ $section['containerId'] }}" class="space-y-3"></div>
 
-                    <div class="mt-4 text-center" id="{{ $section['loadMoreContainerId'] }}" style="display: none;">
-                        <x-primary-button @click="loadMoreNotifications('{{ $section['type'] }}')" class="!w-full justify-center !bg-purple-600 px-4 py-2 text-sm !normal-case !tracking-normal hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!bg-purple-400 dark:focus:!ring-purple-400 sm:!w-auto">
+                    <div class="mt-4 text-center" id="{{ $section['loadMoreContainerId'] }}" style="display: none">
+                        <x-primary-button
+                            @click="loadMoreNotifications('{{ $section['type'] }}')"
+                            class="!w-full justify-center !bg-purple-600 px-4 py-2 text-sm !tracking-normal !normal-case hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 sm:!w-auto dark:!bg-purple-500 dark:!text-white dark:hover:!bg-purple-400 dark:focus:!ring-purple-400"
+                        >
                             {{ __('notifications.load_more') }}
                         </x-primary-button>
                     </div>

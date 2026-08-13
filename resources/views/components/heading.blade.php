@@ -28,6 +28,4 @@
     $classes .= ' text-gray-900 dark:text-gray-100';
 @endphp
 
-<{{ $tag }} {{ $attributes->class($classes) }}>
-    {{ $slot }}
-    </{{ $tag }}>
+<{{ $tag }} {{ $attributes->class($classes) }}> {{ $slot }} </{{ $tag }}>

@@ -8,10 +8,7 @@
         </div>
 
         @isset($actions)
-            <div class="shrink-0 sm:ml-auto">
-                {{ $actions }}
-            </div>
+            <div class="shrink-0 sm:ml-auto">{{ $actions }}</div>
         @endisset
     </div>
-
 </div>

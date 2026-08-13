@@ -1,8 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <x-heading type="h1">
-            {{ __('admin.dashboard.heading') }}
-        </x-heading>
+        <x-heading type="h1"> {{ __('admin.dashboard.heading') }} </x-heading>
     </x-slot>
 
     <x-main>

@@ -18,13 +18,24 @@
 <div class="space-y-6">
     <div>
         <x-input-label for="name" :value="__('monitoring_group.form.name')" />
-        <x-text-input id="name" type="text" name="name" :value="old('name', $monitoringGroup->name ?? '')" required autofocus />
+        <x-text-input
+            id="name"
+            type="text"
+            name="name"
+            :value="old('name', $monitoringGroup->name ?? '')"
+            required
+            autofocus
+        />
         <x-input-error :messages="$errors->get('name')" />
     </div>
 
     <div>
         <x-input-label for="description" :value="__('monitoring_group.form.description')" />
-        <x-textarea id="description" name="description" rows="5">{{ old('description', $monitoringGroup->description ?? '') }}</x-textarea>
+        <x-textarea
+            id="description"
+            name="description"
+            rows="5"
+        >{{ old('description', $monitoringGroup->description ?? '') }}</x-textarea>
         <x-input-error :messages="$errors->get('description')" />
     </div>
 
@@ -42,10 +53,9 @@
             :no-options-label="__('monitoring_group.form.no_monitorings_available')"
             :no-results-label="__('monitoring_group.form.no_monitorings_found')"
             :remove-label="__('monitoring_group.form.remove_monitoring')"
-            :clear-label="__('monitoring_group.form.clear_monitorings')" />
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('monitoring_group.form.monitorings_help') }}
-        </p>
+            :clear-label="__('monitoring_group.form.clear_monitorings')"
+        />
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ __('monitoring_group.form.monitorings_help') }}</p>
         <x-input-error :messages="$errors->get('monitoring_ids')" />
         <x-input-error :messages="$errors->get('monitoring_ids.*')" />
     </div>
@@ -58,8 +68,6 @@
         >
             {{ __('button.cancel') }}
         </x-secondary-button>
-        <x-primary-button>
-            {{ isset($monitoringGroup) ? __('button.update') : __('button.create') }}
-        </x-primary-button>
+        <x-primary-button> {{ isset($monitoringGroup) ? __('button.update') : __('button.create') }} </x-primary-button>
     </div>
 </div>

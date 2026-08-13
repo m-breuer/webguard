@@ -13,36 +13,48 @@
                 <ul class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
                     @if (config('app.marketing_url'))
                         <li>
-                            <a href="{{ config('app.marketing_url') }}" target="_blank" rel="noopener"
-                                class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
+                            <a
+                                href="{{ config('app.marketing_url') }}"
+                                target="_blank"
+                                rel="noopener"
+                                class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300"
+                            >
                                 {{ __('app.marketing_site') }}
                             </a>
                         </li>
                     @endif
                     <li>
-                        <a href="{{ route('scribe') }}"
-                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
+                        <a
+                            href="{{ route('scribe') }}"
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300"
+                        >
                             {{ __('app.api_documentation') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ \App\Support\LegalLinks::imprint() }}"
+                        <a
+                            href="{{ \App\Support\LegalLinks::imprint() }}"
                             @if ($legalLinksExternal) target="_blank" rel="noopener" @endif
-                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300"
+                        >
                             {{ __('app.legal.imprint') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ \App\Support\LegalLinks::termsOfUse() }}"
+                        <a
+                            href="{{ \App\Support\LegalLinks::termsOfUse() }}"
                             @if ($legalLinksExternal) target="_blank" rel="noopener" @endif
-                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300"
+                        >
                             {{ __('app.legal.terms_of_use') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ \App\Support\LegalLinks::privacyPolicy() }}"
+                        <a
+                            href="{{ \App\Support\LegalLinks::privacyPolicy() }}"
                             @if ($legalLinksExternal) target="_blank" rel="noopener" @endif
-                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300">
+                            class="text-sm font-medium text-slate-600 transition hover:text-purple-700 dark:text-slate-300 dark:hover:text-purple-300"
+                        >
                             {{ __('app.legal.privacy_policy') }}
                         </a>
                     </li>

@@ -78,8 +78,12 @@
         </div>
 
         <div x-data="formModalLoader()" data-form-modal-error="{{ __('app.messages.form_modal_load_error') }}">
-            <x-form-modal name="monitoring-form-modal" title="{{ __('monitoring.title') }}"
-                description="{{ __('monitoring.form.sections.basic') }}" max-width="6xl">
+            <x-form-modal
+                name="monitoring-form-modal"
+                title="{{ __('monitoring.title') }}"
+                description="{{ __('monitoring.form.sections.basic') }}"
+                max-width="6xl"
+            >
                 <div class="p-6" x-ref="content">
                     <x-loading-indicator x-show="loading" x-cloak :show-label="false" class="justify-center" />
                     <p x-show="error" x-text="error" class="text-sm text-red-600 dark:text-red-400"></p>

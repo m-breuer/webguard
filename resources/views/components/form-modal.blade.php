@@ -65,11 +65,17 @@
             this.$nextTick(() => this.previousFocus?.focus());
         },
     }"
-    x-init="if (open) { lockBody(true); focusFirst(); } $watch('open', (value) => lockBody(value))"
+    x-init="
+        if (open) {
+            lockBody(true);
+            focusFirst();
+        }
+        $watch('open', (value) => lockBody(value));
+    "
     x-on:open-form-modal.window="$event.detail === @js($name) ? openModal() : null"
     x-on:close-form-modal.window="$event.detail === @js($name) ? closeModal() : null"
-    x-on:keydown.escape.window="if (open) closeModal()"
-    x-on:keydown.tab.prevent="if (open) focusNext($event)"
+    x-on:keydown.escape.window="if (open) closeModal();"
+    x-on:keydown.tab.prevent="if (open) focusNext($event);"
     x-show="open"
     x-cloak
     data-form-modal="{{ $name }}"
@@ -96,7 +102,10 @@
     <div
         x-show="open"
         x-on:click.stop
-        x-on:submit.capture="submitting = true; $event.target.querySelectorAll('button[type=submit]').forEach((button) => button.disabled = true)"
+        x-on:submit.capture="
+            submitting = true;
+            $event.target.querySelectorAll('button[type=submit]').forEach((button) => (button.disabled = true));
+        "
         class="relative mx-auto mb-6 flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800 {{ $maxWidth }}"
         x-transition:enter="ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -121,7 +130,7 @@
             <button
                 type="button"
                 x-on:click="closeModal()"
-                class="rounded-md p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                class="rounded-md p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-hidden dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                 aria-label="{{ __('button.cancel') }}"
             >
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -130,8 +139,6 @@
             </button>
         </div>
 
-        <div class="min-h-0 overflow-y-auto">
-            {{ $slot }}
-        </div>
+        <div class="min-h-0 overflow-y-auto">{{ $slot }}</div>
     </div>
 </div>

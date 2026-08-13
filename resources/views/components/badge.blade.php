@@ -15,6 +15,4 @@
     $classes .= ' ' . $class;
 @endphp
 
-<span {{ $attributes->class($classes) }}>
-    {{ $slot }}
-</span>
+<span {{ $attributes->class($classes) }}> {{ $slot }} </span>

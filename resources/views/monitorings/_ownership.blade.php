@@ -9,8 +9,11 @@
     </div>
 
     @if (! $monitoring->isTeamOwned() && $adminTeams->isNotEmpty())
-        <form method="POST" action="{{ route('monitorings.team-ownership.store', $monitoring) }}"
-            class="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <form
+            method="POST"
+            action="{{ route('monitorings.team-ownership.store', $monitoring) }}"
+            class="flex flex-col gap-2 sm:flex-row sm:items-end"
+        >
             @csrf
             <div class="min-w-0 flex-1">
                 <x-input-label for="move-team-{{ $monitoring->id }}" :value="__('team.ownership.move_to_team')" />

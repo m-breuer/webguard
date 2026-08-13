@@ -1,4 +1,4 @@
-@forelse($notifications as $notification)
+@forelse ($notifications as $notification)
     @php
         $isRead = (bool) $notification->read;
         $accentClasses = match ($type) {
@@ -10,11 +10,16 @@
         $iconClasses = 'bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-300/10 dark:text-sky-300 dark:ring-sky-300/20';
     @endphp
 
-    <x-container space="true"
+    <x-container
+        space="true"
         data-notification-card="{{ $type }}"
         class="{{ $isRead ? 'opacity-70' : '' }} notification-entry relative overflow-hidden border border-slate-200 bg-white/95 shadow-sm dark:border-slate-800 dark:bg-slate-900/80"
-        id="{{ $notification->id }}">
-        <span class="{{ $accentClasses }} notification-card-accent absolute inset-y-0 left-0 w-1" aria-hidden="true"></span>
+        id="{{ $notification->id }}"
+    >
+        <span
+            class="{{ $accentClasses }} notification-card-accent absolute inset-y-0 left-0 w-1"
+            aria-hidden="true"
+        ></span>
 
         <div class="flex flex-col gap-4 pl-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex min-w-0 items-start {{ $showCardIcon ? 'gap-4' : '' }}">
@@ -28,13 +33,19 @@
                 @endif
 
                 <div class="min-w-0">
-                    <x-paragraph bold=true class="{{ $isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-950 dark:text-white' }} leading-6">
+                    <x-paragraph
+                        bold="true"
+                        class="{{ $isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-950 dark:text-white' }} leading-6"
+                    >
                         {{ $notification->translated_message }}
                     </x-paragraph>
                     <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                         <x-date-time :value="$notification->created_at" />
                         @if ($isRead)
-                            <x-badge type="info" class="bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                            <x-badge
+                                type="info"
+                                class="bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                            >
                                 {{ __('notifications.read') }}
                             </x-badge>
                         @endif
@@ -43,15 +54,20 @@
             </div>
 
             @if (! $isRead)
-                <x-primary-button :icon-only="true" class="mark-as-read-button shrink-0 !bg-purple-600 hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!bg-purple-400 dark:focus:!ring-purple-400"
+                <x-primary-button
+                    :icon-only="true"
+                    class="mark-as-read-button shrink-0 !bg-purple-600 hover:!bg-purple-700 focus:!bg-purple-700 focus:!ring-purple-500 dark:!bg-purple-500 dark:!text-white dark:hover:!bg-purple-400 dark:focus:!ring-purple-400"
                     title="{{ __('notifications.mark_as_read') }}"
                     aria-label="{{ __('notifications.mark_as_read') }}"
-                    @click="markAsRead(event, '{{ $notification->id }}', '{{ route('notifications.markAsRead', $notification) }}', '{{ $type }}')">
+                    @click="markAsRead(event, '{{ $notification->id }}', '{{ route('notifications.markAsRead', $notification) }}', '{{ $type }}')"
+                >
                     <x-icon name="check" class="h-4 w-4" />
                 </x-primary-button>
             @endif
         </div>
     </x-container>
 @empty
-    <p class="rounded-lg border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">{{ __('notifications.no_notifications_of_this_type') }}</p>
+    <p class="rounded-lg border border-dashed border-slate-300 bg-white/70 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
+        {{ __('notifications.no_notifications_of_this_type') }}
+    </p>
 @endforelse

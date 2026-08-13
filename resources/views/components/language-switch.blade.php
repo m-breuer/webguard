@@ -13,7 +13,7 @@
         ->mapWithKeys(fn (SupportedLanguage $language): array => [
             $language->value => [
                 'label' => $language->label(),
-                'code' => strtoupper($language->value),
+                'code' => mb_strtoupper($language->value),
             ],
         ])
         ->all();
@@ -37,18 +37,27 @@
 <div class="{{ $class }}">
     <x-dropdown :align="$align" :placement="$placement" width="w-40" :content-classes="$menuClasses">
         <x-slot name="trigger">
-            <button id="{{ $id }}" type="button" aria-label="{{ __('profile.fields.language') }}"
-                title="{{ $languages[$currentLocale]['label'] }}" class="{{ $triggerClasses }}">
+            <button
+                id="{{ $id }}"
+                type="button"
+                aria-label="{{ __('profile.fields.language') }}"
+                title="{{ $languages[$currentLocale]['label'] }}"
+                class="{{ $triggerClasses }}"
+            >
                 <x-language-flag :locale="$currentLocale" class="h-5 w-5 rounded-full" />
             </button>
         </x-slot>
 
         <x-slot name="content">
             @foreach ($languages as $locale => $language)
-                <a href="{{ route('locale.switch', ['locale' => $locale]) }}"
-                    class="{{ $isLegalVariant
+                <a
+                    href="{{ route('locale.switch', ['locale' => $locale]) }}"
+                    class="{{
+                        $isLegalVariant
                         ? 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800'
-                        : 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700' }}">
+                        : 'flex w-full items-center justify-between gap-3 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                    }}"
+                >
                     <span class="flex items-center gap-2">
                         <x-language-flag :locale="$locale" class="h-5 w-5 rounded-full" />
                         <span class="font-semibold">{{ $language['code'] }}</span>
@@ -56,9 +65,11 @@
 
                     @if ($locale === $currentLocale)
                         <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd"
+                            <path
+                                fill-rule="evenodd"
                                 d="M16.704 5.29a1 1 0 01.006 1.414l-8 8a1 1 0 01-1.42-.004l-4-4a1 1 0 111.414-1.414l3.293 3.292 7.296-7.29a1 1 0 011.41.002z"
-                                clip-rule="evenodd" />
+                                clip-rule="evenodd"
+                            />
                         </svg>
                     @endif
                 </a>
