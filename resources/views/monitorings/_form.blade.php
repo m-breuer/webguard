@@ -26,6 +26,10 @@
         MonitoringType::SERVER_HEALTH->value,
         MonitoringType::DNS_RECORD->value,
     ];
+    $httpConfigurationTypeValues = [
+        MonitoringType::HTTP->value,
+        MonitoringType::KEYWORD->value,
+    ];
     $showCheckConfiguration = in_array($selectedType, $checkConfigurationTypeValues, true);
     $targetPlaceholders = [
         MonitoringType::HTTP->value => __('monitoring.form.placeholders.http_target'),
@@ -187,12 +191,14 @@
                     </div>
                     <div
                         data-monitoring-type-fields="{{ $heartbeatTypeValue }}"
+                        {{ $selectedType !== $heartbeatTypeValue ? 'hidden' : '' }}
                         class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300"
                     >
                         {{ __('monitoring.form.heartbeat_target_generated') }}
                     </div>
                     <div
                         data-monitoring-type-fields="{{ $serverHealthTypeValue }}"
+                        {{ $selectedType !== $serverHealthTypeValue ? 'hidden' : '' }}
                         class="mt-2 rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300"
                     >
                         {{ __('monitoring.form.server_health_target_generated') }}
@@ -298,13 +304,21 @@
             </summary>
 
             <div class="space-y-4 pt-4">
-                <div data-monitoring-type-fields="{{ MonitoringType::PORT->value }}" class="mt-4">
+                <div
+                    data-monitoring-type-fields="{{ MonitoringType::PORT->value }}"
+                    {{ $selectedType !== MonitoringType::PORT->value ? 'hidden' : '' }}
+                    class="mt-4"
+                >
                     <x-input-label for="port" :value="__('monitoring.form.port')" />
                     <x-text-input id="port" type="number" name="port" :value="old('port', $monitoring->port ?? '')" />
                     <x-input-error :messages="$errors->get('port')" />
                 </div>
 
-                <div data-monitoring-type-fields="{{ MonitoringType::KEYWORD->value }}" class="mt-4">
+                <div
+                    data-monitoring-type-fields="{{ MonitoringType::KEYWORD->value }}"
+                    {{ $selectedType !== MonitoringType::KEYWORD->value ? 'hidden' : '' }}
+                    class="mt-4"
+                >
                     <x-input-label for="keyword" :value="__('monitoring.form.keyword')" />
                     <x-text-input
                         id="keyword"
@@ -317,6 +331,7 @@
 
                 <div
                     data-monitoring-type-fields="{{ MonitoringType::HEARTBEAT->value }}"
+                    {{ $selectedType !== MonitoringType::HEARTBEAT->value ? 'hidden' : '' }}
                     class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
                 >
                     <div>
@@ -517,6 +532,7 @@
 
                 <div
                     data-monitoring-type-fields="{{ MonitoringType::HTTP->value }} {{ MonitoringType::KEYWORD->value }}"
+                    {{ ! in_array($selectedType, $httpConfigurationTypeValues, true) ? 'hidden' : '' }}
                     class="mt-4"
                 >
                     <x-input-label for="timeout" :value="__('monitoring.form.timeout')" />
@@ -539,6 +555,7 @@
 
                 <div
                     data-monitoring-type-fields="{{ MonitoringType::HTTP->value }} {{ MonitoringType::KEYWORD->value }}"
+                    {{ ! in_array($selectedType, $httpConfigurationTypeValues, true) ? 'hidden' : '' }}
                     class="mt-4 grid gap-4 sm:grid-cols-2"
                 >
                     <div>
@@ -583,6 +600,7 @@
 
                 <div
                     data-monitoring-type-fields="{{ MonitoringType::HTTP->value }} {{ MonitoringType::KEYWORD->value }}"
+                    {{ ! in_array($selectedType, $httpConfigurationTypeValues, true) ? 'hidden' : '' }}
                     class="mt-4"
                 >
                     <x-input-label for="http_method" :value="__('monitoring.form.http_method')" />
@@ -601,6 +619,7 @@
 
                 <div
                     data-monitoring-type-fields="{{ MonitoringType::HTTP->value }} {{ MonitoringType::KEYWORD->value }}"
+                    {{ ! in_array($selectedType, $httpConfigurationTypeValues, true) ? 'hidden' : '' }}
                     class="mt-4"
                 >
                     <x-input-label for="expected_http_statuses" :value="__('monitoring.form.expected_http_statuses')" />
@@ -619,6 +638,7 @@
 
                 <details
                     data-monitoring-type-fields="{{ MonitoringType::HTTP->value }} {{ MonitoringType::KEYWORD->value }}"
+                    {{ ! in_array($selectedType, $httpConfigurationTypeValues, true) ? 'hidden' : '' }}
                     class="mt-4 rounded-md border border-gray-200 p-4 dark:border-gray-700"
                 >
                     <summary class="group [&::-webkit-details-marker]:hidden flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-gray-800 dark:text-gray-100">
