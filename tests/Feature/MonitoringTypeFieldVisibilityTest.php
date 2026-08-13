@@ -38,13 +38,13 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
             'type' => MonitoringType::DNS_RECORD,
         ]);
 
-        $serverHealthResponse = $this->actingAs($user)->get(route('monitorings.edit', $serverHealthMonitoring));
+        $testResponse = $this->actingAs($user)->get(route('monitorings.edit', $serverHealthMonitoring));
 
-        $serverHealthResponse
+        $testResponse
             ->assertOk()
             ->assertSeeHtml('data-monitoring-current-type="server_health"');
-        $this->assertTypeFieldsAreHidden($serverHealthResponse->getContent(), 'dns_record');
-        $this->assertTypeFieldsAreVisible($serverHealthResponse->getContent(), 'server_health');
+        $this->assertTypeFieldsAreHidden($testResponse->getContent(), 'dns_record');
+        $this->assertTypeFieldsAreVisible($testResponse->getContent(), 'server_health');
 
         $dnsResponse = $this->actingAs($user)->get(route('monitorings.edit', $dnsMonitoring));
 
@@ -68,14 +68,14 @@ class MonitoringTypeFieldVisibilityTest extends TestCase
             ->assertSeeHtml('data-monitoring-type-fields="http keyword port heartbeat server_health dns_record"')
             ->assertDontSeeHtml('data-monitoring-check-configuration data-monitoring-type-fields="http keyword port heartbeat server_health dns_record" hidden');
 
-        $pingResponse = $this->actingAs($user)->get(route('monitorings.edit', $pingMonitoring));
+        $testResponse = $this->actingAs($user)->get(route('monitorings.edit', $pingMonitoring));
 
-        $pingResponse
+        $testResponse
             ->assertOk()
             ->assertSeeHtml('data-monitoring-check-configuration');
         $this->assertMatchesRegularExpression(
             '/<details\\s+data-monitoring-check-configuration\\s+data-monitoring-type-fields="http keyword port heartbeat server_health dns_record"\\s+hidden\\b/s',
-            $pingResponse->getContent()
+            $testResponse->getContent()
         );
     }
 
