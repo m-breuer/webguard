@@ -278,7 +278,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 continue;
             }
 
-            if ((bool) ($config['enabled'] ?? false) === true) {
+            if ((bool) ($config['enabled'] ?? false)) {
                 $enabledChannels[] = (string) $channel;
             }
         }
