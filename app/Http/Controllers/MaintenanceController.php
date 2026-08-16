@@ -8,6 +8,7 @@ use App\Http\Requests\MaintenanceRequest;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
 use App\Models\User;
+use App\Services\PlannedMaintenanceNotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,8 +23,10 @@ class MaintenanceController extends Controller
         return view('maintenance.index');
     }
 
-    public function store(MaintenanceRequest $maintenanceRequest): RedirectResponse|JsonResponse
-    {
+    public function store(
+        MaintenanceRequest $maintenanceRequest,
+        PlannedMaintenanceNotificationService $plannedMaintenanceNotificationService,
+    ): RedirectResponse|JsonResponse {
         abort_if($maintenanceRequest->user()?->isDemo(), 403);
 
         $validated = $maintenanceRequest->validated();
@@ -32,7 +35,7 @@ class MaintenanceController extends Controller
             $timezone = $validated['recurring_timezone'];
             $startsAt = Date::parse($validated['recurring_starts_at'], $timezone)->setTimezone('UTC');
 
-            MaintenanceWindow::query()->create([
+            $maintenanceWindow = MaintenanceWindow::query()->create([
                 ...$this->recurringTarget($maintenanceRequest),
                 'starts_at' => $startsAt,
                 'duration_minutes' => (int) $validated['recurring_duration_minutes'],
@@ -43,6 +46,7 @@ class MaintenanceController extends Controller
                 'timezone' => $timezone,
                 'enabled' => true,
             ]);
+            $plannedMaintenanceNotificationService->notifyForRecurring($maintenanceWindow);
 
             $message = __('maintenance.messages.recurring_scheduled');
 
@@ -53,6 +57,7 @@ class MaintenanceController extends Controller
             return to_route('maintenance.index')->with('success', $message);
         }
 
+        $monitorings = $this->targetMonitorings($maintenanceRequest)->get();
         $updatedCount = $this->targetMonitorings($maintenanceRequest)
             ->update([
                 'maintenance_from' => Date::parse($validated['maintenance_from']),
@@ -60,6 +65,12 @@ class MaintenanceController extends Controller
                     ? Date::parse($validated['maintenance_until'])
                     : null,
             ]);
+        $monitorings = Monitoring::query()->whereKey($monitorings->modelKeys())->get();
+        $plannedMaintenanceNotificationService->notifyForOneOff(
+            $monitorings,
+            Date::parse($validated['maintenance_from']),
+            isset($validated['maintenance_until']) ? Date::parse($validated['maintenance_until']) : null,
+        );
 
         $message = trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]);
 

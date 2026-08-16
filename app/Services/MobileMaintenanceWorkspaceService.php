@@ -16,7 +16,10 @@ use Illuminate\Validation\ValidationException;
 
 final class MobileMaintenanceWorkspaceService
 {
-    public function __construct(private readonly MaintenanceWindowService $maintenanceWindowService) {}
+    public function __construct(
+        private readonly MaintenanceWindowService $maintenanceWindowService,
+        private readonly PlannedMaintenanceNotificationService $plannedMaintenanceNotificationService,
+    ) {}
 
     /**
      * @return Builder<Monitoring>
@@ -114,7 +117,7 @@ final class MobileMaintenanceWorkspaceService
         $idempotencyKey = (string) Arr::pull($attributes, 'idempotency_key');
         $fingerprint = hash('sha256', json_encode(Arr::sortRecursive($attributes), JSON_THROW_ON_ERROR));
 
-        return DB::transaction(function () use ($user, $attributes, $idempotencyKey, $fingerprint): array {
+        $result = DB::transaction(function () use ($user, $attributes, $idempotencyKey, $fingerprint): array {
             $operation = MobileMaintenanceOperation::query()
                 ->where('user_id', $user->id)
                 ->where('idempotency_key', $idempotencyKey)
@@ -166,6 +169,21 @@ final class MobileMaintenanceWorkspaceService
 
             return ['operation' => $operation, 'created' => true];
         });
+
+        if ($result['created']) {
+            if ($attributes['mode'] === 'recurring') {
+                $maintenanceWindow = MaintenanceWindow::query()->findOrFail($result['operation']->maintenance_window_id);
+                $this->plannedMaintenanceNotificationService->notifyForRecurring($maintenanceWindow);
+            } else {
+                $this->plannedMaintenanceNotificationService->notifyForOneOff(
+                    $this->targetMonitorings($user, $attributes)->get(),
+                    Date::parse((string) $attributes['maintenance_from']),
+                    isset($attributes['maintenance_until']) ? Date::parse((string) $attributes['maintenance_until']) : null,
+                );
+            }
+        }
+
+        return $result;
     }
 
     public function recurringWindowFor(User $user, string $maintenanceWindow): MaintenanceWindow
@@ -180,6 +198,12 @@ final class MobileMaintenanceWorkspaceService
     {
         abort_unless($maintenanceWindow->isManageableBy($user), 404);
         $maintenanceWindow->update(['enabled' => $enabled]);
+
+        if ($enabled) {
+            $this->plannedMaintenanceNotificationService->notifyForRecurring(
+                MaintenanceWindow::query()->findOrFail($maintenanceWindow->id)
+            );
+        }
 
         return $maintenanceWindow->refresh()->load([
             'monitoring:id,name',
