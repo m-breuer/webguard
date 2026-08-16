@@ -110,19 +110,19 @@ final class PlannedMaintenanceNotificationService
 
                 $fingerprint = $this->fingerprint($source, $affectedMonitorings, $startsAt, $endsAt, $timezone, $recurring);
 
-                $statusPage->subscriptions->each(function (StatusPageSubscription $subscription) use ($fingerprint, $affectedMonitorings, $startsAt, $endsAt, $timezone, $recurring): void {
-                    $delivery = StatusPageMaintenanceDelivery::query()->firstOrCreate([
-                        'status_page_subscription_id' => $subscription->id,
+                $statusPage->subscriptions->each(function (StatusPageSubscription $statusPageSubscription) use ($fingerprint, $affectedMonitorings, $startsAt, $endsAt, $timezone, $recurring): void {
+                    $statusPageMaintenanceDelivery = StatusPageMaintenanceDelivery::query()->firstOrCreate([
+                        'status_page_subscription_id' => $statusPageSubscription->id,
                         'fingerprint' => $fingerprint,
                     ]);
 
-                    if ($delivery->sent_at !== null) {
+                    if ($statusPageMaintenanceDelivery->sent_at !== null) {
                         return;
                     }
 
-                    Mail::to($subscription->email)->send(
+                    Mail::to($statusPageSubscription->email)->send(
                         new PublicStatusPageMaintenanceScheduledMail(
-                            $subscription,
+                            $statusPageSubscription,
                             $affectedMonitorings,
                             $startsAt,
                             $endsAt,
@@ -131,7 +131,7 @@ final class PlannedMaintenanceNotificationService
                         )
                     );
 
-                    $delivery->update(['sent_at' => now()]);
+                    $statusPageMaintenanceDelivery->update(['sent_at' => now()]);
                 });
             });
     }

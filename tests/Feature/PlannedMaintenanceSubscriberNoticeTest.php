@@ -28,7 +28,7 @@ class PlannedMaintenanceSubscriberNoticeTest extends TestCase
         $user = $this->user();
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
         $statusPage = $this->statusPage($user, $monitoring);
-        $verifiedSubscription = $this->subscription($statusPage, 'verified@example.com', true);
+        $statusPageSubscription = $this->subscription($statusPage, 'verified@example.com', true);
         $this->subscription($statusPage, 'pending@example.com', false);
         $outsideMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Internal Worker']);
         $outsideStatusPage = $this->statusPage($user, $outsideMonitoring, 'Internal Status');
@@ -41,16 +41,16 @@ class PlannedMaintenanceSubscriberNoticeTest extends TestCase
             'maintenance_until' => '2026-08-20T11:00:00+00:00',
         ])->assertRedirect(route('maintenance.index'));
 
-        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $mail) use ($verifiedSubscription, $monitoring): bool {
-            return $mail->hasTo('verified@example.com')
-                && $mail->subscription->is($verifiedSubscription)
-                && $mail->monitorings->contains($monitoring)
-                && ! $mail->recurring;
+        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $publicStatusPageMaintenanceScheduledMail) use ($statusPageSubscription, $monitoring): bool {
+            return $publicStatusPageMaintenanceScheduledMail->hasTo('verified@example.com')
+                && $publicStatusPageMaintenanceScheduledMail->subscription->is($statusPageSubscription)
+                && $publicStatusPageMaintenanceScheduledMail->monitorings->contains($monitoring)
+                && ! $publicStatusPageMaintenanceScheduledMail->recurring;
         });
-        Mail::assertNotSent(PublicStatusPageMaintenanceScheduledMail::class, fn (PublicStatusPageMaintenanceScheduledMail $mail): bool => $mail->hasTo('pending@example.com'));
-        Mail::assertNotSent(PublicStatusPageMaintenanceScheduledMail::class, fn (PublicStatusPageMaintenanceScheduledMail $mail): bool => $mail->hasTo('outside@example.com'));
+        Mail::assertNotSent(PublicStatusPageMaintenanceScheduledMail::class, fn (PublicStatusPageMaintenanceScheduledMail $publicStatusPageMaintenanceScheduledMail): bool => $publicStatusPageMaintenanceScheduledMail->hasTo('pending@example.com'));
+        Mail::assertNotSent(PublicStatusPageMaintenanceScheduledMail::class, fn (PublicStatusPageMaintenanceScheduledMail $publicStatusPageMaintenanceScheduledMail): bool => $publicStatusPageMaintenanceScheduledMail->hasTo('outside@example.com'));
         $this->assertDatabaseHas('status_page_maintenance_deliveries', [
-            'status_page_subscription_id' => $verifiedSubscription->id,
+            'status_page_subscription_id' => $statusPageSubscription->id,
         ]);
     }
 
@@ -88,12 +88,12 @@ class PlannedMaintenanceSubscriberNoticeTest extends TestCase
             'recurring_timezone' => 'Europe/Berlin',
         ])->assertRedirect(route('maintenance.index'));
 
-        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $mail) use ($subscription, $firstMonitoring, $secondMonitoring): bool {
-            return $mail->hasTo('subscriber@example.com')
-                && $mail->subscription->is($subscription)
-                && $mail->monitorings->contains($firstMonitoring)
-                && $mail->monitorings->contains($secondMonitoring)
-                && $mail->recurring;
+        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $publicStatusPageMaintenanceScheduledMail) use ($subscription, $firstMonitoring, $secondMonitoring): bool {
+            return $publicStatusPageMaintenanceScheduledMail->hasTo('subscriber@example.com')
+                && $publicStatusPageMaintenanceScheduledMail->subscription->is($subscription)
+                && $publicStatusPageMaintenanceScheduledMail->monitorings->contains($firstMonitoring)
+                && $publicStatusPageMaintenanceScheduledMail->monitorings->contains($secondMonitoring)
+                && $publicStatusPageMaintenanceScheduledMail->recurring;
         });
     }
 
@@ -104,12 +104,12 @@ class PlannedMaintenanceSubscriberNoticeTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
         $statusPage = $this->statusPage($user, $monitoring);
         $subscription = $this->subscription($statusPage, 'subscriber@example.com', true);
-        $service = app(PlannedMaintenanceNotificationService::class);
+        $plannedMaintenanceNotificationService = resolve(PlannedMaintenanceNotificationService::class);
         $startsAt = Date::parse('2026-08-20 10:00:00 UTC');
         $endsAt = Date::parse('2026-08-20 11:00:00 UTC');
 
-        $service->notifyForOneOff(collect([$monitoring]), $startsAt, $endsAt);
-        $service->notifyForOneOff(collect([$monitoring]), $startsAt, $endsAt);
+        $plannedMaintenanceNotificationService->notifyForOneOff(collect([$monitoring]), $startsAt, $endsAt);
+        $plannedMaintenanceNotificationService->notifyForOneOff(collect([$monitoring]), $startsAt, $endsAt);
 
         Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, 1);
         $this->assertSame(1, StatusPageMaintenanceDelivery::query()
@@ -124,11 +124,11 @@ class PlannedMaintenanceSubscriberNoticeTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
         $statusPage = $this->statusPage($user, $monitoring);
         $subscription = $this->subscription($statusPage, 'subscriber@example.com', true);
-        $service = app(PlannedMaintenanceNotificationService::class);
+        $plannedMaintenanceNotificationService = resolve(PlannedMaintenanceNotificationService::class);
         $startsAt = Date::parse('2026-08-20 10:00:00 UTC');
 
-        $service->notifyForOneOff(collect([$monitoring]), $startsAt, Date::parse('2026-08-20 11:00:00 UTC'));
-        $service->notifyForOneOff(collect([$monitoring]), $startsAt, Date::parse('2026-08-20 12:00:00 UTC'));
+        $plannedMaintenanceNotificationService->notifyForOneOff(collect([$monitoring]), $startsAt, Date::parse('2026-08-20 11:00:00 UTC'));
+        $plannedMaintenanceNotificationService->notifyForOneOff(collect([$monitoring]), $startsAt, Date::parse('2026-08-20 12:00:00 UTC'));
 
         Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, 2);
         $this->assertSame(2, StatusPageMaintenanceDelivery::query()
@@ -149,8 +149,8 @@ class PlannedMaintenanceSubscriberNoticeTest extends TestCase
             'slug' => (string) str($name)->slug(),
             'is_public' => true,
         ]);
-        $component = $statusPage->components()->create(['name' => $name, 'position' => 0]);
-        $component->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $statusPageComponent = $statusPage->components()->create(['name' => $name, 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
 
         return $statusPage;
     }

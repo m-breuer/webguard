@@ -161,9 +161,9 @@ class MobileMaintenanceApiTest extends TestCase
             'slug' => 'acme-status',
             'is_public' => true,
         ]);
-        $component = $statusPage->components()->create(['name' => 'Checkout', 'position' => 0]);
-        $component->monitorings()->attach($monitoring->id, ['position' => 0]);
-        $subscription = StatusPageSubscription::query()->create([
+        $statusPageComponent = $statusPage->components()->create(['name' => 'Checkout', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
             'status_page_id' => $statusPage->id,
             'email' => 'subscriber@example.com',
             'confirmation_token_hash' => null,
@@ -181,8 +181,8 @@ class MobileMaintenanceApiTest extends TestCase
             ])
             ->assertCreated();
 
-        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $mail) use ($subscription): bool {
-            return $mail->hasTo('subscriber@example.com') && $mail->subscription->is($subscription);
+        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $publicStatusPageMaintenanceScheduledMail) use ($statusPageSubscription): bool {
+            return $publicStatusPageMaintenanceScheduledMail->hasTo('subscriber@example.com') && $publicStatusPageMaintenanceScheduledMail->subscription->is($statusPageSubscription);
         });
     }
 
