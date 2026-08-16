@@ -6,6 +6,7 @@ namespace Tests\Feature\Mail;
 
 use App\Enums\NotificationType;
 use App\Enums\TeamRole;
+use App\Mail\PublicStatusPageMaintenanceScheduledMail;
 use App\Mail\PublicStatusPageStatusUpdateMail;
 use App\Mail\PublicStatusPageSubscriptionConfirmationMail;
 use App\Mail\StatusPageStatusUpdateMail;
@@ -224,5 +225,47 @@ class MailableContractTest extends TestCase
             'token' => 'unsubscribe-token',
         ]), $publicStatusPageStatusUpdateMail->content()->with['unsubscribeUrl']);
         $this->assertSame([], $publicStatusPageStatusUpdateMail->attachments());
+    }
+
+    public function test_public_status_page_maintenance_scheduled_mail_exposes_schedule_and_unsubscribe_contract(): void
+    {
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'subscriber@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => now(),
+        ]);
+
+        $publicStatusPageMaintenanceScheduledMail = new PublicStatusPageMaintenanceScheduledMail(
+            $statusPageSubscription,
+            collect([$monitoring]),
+            Date::parse('2026-08-20 10:00:00 UTC'),
+            Date::parse('2026-08-20 11:00:00 UTC'),
+            'Europe/Berlin',
+            true,
+        );
+
+        $this->assertSame(__('mail.public_status_page_maintenance_scheduled.subject', [
+            'statusPageName' => 'Acme Status',
+        ]), $publicStatusPageMaintenanceScheduledMail->envelope()->subject);
+        $this->assertSame('mail.public-status-page-maintenance-scheduled', $publicStatusPageMaintenanceScheduledMail->content()->view);
+        $this->assertSame($statusPage->id, $publicStatusPageMaintenanceScheduledMail->content()->with['statusPage']->id);
+        $this->assertTrue($publicStatusPageMaintenanceScheduledMail->content()->with['monitorings']->contains($monitoring));
+        $this->assertTrue($publicStatusPageMaintenanceScheduledMail->content()->with['recurring']);
+        $this->assertSame(route('public-status-pages.show', $statusPage), $publicStatusPageMaintenanceScheduledMail->content()->with['statusPageUrl']);
+        $this->assertSame(route('public-status-pages.subscribers.unsubscribe', [
+            'statusPage' => $statusPage,
+            'token' => 'unsubscribe-token',
+        ]), $publicStatusPageMaintenanceScheduledMail->content()->with['unsubscribeUrl']);
+        $this->assertSame([], $publicStatusPageMaintenanceScheduledMail->attachments());
     }
 }

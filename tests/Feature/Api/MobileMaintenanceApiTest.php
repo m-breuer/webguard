@@ -6,14 +6,18 @@ namespace Tests\Feature\Api;
 
 use App\Enums\MaintenanceWindowRecurrence;
 use App\Enums\TeamRole;
+use App\Mail\PublicStatusPageMaintenanceScheduledMail;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
+use App\Models\StatusPage;
+use App\Models\StatusPageSubscription;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class MobileMaintenanceApiTest extends TestCase
@@ -144,6 +148,42 @@ class MobileMaintenanceApiTest extends TestCase
 
         $this->deleteJson('/api/v1/mobile/maintenance/one-off/' . $firstMonitoring->id)->assertNoContent();
         $this->assertDatabaseHas('monitorings', ['id' => $firstMonitoring->id, 'maintenance_from' => null, 'maintenance_until' => null]);
+    }
+
+    public function test_mobile_maintenance_schedule_notifies_verified_public_status_page_subscribers(): void
+    {
+        Mail::fake();
+        $user = $this->user();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageComponent = $statusPage->components()->create(['name' => 'Checkout', 'position' => 0]);
+        $statusPageComponent->monitorings()->attach($monitoring->id, ['position' => 0]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'subscriber@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+        $this->actingAsMobile($user);
+
+        $this->withHeaders(['Idempotency-Key' => 'maintenance-notice-001'])
+            ->postJson('/api/v1/mobile/maintenance', [
+                'scope' => 'monitoring',
+                'monitoring_id' => $monitoring->id,
+                'maintenance_from' => '2026-08-20T10:00:00+00:00',
+                'maintenance_until' => '2026-08-20T11:00:00+00:00',
+            ])
+            ->assertCreated();
+
+        Mail::assertSent(PublicStatusPageMaintenanceScheduledMail::class, function (PublicStatusPageMaintenanceScheduledMail $publicStatusPageMaintenanceScheduledMail) use ($statusPageSubscription): bool {
+            return $publicStatusPageMaintenanceScheduledMail->hasTo('subscriber@example.com') && $publicStatusPageMaintenanceScheduledMail->subscription->is($statusPageSubscription);
+        });
     }
 
     private function user(): User
