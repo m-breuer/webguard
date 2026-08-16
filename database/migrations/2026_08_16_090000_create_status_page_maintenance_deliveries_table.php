@@ -10,6 +10,10 @@ return new class() extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('status_page_maintenance_deliveries')) {
+            return;
+        }
+
         Schema::create('status_page_maintenance_deliveries', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('status_page_subscription_id')->constrained()->cascadeOnDelete();
