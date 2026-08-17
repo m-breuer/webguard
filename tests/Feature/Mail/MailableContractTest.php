@@ -268,4 +268,59 @@ class MailableContractTest extends TestCase
         ]), $publicStatusPageMaintenanceScheduledMail->content()->with['unsubscribeUrl']);
         $this->assertSame([], $publicStatusPageMaintenanceScheduledMail->attachments());
     }
+
+    public function test_public_status_page_maintenance_scheduled_mail_renders_localized_schedule_branches(): void
+    {
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'slug' => 'acme-status',
+            'is_public' => true,
+        ]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'subscriber@example.com',
+            'confirmation_token_hash' => null,
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => now(),
+        ]);
+
+        app()->setLocale('en');
+        $recurringMail = new PublicStatusPageMaintenanceScheduledMail(
+            $statusPageSubscription,
+            collect([$monitoring]),
+            Date::parse('2026-08-20 10:00:00 UTC'),
+            Date::parse('2026-08-20 11:00:00 UTC'),
+            'Europe/Berlin',
+            true,
+        );
+
+        $recurringRendered = $recurringMail->render();
+
+        $this->assertStringContainsString('recurring planned maintenance scheduled', $recurringRendered);
+        $this->assertStringContainsString('Affected services:', $recurringRendered);
+        $this->assertStringContainsString('Checkout API', $recurringRendered);
+        $this->assertSame('20.08.2026 13:00', $recurringMail->content()->with['endsAt']);
+        $this->assertStringContainsString('Expected end:', $recurringRendered);
+
+        app()->setLocale('de');
+        $openEndedMail = new PublicStatusPageMaintenanceScheduledMail(
+            $statusPageSubscription,
+            collect([$monitoring]),
+            Date::parse('2026-08-20 10:00:00 UTC'),
+            null,
+            'Europe/Berlin',
+            false,
+        );
+
+        $openEndedRendered = $openEndedMail->render();
+
+        $this->assertStringContainsString('wurde eine geplante Wartung eingetragen', $openEndedRendered);
+        $this->assertStringContainsString('Betroffene Dienste:', $openEndedRendered);
+        $this->assertStringContainsString('Ein Endzeitpunkt wurde noch nicht angegeben.', $openEndedRendered);
+        $this->assertStringContainsString('Statusseite anzeigen', $openEndedRendered);
+        $this->assertStringContainsString('Diese Statusseiten-Updates abbestellen', $openEndedRendered);
+    }
 }
