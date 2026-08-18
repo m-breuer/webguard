@@ -80,6 +80,11 @@ final class MaintenanceOverviewService
                     'duration_minutes' => $maintenanceWindow->duration_minutes,
                     'timezone' => $maintenanceWindow->timezone,
                     'starts_at' => $maintenanceWindow->starts_at->toIso8601String(),
+                    'repeat_until' => $maintenanceWindow->repeat_until?->toIso8601String(),
+                    'scope' => $maintenanceWindow->monitoring_id !== null ? 'monitoring' : 'group',
+                    'monitoring_id' => $maintenanceWindow->monitoring_id,
+                    'monitoring_group_id' => $maintenanceWindow->monitoring_group_id,
+                    'enabled' => $maintenanceWindow->enabled,
                     'can_manage' => $maintenanceWindow->isManageableBy($user),
                 ])
                 ->values()

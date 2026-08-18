@@ -138,6 +138,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::resource('monitorings', MonitoringController::class)->names('monitorings');
     Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
     Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
+    Route::patch('/maintenance', [MaintenanceController::class, 'update'])->name('maintenance.update');
     Route::delete('/maintenance', [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
     Route::post('/monitorings/{monitoring}/team-ownership', [MonitoringOwnershipController::class, 'moveToTeam'])
         ->name('monitorings.team-ownership.store');

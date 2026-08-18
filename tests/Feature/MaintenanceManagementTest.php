@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Enums\TeamRole;
+use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
 use App\Models\Package;
@@ -199,6 +200,121 @@ class MaintenanceManagementTest extends TestCase
             'id' => $outsideMonitoring->id,
             'maintenance_from' => null,
             'maintenance_until' => null,
+        ]);
+    }
+
+    public function test_user_can_update_one_off_maintenance_for_a_monitoring_group(): void
+    {
+        $group = MonitoringGroup::factory()->for($this->user)->create();
+        $firstMonitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-02 12:00:00',
+            'maintenance_until' => '2026-07-02 13:00:00',
+        ]);
+        $secondMonitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+            'maintenance_from' => '2026-07-02 12:00:00',
+            'maintenance_until' => '2026-07-02 13:00:00',
+        ]);
+        $outsideMonitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $firstMonitoring->groups()->attach($group);
+        $secondMonitoring->groups()->attach($group);
+
+        $this->actingAs($this->user)->patch(route('maintenance.update'), [
+            'mode' => 'one_off',
+            'scope' => 'group',
+            'monitoring_group_id' => $group->id,
+            'maintenance_from' => '2026-07-03T14:00',
+            'maintenance_until' => '2026-07-03T16:00',
+        ])->assertRedirect(route('maintenance.index'));
+
+        foreach ([$firstMonitoring, $secondMonitoring] as $monitoring) {
+            $this->assertDatabaseHas('monitorings', [
+                'id' => $monitoring->id,
+                'maintenance_from' => '2026-07-03 14:00:00',
+                'maintenance_until' => '2026-07-03 16:00:00',
+            ]);
+        }
+        $this->assertDatabaseHas('monitorings', [
+            'id' => $outsideMonitoring->id,
+            'maintenance_from' => null,
+            'maintenance_until' => null,
+        ]);
+    }
+
+    public function test_user_can_update_recurring_maintenance_and_change_its_target_to_a_group(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $group = MonitoringGroup::factory()->for($this->user)->create();
+        $group->monitorings()->attach($monitoring);
+        $maintenanceWindow = MaintenanceWindow::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'starts_at' => '2026-07-02 08:00:00',
+            'duration_minutes' => 60,
+            'recurrence' => 'weekly',
+            'timezone' => 'Europe/Berlin',
+            'enabled' => true,
+        ]);
+
+        $this->actingAs($this->user)->patchJson(route('api.maintenance.update'), [
+            'maintenance_window_id' => $maintenanceWindow->id,
+            'mode' => 'recurring',
+            'scope' => 'group',
+            'monitoring_group_id' => $group->id,
+            'recurring_starts_at' => '2026-07-03T10:00',
+            'recurring_duration_minutes' => 90,
+            'recurrence' => 'monthly',
+            'recurring_repeat_until' => '2026-12-31',
+            'recurring_timezone' => 'Europe/Berlin',
+        ])->assertOk()->assertJsonPath('updated_count', 0);
+
+        $this->assertDatabaseHas('maintenance_windows', [
+            'id' => $maintenanceWindow->id,
+            'monitoring_id' => null,
+            'monitoring_group_id' => $group->id,
+            'starts_at' => '2026-07-03 08:00:00',
+            'duration_minutes' => 90,
+            'recurrence' => 'monthly',
+            'repeat_until' => '2026-12-31 22:59:59',
+            'timezone' => 'Europe/Berlin',
+            'enabled' => true,
+        ]);
+    }
+
+    public function test_user_cannot_update_a_foreign_recurring_maintenance_window(): void
+    {
+        $otherUser = User::factory()->create(['package_id' => Package::factory()->create()->id]);
+        $foreignMonitoring = Monitoring::factory()->for($otherUser)->create([
+            'preferred_location' => $this->serverInstance->code,
+        ]);
+        $maintenanceWindow = MaintenanceWindow::query()->create([
+            'monitoring_id' => $foreignMonitoring->id,
+            'starts_at' => '2026-07-02 08:00:00',
+            'duration_minutes' => 60,
+            'recurrence' => 'weekly',
+            'timezone' => 'Europe/Berlin',
+            'enabled' => true,
+        ]);
+
+        $this->actingAs($this->user)->patch(route('maintenance.update'), [
+            'maintenance_window_id' => $maintenanceWindow->id,
+            'mode' => 'recurring',
+            'scope' => 'monitoring',
+            'monitoring_id' => $foreignMonitoring->id,
+            'recurring_starts_at' => '2026-07-03T10:00',
+            'recurring_duration_minutes' => 90,
+            'recurrence' => 'monthly',
+            'recurring_timezone' => 'Europe/Berlin',
+        ])->assertSessionHasErrors(['monitoring_id', 'maintenance_window_id']);
+
+        $this->assertDatabaseHas('maintenance_windows', [
+            'id' => $maintenanceWindow->id,
+            'monitoring_id' => $foreignMonitoring->id,
+            'recurrence' => 'weekly',
         ]);
     }
 

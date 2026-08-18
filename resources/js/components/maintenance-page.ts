@@ -36,6 +36,11 @@ type RecurringMaintenanceWindow = {
     duration_minutes: number;
     timezone: string;
     starts_at: string;
+    repeat_until: string | null;
+    scope: 'monitoring' | 'group';
+    monitoring_id: string | null;
+    monitoring_group_id: string | null;
+    enabled: boolean;
     can_manage: boolean;
 };
 
@@ -87,6 +92,8 @@ interface MaintenancePageComponent {
     recurringDurationMinutes: string;
     recurringRepeatUntil: string;
     recurringTimezone: string;
+    editing: boolean;
+    editingRecurringWindowId: string | null;
     monitoringOptions: MaintenanceOption[];
     monitoringGroups: MaintenanceGroup[];
     canManageMaintenance: boolean;
@@ -100,6 +107,9 @@ interface MaintenancePageComponent {
     message: string;
     load(this: MaintenancePageComponent, page?: number): Promise<void>;
     schedule(this: MaintenancePageComponent): Promise<void>;
+    editOneOffWindow(this: MaintenancePageComponent, window: MaintenanceWindow): void;
+    editRecurringWindow(this: MaintenancePageComponent, window: RecurringMaintenanceWindow): void;
+    cancelEdit(this: MaintenancePageComponent): void;
     clearWindow(this: MaintenancePageComponent, monitoringId: string): Promise<void>;
     clearRecurringWindow(this: MaintenancePageComponent, windowId: string): Promise<void>;
     statusClasses(this: MaintenancePageComponent, status: MaintenanceWindow['status']): string;
@@ -144,6 +154,31 @@ const errorMessage = async (response: Response, fallback: string): Promise<strin
     }
 };
 
+const twoDigits = (value: number): string => String(value).padStart(2, '0');
+
+const formatDateTimeInput = (value: string, timeZone?: string): string => {
+    const date = new Date(value);
+
+    if (! timeZone) {
+        return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}T${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+    }
+
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+    }).formatToParts(date);
+    const values = Object.fromEntries(parts.map((part): [string, string] => [part.type, part.value]));
+
+    return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
+};
+
+const formatDateInput = (value: string, timeZone: string): string => formatDateTimeInput(value, timeZone).slice(0, 10);
+
 export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePageComponent => ({
     endpoint,
     labels,
@@ -158,6 +193,8 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
     recurringDurationMinutes: '60',
     recurringRepeatUntil: '',
     recurringTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    editing: false,
+    editingRecurringWindowId: null,
     monitoringOptions: [],
     monitoringGroups: [],
     canManageMaintenance: false,
@@ -237,11 +274,12 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
             recurring_duration_minutes: this.mode === 'recurring' ? this.recurringDurationMinutes : null,
             recurring_repeat_until: this.mode === 'recurring' ? (this.recurringRepeatUntil || null) : null,
             recurring_timezone: this.mode === 'recurring' ? this.recurringTimezone : null,
+            maintenance_window_id: this.editingRecurringWindowId,
         };
 
         try {
             const response = await fetch(this.endpoint, {
-                method: 'POST',
+                method: this.editing ? 'PATCH' : 'POST',
                 headers: requestHeaders(),
                 body: JSON.stringify(payload),
             });
@@ -253,18 +291,55 @@ export default (endpoint: string, labels: MaintenancePageLabels): MaintenancePag
 
             const result = await response.json() as { message?: string };
             this.message = result.message ?? '';
-            this.monitoringId = '';
-            this.monitoringGroupId = '';
-            this.maintenanceFrom = '';
-            this.maintenanceUntil = '';
-            this.recurringStartsAt = '';
-            this.recurringRepeatUntil = '';
+            this.cancelEdit();
             await this.load(this.pagination.current_page);
         } catch {
             this.error = this.labels.error;
         } finally {
             this.submitting = false;
         }
+    },
+
+    editOneOffWindow(this: MaintenancePageComponent, window: MaintenanceWindow): void {
+        if (! window.maintenance_from) {
+            return;
+        }
+
+        this.editing = true;
+        this.editingRecurringWindowId = null;
+        this.mode = 'one_off';
+        this.scope = 'monitoring';
+        this.monitoringId = window.id;
+        this.monitoringGroupId = '';
+        this.maintenanceFrom = formatDateTimeInput(window.maintenance_from);
+        this.maintenanceUntil = window.maintenance_until ? formatDateTimeInput(window.maintenance_until) : '';
+        document.getElementById('mode')?.focus();
+    },
+
+    editRecurringWindow(this: MaintenancePageComponent, window: RecurringMaintenanceWindow): void {
+        this.editing = true;
+        this.editingRecurringWindowId = window.id;
+        this.mode = 'recurring';
+        this.scope = window.scope;
+        this.monitoringId = window.monitoring_id ?? '';
+        this.monitoringGroupId = window.monitoring_group_id ?? '';
+        this.recurringStartsAt = formatDateTimeInput(window.starts_at, window.timezone);
+        this.recurrence = window.recurrence;
+        this.recurringDurationMinutes = String(window.duration_minutes);
+        this.recurringRepeatUntil = window.repeat_until ? formatDateInput(window.repeat_until, window.timezone) : '';
+        this.recurringTimezone = window.timezone;
+        document.getElementById('mode')?.focus();
+    },
+
+    cancelEdit(this: MaintenancePageComponent): void {
+        this.editing = false;
+        this.editingRecurringWindowId = null;
+        this.monitoringId = '';
+        this.monitoringGroupId = '';
+        this.maintenanceFrom = '';
+        this.maintenanceUntil = '';
+        this.recurringStartsAt = '';
+        this.recurringRepeatUntil = '';
     },
 
     async clearWindow(this: MaintenancePageComponent, monitoringId: string): Promise<void> {

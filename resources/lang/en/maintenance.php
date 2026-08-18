@@ -67,16 +67,21 @@ return [
     ],
     'actions' => [
         'schedule' => 'Schedule maintenance',
+        'update' => 'Save changes',
+        'edit' => 'Edit maintenance',
+        'cancel_edit' => 'Cancel editing',
         'clear' => 'Clear maintenance',
         'clear_confirmation' => 'Clear this maintenance window?',
         'clear_recurring_confirmation' => 'Disable this recurring maintenance window?',
     ],
     'messages' => [
         'scheduled' => 'Maintenance was scheduled for :count monitoring.|Maintenance was scheduled for :count monitorings.',
+        'updated' => 'Maintenance was updated for :count monitoring.|Maintenance was updated for :count monitorings.',
         'cleared' => 'Maintenance window was cleared.',
         'loading' => 'Loading maintenance data …',
         'error' => 'Maintenance data could not be loaded.',
         'recurring_scheduled' => 'Recurring maintenance window was scheduled.',
+        'recurring_updated' => 'Recurring maintenance window was updated.',
         'recurring_cleared' => 'Recurring maintenance window was disabled.',
     ],
     'empty' => [
