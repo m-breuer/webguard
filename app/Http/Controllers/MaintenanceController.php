@@ -83,12 +83,12 @@ class MaintenanceController extends Controller
     }
 
     public function update(
-        UpdateMaintenanceRequest $maintenanceRequest,
+        UpdateMaintenanceRequest $updateMaintenanceRequest,
         PlannedMaintenanceNotificationService $plannedMaintenanceNotificationService,
     ): RedirectResponse|JsonResponse {
-        abort_if($maintenanceRequest->user()?->isDemo(), 403);
+        abort_if($updateMaintenanceRequest->user()?->isDemo(), 403);
 
-        $validated = $maintenanceRequest->validated();
+        $validated = $updateMaintenanceRequest->validated();
 
         if ($validated['mode'] === 'recurring') {
             $timezone = $validated['recurring_timezone'];
@@ -96,7 +96,7 @@ class MaintenanceController extends Controller
             $maintenanceWindow->update([
                 'monitoring_id' => null,
                 'monitoring_group_id' => null,
-                ...$this->recurringTarget($maintenanceRequest),
+                ...$this->recurringTarget($updateMaintenanceRequest),
                 'starts_at' => Date::parse($validated['recurring_starts_at'], $timezone)->setTimezone('UTC'),
                 'duration_minutes' => (int) $validated['recurring_duration_minutes'],
                 'recurrence' => $validated['recurrence'],
@@ -111,15 +111,15 @@ class MaintenanceController extends Controller
 
             $message = __('maintenance.messages.recurring_updated');
 
-            if ($maintenanceRequest->expectsJson()) {
+            if ($updateMaintenanceRequest->expectsJson()) {
                 return response()->json(['message' => $message, 'updated_count' => 0]);
             }
 
             return to_route('maintenance.index')->with('success', $message);
         }
 
-        $monitorings = $this->targetMonitorings($maintenanceRequest)->get();
-        $updatedCount = $this->targetMonitorings($maintenanceRequest)
+        $monitorings = $this->targetMonitorings($updateMaintenanceRequest)->get();
+        $updatedCount = $this->targetMonitorings($updateMaintenanceRequest)
             ->update([
                 'maintenance_from' => Date::parse($validated['maintenance_from']),
                 'maintenance_until' => isset($validated['maintenance_until'])
@@ -135,7 +135,7 @@ class MaintenanceController extends Controller
 
         $message = trans_choice('maintenance.messages.updated', $updatedCount, ['count' => $updatedCount]);
 
-        if ($maintenanceRequest->expectsJson()) {
+        if ($updateMaintenanceRequest->expectsJson()) {
             return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
         }
 

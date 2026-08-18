@@ -35,7 +35,7 @@ it('prefills the maintenance editor for one-off and recurring windows', function
         'maintenance_from' => '2026-07-03 10:00:00',
         'maintenance_until' => '2026-07-03 11:00:00',
     ]);
-    $recurringWindow = MaintenanceWindow::query()->create([
+    $maintenanceWindow = MaintenanceWindow::query()->create([
         'monitoring_id' => $monitoring->id,
         'starts_at' => '2026-07-10 08:00:00',
         'duration_minutes' => 90,
@@ -80,7 +80,7 @@ function () {
     return state?.editing === true
         && state.mode === 'recurring'
         && state.scope === 'monitoring'
-        && state.editingRecurringWindowId === '{$recurringWindow->id}'
+        && state.editingRecurringWindowId === '{$maintenanceWindow->id}'
         && state.monitoringId === '{$monitoring->id}'
         && state.recurringStartsAt === '2026-07-10T08:00'
         && state.recurrence === 'weekly'
