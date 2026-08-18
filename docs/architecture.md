@@ -19,7 +19,6 @@ observations is described in [Derived monitoring health](architecture/derived-mo
 - **Package manager:** Composer
 - **API authentication:** Laravel Sanctum
 - **API documentation:** Scribe
-- **Social authentication:** Laravel Socialite is installed for future social login integrations and currently configured for GitHub.
 - **Cache and queue:** Redis powers high-performance caching and queue-backed asynchronous monitoring tasks.
 - **Testing:** Pest and the Pest Browser Plugin
 

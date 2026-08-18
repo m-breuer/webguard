@@ -15,7 +15,6 @@
         "knuckleswtf/scribe": "^5.5",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.1",
-        "laravel/socialite": "^5.24",
         "laravel/tinker": "^3.0",
         "mews/captcha": "^3.4",
         "spatie/laravel-activitylog": "^5.0"

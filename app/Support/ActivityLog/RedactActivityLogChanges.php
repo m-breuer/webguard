@@ -25,8 +25,6 @@ class RedactActivityLogChanges extends LogActivityAction
         'bot_token',
         'chat_id',
         'cookie',
-        'github_refresh_token',
-        'github_token',
         'heartbeat_token',
         'http_body',
         'password',

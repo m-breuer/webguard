@@ -7,7 +7,6 @@ use App\Http\Controllers\Admin\ApiController as AdminApiController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ServerInstanceController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\IncidentAnalyticsController;
@@ -45,9 +44,6 @@ $sessionlessPublicRoutes = [
     ShareErrorsFromSession::class,
     StartSession::class,
 ];
-
-Route::get('/auth/github/redirect', [SocialiteController::class, 'redirectToProvider'])->name('github.redirect');
-Route::get('/auth/github/callback', [SocialiteController::class, 'handleProviderCallback'])->name('github.callback');
 
 Route::redirect('/', '/login')->name('home');
 Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');

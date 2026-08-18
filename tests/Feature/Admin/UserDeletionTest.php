@@ -41,11 +41,7 @@ class UserDeletionTest extends TestCase
         Package::factory()->create();
 
         $admin = User::factory()->create(['role' => UserRole::ADMIN->value]);
-        $user = User::factory()->create([
-            'github_id' => '12345',
-            'github_token' => 'token',
-            'github_refresh_token' => 'refresh-token',
-        ]);
+        $user = User::factory()->create();
         $originalEmail = $user->email;
 
         $user->createToken('api-access');
@@ -86,9 +82,6 @@ class UserDeletionTest extends TestCase
         $this->assertStringEndsWith('@webguard.invalid', $user->email);
         $this->assertFalse(Hash::check('password', (string) $user->password));
         $this->assertNull($user->remember_token);
-        $this->assertNull($user->github_id);
-        $this->assertNull($user->github_token);
-        $this->assertNull($user->github_refresh_token);
 
         $this->actingAs($admin)->post(route('logout'));
         $loginAttempt = $this->post(route('login'), [

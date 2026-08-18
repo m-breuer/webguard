@@ -259,20 +259,6 @@
                         </div>
                     </form>
                 </div>
-
-                <div class="mt-6 text-center">
-                    <div class="my-4 flex items-center">
-                        <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-                        <span class="mx-4 flex-shrink px-2 text-gray-500 dark:text-gray-400">{{ __('auth.or_continue_with') }}</span>
-                        <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-                    </div>
-
-                    <x-input-error :messages="$errors->get('socialite_error')" class="mb-4" />
-
-                    <x-secondary-button :href="route('github.redirect')">
-                        {{ __('auth.github_login') }}
-                    </x-secondary-button>
-                </div>
             </div>
         </div>
     </div>
