@@ -10,6 +10,38 @@
 </div>
 
 <div class="mt-4">
+    <x-input-label for="display_name" :value="__('admin.server_instances.fields.display_name')" />
+    <x-text-input
+        id="display_name"
+        type="text"
+        name="display_name"
+        :value="old('display_name', $instance->display_name ?? '')"
+        required
+    />
+    <x-input-error :messages="$errors->get('display_name')" class="mt-2" />
+</div>
+
+<div class="mt-4 grid gap-4 sm:grid-cols-2">
+    <div>
+        <x-input-label for="country_code" :value="__('admin.server_instances.fields.country_code')" />
+        <x-text-input
+            id="country_code"
+            type="text"
+            name="country_code"
+            :value="old('country_code', $instance->country_code ?? '')"
+            required
+            maxlength="2"
+        />
+        <x-input-error :messages="$errors->get('country_code')" class="mt-2" />
+    </div>
+    <div>
+        <x-input-label for="region" :value="__('admin.server_instances.fields.region')" />
+        <x-text-input id="region" type="text" name="region" :value="old('region', $instance->region ?? '')" />
+        <x-input-error :messages="$errors->get('region')" class="mt-2" />
+    </div>
+</div>
+
+<div class="mt-4">
     <x-input-label for="ip_address" :value="__('admin.server_instances.fields.ip_address')" />
     <x-text-input
         id="ip_address"

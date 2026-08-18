@@ -65,6 +65,9 @@ return [
         'title' => 'Server Instances',
         'fields' => [
             'code' => 'Instance Code',
+            'display_name' => 'Public location name',
+            'country_code' => 'Country code',
+            'region' => 'Region',
             'ip_address' => 'IPv4 Address',
             'api_key' => 'Instance API Key',
             'status' => 'Status',

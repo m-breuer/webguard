@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\External\ApiKeyController;
 use App\Http\Controllers\Api\External\BearerServerHealthReportController;
+use App\Http\Controllers\Api\External\PublicMonitoringLocationController;
 use App\Http\Controllers\Api\Mobile\MobileAuthController;
 use App\Http\Controllers\Api\ServerHealthReportController;
 use App\Http\Controllers\ApiController;
@@ -22,6 +23,10 @@ Route::get('/public/status-pages/{statusPage}/uptime-calendar', PublicStatusPage
 Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
     ->middleware('throttle:60,1')
     ->name('v1.server-health.store');
+
+Route::get('/v1/public/monitoring-locations', PublicMonitoringLocationController::class)
+    ->middleware('throttle:60,1')
+    ->name('v1.public.monitoring-locations.index');
 
 Route::post('/v1/server-health/monitorings/{monitoring}', BearerServerHealthReportController::class)
     ->middleware(['auth:sanctum', 'api-key.ability:server-health:write', 'throttle:60,1'])

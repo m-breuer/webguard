@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Hash;
 
 #[Fillable([
     'code',
+    'display_name',
+    'country_code',
+    'region',
     'ip_address',
     'api_key_hash',
     'is_active',

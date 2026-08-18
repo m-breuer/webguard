@@ -4,6 +4,18 @@
 uses a Sanctum personal-access token and is deliberately separate from browser
 UI routes and scanner-instance routes.
 
+## Public monitoring locations
+
+`GET /api/v1/public/monitoring-locations` is an unauthenticated, read-only
+allowlisting contract for public WebGuard monitoring locations. It returns a
+deterministically ordered `data` array of active locations with `code`, `name`,
+`country_code`, `region`, `allowlist_ips`, and `active`, plus `meta.version`
+and `meta.generated_at`. Inactive locations and locations without a globally
+routable source IP are omitted. The response is safe to cache for five minutes
+(`Cache-Control: public, max-age=300, stale-while-revalidate=60`). A version 1
+response changes only additively; rate-limit errors use Laravel's standard
+`429` response.
+
 ## Compatibility policy
 
 - Existing JSON bodies, status codes, validation errors, and authorization
