@@ -130,6 +130,9 @@ class ServerInstanceController extends Controller
 
         ServerInstance::query()->create([
             'code' => $validated['code'],
+            'display_name' => $validated['display_name'],
+            'country_code' => $validated['country_code'],
+            'region' => $validated['region'] ?? null,
             'ip_address' => $validated['ip_address'],
             'api_key_hash' => $validated['api_key'],
             'is_active' => $validated['is_active'] ?? false,
@@ -149,6 +152,9 @@ class ServerInstanceController extends Controller
 
         $data = [
             'code' => $validated['code'],
+            'display_name' => $validated['display_name'],
+            'country_code' => $validated['country_code'],
+            'region' => $validated['region'] ?? null,
             'ip_address' => $validated['ip_address'],
             'is_active' => $validated['is_active'] ?? false,
         ];

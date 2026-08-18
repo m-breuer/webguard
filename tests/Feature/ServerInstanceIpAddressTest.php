@@ -21,6 +21,9 @@ class ServerInstanceIpAddressTest extends TestCase
 
         $testResponse = $this->actingAs($user)->post(route('admin.server-instances.store'), [
             'code' => 'us-1',
+            'display_name' => 'United States',
+            'country_code' => 'US',
+            'region' => 'North America',
             'ip_address' => '192.168.10.20',
             'api_key' => '1234567890abcdef',
             'is_active' => '1',
@@ -30,6 +33,9 @@ class ServerInstanceIpAddressTest extends TestCase
 
         $this->assertDatabaseHas('server_instances', [
             'code' => 'us-1',
+            'display_name' => 'United States',
+            'country_code' => 'US',
+            'region' => 'North America',
             'ip_address' => '192.168.10.20',
             'is_active' => true,
         ]);
@@ -62,6 +68,9 @@ class ServerInstanceIpAddressTest extends TestCase
 
         $serverInstance = ServerInstance::query()->create([
             'code' => 'eu-1',
+            'display_name' => 'Europe',
+            'country_code' => 'EU',
+            'region' => 'Europe',
             'ip_address' => '10.0.0.1',
             'api_key_hash' => '1234567890abcdef',
             'is_active' => true,
@@ -69,6 +78,9 @@ class ServerInstanceIpAddressTest extends TestCase
 
         $testResponse = $this->actingAs($user)->put(route('admin.server-instances.update', $serverInstance), [
             'code' => 'eu-1',
+            'display_name' => 'Europe',
+            'country_code' => 'EU',
+            'region' => 'Europe',
             'ip_address' => '10.0.0.2',
             'api_key' => '',
             'is_active' => '1',
@@ -79,6 +91,9 @@ class ServerInstanceIpAddressTest extends TestCase
         $this->assertDatabaseHas('server_instances', [
             'id' => $serverInstance->id,
             'code' => 'eu-1',
+            'display_name' => 'Europe',
+            'country_code' => 'EU',
+            'region' => 'Europe',
             'ip_address' => '10.0.0.2',
             'is_active' => true,
         ]);

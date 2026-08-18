@@ -65,6 +65,9 @@ return [
         'title' => 'Serverinstanzen',
         'fields' => [
             'code' => 'Instanzcode',
+            'display_name' => 'Öffentlicher Standortname',
+            'country_code' => 'Ländercode',
+            'region' => 'Region',
             'ip_address' => 'IPv4-Adresse',
             'api_key' => 'Instanz-API-Schlüssel',
             'status' => 'Status',
