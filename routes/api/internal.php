@@ -12,6 +12,7 @@ Route::get('/notifications/status-board', NotificationBoardController::class)->n
 
 Route::get('/maintenance', MaintenanceDataController::class)->name('maintenance.index');
 Route::post('/maintenance', [WebMaintenanceController::class, 'store'])->name('maintenance.store');
+Route::patch('/maintenance', [WebMaintenanceController::class, 'update'])->name('maintenance.update');
 Route::delete('/maintenance', [WebMaintenanceController::class, 'destroy'])->name('maintenance.destroy');
 
 Route::group(['prefix' => 'monitorings', 'as' => 'monitorings.'], function (): void {

@@ -4,11 +4,11 @@
     </x-slot>
 
     <x-main
-        x-data="maintenancePage(@js(route('api.maintenance.index')), {
-        loading: @js(__('maintenance.messages.loading')),
-        error: @js(__('maintenance.messages.error')),
-        clearConfirmation: @js(__('maintenance.actions.clear_confirmation')),
-        clearRecurringConfirmation: @js(__('maintenance.actions.clear_recurring_confirmation')),
+        x-data="maintenancePage({{ \Illuminate\Support\Js::from(route('api.maintenance.index')) }}, {
+        loading: {{ \Illuminate\Support\Js::from(__('maintenance.messages.loading')) }},
+        error: {{ \Illuminate\Support\Js::from(__('maintenance.messages.error')) }},
+        clearConfirmation: {{ \Illuminate\Support\Js::from(__('maintenance.actions.clear_confirmation')) }},
+        clearRecurringConfirmation: {{ \Illuminate\Support\Js::from(__('maintenance.actions.clear_recurring_confirmation')) }},
     })"
         x-init="load()"
     >
@@ -27,7 +27,9 @@
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
             <x-container x-show="loading || canManageMaintenance" x-cloak>
-                <x-heading type="h2">{{ __('maintenance.schedule.heading') }}</x-heading>
+                <x-heading type="h2" data-maintenance-editor-heading>
+                    <span x-text="editing ? '{{ __('maintenance.actions.edit') }}' : '{{ __('maintenance.schedule.heading') }}'"></span>
+                </x-heading>
                 <x-paragraph class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     {{ __('maintenance.schedule.description') }}
                 </x-paragraph>
@@ -47,7 +49,7 @@
                             class="mt-1 block w-full"
                             name="mode"
                             x-model="mode"
-                            x-bind:disabled="loading || submitting"
+                            x-bind:disabled="loading || submitting || editing"
                         >
                             <option value="one_off">{{ __('maintenance.form.modes.one_off') }}</option>
                             <option value="recurring">{{ __('maintenance.form.modes.recurring') }}</option>
@@ -61,7 +63,7 @@
                             class="mt-1 block w-full"
                             name="scope"
                             x-model="scope"
-                            x-bind:disabled="loading || submitting"
+                            x-bind:disabled="loading || submitting || (editing && mode === 'one_off')"
                         >
                             <option value="monitoring">{{ __('maintenance.form.scopes.monitoring') }}</option>
                             <option value="group">{{ __('maintenance.form.scopes.group') }}</option>
@@ -113,7 +115,7 @@
                                 type="datetime-local"
                                 name="maintenance_from"
                                 x-model="maintenanceFrom"
-                                required
+                                x-bind:required="mode === 'one_off'"
                                 x-bind:disabled="loading || submitting"
                             />
                         </div>
@@ -201,9 +203,21 @@
 
                     <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('maintenance.form.help') }}</p>
 
-                    <x-primary-button x-bind:disabled="loading || submitting">
-                        <span x-text="submitting ? '{{ __('maintenance.messages.loading') }}' : '{{ __('maintenance.actions.schedule') }}'"></span>
-                    </x-primary-button>
+                    <div class="flex flex-wrap gap-3">
+                        <x-primary-button x-bind:disabled="loading || submitting">
+                            <span x-text="submitting ? '{{ __('maintenance.messages.loading') }}' : (editing ? '{{ __('maintenance.actions.update') }}' : '{{ __('maintenance.actions.schedule') }}')"></span>
+                        </x-primary-button>
+                        <x-secondary-button
+                            data-maintenance-cancel-edit
+                            type="button"
+                            x-show="editing"
+                            x-cloak
+                            x-bind:disabled="submitting"
+                            @click="cancelEdit()"
+                        >
+                            {{ __('maintenance.actions.cancel_edit') }}
+                        </x-secondary-button>
+                    </div>
                 </form>
             </x-container>
 
@@ -275,18 +289,31 @@
                                             <span x-text="window.timezone"></span>
                                         </div>
                                     </div>
-                                    <button
-                                        x-show="window.can_manage"
-                                        type="button"
-                                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                                        x-bind:disabled="submitting"
-                                        @click="clearRecurringWindow(window.id)"
-                                        title="{{ __('maintenance.actions.clear') }}"
-                                        aria-label="{{ __('maintenance.actions.clear') }}"
-                                    >
-                                        <x-icon name="x" class="mr-2 h-4 w-4" />
-                                        {{ __('maintenance.actions.clear') }}
-                                    </button>
+                                    <div x-show="window.can_manage && window.enabled" class="flex flex-wrap gap-2">
+                                        <button
+                                            data-maintenance-edit-recurring-window
+                                            type="button"
+                                            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                            x-bind:disabled="submitting"
+                                            @click="editRecurringWindow(window)"
+                                            title="{{ __('maintenance.actions.edit') }}"
+                                            aria-label="{{ __('maintenance.actions.edit') }}"
+                                        >
+                                            <x-icon name="pencil" class="mr-2 h-4 w-4" />
+                                            {{ __('maintenance.actions.edit') }}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                            x-bind:disabled="submitting"
+                                            @click="clearRecurringWindow(window.id)"
+                                            title="{{ __('maintenance.actions.clear') }}"
+                                            aria-label="{{ __('maintenance.actions.clear') }}"
+                                        >
+                                            <x-icon name="x" class="mr-2 h-4 w-4" />
+                                            {{ __('maintenance.actions.clear') }}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -359,15 +386,31 @@
                                 </div>
                             </div>
 
-                            <button
+                            <div
                                 x-show="monitoring.maintenance_from && monitoring.can_manage"
-                                type="button"
-                                class="mt-4 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                                x-bind:disabled="submitting"
-                                @click="clearWindow(monitoring.id)"
+                                class="mt-4 flex flex-wrap gap-2"
                             >
-                                {{ __('maintenance.actions.clear') }}
-                            </button>
+                                <button
+                                    data-maintenance-edit-one-off-window
+                                    type="button"
+                                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    x-bind:disabled="submitting"
+                                    @click="editOneOffWindow(monitoring)"
+                                    title="{{ __('maintenance.actions.edit') }}"
+                                    aria-label="{{ __('maintenance.actions.edit') }}"
+                                >
+                                    <x-icon name="pencil" class="mr-2 h-4 w-4" />
+                                    {{ __('maintenance.actions.edit') }}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    x-bind:disabled="submitting"
+                                    @click="clearWindow(monitoring.id)"
+                                >
+                                    {{ __('maintenance.actions.clear') }}
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>

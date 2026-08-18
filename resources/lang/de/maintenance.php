@@ -67,16 +67,21 @@ return [
     ],
     'actions' => [
         'schedule' => 'Wartung planen',
+        'update' => 'Änderungen speichern',
+        'edit' => 'Wartung bearbeiten',
+        'cancel_edit' => 'Bearbeitung abbrechen',
         'clear' => 'Wartung entfernen',
         'clear_confirmation' => 'Dieses Wartungsfenster entfernen?',
         'clear_recurring_confirmation' => 'Dieses wiederkehrende Wartungsfenster deaktivieren?',
     ],
     'messages' => [
         'scheduled' => 'Wartung wurde für :count Überwachung geplant.|Wartung wurde für :count Überwachungen geplant.',
+        'updated' => 'Wartung wurde für :count Überwachung aktualisiert.|Wartung wurde für :count Überwachungen aktualisiert.',
         'cleared' => 'Wartungsfenster wurde entfernt.',
         'loading' => 'Wartungsdaten werden geladen …',
         'error' => 'Wartungsdaten konnten nicht geladen werden.',
         'recurring_scheduled' => 'Wiederkehrendes Wartungsfenster wurde geplant.',
+        'recurring_updated' => 'Wiederkehrendes Wartungsfenster wurde aktualisiert.',
         'recurring_cleared' => 'Wiederkehrendes Wartungsfenster wurde deaktiviert.',
     ],
     'empty' => [

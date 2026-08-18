@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MaintenanceRequest;
+use App\Http\Requests\UpdateMaintenanceRequest;
 use App\Models\MaintenanceWindow;
 use App\Models\Monitoring;
 use App\Models\User;
@@ -73,6 +74,66 @@ class MaintenanceController extends Controller
         );
 
         $message = trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]);
+
+        if ($maintenanceRequest->expectsJson()) {
+            return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
+        }
+
+        return to_route('maintenance.index')->with('success', $message);
+    }
+
+    public function update(
+        UpdateMaintenanceRequest $maintenanceRequest,
+        PlannedMaintenanceNotificationService $plannedMaintenanceNotificationService,
+    ): RedirectResponse|JsonResponse {
+        abort_if($maintenanceRequest->user()?->isDemo(), 403);
+
+        $validated = $maintenanceRequest->validated();
+
+        if ($validated['mode'] === 'recurring') {
+            $timezone = $validated['recurring_timezone'];
+            $maintenanceWindow = MaintenanceWindow::query()->findOrFail($validated['maintenance_window_id']);
+            $maintenanceWindow->update([
+                'monitoring_id' => null,
+                'monitoring_group_id' => null,
+                ...$this->recurringTarget($maintenanceRequest),
+                'starts_at' => Date::parse($validated['recurring_starts_at'], $timezone)->setTimezone('UTC'),
+                'duration_minutes' => (int) $validated['recurring_duration_minutes'],
+                'recurrence' => $validated['recurrence'],
+                'repeat_until' => isset($validated['recurring_repeat_until'])
+                    ? Date::parse($validated['recurring_repeat_until'], $timezone)->endOfDay()->setTimezone('UTC')
+                    : null,
+                'timezone' => $timezone,
+            ]);
+            $plannedMaintenanceNotificationService->notifyForRecurring(
+                MaintenanceWindow::query()->findOrFail($maintenanceWindow->id)
+            );
+
+            $message = __('maintenance.messages.recurring_updated');
+
+            if ($maintenanceRequest->expectsJson()) {
+                return response()->json(['message' => $message, 'updated_count' => 0]);
+            }
+
+            return to_route('maintenance.index')->with('success', $message);
+        }
+
+        $monitorings = $this->targetMonitorings($maintenanceRequest)->get();
+        $updatedCount = $this->targetMonitorings($maintenanceRequest)
+            ->update([
+                'maintenance_from' => Date::parse($validated['maintenance_from']),
+                'maintenance_until' => isset($validated['maintenance_until'])
+                    ? Date::parse($validated['maintenance_until'])
+                    : null,
+            ]);
+        $monitorings = Monitoring::query()->whereKey($monitorings->modelKeys())->get();
+        $plannedMaintenanceNotificationService->notifyForOneOff(
+            $monitorings,
+            Date::parse($validated['maintenance_from']),
+            isset($validated['maintenance_until']) ? Date::parse($validated['maintenance_until']) : null,
+        );
+
+        $message = trans_choice('maintenance.messages.updated', $updatedCount, ['count' => $updatedCount]);
 
         if ($maintenanceRequest->expectsJson()) {
             return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
