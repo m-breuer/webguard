@@ -15,7 +15,7 @@ class PublicMonitoringLocationApiTest extends TestCase
         Date::setTestNow('2026-08-18 12:00:00');
         $this->beforeApplicationDestroyed(fn (): mixed => Date::setTestNow());
 
-        $germany = $this->serverInstance('de-public-1', 'Germany', 'DE', 'Europe', '1.1.1.1');
+        $serverInstance = $this->serverInstance('de-public-1', 'Germany', 'DE', 'Europe', '1.1.1.1');
         $unitedStates = $this->serverInstance('us-1', 'United States', 'US', 'North America', '8.8.8.8');
         $this->serverInstance('private-1', 'Private network', 'DE', 'Europe', '10.0.0.1');
         $this->serverInstance('inactive-1', 'Inactive', 'NL', 'Europe', '9.9.9.9', false);
@@ -26,14 +26,14 @@ class PublicMonitoringLocationApiTest extends TestCase
             ->assertJsonPath('meta.version', '1')
             ->assertJsonPath('meta.generated_at', '2026-08-18T12:00:00+02:00')
             ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.code', $germany->code)
+            ->assertJsonPath('data.0.code', $serverInstance->code)
             ->assertJsonPath('data.0.name', 'Germany')
             ->assertJsonPath('data.0.country_code', 'DE')
             ->assertJsonPath('data.0.region', 'Europe')
             ->assertJsonPath('data.0.allowlist_ips', ['1.1.1.1'])
             ->assertJsonPath('data.0.active', true)
             ->assertJsonPath('data.1.code', $unitedStates->code)
-            ->assertJsonMissing(['api_key_hash' => $germany->api_key_hash])
+            ->assertJsonMissing(['api_key_hash' => $serverInstance->api_key_hash])
             ->assertJsonMissing(['code' => 'private-1'])
             ->assertJsonMissing(['code' => 'inactive-1']);
     }
