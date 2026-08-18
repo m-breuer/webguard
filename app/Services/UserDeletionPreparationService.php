@@ -22,9 +22,6 @@ class UserDeletionPreparationService
             'email' => sprintf('deleted+%s@webguard.invalid', Str::lower($user->id)),
             'password' => Str::random(64),
             'remember_token' => null,
-            'github_id' => null,
-            'github_token' => null,
-            'github_refresh_token' => null,
         ])->save();
 
         $user->tokens()->delete();

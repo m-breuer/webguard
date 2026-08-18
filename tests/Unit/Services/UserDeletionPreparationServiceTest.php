@@ -17,12 +17,7 @@ class UserDeletionPreparationServiceTest extends TestCase
     {
         $userDeletionPreparationService = resolve(UserDeletionPreparationService::class);
         Package::factory()->create();
-        $user = User::factory()->create([
-            'github_id' => '12345',
-            'github_token' => 'token',
-            'github_refresh_token' => 'refresh-token',
-            'remember_token' => 'remember-me',
-        ]);
+        $user = User::factory()->create(['remember_token' => 'remember-me']);
         $originalEmail = $user->email;
 
         $user->createToken('api-access');
@@ -47,9 +42,6 @@ class UserDeletionPreparationServiceTest extends TestCase
         $this->assertSame(sprintf('deleted+%s@webguard.invalid', mb_strtolower($user->id)), $user->email);
         $this->assertFalse(Hash::check('password', (string) $user->password));
         $this->assertNull($user->remember_token);
-        $this->assertNull($user->github_id);
-        $this->assertNull($user->github_token);
-        $this->assertNull($user->github_refresh_token);
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_type' => User::class,
             'tokenable_id' => $user->id,

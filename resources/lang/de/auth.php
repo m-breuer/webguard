@@ -59,21 +59,12 @@ return [
         'resend_button' => 'Bestätigungs-E-Mail erneut senden',
     ],
     'logout' => 'Abmelden',
-    'or_continue_with' => 'oder fortfahren mit',
-    'github_login' => 'Mit GitHub anmelden',
     'auth_switch' => [
         'title' => 'Zugang wählen',
         'description' => 'Wählen Sie den gewünschten Modus. Das Formular passt sich direkt an.',
         'login' => 'Anmelden',
         'register' => 'Registrieren',
         'demo' => 'Demo-Zugang',
-    ],
-    'github_consent' => [
-        'title' => 'Rechtliche Zustimmung erforderlich',
-        'description' => 'Bevor Sie mit GitHub fortfahren, bestätigen Sie bitte Nutzungsbedingungen und Datenschutzerklärung.',
-        'button' => 'Mit GitHub fortfahren',
-        'cancel' => 'Abbrechen',
-        'expired' => 'Die GitHub-Anmeldung ist abgelaufen. Bitte starten Sie den Login erneut.',
     ],
     'guest_login' => [
         'no_guest_user_found' => 'Kein Demo-Benutzer gefunden.',

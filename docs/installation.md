@@ -119,7 +119,7 @@ MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME=WebGuard
 ```
 
-When using Coolify, set concrete values instead of referencing another variable inside the value. For example, use `SERVICE_URL_PHP=https://webguard.example.com`, `SMTP_USERNAME=noreply@example.com`, `MAIL_FROM_NAME=WebGuard`, and `GITHUB_REDIRECT_URI=https://webguard.example.com/auth/github/callback`. Do not use values such as `APP_URL={$SERVICE_URL_PHP}` or `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
+When using Coolify, set concrete values instead of referencing another variable inside the value. For example, use `SERVICE_URL_PHP=https://webguard.example.com`, `SMTP_USERNAME=noreply@example.com`, and `MAIL_FROM_NAME=WebGuard`. Do not use values such as `APP_URL={$SERVICE_URL_PHP}` or `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
 
 For Docker deployments, use `SMTP_USERNAME` as the input variable. The Compose file passes it into the container as Laravel's `MAIL_USERNAME`. This avoids Docker Compose expanding old values such as `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` during Coolify builds.
 
@@ -129,7 +129,6 @@ For SMTP on port `465`, set `MAIL_ENCRYPTION=ssl`. For SMTP on port `587`, set `
 
 Optional:
 
-- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` for GitHub login
 - `MARKETING_URL` for the required canonical landing page, including its imprint, terms of use, and privacy policy
 
 ### Build and Startup Performance
