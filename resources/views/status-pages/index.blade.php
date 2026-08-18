@@ -32,27 +32,18 @@
                     @endif
                 </x-container>
             @else
-                <div
-                    data-status-page-overview
-                    class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
-                >
-                    <div class="hidden grid-cols-[minmax(0,1.6fr)_9rem_10rem_6rem] gap-4 border-b border-gray-200 bg-gray-50/80 px-5 py-3 text-xs font-bold tracking-[0.12em] text-gray-500 uppercase md:grid dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
-                        <span>{{ __('status_page.table.name') }}</span>
-                        <span>{{ __('status_page.table.access') }}</span>
-                        <span>{{ __('status_page.table.components') }}</span>
-                        <span class="text-right">{{ __('status_page.table.actions') }}</span>
-                    </div>
-                    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach ($statusPages as $statusPage)
-                            <div
-                                data-status-page-row
-                                class="grid gap-4 px-5 py-4 transition hover:bg-purple-50/40 md:grid-cols-[minmax(0,1.6fr)_9rem_10rem_6rem] md:items-center dark:hover:bg-purple-950/20"
-                            >
+                <div data-status-page-overview class="grid gap-4 xl:grid-cols-2">
+                    @foreach ($statusPages as $statusPage)
+                        <article
+                            data-status-page-card
+                            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-purple-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-700"
+                        >
+                            <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                                 <div class="min-w-0">
                                     <div class="flex min-w-0 items-center gap-2">
                                         <a
                                             href="{{ route('status-pages.show', $statusPage) }}"
-                                            class="truncate text-base font-bold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300"
+                                            class="truncate text-lg font-bold text-gray-900 hover:text-purple-700 dark:text-gray-100 dark:hover:text-purple-300"
                                         >
                                             {{ $statusPage->name }}
                                         </a>
@@ -70,26 +61,22 @@
                                         @endif
                                     </div>
                                     @if ($statusPage->description)
-                                        <p class="mt-1 truncate text-sm text-gray-500 dark:text-gray-400">
+                                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                             {{ $statusPage->description }}
                                         </p>
                                     @endif
-                                    <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 md:hidden dark:text-gray-400">
+                                    <div class="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                         <x-badge :type="$statusPage->is_public ? 'success' : 'warning'">
                                             {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
                                         </x-badge>
                                         <span>{{ trans_choice('status_page.components_count', $statusPage->components_count, ['count' => $statusPage->components_count]) }}</span>
                                     </div>
                                 </div>
-                                <div class="hidden md:block">
-                                    <x-badge :type="$statusPage->is_public ? 'success' : 'warning'">
-                                        {{ $statusPage->is_public ? __('status_page.state.public') : __('status_page.state.private') }}
-                                    </x-badge>
-                                </div>
-                                <span class="hidden text-sm text-gray-600 md:block dark:text-gray-300">
-                                    {{ trans_choice('status_page.components_count', $statusPage->components_count, ['count' => $statusPage->components_count]) }}
-                                </span>
-                                <div class="flex flex-wrap justify-start gap-2 md:flex-nowrap md:justify-end">
+
+                                <div
+                                    data-status-page-actions
+                                    class="flex flex-nowrap justify-start gap-2 sm:justify-end"
+                                >
                                     <x-secondary-button
                                         :href="route('status-pages.show', $statusPage)"
                                         :icon-only="true"
@@ -127,8 +114,8 @@
                                     @endif
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
+                        </article>
+                    @endforeach
                 </div>
 
                 <div class="mt-4">{{ $statusPages->links() }}</div>
