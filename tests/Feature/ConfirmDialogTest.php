@@ -21,6 +21,9 @@ class ConfirmDialogTest extends TestCase
 
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('x-data="confirmDialog()"');
+        $testResponse->assertSeeHtml('modal:opened');
+        $testResponse->assertSeeHtml('modal:closed');
+        $testResponse->assertSeeHtml('tabindex="-1"');
         $testResponse->assertSeeHtml('data-confirm-message="' . __('monitoring.actions.reset.confirmation') . '"');
         $testResponse->assertSeeHtml('data-confirm-message="' . __('monitoring.actions.delete.confirmation') . '"');
         $testResponse->assertDontSeeHtml('return confirm(');

@@ -18,6 +18,7 @@ import asyncTable from './components/async-table';
 import maintenancePage from './components/maintenance-page';
 import confirmDialog, { registerConfirmableForms } from './components/confirm-dialog';
 import formModalLoader from './components/form-modal-loader';
+import './components/modal-keyboard-scope';
 import signalRoom from './components/signal-room';
 import dashboardLoader from './components/dashboard-loader';
 import incidentAnalyticsLoader from './components/incident-analytics-loader';

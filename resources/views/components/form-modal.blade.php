@@ -26,61 +26,37 @@
     x-data="{
         open: @js($show),
         submitting: false,
-        previousFocus: null,
-        focusables() {
-            return [...$el.querySelectorAll('a, button, input:not([type=\'hidden\']), textarea, select, details, [tabindex]:not([tabindex=\'-1\'])')]
-                .filter((element) => ! element.hasAttribute('disabled'));
-        },
-        focusFirst() {
-            this.$nextTick(() => this.focusables()[0]?.focus());
-        },
-        focusNext(event) {
-            const elements = this.focusables();
-
-            if (! elements.length) {
-                return;
-            }
-
-            const currentIndex = elements.indexOf(document.activeElement);
-            const nextIndex = event.shiftKey
-                ? (currentIndex <= 0 ? elements.length - 1 : currentIndex - 1)
-                : (currentIndex + 1) % elements.length;
-
-            elements[nextIndex]?.focus();
-        },
         lockBody(value) {
             document.body.classList.toggle('overflow-y-hidden', value);
         },
         openModal() {
-            this.previousFocus = document.activeElement;
             this.submitting = false;
             this.open = true;
-            this.lockBody(true);
-            this.focusFirst();
         },
         closeModal() {
             this.open = false;
             this.submitting = false;
-            this.lockBody(false);
-            this.$nextTick(() => this.previousFocus?.focus());
         },
     }"
     x-init="
+        $watch('open', (value) => {
+            lockBody(value);
+            $dispatch(value ? 'modal:opened' : 'modal:closed');
+        });
         if (open) {
             lockBody(true);
-            focusFirst();
+            $nextTick(() => $dispatch('modal:opened'));
         }
-        $watch('open', (value) => lockBody(value));
     "
     x-on:open-form-modal.window="$event.detail === @js($name) ? openModal() : null"
     x-on:close-form-modal.window="$event.detail === @js($name) ? closeModal() : null"
     x-on:keydown.escape.window="if (open) closeModal();"
-    x-on:keydown.tab.prevent="if (open) focusNext($event);"
     x-show="open"
     x-cloak
     data-form-modal="{{ $name }}"
     class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
     role="dialog"
+    tabindex="-1"
     aria-modal="true"
     aria-labelledby="{{ $modalId }}-title"
     @if ($description) aria-describedby="{{ $modalId }}-description" @endif
