@@ -11,6 +11,7 @@ use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class MonitoringIndexEmptyStateTest extends TestCase
@@ -185,6 +186,18 @@ class MonitoringIndexEmptyStateTest extends TestCase
         $testResponse->assertDontSee('Healthy service');
         $testResponse->assertSee(__('monitoring.index.table.summary'));
         $testResponse->assertSee(__('monitoring.index.filters.clear'));
+    }
+
+    public function test_monitoring_response_results_have_an_index_for_latest_status_filters(): void
+    {
+        $indexColumns = collect(Schema::getIndexes('monitoring_response_results'))
+            ->map(static fn (array $index): array => $index['columns'])
+            ->values();
+
+        $this->assertTrue(
+            $indexColumns->contains(['monitoring_id', 'id', 'status']),
+            'Expected monitoring_response_results to have an index on (monitoring_id, id, status).'
+        );
     }
 
     public function test_operational_summary_includes_monitorings_from_all_result_pages(): void
