@@ -2,9 +2,11 @@
     x-data="confirmDialog()"
     x-show="open"
     x-cloak
+    x-init="$watch('open', (value) => $dispatch(value ? 'modal:opened' : 'modal:closed'))"
     x-on:keydown.escape.window="cancel()"
     class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
     role="dialog"
+    tabindex="-1"
     aria-modal="true"
     aria-labelledby="app-confirm-dialog-title"
     aria-describedby="app-confirm-dialog-message"

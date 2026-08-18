@@ -88,6 +88,36 @@ function () {
 }
 JS, true);
 
+        $webpage->assertScript(<<<'JS'
+function () {
+    const modal = document.querySelector('[data-form-modal="monitoring-form-modal"]');
+    const trigger = document.querySelector('header [data-form-modal-name="monitoring-form-modal"]');
+    const focusableSelector = 'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), details, [tabindex]:not([tabindex="-1"])';
+    const elements = [...modal.querySelectorAll(focusableSelector)].filter((element) => element.getClientRects().length > 0);
+    const first = elements[0];
+    const last = elements.at(-1);
+
+    if (! modal || ! trigger || ! first || ! last) {
+        return false;
+    }
+
+    last.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    const wrapsForward = document.activeElement === first;
+
+    first.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    const wrapsBackward = document.activeElement === last;
+
+    trigger.focus();
+
+    return wrapsForward
+        && wrapsBackward
+        && trigger.closest('[inert]') !== null
+        && modal.contains(document.activeElement);
+}
+JS, true);
+
         $webpage->select($typeField, 'port')
             ->assertScript(<<<'JS'
 function () {

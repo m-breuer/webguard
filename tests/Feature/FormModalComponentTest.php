@@ -22,6 +22,9 @@ class FormModalComponentTest extends TestCase
         $this->assertStringContainsString('aria-describedby="monitoring-create-description"', $html);
         $this->assertStringContainsString('open-form-modal', $html);
         $this->assertStringContainsString('close-form-modal', $html);
+        $this->assertStringContainsString('modal:opened', $html);
+        $this->assertStringContainsString('modal:closed', $html);
+        $this->assertStringContainsString('tabindex="-1"', $html);
         $this->assertStringContainsString('max-h-[calc(100vh-3rem)]', $html);
     }
 
