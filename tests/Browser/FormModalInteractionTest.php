@@ -71,6 +71,14 @@ JS))->toBeTrue();
             ->assertVisible($modal)
             ->assertScript(<<<'JS'
 function () {
+    const form = document.querySelector('[data-form-modal="monitoring-form-modal"] [x-ref="content"] [data-monitoring-type-form]');
+    const state = form ? window.Alpine.$data(form) : null;
+
+    return state?.timeoutValue === 5;
+}
+JS, true)
+            ->assertScript(<<<'JS'
+function () {
     const modal = document.querySelector('[data-form-modal="monitoring-form-modal"]');
 
     return modal?.contains(document.activeElement)
@@ -116,7 +124,8 @@ function () {
     return document.activeElement === document.querySelector('header [data-form-modal-name="monitoring-form-modal"]');
 }
 JS, true);
-        $webpage->navigate('/monitorings?modal=monitoring-create')
+        $webpage->navigate('/monitorings')
+            ->click($trigger)
             ->waitForText(__('monitoring.form.sections.basic'))
             ->assertVisible($modal)
             ->assertCount($nameField, 1)
@@ -136,6 +145,59 @@ JS, true);
             ->waitForText(__('monitoring.messages.created'))
             ->assertNoJavaScriptErrors();
     }
+});
+
+it('submits monitoring edits from a dynamically loaded modal on the first attempt', function (): void {
+    if (! file_exists(public_path('build/manifest.json'))) {
+        $this->markTestSkipped('Browser test requires built Vite assets in public/build.');
+    }
+
+    $this->withVite();
+
+    $package = Package::factory()->create(['monitoring_limit' => 10]);
+    $user = User::factory()->create([
+        'package_id' => $package->id,
+        'password' => Hash::make('password'),
+    ]);
+    $instanceCode = 'browser-edit-' . Str::lower(Str::random(8));
+    ServerInstance::query()->create([
+        'code' => $instanceCode,
+        'api_key_hash' => 'browser-edit-modal-instance-key',
+        'is_active' => true,
+    ]);
+    $monitoring = Monitoring::factory()->for($user)->create([
+        'name' => 'Editable browser monitor',
+        'preferred_location' => $instanceCode,
+    ]);
+
+    $modal = '[data-form-modal="monitoring-form-modal"]';
+    $trigger = 'a[data-form-modal-name="monitoring-form-modal"][href$="/monitorings/' . $monitoring->getRouteKey() . '/edit"]';
+    $nameField = $modal . ' [x-ref="content"] form input[name="name"]';
+    $submit = $modal . ' form button[type="submit"]';
+
+    visit('/login')
+        ->type('email', $user->email)
+        ->type('password', 'password')
+        ->press('form[action$="/login"] button[type="submit"]')
+        ->navigate('/monitorings/' . $monitoring->getRouteKey())
+        ->assertCount($trigger, 1)
+        ->click($trigger)
+        ->waitForText(__('monitoring.form.sections.basic'))
+        ->assertVisible($modal)
+        ->assertScript(<<<'JS'
+function () {
+    const form = document.querySelector('[data-form-modal="monitoring-form-modal"] [x-ref="content"] [data-monitoring-type-form]');
+    const state = form ? window.Alpine.$data(form) : null;
+
+    return state?.timeoutValue === 5;
+}
+JS, true)
+        ->clear($nameField)
+        ->fill($nameField, 'Updated browser monitor')
+        ->press($submit)
+        ->waitForText(__('monitoring.messages.updated'))
+        ->assertSee('Updated browser monitor')
+        ->assertNoJavaScriptErrors();
 });
 
 it('opens the admin package edit form in a focused responsive modal', function (): void {

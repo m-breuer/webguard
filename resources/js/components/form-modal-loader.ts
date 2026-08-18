@@ -87,6 +87,7 @@ export default (): FormModalLoader => ({
 
             const contentElement = (this as any).$refs.content as HTMLElement | undefined;
             if (contentElement) {
+                window.Alpine.initTree(contentElement);
                 initializeMonitoringTypeFields(contentElement);
             }
         } catch {
