@@ -13,7 +13,8 @@ class MonitoringStatusService
 {
     public function __construct(
         private readonly RegionalConsensusService $regionalConsensusService,
-        private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator
+        private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator,
+        private readonly MonitoringCheckIntervalService $monitoringCheckIntervalService
     ) {}
 
     /**
@@ -83,7 +84,7 @@ class MonitoringStatusService
             ];
         }
 
-        $cronjobInterval ??= (int) config('monitoring.interval', 5) * 60;
+        $cronjobInterval ??= $this->monitoringCheckIntervalService->secondsFor($monitoring);
         $latest = $monitoring->latestResponseResult;
 
         if (count($monitoring->preferredLocationCodes()) > 1) {

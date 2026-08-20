@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'status',
     'http_status_code',
     'response_time',
+    'check_interval_seconds',
     'server_health_metrics',
     'server_health_report_id',
     'server_health_sampled_at',
@@ -51,6 +52,7 @@ class MonitoringResponseArchived extends Model
         return [
             'http_status_code' => 'integer',
             'response_time' => 'float',
+            'check_interval_seconds' => 'integer',
             'server_health_metrics' => 'array',
             'server_health_sampled_at' => 'datetime',
             'vital_values' => 'array',

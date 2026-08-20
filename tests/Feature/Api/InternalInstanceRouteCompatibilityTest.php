@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
@@ -41,6 +42,7 @@ class InternalInstanceRouteCompatibilityTest extends TestCase
             'is_active' => true,
         ]);
         $assignedMonitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
             'preferred_location' => $serverInstance->code,
             'preferred_locations' => [$serverInstance->code],
         ]);
@@ -49,13 +51,19 @@ class InternalInstanceRouteCompatibilityTest extends TestCase
             'preferred_locations' => ['another-instance'],
         ]);
 
-        $this->withHeaders([
-            'X-INSTANCE-CODE' => $serverInstance->code,
-            'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.instances.monitorings.list', ['location' => $serverInstance->code]))
-            ->assertOk()
-            ->assertJsonPath('0.id', $assignedMonitoring->id)
-            ->assertJsonCount(1);
+        foreach ([
+            'v1.internal.monitorings.list',
+            'v1.internal.instances.monitorings.list',
+        ] as $routeName) {
+            $this->withHeaders([
+                'X-INSTANCE-CODE' => $serverInstance->code,
+                'X-API-KEY' => 'test-token-1234567890',
+            ])->getJson(route($routeName, ['location' => $serverInstance->code]))
+                ->assertOk()
+                ->assertJsonPath('0.id', $assignedMonitoring->id)
+                ->assertJsonPath('0.check_interval_seconds', 900)
+                ->assertJsonCount(1);
+        }
     }
 
     public function test_legacy_and_target_instance_routes_keep_the_same_authentication_and_location_contract(): void

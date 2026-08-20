@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Resources\Instance;
 
 use App\Enums\MonitoringType;
+use App\Models\Monitoring;
+use App\Services\MonitoringCheckIntervalService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +19,9 @@ class MonitoringResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var Monitoring $monitoring */
+        $monitoring = $this->resource;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -28,6 +33,7 @@ class MonitoringResource extends JsonResource
             'dns_expected_values' => $this->dns_expected_values,
             'status' => $this->status,
             'timeout' => $this->timeout,
+            'check_interval_seconds' => resolve(MonitoringCheckIntervalService::class)->secondsFor($monitoring),
             'http_method' => $this->http_method,
             'expected_http_statuses' => $this->expected_http_statuses,
             'http_headers' => $this->http_headers,

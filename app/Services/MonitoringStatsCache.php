@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringStatsCache
 {
+    public function __construct(private readonly MonitoringCheckIntervalService $monitoringCheckIntervalService) {}
+
     /**
      * @return array<int, string>
      */
@@ -22,9 +24,9 @@ class MonitoringStatsCache
         return ['monitoring:' . $monitoring->id];
     }
 
-    public function defaultTtlSeconds(): int
+    public function defaultTtlSeconds(Monitoring $monitoring): int
     {
-        return (int) config('monitoring.interval', 5) * 60;
+        return $this->monitoringCheckIntervalService->secondsFor($monitoring);
     }
 
     public function calendarTtlSeconds(): int
@@ -50,7 +52,7 @@ class MonitoringStatsCache
     ): mixed {
         if ($this->shouldCache()) {
             return Cache::tags($this->tags($monitoring))
-                ->remember($cacheKey, $ttl ?? $this->defaultTtlSeconds(), $callback);
+                ->remember($cacheKey, $ttl ?? $this->defaultTtlSeconds($monitoring), $callback);
         }
 
         return $callback();
@@ -73,7 +75,7 @@ class MonitoringStatsCache
     ): void {
         if ($this->shouldCache()) {
             Cache::tags($this->tags($monitoring))
-                ->put($cacheKey, $value, $ttl ?? $this->defaultTtlSeconds());
+                ->put($cacheKey, $value, $ttl ?? $this->defaultTtlSeconds($monitoring));
         }
     }
 

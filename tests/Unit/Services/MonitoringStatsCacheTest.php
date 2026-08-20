@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Enums\MonitoringType;
 use App\Models\Monitoring;
 use App\Services\MonitoringStatsCache;
 use App\Support\MonitoringDateRange;
@@ -22,14 +23,21 @@ class MonitoringStatsCacheTest extends TestCase
 
     public function test_cache_tags_and_ttls_are_defined_in_one_place(): void
     {
-        config(['monitoring.interval' => 7]);
+        config([
+            'monitoring.website_interval_minutes' => 15,
+            'monitoring.default_interval_minutes' => 7,
+        ]);
 
         $monitoringStatsCache = resolve(MonitoringStatsCache::class);
         $monitoring = $this->monitoring('monitoring-123');
 
         $this->assertSame(['monitoring:monitoring-123'], $monitoringStatsCache->tags($monitoring));
-        $this->assertSame(420, $monitoringStatsCache->defaultTtlSeconds());
+        $this->assertSame(420, $monitoringStatsCache->defaultTtlSeconds($monitoring));
         $this->assertSame(3600, $monitoringStatsCache->calendarTtlSeconds());
+
+        $monitoring->type = MonitoringType::HTTP;
+
+        $this->assertSame(900, $monitoringStatsCache->defaultTtlSeconds($monitoring));
     }
 
     public function test_heatmap_expiration_uses_five_minutes_from_now(): void

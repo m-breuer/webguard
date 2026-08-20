@@ -76,6 +76,22 @@ class MonitoringHeatmapServiceTest extends TestCase
         $this->assertSame(5, $heatmaps[$secondMonitoring->id][23]['downtime']);
     }
 
+    public function test_heatmap_uses_the_interval_recorded_with_each_response(): void
+    {
+        Date::setTestNow('2026-04-12 12:30:00');
+
+        $monitoring = $this->createMonitoring();
+        $this->createResponse($monitoring, MonitoringStatus::UP, '2026-04-12 12:05:00', 900);
+
+        $heatmap = resolve(MonitoringHeatmapService::class)->getHeatmap(
+            $monitoring,
+            Date::parse('2026-01-01'),
+            Date::parse('2026-01-02')
+        );
+
+        $this->assertSame(15, $heatmap->last()['uptime']);
+    }
+
     public function test_batched_heatmaps_reuses_cached_monitorings_and_loads_only_misses(): void
     {
         Date::setTestNow('2026-04-12 12:30:00');
@@ -112,13 +128,14 @@ class MonitoringHeatmapServiceTest extends TestCase
         return Monitoring::factory()->for($user)->create();
     }
 
-    private function createResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus, string $checkedAt): void
+    private function createResponse(Monitoring $monitoring, MonitoringStatus $monitoringStatus, string $checkedAt, int $checkIntervalSeconds = 300): void
     {
         MonitoringResponse::query()->forceCreate([
             'monitoring_id' => $monitoring->id,
             'status' => $monitoringStatus,
             'http_status_code' => $monitoringStatus === MonitoringStatus::DOWN ? 503 : 200,
             'response_time' => $monitoringStatus === MonitoringStatus::UP ? 120.0 : null,
+            'check_interval_seconds' => $checkIntervalSeconds,
             'created_at' => Date::parse($checkedAt),
             'updated_at' => Date::parse($checkedAt),
         ]);

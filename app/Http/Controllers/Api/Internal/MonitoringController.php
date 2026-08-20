@@ -12,18 +12,20 @@ use App\Models\Monitoring;
 use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringSslResult;
+use App\Services\MonitoringCheckIntervalService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class MonitoringController extends Controller
 {
-    public function storeResponse(Request $request)
+    public function storeResponse(Request $request, MonitoringCheckIntervalService $monitoringCheckIntervalService)
     {
         $validated = $request->validate([
             'monitoring_id' => ['required', 'exists:monitorings,id'],
             'status' => ['nullable', Rule::enum(MonitoringStatus::class)],
             'http_status_code' => ['nullable', 'integer', 'between:100,599'],
             'response_time' => ['nullable', 'numeric', 'min:0'],
+            'check_interval_seconds' => ['nullable', 'integer', 'min:60', 'max:65535'],
             'vital_values' => ['nullable', 'array'],
             'vital_values.transport_succeeded' => ['nullable', 'boolean'],
             'vital_values.connection_succeeded' => ['nullable', 'boolean'],
@@ -45,6 +47,7 @@ class MonitoringController extends Controller
         }
 
         $validated['location_code'] = (string) $request->attributes->get('authenticated_instance_code');
+        $validated['check_interval_seconds'] ??= $monitoringCheckIntervalService->defaultSeconds();
         MonitoringResponse::query()->create($validated);
 
         return response()->json(['message' => 'Monitoring response stored successfully.']);
