@@ -91,20 +91,20 @@ COPY --link public public
 COPY --link postcss.config.js tailwind.config.js tsconfig.json vite.config.js ./
 RUN bun run build
 
+FROM serversideup/php:8.5-cli AS worker
+# Copy application code from the build stage
+COPY --link --from=app_build --chown=33:33 /app /var/www/html
+USER www-data
+WORKDIR /var/www/html
+
+############################################
+# Production Image
+############################################
 FROM base AS production
 COPY --link --from=app_build --chown=33:33 /app /var/www/html
 COPY --link --from=frontend_build --chown=33:33 /app/public/build /var/www/html/public/build
 COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/
 RUN chmod +x /etc/entrypoint.d/*.sh
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 CMD ["webguard-healthcheck"]
-USER www-data
-WORKDIR /var/www/html
-
-############################################
-# Production Worker Image
-############################################
-FROM serversideup/php:8.5-cli AS worker
-# Copy application code from the build stage
-COPY --link --from=app_build --chown=33:33 /app /var/www/html
 USER www-data
 WORKDIR /var/www/html

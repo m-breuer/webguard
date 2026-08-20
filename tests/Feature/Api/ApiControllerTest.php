@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Enums\MonitoringStatus;
+use App\Enums\MonitoringType;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
@@ -27,12 +28,14 @@ class ApiControllerTest extends TestCase
     {
         Package::factory()->create();
         $user = User::factory()->create();
-        $monitoring = Monitoring::factory()->for($user)->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+        ]);
 
         $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertOk();
-        $testResponse->assertJson(['interval' => 300]);
+        $testResponse->assertJson(['interval' => 900]);
         $testResponse->assertHeader('X-RateLimit-Limit', '5');
         $testResponse->assertHeader('X-RateLimit-Remaining', '4');
         $this->assertGreaterThan(time(), (int) $testResponse->headers->get('X-RateLimit-Reset'));
