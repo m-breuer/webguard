@@ -71,8 +71,8 @@ return [
     | Expiry Warning Windows
     |--------------------------------------------------------------------------
     |
-    | Users can choose which day offsets should trigger SSL and domain expiry
-    | warnings. The default keeps a seven-day warning enabled for existing users.
+    | Users can choose the threshold at which one SSL or domain expiry warning
+    | is sent. The default keeps a seven-day warning enabled for existing users.
     |
     */
     'expiry_warning_days' => [

@@ -15,12 +15,20 @@ use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class SendSslExpiryWarningsCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Date::setTestNow();
+
+        parent::tearDown();
+    }
 
     public function test_dispatches_ssl_expiring_notifications_to_enabled_channels(): void
     {
@@ -166,6 +174,98 @@ class SendSslExpiryWarningsCommandTest extends TestCase
         ]);
     }
 
+    public function test_ssl_expiring_warning_is_sent_once_for_the_same_certificate_expiry(): void
+    {
+        Date::setTestNow('2026-08-20 06:00:00');
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => ['webhook' => ['enabled' => true, 'url' => 'https://example.test/webhook']],
+        ]);
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['webhook'],
+            'ssl_expiry_warning_days' => 7,
+        ]);
+
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'expires_at' => now()->addDays(3),
+            'is_valid' => true,
+            'issuer' => 'LetsEncrypt',
+            'issued_at' => now()->subDays(60),
+        ]);
+        Http::fake(['https://example.test/*' => Http::response(['ok' => true], 200)]);
+
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+        Date::setTestNow(now()->addDay());
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+        Date::setTestNow(now()->addDay());
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+
+        Http::assertSentCount(1);
+        $this->assertSame(1, MonitoringNotification::query()->sslExpiry()->count());
+    }
+
+    public function test_ssl_expired_warning_is_sent_once_for_the_same_certificate_expiry(): void
+    {
+        Date::setTestNow('2026-08-20 06:00:00');
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => ['webhook' => ['enabled' => true, 'url' => 'https://example.test/webhook']],
+        ]);
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['webhook'],
+        ]);
+
+        MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'expires_at' => now()->subDay(),
+            'is_valid' => false,
+            'issuer' => 'LetsEncrypt',
+            'issued_at' => now()->subDays(60),
+        ]);
+        Http::fake(['https://example.test/*' => Http::response(['ok' => true], 200)]);
+
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+        Date::setTestNow(now()->addDay());
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+        Date::setTestNow(now()->addDay());
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+
+        Http::assertSentCount(1);
+        $this->assertSame(1, MonitoringNotification::query()->sslExpiry()->count());
+    }
+
+    public function test_ssl_expiring_warning_is_sent_again_after_the_certificate_expiry_changes(): void
+    {
+        Date::setTestNow('2026-08-20 06:00:00');
+        Package::factory()->create();
+        $user = User::factory()->create([
+            'notification_channels' => ['webhook' => ['enabled' => true, 'url' => 'https://example.test/webhook']],
+        ]);
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'notification_on_failure' => true,
+            'notification_channels' => ['webhook'],
+            'ssl_expiry_warning_days' => 7,
+        ]);
+        $sslResult = MonitoringSslResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'expires_at' => now()->addDays(3),
+            'is_valid' => true,
+            'issuer' => 'LetsEncrypt',
+            'issued_at' => now()->subDays(60),
+        ]);
+        Http::fake(['https://example.test/*' => Http::response(['ok' => true], 200)]);
+
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+        $sslResult->update(['expires_at' => now()->addDays(4)]);
+        Artisan::call('notifications:send-ssl-expiry-warnings');
+
+        Http::assertSentCount(2);
+        $this->assertSame(2, MonitoringNotification::query()->sslExpiry()->count());
+    }
+
     public function test_dispatches_domain_expiring_notifications_to_enabled_monitoring_channels(): void
     {
         Package::factory()->create();
@@ -197,8 +297,11 @@ class SendSslExpiryWarningsCommandTest extends TestCase
         ]);
 
         Artisan::call('notifications:send-ssl-expiry-warnings');
+        Date::setTestNow(now()->addDay());
+        Artisan::call('notifications:send-ssl-expiry-warnings');
 
         Http::assertSentCount(1);
+        $this->assertSame(1, MonitoringNotification::query()->domainExpiry()->count());
         $this->assertDatabaseHas('monitoring_notifications', [
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::DOMAIN_EXPIRY->value,
@@ -286,8 +389,11 @@ class SendSslExpiryWarningsCommandTest extends TestCase
         ]);
 
         Artisan::call('notifications:send-ssl-expiry-warnings');
+        Date::setTestNow(now()->addDay());
+        Artisan::call('notifications:send-ssl-expiry-warnings');
 
         Http::assertSentCount(1);
+        $this->assertSame(1, MonitoringNotification::query()->domainExpiry()->count());
         $this->assertDatabaseHas('monitoring_notifications', [
             'monitoring_id' => $monitoring->id,
             'type' => NotificationType::DOMAIN_EXPIRY->value,
