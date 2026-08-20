@@ -33,7 +33,7 @@ class MonitoringResource extends JsonResource
             'dns_expected_values' => $this->dns_expected_values,
             'status' => $this->status,
             'timeout' => $this->timeout,
-            'check_interval_seconds' => app(MonitoringCheckIntervalService::class)->secondsFor($monitoring),
+            'check_interval_seconds' => resolve(MonitoringCheckIntervalService::class)->secondsFor($monitoring),
             'http_method' => $this->http_method,
             'expected_http_statuses' => $this->expected_http_statuses,
             'http_headers' => $this->http_headers,

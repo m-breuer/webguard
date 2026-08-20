@@ -43,12 +43,12 @@ class MonitoringStateResolverTest extends TestCase
         $this->assertSame(MonitoringStatus::UNKNOWN->value, resolve(MonitoringStateResolver::class)->status($monitoring->fresh()));
     }
 
-    private function createMonitoring(MonitoringType $type): Monitoring
+    private function createMonitoring(MonitoringType $monitoringType): Monitoring
     {
         Package::factory()->create();
         $user = User::factory()->create();
 
-        return Monitoring::factory()->for($user)->create(['type' => $type]);
+        return Monitoring::factory()->for($user)->create(['type' => $monitoringType]);
     }
 
     private function createResponse(Monitoring $monitoring, string $createdAt): void
