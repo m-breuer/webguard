@@ -48,6 +48,40 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::DOWN->value,
             'http_status_code' => 503,
+            'check_interval_seconds' => 300,
+        ]);
+    }
+
+    public function test_internal_monitoring_response_stores_the_interval_reported_by_a_compatible_instance(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = ServerInstance::query()->firstOrCreate(
+            ['code' => 'de-1'],
+            ['api_key_hash' => 'test-token-1234567890', 'is_active' => true]
+        );
+        $serverInstance->update([
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+        ]);
+
+        $this->withHeaders([
+            'X-INSTANCE-CODE' => $serverInstance->code,
+            'X-API-KEY' => 'test-token-1234567890',
+        ])->postJson(route('v1.internal.monitoring-responses.store'), [
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP->value,
+            'http_status_code' => 200,
+            'response_time' => 120.0,
+            'check_interval_seconds' => 900,
+        ])->assertOk();
+
+        $this->assertDatabaseHas('monitoring_response_results', [
+            'monitoring_id' => $monitoring->id,
+            'check_interval_seconds' => 900,
         ]);
     }
 

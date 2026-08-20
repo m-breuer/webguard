@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Enums\MonitoringStatus;
+use App\Enums\MonitoringType;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
@@ -124,6 +125,22 @@ class MonitoringStatusServiceTest extends TestCase
         $this->assertSame('2026-04-12T11:58:00+02:00', $statusNow['checked_at']);
         $this->assertSame('2026-04-12T12:01:00+02:00', $statusNow['next']);
         $this->assertSame(180, $statusNow['interval']);
+    }
+
+    public function test_status_now_uses_the_website_interval_for_http_and_the_default_for_other_active_checks(): void
+    {
+        Date::setTestNow('2026-04-12 12:00:00');
+
+        $httpMonitoring = $this->createMonitoring(['type' => MonitoringType::HTTP]);
+        $pingMonitoring = $this->createMonitoring(['type' => MonitoringType::PING]);
+
+        $httpStatus = resolve(MonitoringStatusService::class)->getStatusNow($httpMonitoring->fresh());
+        $pingStatus = resolve(MonitoringStatusService::class)->getStatusNow($pingMonitoring->fresh());
+
+        $this->assertSame(900, $httpStatus['interval']);
+        $this->assertSame('2026-04-12T12:15:00+02:00', $httpStatus['next']);
+        $this->assertSame(300, $pingStatus['interval']);
+        $this->assertSame('2026-04-12T12:05:00+02:00', $pingStatus['next']);
     }
 
     /**

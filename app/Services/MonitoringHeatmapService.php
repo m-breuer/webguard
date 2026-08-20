@@ -66,15 +66,14 @@ class MonitoringHeatmapService
             ->filter(static fn (mixed $id): bool => is_string($id) && $id !== '')
             ->values();
 
-        $interval = (int) config('monitoring.interval', 5);
         $periodExpression = MonitoringResponseHistory::periodExpression('created_at', '%Y-%m-%d %H');
 
         $rawByMonitoring = MonitoringResponseHistory::queryForEndDate($endDate)
             ->whereIn('monitoring_id', $monitoringIds)
             ->selectRaw("monitoring_id, {$periodExpression} as period,
-                SUM(CASE WHEN status = 'up' THEN 1 ELSE 0 END) * {$interval} as uptime,
-                SUM(CASE WHEN status = 'down' THEN 1 ELSE 0 END) * {$interval} as downtime,
-                SUM(CASE WHEN status NOT IN ('up', 'down') THEN 1 ELSE 0 END) * {$interval} as unknown
+                SUM(CASE WHEN status = 'up' THEN COALESCE(check_interval_seconds, 300) ELSE 0 END) / 60 as uptime,
+                SUM(CASE WHEN status = 'down' THEN COALESCE(check_interval_seconds, 300) ELSE 0 END) / 60 as downtime,
+                SUM(CASE WHEN status NOT IN ('up', 'down') THEN COALESCE(check_interval_seconds, 300) ELSE 0 END) / 60 as unknown
             ")
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('monitoring_id', 'period')

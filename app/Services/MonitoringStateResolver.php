@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\Date;
 
 final class MonitoringStateResolver
 {
-    public function __construct(private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator) {}
+    public function __construct(
+        private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator,
+        private readonly MonitoringCheckIntervalService $monitoringCheckIntervalService
+    ) {}
 
     public function status(Monitoring $monitoring): string
     {
@@ -44,7 +47,7 @@ final class MonitoringStateResolver
 
         $intervalMinutes = $monitoring->isHeartbeat()
             ? ((int) ($monitoring->heartbeat_interval_minutes ?? 0) + (int) ($monitoring->heartbeat_grace_minutes ?? 0))
-            : (int) config('monitoring.interval', 5);
+            : intdiv($this->monitoringCheckIntervalService->secondsFor($monitoring), 60);
 
         return $latestResponse->created_at->lt(Date::now()->subMinutes(max(10, $intervalMinutes * 3)));
     }

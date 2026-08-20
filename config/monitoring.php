@@ -8,12 +8,14 @@ return [
     | Monitoring Interval
     |--------------------------------------------------------------------------
     |
-    | This value determines the interval in minutes at which the monitoring
-    | checks are performed. The default value is 5 minutes. This value
-    | is used throughout the application to ensure consistency.
+    | Active website checks are paced separately from infrastructure checks.
+    | HTTP and keyword monitorings use the website interval to avoid overly
+    | frequent requests to public targets. Other active checks retain the
+    | current default cadence until they receive a dedicated product policy.
     |
     */
-    'interval' => 5,
+    'website_interval_minutes' => (int) env('MONITORING_WEBSITE_INTERVAL_MINUTES', 15),
+    'default_interval_minutes' => (int) env('MONITORING_DEFAULT_INTERVAL_MINUTES', 5),
 
     /*
     |--------------------------------------------------------------------------

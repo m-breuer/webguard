@@ -11,6 +11,8 @@ This document is the implementation contract for the separate
 repository. It is the only Core document that describes scanner-instance API
 changes. Browser UI routes are not part of this contract.
 
+The website-check cadence is tracked by [WebGuard Core #716](https://github.com/marcel-breuer/webguard/issues/716) and [webguard-instance #46](https://github.com/marcel-breuer/webguard-instance/issues/46).
+
 ## Compatibility and base URL
 
 Core exposes both `/api/v1/internal` and `/api/v1/internal/instances` with
@@ -75,6 +77,16 @@ maintenance state, preferred locations, heartbeat settings, and type-specific
 domain or server-health fields. The exact current projection is implemented by
 `App\\Http\\Resources\\Instance\\MonitoringResource`.
 
+Every active monitoring item additionally includes the additive
+`check_interval_seconds` field. It is the minimum start-to-start interval for a
+regular check at the requesting location. HTTP and keyword monitorings currently
+receive `900`; other active polling types retain `300` until they receive a
+dedicated cadence policy. Instances must not run a regular check earlier than
+this value. Queue pressure, maintenance, and bounded jitter may delay a check.
+Heartbeat and server-health monitorings continue to use their dedicated report
+fields and are not redefined by this value. Older instances may ignore the
+unknown field during the rollout.
+
 The projection can include `auth_username`, `auth_password`, `http_headers`, and
 `http_body` when a monitoring needs them. Treat these as secrets: hold them only
 in memory for execution, redact them from logs, and never relay them to another
@@ -91,7 +103,7 @@ An unassigned monitoring returns `403` with
 
 | Endpoint | Required fields | Optional fields | Success response |
 | --- | --- | --- | --- |
-| `POST /monitoring-responses` | `monitoring_id` plus legacy `status` or sufficient raw evidence | `http_status_code` (100-599), `response_time` (>= 0), `vital_values` | `{"message":"Monitoring response stored successfully."}` |
+| `POST /monitoring-responses` | `monitoring_id` plus legacy `status` or sufficient raw evidence | `http_status_code` (100-599), `response_time` (>= 0), `vital_values`, `check_interval_seconds` (60-65535) | `{"message":"Monitoring response stored successfully."}` |
 | `POST /incidents` | `monitoring_id`, `down_at` | — | `{"message":"Incident stored successfully."}` |
 | `PUT /incidents/{monitoring}` | `up_at` | — | `{"message":"Incident updated successfully."}` |
 | `POST /ssl-results` | `monitoring_id`, `is_valid` | `expires_at`, `issuer`, `issued_at` | `{"message":"SSL result stored successfully."}` |
@@ -107,6 +119,12 @@ monitoring configuration and this evidence. See [derived monitoring health](../a
 
 Domain-result callbacks are valid only for domain-expiration monitorings.
 Validation failures use Laravel's `422` JSON validation response.
+
+Compatible instances should return the interval they actually used in
+`check_interval_seconds`. Core persists it with the result so historical
+heatmaps retain the five-minute legacy cadence for old workers and the
+15-minute cadence for updated website checks. Callbacks from older instances
+without the field are stored with the documented 300-second legacy fallback.
 
 For monitorings with more than one preferred location, Core manages incident
 state through regional consensus. Incident open/close callbacks return `200`

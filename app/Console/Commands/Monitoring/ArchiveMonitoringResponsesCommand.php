@@ -68,6 +68,7 @@ class ArchiveMonitoringResponsesCommand extends Command
                             'status' => $status,
                             'http_status_code' => $httpStatusCode,
                             'response_time' => $monitoringResponse->response_time,
+                            'check_interval_seconds' => $monitoringResponse->check_interval_seconds,
                             'server_health_metrics' => $monitoringResponse->server_health_metrics !== null
                                 ? json_encode($monitoringResponse->server_health_metrics, JSON_THROW_ON_ERROR)
                                 : null,
