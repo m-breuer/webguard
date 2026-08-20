@@ -17,7 +17,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 
 #[Description('Checks SSL certificates and domains and dispatches expiry notifications.')]
 #[Signature('notifications:send-ssl-expiry-warnings')]
@@ -142,25 +141,19 @@ class SendSslExpiryWarningsCommand extends Command
         }
 
         $eventType = $isExpired ? $expiredEventType : $expiringEventType;
-        $cacheKey = sprintf(
-            'expiry_notification_%s_%s_%s_%s',
-            $eventType->value,
-            $result->id,
-            $daysUntilExpiry ?? 'expired',
-            now()->format('Y-m-d')
-        );
-
-        if (Cache::has($cacheKey)) {
-            return;
-        }
-
-        $monitoringNotification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->firstOrCreate([
+            'expiry_notification_key' => $this->expiryNotificationKey($result, $eventType, $expiresAt, $isExpired),
+        ], [
             'monitoring_id' => $monitoring->id,
             'type' => $notificationType,
             'message' => $isExpired ? $expiredMessage : $expiringMessage,
             'read' => false,
             'sent' => false,
         ]);
+
+        if (! $monitoringNotification->wasRecentlyCreated) {
+            return;
+        }
 
         $notificationPayload = new NotificationPayload(
             eventType: $eventType,
@@ -189,7 +182,21 @@ class SendSslExpiryWarningsCommand extends Command
         });
 
         $monitoringNotification->update(['sent' => true]);
-        Cache::put($cacheKey, true, now()->addHours(23));
+    }
+
+    private function expiryNotificationKey(
+        MonitoringSslResult|MonitoringDomainResult $result,
+        NotificationEventType $notificationEventType,
+        ?CarbonInterface $expiresAt,
+        bool $isExpired
+    ): string {
+        return hash('sha256', implode('|', [
+            $notificationEventType->value,
+            $result::class,
+            $result->id,
+            $expiresAt?->toIso8601String() ?? 'unknown-expiry',
+            $isExpired ? 'expired' : 'expiring',
+        ]));
     }
 
     private function shouldWarn(?int $daysUntilExpiry, ?int $warningWindowDays): bool

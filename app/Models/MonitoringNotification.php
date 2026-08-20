@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'monitoring_id',
     'type',
     'message',
+    'expiry_notification_key',
     'read',
     'sent',
 ])]
