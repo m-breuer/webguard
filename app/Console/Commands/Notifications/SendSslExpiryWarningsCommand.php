@@ -186,12 +186,12 @@ class SendSslExpiryWarningsCommand extends Command
 
     private function expiryNotificationKey(
         MonitoringSslResult|MonitoringDomainResult $result,
-        NotificationEventType $eventType,
+        NotificationEventType $notificationEventType,
         ?CarbonInterface $expiresAt,
         bool $isExpired
     ): string {
         return hash('sha256', implode('|', [
-            $eventType->value,
+            $notificationEventType->value,
             $result::class,
             $result->id,
             $expiresAt?->toIso8601String() ?? 'unknown-expiry',

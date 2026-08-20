@@ -249,7 +249,7 @@ class SendSslExpiryWarningsCommandTest extends TestCase
             'notification_channels' => ['webhook'],
             'ssl_expiry_warning_days' => 7,
         ]);
-        $sslResult = MonitoringSslResult::query()->create([
+        $monitoringSslResult = MonitoringSslResult::query()->create([
             'monitoring_id' => $monitoring->id,
             'expires_at' => now()->addDays(3),
             'is_valid' => true,
@@ -259,7 +259,7 @@ class SendSslExpiryWarningsCommandTest extends TestCase
         Http::fake(['https://example.test/*' => Http::response(['ok' => true], 200)]);
 
         Artisan::call('notifications:send-ssl-expiry-warnings');
-        $sslResult->update(['expires_at' => now()->addDays(4)]);
+        $monitoringSslResult->update(['expires_at' => now()->addDays(4)]);
         Artisan::call('notifications:send-ssl-expiry-warnings');
 
         Http::assertSentCount(2);
