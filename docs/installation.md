@@ -177,6 +177,10 @@ The application listens internally on `8080` for HTTP and `8443` for optional co
 
 If you use Coolify, Traefik, or another reverse proxy in front of the deployment, route traffic to the `php` service on `8080`. Set `DOCKER_SSL_MODE=mixed` and use `8443` only when you explicitly want encrypted traffic between the proxy and the application container.
 
+### Health Check
+
+The production image checks `http://127.0.0.1:8080/status` every 10 seconds and marks the container healthy only when Laravel returns a `2xx` response. The production image is the default Dockerfile output, so Coolify Dockerfile deployments detect this check after a redeploy. Docker Compose deployments use the equivalent `php` service health check from `docker-compose.yml`; the queue worker remains an explicit `worker` build target.
+
 ## Docker Local Development
 
 The local override adds everything that should only exist during development:
