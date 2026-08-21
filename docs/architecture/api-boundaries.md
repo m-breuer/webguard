@@ -63,6 +63,27 @@ the session-and-verification boundary, return raw locale-neutral values, and
 scope every result to the authenticated user. The dashboard and monitoring-card
 clients use this route family; remaining page migrations stay incremental.
 
+### First-party session contract
+
+SvelteKit uses the existing, versioned internal UI namespace. It never consumes
+the mobile, external, or scanner-instance APIs for browser-session state. All
+responses use a top-level `data` envelope; validation failures retain Laravel's
+standard `422` JSON error shape, and authorization failures use the existing
+`401` and `403` responses.
+
+| Endpoint | Session requirement | Contract |
+| --- | --- | --- |
+| `GET /api/v1/internal/ui/session` | Authenticated | Current user, verification state, role, locale, appearance preference, visible team context, and the Sanctum CSRF bootstrap URL. This endpoint remains available to unverified users so the client can route them to verification. |
+| `POST /api/v1/internal/ui/session/logout` | Authenticated | Invalidates the browser session and returns `data.authenticated: false`; it does not redirect. |
+| `PATCH /api/v1/internal/ui/appearance` | Authenticated member or admin | Persists a validated `light`, `dark`, or `system` preference and returns the persisted user ID and theme in the same response. Demo users remain read-only. |
+| `GET /sanctum/csrf-cookie` | Browser session | Laravel Sanctum CSRF bootstrap. SvelteKit calls it before its first unsafe same-origin request and sends Laravel's standard CSRF header/cookie pair. |
+
+Verified workspace routes remain behind `verified`; the session and appearance
+contracts deliberately do not, matching the existing profile behavior. Every
+future SvelteKit feature-area endpoint must use this namespace, a `data`
+envelope, request validation, and an ownership or policy check before accepting
+client-supplied identifiers.
+
 ## Current-to-target migration
 
 The current scanner routes are the compatibility baseline. Core now exposes the
