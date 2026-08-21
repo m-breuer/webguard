@@ -209,6 +209,20 @@
         serverHealthLoadAxis: '{{ __('monitoring.detail.server_health.load_axis') }}',
     })"
     >
+        @if ($initialResultsWaitMinutes !== null)
+            <div
+                data-initial-results-notice
+                role="status"
+                class="mb-6 flex gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100"
+            >
+                <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path stroke-linecap="round" d="M12 10v6m0-9h.01" />
+                </svg>
+                <p>{{ __('monitoring.detail.initial_results_notice', ['minutes' => $initialResultsWaitMinutes]) }}</p>
+            </div>
+        @endif
+
         <section
             data-monitoring-summary
             class="mb-6 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"

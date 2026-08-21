@@ -103,6 +103,7 @@ return [
         'text' => 'View detailed information about your monitoring, including its status and history.',
         'back_to_overview' => 'Back to monitorings',
         'open_public_label' => 'Open public label',
+        'initial_results_notice' => 'The first results are shown after the first scheduled check. This can take up to :minutes minutes.',
         'summary_heading' => 'Monitoring overview',
         'summary' => [
             'current_status' => 'Current status',

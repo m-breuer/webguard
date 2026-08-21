@@ -103,6 +103,7 @@ return [
         'text' => 'Detaillierte Informationen zu Ihrer Überwachung, einschließlich Status und Verlauf.',
         'back_to_overview' => 'Zurück zu Überwachungen',
         'open_public_label' => 'Öffentliches Label öffnen',
+        'initial_results_notice' => 'Die ersten Ergebnisse werden nach der ersten planmäßigen Prüfung angezeigt. Das kann bis zu :minutes Minuten dauern.',
         'summary_heading' => 'Überwachungsübersicht',
         'summary' => [
             'current_status' => 'Aktueller Status',
