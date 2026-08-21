@@ -6,8 +6,10 @@ than recreating controls, dialog behavior, or mutation state.
 
 ## Tokens and appearance
 
-`frontend/src/app.css` contains the shared color, focus, surface, and motion
-tokens. It mirrors the established WebGuard purple navigation and light/dark
+`frontend/src/app.css` imports Tailwind CSS and maps the shared color, focus,
+surface, and motion tokens into Tailwind utilities. New and migrated Svelte
+components use those utilities instead of local style blocks or inline styles.
+The tokens mirror the established WebGuard purple navigation and light/dark
 surface contrast without depending on the Laravel Vite pipeline. Appearance is
 applied in `app.html` before SvelteKit hydrates, then persisted by
 `AppearanceSelector.svelte` through `PATCH /api/v1/internal/ui/appearance`.

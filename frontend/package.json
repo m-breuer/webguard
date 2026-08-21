@@ -9,10 +9,12 @@
         "start": "node build"
     },
     "devDependencies": {
+        "@tailwindcss/vite": "^4.3.3",
         "@sveltejs/adapter-node": "^5.5.7",
         "@sveltejs/kit": "^2.70.3",
         "@sveltejs/vite-plugin-svelte": "^7.3.0",
         "svelte": "^5.56.10",
-        "svelte-check": "^4.7.6"
+        "svelte-check": "^4.7.6",
+        "tailwindcss": "^4.3.3"
     }
 }

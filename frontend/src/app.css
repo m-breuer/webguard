@@ -1,3 +1,22 @@
+@import "tailwindcss";
+@source "./";
+
+@theme inline {
+    --font-sans: var(--wg-font-sans);
+    --color-wg-canvas: var(--wg-canvas);
+    --color-wg-surface: var(--wg-surface);
+    --color-wg-surface-muted: var(--wg-surface-muted);
+    --color-wg-text: var(--wg-text);
+    --color-wg-text-muted: var(--wg-text-muted);
+    --color-wg-border: var(--wg-border);
+    --color-wg-accent: var(--wg-accent);
+    --color-wg-accent-strong: var(--wg-accent-strong);
+    --color-wg-accent-contrast: var(--wg-accent-contrast);
+    --color-wg-danger: var(--wg-danger);
+    --color-wg-focus: var(--wg-focus);
+    --shadow-wg-surface: var(--wg-shadow);
+}
+
 :root {
     color-scheme: light;
     --wg-font-sans: "Sen", ui-sans-serif, system-ui, sans-serif;
