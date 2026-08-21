@@ -84,6 +84,9 @@ jobs:
     - name: Install frontend dependencies
       run: bun install --frozen-lockfile
 
+    - name: Copy frontend dependencies to CI workspace
+      run: docker cp "$GITHUB_WORKSPACE/node_modules" "$CI_CONTAINER:/var/www/html/node_modules"
+
     - name: Run Rector
       run: |
         docker exec \
