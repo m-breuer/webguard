@@ -390,7 +390,7 @@ class ApiController extends Controller
      *     "90_days": 99.5,
      *     "365_days": 99.1
      *   },
-     *   "public_url": "https://example.com/label/01H...",
+     *   "public_url": "https://example.com/status/01H...",
      *   "incidents": {
      *     "30_days": 0,
      *     "90_days": 1,

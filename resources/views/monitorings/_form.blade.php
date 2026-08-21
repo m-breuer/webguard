@@ -734,7 +734,7 @@
                             <x-text-input
                                 id="public_label_url"
                                 type="text"
-                                :value="route('public-label', $monitoring->id)"
+                                :value="route('public-status-pages.show', $monitoring)"
                                 readonly
                             />
                         </div>

@@ -142,11 +142,11 @@ class PublicStatusPageTest extends TestCase
             'public_label_enabled' => true,
         ]);
 
-        $testResponse = $this->post(route('public-label.subscribers.store', $monitoring), [
+        $testResponse = $this->post(route('public-status-pages.subscribers.store', $monitoring), [
             'email' => 'Customer@Example.com',
         ]);
 
-        $testResponse->assertRedirect(route('public-label', $monitoring));
+        $testResponse->assertRedirect(route('public-status-pages.show', $monitoring));
         $testResponse->assertSessionHas('status_page_subscription_success');
 
         $statusPageSubscriber = StatusPageSubscriber::query()->firstOrFail();

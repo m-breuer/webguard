@@ -20,7 +20,7 @@
 
             <form
                 method="POST"
-                action="{{ route('public-label.subscribers.destroy', ['monitoring' => $monitoring, 'token' => $token]) }}"
+                action="{{ route('public-status-pages.subscribers.destroy', [$monitoring, 'token' => $token]) }}"
                 class="mt-6 space-y-4"
                 data-confirm-message="{{ __('monitoring.public_label.subscribe.unsubscribe_confirmation') }}"
             >

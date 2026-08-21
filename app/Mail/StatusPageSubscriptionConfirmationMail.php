@@ -35,8 +35,8 @@ class StatusPageSubscriptionConfirmationMail extends Mailable
             with: [
                 'subscriber' => $this->subscriber,
                 'monitoring' => $this->subscriber->monitoring,
-                'confirmUrl' => route('public-label.subscribers.confirm', [
-                    'monitoring' => $this->subscriber->monitoring,
+                'confirmUrl' => route('public-status-pages.subscribers.confirm', [
+                    'statusPage' => $this->subscriber->monitoring,
                     'token' => $this->token,
                 ]),
             ],

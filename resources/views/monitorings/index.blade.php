@@ -526,7 +526,7 @@
                                                 ></span>
                                                 <template x-if="monitoringPublicLabelMap[id]">
                                                     <a
-                                                        x-bind:href="'/label/' + id"
+                                                        x-bind:href="'/status/' + id"
                                                         target="_blank"
                                                         class="text-purple-600 hover:text-purple-800 dark:text-purple-300"
                                                         aria-label="{{ __('monitoring.index.workspace.view') }}"
