@@ -2,15 +2,33 @@
     import Button from "$lib/components/Button.svelte";
     import Dialog from "$lib/components/Dialog.svelte";
     import Field from "$lib/components/Field.svelte";
+    import AppShell from "$lib/components/AppShell.svelte";
+    import type { FirstPartySession } from "$lib/api/models";
 
     let dialogOpen = $state(false);
+
+    const previewSession: FirstPartySession = {
+        user: {
+            id: "preview-user",
+            name: "Marcel Breuer",
+            email: "marcel@example.test",
+            role: "admin",
+            locale: "en",
+            theme: "system",
+            email_verified_at: "2026-01-01T00:00:00+00:00",
+            is_verified: true,
+        },
+        teams: [],
+        csrf_endpoint: "/sanctum/csrf-cookie",
+    };
 </script>
 
 <svelte:head>
     <title>WebGuard UI preview</title>
 </svelte:head>
 
-<main>
+<AppShell session={previewSession} currentPath="/dashboard">
+<div class="preview-content">
     <header>
         <p>Development-only component preview</p>
         <h1>WebGuard interface primitives</h1>
@@ -43,7 +61,7 @@
         <h2 id="dialog-heading">Dialog</h2>
         <Button onclick={() => (dialogOpen = true)}>Open confirmation</Button>
     </section>
-</main>
+</div>
 
 <Dialog bind:open={dialogOpen} title="Discard unsaved changes?" description="Your edits have not been saved yet.">
     <div class="dialog-actions">
@@ -51,9 +69,10 @@
         <Button variant="danger" onclick={() => (dialogOpen = false)}>Discard changes</Button>
     </div>
 </Dialog>
+</AppShell>
 
 <style>
-    main {
+    .preview-content {
         width: min(70rem, calc(100% - 2rem));
         margin: 0 auto;
         padding: 3rem 0;
@@ -136,7 +155,7 @@
     }
 
     @media (max-width: 42rem) {
-        main {
+        .preview-content {
             padding: 1.5rem 0;
         }
 

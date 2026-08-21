@@ -21,10 +21,21 @@ applied in `app.html` before SvelteKit hydrates, then persisted by
 | `Dialog` | Bindable open state, title, description, backdrop close | Native modal dialog focus trap, Escape close, focus restoration |
 | `MutationForm` | One in-flight request, JSON or multipart request body, field-error response | Blocks duplicate submits, announces success/error state |
 | `AppearanceSelector` | Light, dark, system selection with optimistic persistence | Pressed state per option, disabled while saving, error alert |
+| `AppShell` | Responsive sidebar with Operations, Collaboration, and admin-only Administration sections | Semantic navigation, collapse persistence, mobile navigation control |
+| `NavIcon` | Project-owned navigation icon set | Decorative SVGs are hidden from assistive technology |
 
 All first-party mutations use `requestFirstPartyApi`. It obtains the existing
 Sanctum CSRF cookie once, sends the XSRF token on unsafe requests, and exposes
 structured Laravel validation errors through `FirstPartyApiError`.
+
+`frontend/src/lib/routes.ts` is the single source of browser route helpers.
+`publicStatusRoute(identifier)` always produces `/status/{identifier}`; `/status`
+itself remains Laravel's health endpoint.
+
+`AppShell` keeps Administration outside the profile menu and renders it only for
+users with the `admin` role. Appearance is available in the persistent sidebar:
+the compact shell exposes it through a labelled settings control rather than
+removing it when the sidebar collapses.
 
 ## Development preview
 

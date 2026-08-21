@@ -7,9 +7,10 @@
     interface Props {
         initialTheme?: AppearanceTheme;
         endpoint?: string;
+        compact?: boolean;
     }
 
-    let { initialTheme, endpoint = "/api/v1/internal/ui/appearance" }: Props = $props();
+    let { initialTheme, endpoint = "/api/v1/internal/ui/appearance", compact = false }: Props = $props();
     let theme = $state<AppearanceTheme>("system");
     let saving = $state(false);
     let error = $state("");
@@ -54,8 +55,21 @@
     }
 </script>
 
-<fieldset aria-busy={saving}>
-    <legend>Appearance</legend>
+{#if compact}
+    <details class="compact">
+        <summary aria-label="Appearance" title="Appearance">☼</summary>
+        <div class="compact-menu" aria-label="Appearance" aria-busy={saving}>
+            {@render optionsList()}
+        </div>
+    </details>
+{:else}
+    <fieldset aria-busy={saving}>
+        <legend>Appearance</legend>
+        {@render optionsList()}
+    </fieldset>
+{/if}
+
+{#snippet optionsList()}
     <div class="options">
         {#each options as option}
             <button
@@ -69,13 +83,47 @@
         {/each}
     </div>
     {#if error}<p role="alert">{error}</p>{/if}
-</fieldset>
+{/snippet}
 
 <style>
     fieldset {
         margin: 0;
         padding: 0;
         border: 0;
+    }
+
+    .compact {
+        position: relative;
+    }
+
+    summary {
+        display: grid;
+        width: 2.75rem;
+        height: 2.75rem;
+        place-items: center;
+        border: 1px solid #7e22ce;
+        border-radius: 0.65rem;
+        color: #f3e8ff;
+        cursor: pointer;
+        list-style: none;
+        font-size: 1.25rem;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .compact-menu {
+        position: absolute;
+        bottom: calc(100% + 0.5rem);
+        left: 0;
+        z-index: 30;
+        width: 12rem;
+        border: 1px solid var(--wg-border);
+        border-radius: 0.75rem;
+        background: var(--wg-surface);
+        box-shadow: var(--wg-shadow);
+        padding: 0.5rem;
     }
 
     legend {
