@@ -7,6 +7,7 @@ type FormModalLoader = {
     loading: boolean;
     init(): void;
     load(trigger: HTMLElement): Promise<void>;
+    submit(form: HTMLFormElement): Promise<void>;
 };
 
 const loaders = new Map<string, FormModalLoader>();
@@ -33,6 +34,24 @@ const registerGlobalListener = (): void => {
 
         event.preventDefault();
         void loader.load(trigger);
+    });
+
+    document.addEventListener('submit', (event: SubmitEvent): void => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        const modal = form.closest<HTMLElement>('[data-form-modal]');
+        const modalName = modal?.dataset.formModal;
+        const loader = modalName ? loaders.get(modalName) : undefined;
+
+        if (!loader || !form.querySelector('input[name="modal_form"]')) {
+            return;
+        }
+
+        event.preventDefault();
+        void loader.submit(form);
     });
 
     globalListenerRegistered = true;
@@ -94,6 +113,31 @@ export default (): FormModalLoader => ({
             this.error = this.errorMessage;
         } finally {
             this.loading = false;
+        }
+    },
+
+    async submit(form: HTMLFormElement): Promise<void> {
+        this.error = '';
+        const modalName = form.closest<HTMLElement>('[data-form-modal]')?.dataset.formModal;
+
+        try {
+            const response = await fetch(form.action, {
+                body: new FormData(form),
+                headers: {
+                    Accept: 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                method: form.method,
+            });
+
+            if (!response.ok || !response.redirected) {
+                throw new Error(`Form modal submission failed with status ${response.status}`);
+            }
+
+            window.location.assign(response.url);
+        } catch {
+            this.error = this.errorMessage;
+            window.dispatchEvent(new CustomEvent('form-modal-submission-failed', { detail: modalName }));
         }
     },
 });
