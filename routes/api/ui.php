@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Internal\Ui\PasswordController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileController;
 use App\Http\Controllers\Api\Internal\Ui\SessionController;
 use App\Http\Controllers\Api\Internal\Ui\TeamIndexController;
+use App\Http\Controllers\Api\Internal\Ui\TeamStoreController;
 use App\Http\Middleware\MeasureInternalUiRequest;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,7 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
 
     Route::middleware('verified')->group(function (): void {
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
+        Route::post('/teams', TeamStoreController::class)->name('teams.store');
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/monitorings', MonitoringIndexController::class)->name('monitorings.index');
         Route::get('/monitorings/cards', MonitoringCardsController::class)->name('monitorings.cards');
