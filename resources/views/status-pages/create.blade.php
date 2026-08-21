@@ -1,11 +1,9 @@
 @if (request()->boolean('modal'))
-    <div class="p-6">
-        @include('status-pages._form', [
-            'action' => route('status-pages.store'),
-            'submitLabel' => __('button.create'),
-            'modal' => true,
-        ])
-    </div>
+    @include('status-pages._form', [
+        'action' => route('status-pages.store'),
+        'submitLabel' => __('button.create'),
+        'modal' => true,
+    ])
 @else
     <x-app-layout>
         <x-slot name="header">

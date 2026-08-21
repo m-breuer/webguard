@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Monitoring;
 use App\Models\Package;
 use App\Models\ServerInstance;
+use App\Models\StatusPage;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -285,4 +286,47 @@ JS, true);
         $webpage->assertMissing($modal)
             ->assertNoJavaScriptErrors();
     }
+});
+
+it('keeps the status page edit form flush with the modal surface', function (): void {
+    if (! file_exists(public_path('build/manifest.json'))) {
+        $this->markTestSkipped('Browser test requires built Vite assets in public/build.');
+    }
+
+    $this->withVite();
+
+    $user = User::factory()->create([
+        'package_id' => Package::factory()->create()->id,
+        'password' => Hash::make('password'),
+    ]);
+    $statusPage = StatusPage::query()->create([
+        'user_id' => $user->id,
+        'name' => 'Flat modal status page',
+        'is_public' => true,
+    ]);
+
+    $modal = '[data-form-modal="status-page-form-modal"]';
+    $trigger = 'a[data-form-modal-name="status-page-form-modal"][href$="/status-pages/' . $statusPage->getRouteKey() . '/edit"]';
+
+    visit('/login')
+        ->type('email', $user->email)
+        ->type('password', 'password')
+        ->press('form[action$="/login"] button[type="submit"]')
+        ->navigate('/status-pages/' . $statusPage->getRouteKey())
+        ->assertCount($trigger, 1)
+        ->click($trigger)
+        ->waitForText(__('status_page.form.components'))
+        ->assertVisible($modal)
+        ->assertScript(<<<'JS'
+function () {
+    const formSurface = document.querySelector('[data-status-page-modal-form]');
+
+    return formSurface !== null
+        && ! formSurface.classList.contains('bg-white')
+        && ! formSurface.classList.contains('shadow-md')
+        && ! formSurface.classList.contains('rounded-lg')
+        && ! formSurface.classList.contains('p-6');
+}
+JS, true)
+        ->assertNoJavaScriptErrors();
 });
