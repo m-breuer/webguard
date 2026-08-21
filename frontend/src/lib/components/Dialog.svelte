@@ -56,87 +56,27 @@
     }
 </script>
 
-<dialog bind:this={dialog} aria-label={title} oncancel={handleCancel} onclose={handleDialogClose} onclick={handleBackdropClick}>
-    <section class="panel">
-        <header>
+<dialog
+    bind:this={dialog}
+    aria-label={title}
+    class="m-auto max-h-[min(46rem,calc(100%_-_2rem))] w-[min(42rem,calc(100%_-_2rem))] rounded-2xl border border-wg-border bg-wg-surface p-0 text-wg-text shadow-wg-surface backdrop:bg-slate-900/65"
+    oncancel={handleCancel}
+    onclose={handleDialogClose}
+    onclick={handleBackdropClick}
+>
+    <section class="grid [max-height:inherit] grid-rows-[auto_minmax(0,1fr)]">
+        <header class="flex items-start justify-between gap-4 border-b border-wg-border px-6 py-5">
             <div>
-                <h2>{title}</h2>
-                {#if description}<p>{description}</p>{/if}
+                <h2 class="text-xl leading-7 font-bold">{title}</h2>
+                {#if description}<p class="mt-[0.35rem] text-sm leading-5 text-wg-text-muted">{description}</p>{/if}
             </div>
-            <button type="button" class="close" aria-label={closeLabel} onclick={close}>×</button>
+            <button
+                type="button"
+                class="inline-grid size-9 shrink-0 place-items-center rounded-[0.625rem] border border-wg-border bg-transparent text-2xl leading-none text-wg-text enabled:hover:bg-wg-surface-muted"
+                aria-label={closeLabel}
+                onclick={close}
+            >×</button>
         </header>
-        <div class="content">{@render children?.()}</div>
+        <div class="overflow-auto p-6">{@render children?.()}</div>
     </section>
 </dialog>
-
-<style>
-    dialog {
-        width: min(42rem, calc(100% - 2rem));
-        max-height: min(46rem, calc(100% - 2rem));
-        padding: 0;
-        border: 1px solid var(--wg-border);
-        border-radius: 1rem;
-        background: var(--wg-surface);
-        color: var(--wg-text);
-        box-shadow: var(--wg-shadow);
-    }
-
-    dialog::backdrop {
-        background: rgb(15 23 42 / 65%);
-    }
-
-    .panel {
-        display: grid;
-        max-height: inherit;
-        grid-template-rows: auto minmax(0, 1fr);
-    }
-
-    header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        border-bottom: 1px solid var(--wg-border);
-        padding: 1.25rem 1.5rem;
-    }
-
-    h2,
-    p {
-        margin: 0;
-    }
-
-    h2 {
-        font-size: 1.25rem;
-        line-height: 1.75rem;
-    }
-
-    p {
-        margin-top: 0.35rem;
-        color: var(--wg-text-muted);
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-    }
-
-    .close {
-        display: inline-grid;
-        width: 2.25rem;
-        height: 2.25rem;
-        flex: none;
-        place-items: center;
-        border: 1px solid var(--wg-border);
-        border-radius: 0.625rem;
-        background: transparent;
-        color: var(--wg-text);
-        font-size: 1.5rem;
-        line-height: 1;
-    }
-
-    .close:hover {
-        background: var(--wg-surface-muted);
-    }
-
-    .content {
-        overflow: auto;
-        padding: 1.5rem;
-    }
-</style>
