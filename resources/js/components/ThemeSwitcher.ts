@@ -26,8 +26,8 @@ function initializeTheme(): void {
 initializeTheme();
 
 window.setTheme = function(theme: string): void {
-    // When theme is changed by user, it's saved to the database and applied on next request
-    // For immediate visual feedback, we apply it directly
+    const html = document.documentElement;
+    html.dataset.theme = theme;
     applyTheme(theme);
 };
 

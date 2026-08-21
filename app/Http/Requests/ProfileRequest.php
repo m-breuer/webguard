@@ -21,6 +21,16 @@ use Illuminate\Validation\Rule;
 class ProfileRequest extends FormRequest
 {
     /**
+     * Get the validation rules for a saved appearance preference.
+     *
+     * @return array<int, ValidationRule|array|string>
+     */
+    public static function themeRules(): array
+    {
+        return ['required', 'string', Rule::in(['light', 'dark', 'system'])];
+    }
+
+    /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool True if the user is authorized, false otherwise.
@@ -47,7 +57,7 @@ class ProfileRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            'theme' => ['required', 'string', Rule::in(['light', 'dark', 'system'])],
+            'theme' => self::themeRules(),
             'notification_channels' => ['nullable', 'array'],
             'notification_channels.slack.webhook_url' => ['nullable', 'url', 'max:2048', new PubliclyRoutableUrl()],
             'notification_channels.telegram.bot_token' => ['nullable', 'string', 'max:255'],

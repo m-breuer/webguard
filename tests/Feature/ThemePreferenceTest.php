@@ -41,4 +41,43 @@ class ThemePreferenceTest extends TestCase
         $testResponse->assertOk();
         $testResponse->assertSeeHtml('<meta name="color-scheme" content="light dark" />');
     }
+
+    public function test_authenticated_user_can_update_appearance_from_the_sidebar(): void
+    {
+        $user = User::factory()->for(Package::factory())->create(['theme' => 'light']);
+
+        $testResponse = $this->actingAs($user)
+            ->from(route('dashboard'))
+            ->patch(route('profile.theme.update'), ['theme' => 'dark']);
+
+        $testResponse->assertRedirect(route('dashboard'));
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'theme' => 'dark',
+        ]);
+    }
+
+    public function test_authenticated_sidebar_exposes_the_appearance_menu(): void
+    {
+        $user = User::factory()->for(Package::factory())->create(['theme' => 'dark']);
+
+        $testResponse = $this->actingAs($user)->get(route('dashboard'));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('id="appearance-menu-desktop"');
+        $testResponse->assertSeeHtml('action="' . route('profile.theme.update') . '"');
+        $testResponse->assertSeeText(__('profile.fields.theme_light'));
+        $testResponse->assertSeeText(__('profile.fields.theme_dark'));
+        $testResponse->assertSeeText(__('profile.fields.theme_system'));
+        $testResponse->assertSeeHtml('aria-pressed="true"');
+    }
+
+    public function test_appearance_update_rejects_invalid_themes(): void
+    {
+        $user = User::factory()->for(Package::factory())->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.theme.update'), ['theme' => 'neon'])
+            ->assertSessionHasErrors('theme');
+    }
 }

@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Enums\NotificationChannel;
 use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\ProfileRequest;
+use App\Http\Requests\UpdateThemeRequest;
 use App\Jobs\DeleteUser;
 use App\Models\User;
 use App\Services\ApiKeyService;
@@ -100,6 +101,13 @@ class ProfileController extends Controller
 
         return to_route('profile.edit')
             ->with('success', __('profile.messages.profile_updated'));
+    }
+
+    public function updateTheme(UpdateThemeRequest $updateThemeRequest): RedirectResponse
+    {
+        $updateThemeRequest->user()->update($updateThemeRequest->validated());
+
+        return back();
     }
 
     /**
