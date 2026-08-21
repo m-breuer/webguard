@@ -23,6 +23,11 @@ applied in `app.html` before SvelteKit hydrates, then persisted by
 | `AppearanceSelector` | Light, dark, system selection with optimistic persistence | Pressed state per option, disabled while saving, error alert |
 | `AppShell` | Responsive sidebar with Operations, Collaboration, and admin-only Administration sections | Semantic navigation, collapse persistence, mobile navigation control |
 | `NavIcon` | Project-owned navigation icon set | Decorative SVGs are hidden from assistive technology |
+| `Card` and `DataTable` | Responsive content containers and scrollable data tables | Semantic section/table structure and visually hidden captions |
+| `StatusBadge` | Healthy, degraded, danger, neutral, and paused status tones | Text label never relies on color alone |
+| `EmptyState` and `LoadingState` | Standard no-data and asynchronous feedback | Polite live-region feedback where appropriate |
+| `Pagination` | Link-based page navigation | Current page and unavailable controls are exposed semantically |
+| `ToastRegion` | Success, error, and informational feedback | Polite or assertive live announcements with dismiss controls |
 
 All first-party mutations use `requestFirstPartyApi`. It obtains the existing
 Sanctum CSRF cookie once, sends the XSRF token on unsafe requests, and exposes
