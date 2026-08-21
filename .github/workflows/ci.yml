@@ -125,7 +125,10 @@ jobs:
         fi
 
     - name: Build frontend assets
-      run: bun run build
+      run: |
+        bun run build
+        bun run frontend:check
+        bun run frontend:build
 
     - name: Run PHPStan
       run: |

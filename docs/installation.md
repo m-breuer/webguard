@@ -81,6 +81,8 @@ This repository uses two Docker modes:
 The standard deployment stack always contains:
 
 - `php`
+- `frontend`
+- `gateway`
 - `schedule`
 - `queue-default`
 
@@ -169,24 +171,25 @@ The bundled `mysql` and `redis` services are behind the `internal-services` Comp
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
-For Coolify routing, assign the public domain to the `php` service in Coolify and route it to internal port `8080`; for example, use `https://webguard-test.m-breuer.dev:8080` in the Coolify domain field. Set `SERVICE_URL_PHP` to the same public URL without the internal port, for example `https://webguard-test.m-breuer.dev`, so Laravel generates correct absolute URLs.
+For Coolify routing, assign the public domain to the `gateway` service in Coolify and route it to internal port `8080`; for example, use `https://webguard-test.m-breuer.dev:8080` in the Coolify domain field. Set `SERVICE_URL_PHP` to the same public URL without the internal port, for example `https://webguard-test.m-breuer.dev`, so Laravel and SvelteKit generate correct absolute URLs.
 
 Do not add custom Traefik labels that reference `SERVICE_FQDN_PHP` or Docker Compose defaults such as `${SERVICE_FQDN_PHP:-webguard.example.com}` in Coolify. Coolify generates the proxy routing and Let's Encrypt labels from the assigned domain; shipping custom labels can leave unresolved placeholders in Traefik and cause invalid `HostSNI` or ACME identifiers.
 
-The application listens internally on `8080` for HTTP and `8443` for optional container-level HTTPS. For Coolify deployments, keep `DOCKER_SSL_MODE=off` and let Coolify/Traefik generate and terminate public TLS.
+The gateway listens internally on `8080` for public HTTP routing. Laravel remains internal on `8080` and `8443` for optional container-level HTTPS. For Coolify deployments, keep `DOCKER_SSL_MODE=off` and let Coolify/Traefik generate and terminate public TLS.
 
-If you use Coolify, Traefik, or another reverse proxy in front of the deployment, route traffic to the `php` service on `8080`. Set `DOCKER_SSL_MODE=mixed` and use `8443` only when you explicitly want encrypted traffic between the proxy and the application container.
+If you use Coolify, Traefik, or another reverse proxy in front of the deployment, route traffic to the `gateway` service on `8080`. Set `DOCKER_SSL_MODE=mixed` and use Laravel port `8443` only when you explicitly want encrypted traffic between the gateway and the application container.
 
 ### Health Check
 
-The production image checks `http://127.0.0.1:8080/status` every 10 seconds and marks the container healthy only when Laravel returns a `2xx` response. The production image is the default Dockerfile output, so Coolify Dockerfile deployments detect this check after a redeploy. Docker Compose deployments use the equivalent `php` service health check from `docker-compose.yml`; the queue worker remains an explicit `worker` build target.
+Laravel checks its framework health route at `http://127.0.0.1:8080/status`. SvelteKit checks `/_health/frontend`, and the gateway checks `/_health/gateway`; all health probes must return a `2xx` response. The `gateway` service is the only public entry point. Docker Compose retains the PHP health check and adds independent frontend and gateway checks; the queue worker remains an explicit `worker` build target.
 
 ## Docker Local Development
 
 The local override adds everything that should only exist during development:
 
 - Traefik
-- Bun / Vite
+- Bun / Vite and SvelteKit HMR
+- Gateway
 - MySQL
 - Redis
 - Mailpit
@@ -236,6 +239,7 @@ The local override adds everything that should only exist during development:
 - App: [http://webguard.test](http://webguard.test)
 - HTTPS app: [https://webguard.test](https://webguard.test)
 - Vite: [http://webguard.test:5173](http://webguard.test:5173)
+- SvelteKit HMR is available through the app URL and is not exposed as a second browser origin.
 - Mailpit UI: [http://mailpit.webguard.test](http://mailpit.webguard.test)
 
 ### Local Environment Values
@@ -286,6 +290,7 @@ MAIL_FROM_NAME=WebGuard
 
 VITE_DEV_SERVER_URL=http://webguard.test:5173
 VITE_HMR_HOST=webguard.test
+DOCKER_VITE_HMR_CLIENT_PORT=80
 
 DOCKER_APP_HOST=webguard.test
 DOCKER_MAILPIT_HOST=mailpit.webguard.test
@@ -321,6 +326,7 @@ Build frontend assets:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
+docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm frontend bun run --cwd frontend build
 ```
 
 Install frontend dependencies:

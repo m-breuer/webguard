@@ -1,9 +1,14 @@
 {
     "private": true,
     "type": "module",
+    "workspaces": [
+        "frontend"
+    ],
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "frontend:build": "bun run --cwd frontend build",
+        "frontend:check": "bun run --cwd frontend check"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.11",
