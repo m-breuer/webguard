@@ -41,6 +41,31 @@
             <circle cx="17" cy="9" r="2.25" />
             <path d="M3 20a6 6 0 0 1 12 0M15 15a5 5 0 0 1 6 5" />
             @break
+        @case ('admin-dashboard')
+            <rect x="4" y="4" width="6" height="6" rx="1" />
+            <rect x="14" y="4" width="6" height="6" rx="1" />
+            <rect x="4" y="14" width="6" height="6" rx="1" />
+            <rect x="14" y="14" width="6" height="6" rx="1" />
+            @break
+        @case ('users')
+            <circle cx="9" cy="8" r="3" />
+            <path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5.8M17 14a5 5 0 0 1 4 6" />
+            @break
+        @case ('packages')
+            <path d="m4 8 8-4 8 4-8 4-8-4Z" />
+            <path d="M4 8v8l8 4 8-4V8M12 12v8" />
+            @break
+        @case ('server-instances')
+            <rect x="4" y="3" width="16" height="18" rx="2" />
+            <path d="M8 7h.01M8 12h.01M8 17h.01M12 7h4M12 12h4M12 17h4" />
+            @break
+        @case ('api-access')
+            <path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14" />
+            @break
+        @case ('activity-logs')
+            <path d="M5 4h14v16H5z" />
+            <path d="M8 8h8M8 12h8M8 16h5" />
+            @break
         @case ('eye')
             <path d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7Z" />
             <circle cx="12" cy="12" r="3" />

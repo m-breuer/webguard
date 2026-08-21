@@ -39,7 +39,7 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse->assertDontSeeText(__('admin.dashboard.users.heading'));
     }
 
-    public function test_admin_navigation_exposes_administration_links_from_the_account_menu(): void
+    public function test_admin_navigation_exposes_administration_links_in_the_sidebar(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);
         $admin = User::factory()->create([
@@ -50,14 +50,26 @@ class AuthenticatedNavigationTest extends TestCase
         $testResponse = $this->actingAs($admin)->get(route('monitorings.index'));
 
         $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-administration-navigation');
         $testResponse->assertSeeText(__('app.navigation.sections.administration'));
-        $testResponse->assertSeeText(__('admin.dashboard.heading'));
+        $testResponse->assertSeeText(__('app.navigation.dashboard'));
         $testResponse->assertSeeText(__('admin.dashboard.users.heading'));
         $testResponse->assertSeeText(__('admin.dashboard.packages.heading'));
         $testResponse->assertSeeText(__('admin.dashboard.instances.heading'));
         $testResponse->assertSeeText(__('admin.dashboard.apis.heading'));
         $testResponse->assertDontSee('/admin/demo-monitorings');
         $testResponse->assertSeeText(__('admin.dashboard.activity_logs.heading'));
+
+        foreach ([
+            'admin.dashboard',
+            'admin.users.index',
+            'admin.packages.index',
+            'admin.server-instances.index',
+            'admin.apis.index',
+            'admin.activity-logs.index',
+        ] as $route) {
+            $this->assertSame(2, mb_substr_count($testResponse->getContent() ?? '', 'href="' . route($route) . '"'));
+        }
     }
 
     public function test_desktop_navigation_uses_the_dashboard_rail(): void
