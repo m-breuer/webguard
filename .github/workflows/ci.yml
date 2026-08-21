@@ -22,7 +22,7 @@ env:
 
 jobs:
   ci:
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, macOS]
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
