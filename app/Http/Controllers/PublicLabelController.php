@@ -56,7 +56,7 @@ class PublicLabelController extends Controller
             Date::now()
         )->take(10);
 
-        return view('monitorings.public-label', [
+        return view('monitorings.public-status', [
             'monitoring' => $monitoring,
             'status' => $status,
             'statusBadgeType' => $this->statusBadgeType($status),

@@ -44,7 +44,7 @@ class MonitoringBadgePayloadService
                 ninetyDays: $uptimePercentages[90] ?? null,
                 year: $uptimePercentages[365] ?? null
             ),
-            publicUrl: route('public-label', $monitoring),
+            publicUrl: route('public-status-pages.show', $monitoring),
             incidents: [
                 '30_days' => $incidentCounts[30] ?? 0,
                 '90_days' => $incidentCounts[90] ?? 0,

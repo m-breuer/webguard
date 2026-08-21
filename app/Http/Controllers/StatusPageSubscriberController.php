@@ -44,7 +44,7 @@ class StatusPageSubscriberController extends Controller
             );
         }
 
-        return to_route('public-label', $monitoring)
+        return to_route('public-status-pages.show', $monitoring)
             ->with('status_page_subscription_success', __('monitoring.public_label.subscribe.confirmation_sent'));
     }
 
@@ -58,7 +58,7 @@ class StatusPageSubscriberController extends Controller
 
         $statusPageSubscriber->markVerified();
 
-        return to_route('public-label', $monitoring)
+        return to_route('public-status-pages.show', $monitoring)
             ->with('status_page_subscription_success', __('monitoring.public_label.subscribe.confirmed'));
     }
 
@@ -98,7 +98,7 @@ class StatusPageSubscriberController extends Controller
             ->delete();
 
         $redirect = $monitoring->public_label_enabled
-            ? to_route('public-label', $monitoring)
+            ? to_route('public-status-pages.show', $monitoring)
             : redirect('/');
 
         return $redirect->with('status_page_subscription_success', __('monitoring.public_label.subscribe.unsubscribed'));

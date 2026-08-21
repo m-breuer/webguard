@@ -69,7 +69,7 @@ class PublicLabelPageTest extends TestCase
             }
         }
 
-        $testResponse = $this->get(route('public-label', $monitoring));
+        $testResponse = $this->get(route('public-status-pages.show', $monitoring));
 
         $testResponse->assertOk();
         $testResponse->assertSeeText('Primary API');
@@ -82,10 +82,10 @@ class PublicLabelPageTest extends TestCase
             __('monitoring.detail.calendar.heading'),
             __('monitoring.public_label.recent_incidents'),
         ]);
-        $testResponse->assertSeeHtml('class="grid grid-cols-1 gap-4 md:grid-cols-2"');
+        $testResponse->assertSeeHtml('class="mx-auto max-w-5xl space-y-6"');
         $testResponse->assertSeeHtml('class="grid grid-cols-1 gap-4 md:grid-cols-3"');
         $testResponse->assertSeeHtml('id="public-current-status"');
-        $testResponse->assertSeeHtml('id="public-ssl-status"');
+        $testResponse->assertSeeHtml('id="public-monitoring-component-' . $monitoring->id . '"');
         $testResponse->assertSeeHtml('id="public-uptime-card-7"');
         $testResponse->assertSeeHtml('id="public-uptime-card-30"');
         $testResponse->assertSeeHtml('id="public-uptime-card-90"');
@@ -93,5 +93,21 @@ class PublicLabelPageTest extends TestCase
         $testResponse->assertDontSeeHtml('id="incidents-range"');
         $testResponse->assertSeeText(Date::parse($oldestVisibleIncident->down_at)->locale(app()->getLocale())->isoFormat('L LT'));
         $testResponse->assertDontSeeText(Date::parse($hiddenIncident->down_at)->locale(app()->getLocale())->isoFormat('L LT'));
+    }
+
+    public function test_legacy_public_label_url_redirects_to_the_canonical_status_url(): void
+    {
+        Package::factory()->create();
+        $monitoring = Monitoring::factory()->for(User::factory())->create([
+            'public_label_enabled' => true,
+        ]);
+
+        $this->get(route('legacy-public-label', $monitoring))
+            ->assertStatus(301)
+            ->assertRedirect(route('public-status-pages.show', $monitoring));
+
+        $this->post(route('legacy-public-label.subscribers.store', $monitoring))
+            ->assertStatus(307)
+            ->assertRedirect(route('public-status-pages.subscribers.store', $monitoring));
     }
 }

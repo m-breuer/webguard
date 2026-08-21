@@ -21,7 +21,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileApiKeyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicLabelController;
-use App\Http\Controllers\PublicStatusPageController;
+use App\Http\Controllers\PublicStatusController;
+use App\Http\Controllers\PublicStatusSubscriptionController;
 use App\Http\Controllers\StatusPageController;
 use App\Http\Controllers\StatusPageIncidentFollowUpController;
 use App\Http\Controllers\StatusPageIncidentMetadataController;
@@ -29,11 +30,11 @@ use App\Http\Controllers\StatusPageIncidentReviewController;
 use App\Http\Controllers\StatusPageIncidentTimelineController;
 use App\Http\Controllers\StatusPageIncidentUpdateController;
 use App\Http\Controllers\StatusPageSubscriberController;
-use App\Http\Controllers\StatusPageSubscriptionController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamInvitationAcceptController;
 use App\Http\Controllers\TeamInvitationController;
 use App\Http\Controllers\TeamMemberController;
+use App\Models\Monitoring;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -52,41 +53,58 @@ Route::permanentRedirect('/api/docs', '/api/reference')->name('api.docs.redirect
 Route::get('/team-invitations/{token}/accept', TeamInvitationAcceptController::class)
     ->name('team-invitations.accept');
 
-Route::get('/label/{monitoring}', PublicLabelController::class)
-    ->name('public-label')
+Route::get('/label/{monitoring}', static fn (Monitoring $monitoring) => to_route('public-status-pages.show', $monitoring, 301))
+    ->name('legacy-public-label')
     ->scopeBindings();
-Route::post('/label/{monitoring}/subscribers', [StatusPageSubscriberController::class, 'store'])
+Route::post('/label/{monitoring}/subscribers', static fn (Monitoring $monitoring) => to_route('public-status-pages.subscribers.store', $monitoring, 307))
     ->middleware('throttle:6,1')
-    ->name('public-label.subscribers.store')
+    ->name('legacy-public-label.subscribers.store')
     ->scopeBindings();
-Route::get('/label/{monitoring}/subscribers/confirm/{token}', [StatusPageSubscriberController::class, 'confirm'])
-    ->name('public-label.subscribers.confirm')
+Route::get('/label/{monitoring}/subscribers/confirm/{token}', static fn (Monitoring $monitoring, string $token) => to_route('public-status-pages.subscribers.confirm', [$monitoring, 'token' => $token]))
+    ->name('legacy-public-label.subscribers.confirm')
     ->scopeBindings();
-Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'unsubscribe'])
-    ->name('public-label.subscribers.unsubscribe')
+Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', static fn (Monitoring $monitoring, string $token) => to_route('public-status-pages.subscribers.unsubscribe', [$monitoring, 'token' => $token]))
+    ->name('legacy-public-label.subscribers.unsubscribe')
     ->scopeBindings();
-Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
-    ->name('public-label.subscribers.destroy')
+Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', static fn (Monitoring $monitoring, string $token) => to_route('public-status-pages.subscribers.destroy', [$monitoring, 'token' => $token], 307))
+    ->name('legacy-public-label.subscribers.destroy')
     ->scopeBindings();
 $statusPageUlidPattern = '(?i:[0-9A-HJKMNP-TV-Z]{26})';
 $legacyStatusPageSlugPattern = '(?!(?i:[0-9A-HJKMNP-TV-Z]{26}))[A-Za-z0-9_-]+';
 
-Route::post('/status/{statusPage}/subscribers', [StatusPageSubscriptionController::class, 'store'])
+Route::post('/status/{statusPage}/subscribers', [PublicStatusSubscriptionController::class, 'store'])
     ->middleware('throttle:6,1')
     ->name('public-status-pages.subscribers.store')
     ->where('statusPage', $statusPageUlidPattern);
-Route::get('/status/{statusPage}/subscribers/confirm/{token}', [StatusPageSubscriptionController::class, 'confirm'])
+Route::get('/status/{statusPage}/subscribers/confirm/{token}', [PublicStatusSubscriptionController::class, 'confirm'])
     ->name('public-status-pages.subscribers.confirm')
     ->where('statusPage', $statusPageUlidPattern);
-Route::get('/status/{statusPage}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'unsubscribe'])
+Route::get('/status/{statusPage}/subscribers/unsubscribe/{token}', [PublicStatusSubscriptionController::class, 'unsubscribe'])
     ->name('public-status-pages.subscribers.unsubscribe')
     ->where('statusPage', $statusPageUlidPattern);
-Route::delete('/status/{statusPage}/subscribers/unsubscribe/{token}', [StatusPageSubscriptionController::class, 'destroy'])
+Route::delete('/status/{statusPage}/subscribers/unsubscribe/{token}', [PublicStatusSubscriptionController::class, 'destroy'])
     ->name('public-status-pages.subscribers.destroy')
     ->where('statusPage', $statusPageUlidPattern);
-Route::get('/status/{statusPage}', PublicStatusPageController::class)
+Route::get('/status/{statusPage}', PublicStatusController::class)
     ->name('public-status-pages.show')
     ->where('statusPage', $statusPageUlidPattern);
+
+Route::post('/status/{monitoring}/subscribers', [StatusPageSubscriberController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('public-label.subscribers.store')
+    ->where('monitoring', $statusPageUlidPattern);
+Route::get('/status/{monitoring}/subscribers/confirm/{token}', [StatusPageSubscriberController::class, 'confirm'])
+    ->name('public-label.subscribers.confirm')
+    ->where('monitoring', $statusPageUlidPattern);
+Route::get('/status/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'unsubscribe'])
+    ->name('public-label.subscribers.unsubscribe')
+    ->where('monitoring', $statusPageUlidPattern);
+Route::delete('/status/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
+    ->name('public-label.subscribers.destroy')
+    ->where('monitoring', $statusPageUlidPattern);
+Route::get('/status/{monitoring}', PublicLabelController::class)
+    ->name('public-label')
+    ->where('monitoring', $statusPageUlidPattern);
 
 Route::post('/status/{statusPageSlug}/subscribers', [LegacyPublicStatusPageController::class, 'store'])
     ->middleware('throttle:6,1')

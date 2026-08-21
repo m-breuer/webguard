@@ -102,7 +102,7 @@ return [
         'title' => 'Monitoring Details',
         'text' => 'View detailed information about your monitoring, including its status and history.',
         'back_to_overview' => 'Back to monitorings',
-        'open_public_label' => 'Open public label',
+        'open_public_label' => 'Open public status',
         'initial_results_notice' => 'The first results are shown after the first scheduled check. This can take up to :minutes minutes.',
         'summary_heading' => 'Monitoring overview',
         'summary' => [
@@ -255,8 +255,8 @@ return [
         ],
         'sla_badge' => [
             'heading' => 'Embed SLA Badge',
-            'description' => 'Show a compact public trust badge with live status, uptime, incident count, and a link to the public monitoring label.',
-            'snippet_help' => 'Place this snippet on your website, footer, customer portal, or status overview. The badge is public only while the public label is enabled.',
+            'description' => 'Show a compact public trust badge with live status, uptime, incident count, and a link to the public monitoring status.',
+            'snippet_help' => 'Place this snippet on your website, footer, customer portal, or status overview. The badge is public only while public status is enabled.',
         ],
         'heartbeat' => [
             'heading' => 'Heartbeat Configuration',
@@ -365,9 +365,9 @@ return [
         'http_headers' => 'HTTP Headers (JSON format)',
         'http_body' => 'HTTP Body (JSON or raw)',
         'status' => 'Status',
-        'public_label' => 'Public Label',
-        'public_label_enabled' => 'Enable Public Label',
-        'public_label_url' => 'Public Label URL',
+        'public_label' => 'Public Status',
+        'public_label_enabled' => 'Enable Public Status',
+        'public_label_url' => 'Public Status URL',
         'notification_on_failure' => 'Notifications',
         'notification_on_failure_enabled' => 'Send incident, recovery, SSL, and domain expiry notifications for this monitoring',
         'failure_confirmation_threshold' => 'Consecutive failures before incident',

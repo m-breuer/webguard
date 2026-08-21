@@ -102,7 +102,7 @@ return [
         'title' => 'Überwachungsdetails',
         'text' => 'Detaillierte Informationen zu Ihrer Überwachung, einschließlich Status und Verlauf.',
         'back_to_overview' => 'Zurück zu Überwachungen',
-        'open_public_label' => 'Öffentliches Label öffnen',
+        'open_public_label' => 'Öffentlichen Status öffnen',
         'initial_results_notice' => 'Die ersten Ergebnisse werden nach der ersten planmäßigen Prüfung angezeigt. Das kann bis zu :minutes Minuten dauern.',
         'summary_heading' => 'Überwachungsübersicht',
         'summary' => [
@@ -255,8 +255,8 @@ return [
         ],
         'sla_badge' => [
             'heading' => 'SLA-Badge einbetten',
-            'description' => 'Zeigen Sie ein kompaktes öffentliches Vertrauens-Badge mit Live-Status, Uptime, Incident-Anzahl und Link zum öffentlichen Monitoring-Label.',
-            'snippet_help' => 'Platzieren Sie dieses Snippet auf Ihrer Website, im Footer, im Kundenportal oder in einer Statusübersicht. Das Badge ist nur öffentlich, solange das Public Label aktiviert ist.',
+            'description' => 'Zeigen Sie ein kompaktes öffentliches Vertrauens-Badge mit Live-Status, Uptime, Incident-Anzahl und Link zum öffentlichen Monitoring-Status.',
+            'snippet_help' => 'Platzieren Sie dieses Snippet auf Ihrer Website, im Footer, im Kundenportal oder in einer Statusübersicht. Das Badge ist nur öffentlich, solange der öffentliche Status aktiviert ist.',
         ],
         'heartbeat' => [
             'heading' => 'Heartbeat-Konfiguration',
@@ -365,9 +365,9 @@ return [
         'http_headers' => 'HTTP-Header (JSON-Format)',
         'http_body' => 'HTTP-Body (JSON oder Rohdaten)',
         'status' => 'Status',
-        'public_label' => 'Öffentliches Label',
-        'public_label_enabled' => 'Öffentliches Label aktivieren',
-        'public_label_url' => 'URL des öffentlichen Labels',
+        'public_label' => 'Öffentlicher Status',
+        'public_label_enabled' => 'Öffentlichen Status aktivieren',
+        'public_label_url' => 'URL des öffentlichen Status',
         'notification_on_failure' => 'Benachrichtigungen',
         'notification_on_failure_enabled' => 'Incident-, Wiederherstellungs-, SSL- und Domain-Ablaufbenachrichtigungen für diese Überwachung senden',
         'failure_confirmation_threshold' => 'Aufeinanderfolgende Fehler bis zum Vorfall',

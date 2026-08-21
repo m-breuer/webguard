@@ -48,7 +48,7 @@
                         <span class="max-w-full break-all">{{ $monitoring->target }}</span>
                         @if ($monitoring->public_label_enabled)
                             <a
-                                href="{{ route('public-label', $monitoring) }}"
+                                href="{{ route('public-status-pages.show', $monitoring) }}"
                                 target="_blank"
                                 rel="noopener"
                                 class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-purple-700 transition hover:bg-purple-50 hover:text-purple-900 focus:ring-2 focus:ring-purple-500 focus:outline-hidden dark:text-purple-300 dark:hover:bg-purple-950/40 dark:hover:text-purple-200"
