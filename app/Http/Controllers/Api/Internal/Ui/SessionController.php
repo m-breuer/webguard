@@ -19,13 +19,12 @@ final class SessionController extends Controller
         $user = $request->user();
 
         $teams = $user->teamMemberships()
-            ->with('team:id,name')
-            ->orderBy('created_at')
+            ->with('team:id,name')->oldest()
             ->get()
-            ->map(static fn (TeamMembership $membership): array => [
-                'id' => $membership->team_id,
-                'name' => $membership->team->name,
-                'role' => $membership->role->value,
+            ->map(static fn (TeamMembership $teamMembership): array => [
+                'id' => $teamMembership->team_id,
+                'name' => $teamMembership->team->name,
+                'role' => $teamMembership->role->value,
             ])
             ->values();
 
