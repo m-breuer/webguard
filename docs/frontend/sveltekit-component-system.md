@@ -1,0 +1,32 @@
+# SvelteKit component system
+
+The SvelteKit workspace owns reusable UI primitives under
+`frontend/src/lib/components`. Feature routes compose those components rather
+than recreating controls, dialog behavior, or mutation state.
+
+## Tokens and appearance
+
+`frontend/src/app.css` contains the shared color, focus, surface, and motion
+tokens. It mirrors the established WebGuard purple navigation and light/dark
+surface contrast without depending on the Laravel Vite pipeline. Appearance is
+applied in `app.html` before SvelteKit hydrates, then persisted by
+`AppearanceSelector.svelte` through `PATCH /api/v1/internal/ui/appearance`.
+
+## Primitive contracts
+
+| Component | Variants and behavior | Accessibility contract |
+| --- | --- | --- |
+| `Button` | `primary`, `secondary`, `danger`, `quiet`; disabled loading state | Native button semantics, `aria-busy`, visible focus |
+| `Field` | Label, optional hint, required marker, and error | Associated label and alert error text |
+| `Dialog` | Bindable open state, title, description, backdrop close | Native modal dialog focus trap, Escape close, focus restoration |
+| `MutationForm` | One in-flight request, JSON or multipart request body, field-error response | Blocks duplicate submits, announces success/error state |
+| `AppearanceSelector` | Light, dark, system selection with optimistic persistence | Pressed state per option, disabled while saving, error alert |
+
+All first-party mutations use `requestFirstPartyApi`. It obtains the existing
+Sanctum CSRF cookie once, sends the XSRF token on unsafe requests, and exposes
+structured Laravel validation errors through `FirstPartyApiError`.
+
+## Development preview
+
+`/_ui` is a development-only component preview. It returns `404` in production
+and provides a manual keyboard and responsive check for the primitive baseline.

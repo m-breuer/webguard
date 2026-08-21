@@ -1,0 +1,32 @@
+export type AppearanceTheme = "light" | "dark" | "system";
+
+export interface ApiEnvelope<T> {
+    data: T;
+    meta?: Record<string, unknown>;
+}
+
+export interface ApiValidationErrors {
+    message: string;
+    errors: Record<string, string[]>;
+}
+
+export interface FirstPartyTeam {
+    id: string;
+    name: string;
+    role: "admin" | "member";
+}
+
+export interface FirstPartySession {
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        role: "admin" | "regular" | "demo";
+        locale: string;
+        theme: AppearanceTheme;
+        email_verified_at: string | null;
+        is_verified: boolean;
+    };
+    teams: FirstPartyTeam[];
+    csrf_endpoint: string;
+}
