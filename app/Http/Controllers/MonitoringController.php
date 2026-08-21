@@ -17,6 +17,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Queries\MonitoringDetailQuery;
 use App\Queries\MonitoringIndexQuery;
+use App\Services\MonitoringCheckIntervalService;
 use App\Services\Notifications\MonitoringNotificationPreferenceResolver;
 use App\Services\RegionalConsensusService;
 use App\Support\MonitoringPayload;
@@ -258,6 +259,7 @@ class MonitoringController extends Controller
     public function show(
         Monitoring $monitoring,
         MonitoringDetailQuery $monitoringDetailQuery,
+        MonitoringCheckIntervalService $monitoringCheckIntervalService,
         RegionalConsensusService $regionalConsensusService
     ): View {
         /** @var User $user */
@@ -274,6 +276,12 @@ class MonitoringController extends Controller
             'notificationRecipients' => $notificationRecipients,
             'regionalConsensus' => count($monitoring->preferredLocationCodes()) > 1
                 ? $regionalConsensusService->snapshot($monitoring)
+                : null,
+            'initialResultsWaitMinutes' => $monitoring->isActive()
+                && $monitoring->latestResponseResult === null
+                && ! $monitoring->isHeartbeat()
+                && ! $monitoring->isServerHealth()
+                ? (int) ceil($monitoringCheckIntervalService->secondsFor($monitoring) / 60)
                 : null,
         ]);
     }

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringType;
 use App\Models\Monitoring;
+use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,6 +45,76 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('id="recent-checks"');
         $testResponse->assertSeeHtml('data-recent-check-result');
         $testResponse->assertSeeHtml('data-recent-check-status');
+    }
+
+    public function test_monitoring_detail_page_explains_the_initial_result_wait_time(): void
+    {
+        config()->set('monitoring.website_interval_minutes', 15);
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeHtml('data-initial-results-notice');
+        $testResponse->assertSeeText(__('monitoring.detail.initial_results_notice', ['minutes' => 15]));
+    }
+
+    public function test_monitoring_detail_page_uses_the_configured_interval_for_initial_result_wait_time(): void
+    {
+        config()->set('monitoring.default_interval_minutes', 7);
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::PING,
+            'target' => '1.1.1.1',
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertSeeText(__('monitoring.detail.initial_results_notice', ['minutes' => 7]));
+    }
+
+    public function test_monitoring_detail_page_hides_initial_result_wait_time_after_the_first_result(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+            'target' => 'https://example.com',
+        ]);
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => 'up',
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeHtml('data-initial-results-notice');
+    }
+
+    public function test_paused_monitoring_detail_page_hides_initial_result_wait_time(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'type' => MonitoringType::HTTP,
+            'status' => MonitoringLifecycleStatus::PAUSED,
+            'target' => 'https://example.com',
+        ]);
+
+        $testResponse = $this->actingAs($user)->get(route('monitorings.show', $monitoring));
+
+        $testResponse->assertOk();
+        $testResponse->assertDontSeeHtml('data-initial-results-notice');
     }
 
     public function test_monitoring_detail_page_uses_tablet_friendly_responsive_layout(): void
@@ -86,6 +158,7 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('id="recent-checks"');
         $testResponse->assertDontSeeText(__('monitoring.detail.response_time.heading'));
         $testResponse->assertDontSeeHtml('id="performance-chart"');
+        $testResponse->assertDontSeeHtml('data-initial-results-notice');
     }
 
     public function test_server_health_monitoring_detail_page_shows_telemetry_history(): void
@@ -105,5 +178,6 @@ class MonitoringDetailRecentChecksSectionTest extends TestCase
         $testResponse->assertSeeHtml('id="server-health-telemetry-chart"');
         $testResponse->assertSeeHtml('loadServerHealthTelemetry(serverHealthTelemetryRange)');
         $testResponse->assertDontSeeHtml('@if ($monitoring->type === MonitoringType::SERVER_HEALTH)');
+        $testResponse->assertDontSeeHtml('data-initial-results-notice');
     }
 }
