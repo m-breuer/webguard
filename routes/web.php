@@ -115,6 +115,7 @@ Route::middleware(['auth', 'role:member,admin'])
     ->group(function (): void {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
+        Route::patch('/theme', [ProfileController::class, 'updateTheme'])->name('theme.update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
     });
 

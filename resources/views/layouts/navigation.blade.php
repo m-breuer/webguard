@@ -19,6 +19,12 @@
         ['label' => __('admin.dashboard.apis.heading'), 'icon' => 'api-access', 'href' => route('admin.apis.index'), 'active' => 'admin.apis.*'],
         ['label' => __('admin.dashboard.activity_logs.heading'), 'icon' => 'activity-logs', 'href' => route('admin.activity-logs.index'), 'active' => 'admin.activity-logs.*'],
     ];
+
+    $appearanceOptions = [
+        ['value' => 'light', 'label' => __('profile.fields.theme_light')],
+        ['value' => 'dark', 'label' => __('profile.fields.theme_dark')],
+        ['value' => 'system', 'label' => __('profile.fields.theme_system')],
+    ];
 @endphp
 
 <nav
@@ -189,6 +195,47 @@
                 class="flex items-center gap-2"
                 :class="{ 'flex-col justify-center': sidebarCollapsed }"
             >
+                <x-dropdown align="left" placement="top" width="48" contentClasses="bg-white py-2 dark:bg-slate-900">
+                    <x-slot name="trigger">
+                        <button
+                            id="appearance-menu-desktop"
+                            type="button"
+                            aria-label="{{ __('profile.sections.preferences') }}"
+                            title="{{ __('profile.sections.preferences') }}"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-purple-800 text-purple-100 transition hover:border-purple-600 hover:bg-purple-900 hover:text-white focus:ring-2 focus:ring-purple-300 focus:outline-hidden"
+                        >
+                            <x-icon name="appearance" class="h-5 w-5" />
+                            <span class="sr-only">{{ __('profile.sections.preferences') }}</span>
+                        </button>
+                    </x-slot>
+                    <x-slot name="content">
+                        <div class="px-4 pt-2 pb-1 text-xs font-semibold tracking-[0.08em] text-gray-400 uppercase dark:text-gray-500">
+                            {{ __('profile.sections.preferences') }}
+                        </div>
+                        @foreach ($appearanceOptions as $option)
+                            <form method="POST" action="{{ route('profile.theme.update') }}">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="theme" value="{{ $option['value'] }}" />
+                                <button
+                                    type="submit"
+                                    aria-pressed="{{ Auth::user()->theme === $option['value'] ? 'true' : 'false' }}"
+                                    @click="window.setTheme('{{ $option['value'] }}')"
+                                    @class([
+                                        'flex w-full items-center justify-between px-4 py-2 text-start text-sm leading-5 transition focus:outline-hidden focus:bg-gray-100 dark:focus:bg-gray-700',
+                                        'font-semibold text-purple-700 dark:text-purple-300' => Auth::user()->theme === $option['value'],
+                                        'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700' => Auth::user()->theme !== $option['value'],
+                                    ])
+                                >
+                                    {{ $option['label'] }}
+                                    @if (Auth::user()->theme === $option['value'])
+                                        <x-icon name="check" class="h-4 w-4" />
+                                    @endif
+                                </button>
+                            </form>
+                        @endforeach
+                    </x-slot>
+                </x-dropdown>
                 <a
                     id="notifications-bell-desktop"
                     href="{{ route('notifications.index') }}"
