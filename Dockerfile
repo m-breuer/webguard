@@ -91,6 +91,33 @@ COPY --link public public
 COPY --link postcss.config.js tailwind.config.js tsconfig.json vite.config.js ./
 RUN bun run build
 
+FROM oven/bun:1 AS sveltekit_build
+WORKDIR /app
+ENV BUN_INSTALL_CACHE_DIR=/tmp/bun-cache
+COPY --link package.json bun.lock ./
+COPY --link frontend/package.json frontend/package.json
+RUN --mount=type=cache,target=/tmp/bun-cache,sharing=locked \
+    bun install --frozen-lockfile
+COPY --link frontend frontend
+RUN bun run frontend:build
+
+FROM oven/bun:1-slim AS sveltekit_production
+WORKDIR /app
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3000
+COPY --link --from=sveltekit_build /app/frontend/build ./build
+COPY --link --from=sveltekit_build /app/frontend/package.json ./package.json
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=6 CMD bun -e 'const response = await fetch("http://127.0.0.1:3000/_health/frontend"); process.exit(response.ok ? 0 : 1)'
+CMD ["bun", "build/index.js"]
+
+FROM oven/bun:1 AS sveltekit_development
+WORKDIR /var/www/html
+COPY docker/node/entrypoint.sh /usr/local/bin/webguard-node-entrypoint
+RUN chmod +x /usr/local/bin/webguard-node-entrypoint
+ENTRYPOINT ["webguard-node-entrypoint"]
+CMD ["bun", "run", "--cwd", "frontend", "dev"]
+
 FROM serversideup/php:8.5-cli AS worker
 # Copy application code from the build stage
 COPY --link --from=app_build --chown=33:33 /app /var/www/html

@@ -126,18 +126,18 @@ external v1, mobile, or instance contracts; see [API boundaries](api-boundaries.
 
 ## Health and route ownership
 
-The current PHP health-check default is `/status`, while the public status page
-routes require `/status/{identifier}`. No generic `/status` health route exists.
-The infrastructure work in #737 must introduce a Laravel-owned, non-public
-readiness endpoint and point PHP, SvelteKit, and gateway health checks to their
-respective service endpoints. It must not repurpose or intercept
-`/status/{identifier}`.
+Laravel registers `/status` as its framework health route, while public status
+pages require `/status/{identifier}`. The routes are distinct, but the gateway
+must preserve that exact split: `/status` stays Laravel-owned and
+`/status/{identifier}` remains available to SvelteKit SSR. The infrastructure
+work in #737 adds gateway and SvelteKit readiness endpoints without repurposing
+or intercepting either public route.
 
 Gateway path ownership is fixed before cutover:
 
 | Path family | Owner |
 | --- | --- |
-| `/api/*`, `/sanctum/*`, auth POSTs, signed verification/invitation links, webhooks, `/badge.js`, readiness endpoints | Laravel |
+| `/api/*`, `/sanctum/*`, auth POSTs, signed verification/invitation links, webhooks, `/badge.js`, `/status`, Laravel readiness endpoint | Laravel |
 | Public and authenticated browser pages, SvelteKit build assets, frontend error routes | SvelteKit |
 | `/status/{identifier}` and subscriber pages | SvelteKit SSR backed by Laravel public endpoints |
 

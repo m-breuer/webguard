@@ -95,6 +95,45 @@ services:
           - webguard-core
           - webguard-api
 
+  frontend:
+    container_name: webguard-frontend
+    build:
+      context: .
+      target: sveltekit_production
+    image: webguard-frontend:latest
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      ORIGIN: "${SERVICE_URL_PHP:-https://webguard.example.com}"
+      BODY_SIZE_LIMIT: "100M"
+    expose:
+      - "3000"
+    depends_on:
+      php:
+        condition: service_healthy
+    networks:
+      - webguard-network
+
+  gateway:
+    container_name: webguard-gateway
+    build:
+      context: .
+      dockerfile: docker/gateway/Dockerfile
+    image: webguard-gateway:latest
+    restart: unless-stopped
+    stop_signal: SIGQUIT
+    expose:
+      - "8080"
+    depends_on:
+      php:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - webguard-network
+
   schedule:
     container_name: webguard-schedule
     image: webguard-core-worker:latest

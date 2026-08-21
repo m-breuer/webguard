@@ -1,0 +1,25 @@
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vite";
+
+const hmrHost = process.env.VITE_HMR_HOST;
+
+export default defineConfig({
+    plugins: [sveltekit()],
+    server: {
+        host: "0.0.0.0",
+        port: 3000,
+        strictPort: true,
+        allowedHosts: hmrHost ? [hmrHost] : ["webguard.test"],
+        hmr: hmrHost
+            ? {
+                  host: hmrHost,
+                  protocol: process.env.VITE_HMR_PROTOCOL ?? "ws",
+                  clientPort: Number(process.env.VITE_HMR_CLIENT_PORT ?? 80),
+              }
+            : undefined,
+        watch: {
+            usePolling: process.env.VITE_USE_POLLING === "true",
+            interval: Number(process.env.VITE_POLLING_INTERVAL ?? 300),
+        },
+    },
+});
