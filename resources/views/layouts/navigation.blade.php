@@ -10,6 +10,15 @@
     $collaborationNavigation = [
         ['label' => __('app.navigation.teams'), 'icon' => 'teams', 'href' => route('teams.index'), 'active' => 'teams.*'],
     ];
+
+    $administrationNavigation = [
+        ['label' => __('app.navigation.dashboard'), 'icon' => 'admin-dashboard', 'href' => route('admin.dashboard'), 'active' => 'admin.dashboard'],
+        ['label' => __('admin.dashboard.users.heading'), 'icon' => 'users', 'href' => route('admin.users.index'), 'active' => 'admin.users.*'],
+        ['label' => __('admin.dashboard.packages.heading'), 'icon' => 'packages', 'href' => route('admin.packages.index'), 'active' => 'admin.packages.*'],
+        ['label' => __('admin.dashboard.instances.heading'), 'icon' => 'server-instances', 'href' => route('admin.server-instances.index'), 'active' => 'admin.server-instances.*'],
+        ['label' => __('admin.dashboard.apis.heading'), 'icon' => 'api-access', 'href' => route('admin.apis.index'), 'active' => 'admin.apis.*'],
+        ['label' => __('admin.dashboard.activity_logs.heading'), 'icon' => 'activity-logs', 'href' => route('admin.activity-logs.index'), 'active' => 'admin.activity-logs.*'],
+    ];
 @endphp
 
 <nav
@@ -137,6 +146,40 @@
                         @endforeach
                     </div>
                 </div>
+
+                @if (Auth::user()->isAdmin())
+                    <div data-administration-navigation>
+                        <p
+                            x-show="! sidebarCollapsed"
+                            x-cloak
+                            class="px-3 text-xs font-semibold tracking-[0.16em] text-purple-300 uppercase"
+                        >
+                            {{ __('app.navigation.sections.administration') }}
+                        </p>
+                        <div class="mt-2 space-y-1">
+                            @foreach ($administrationNavigation as $item)
+                                @php($itemActive = request()->routeIs($item['active']))
+                                <a
+                                    data-secondary-destination
+                                    href="{{ $item['href'] }}"
+                                    @class([
+                                        'group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300',
+                                        'border-purple-400/30 bg-purple-900/70 text-white' => $itemActive,
+                                        'border-transparent text-purple-200 hover:border-purple-800 hover:bg-purple-900/60 hover:text-white' => ! $itemActive,
+                                    ])
+                                    :class="{ 'lg:justify-center lg:px-0': sidebarCollapsed }"
+                                >
+                                    <x-icon name="{{ $item['icon'] }}" class="h-5 w-5 shrink-0" />
+                                    <span
+                                        x-show="! sidebarCollapsed"
+                                        x-cloak
+                                        class="truncate"
+                                    >{{ $item['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -190,17 +233,6 @@
                     <x-slot name="content">
                         @if (! Auth::user()->isDemo())
                             <x-dropdown-link :href="route('profile.edit')">{{ __('profile.title') }}</x-dropdown-link>
-                        @endif
-                        @if (Auth::user()->isAdmin())
-                            <div class="border-t border-gray-100 px-4 pt-3 pb-1 text-xs font-semibold tracking-[0.08em] text-gray-400 uppercase dark:border-gray-700 dark:text-gray-500">
-                                {{ __('app.navigation.sections.administration') }}
-                            </div>
-                            <x-dropdown-link :href="route('admin.dashboard')">{{ __('admin.dashboard.heading') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('admin.users.index')">{{ __('admin.dashboard.users.heading') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('admin.packages.index')">{{ __('admin.dashboard.packages.heading') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('admin.server-instances.index')">{{ __('admin.dashboard.instances.heading') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('admin.apis.index')">{{ __('admin.dashboard.apis.heading') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('admin.activity-logs.index')">{{ __('admin.dashboard.activity_logs.heading') }}</x-dropdown-link>
                         @endif
                         <form method="POST" action="{{ route('logout') }}" id="logout-form-desktop">
                             @csrf
@@ -306,30 +338,13 @@
             <p class="px-3 pt-4 pb-2 text-xs font-semibold tracking-[0.16em] text-purple-300 uppercase">
                 {{ __('app.navigation.sections.administration') }}
             </p>
-            <a
-                href="{{ route('admin.dashboard') }}"
-                @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('admin.dashboard'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('admin.dashboard')])
-            >{{ __('admin.dashboard.heading') }}</a>
-            <a
-                href="{{ route('admin.users.index') }}"
-                @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('admin.users.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('admin.users.*')])
-            >{{ __('admin.dashboard.users.heading') }}</a>
-            <a
-                href="{{ route('admin.packages.index') }}"
-                @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('admin.packages.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('admin.packages.*')])
-            >{{ __('admin.dashboard.packages.heading') }}</a>
-            <a
-                href="{{ route('admin.server-instances.index') }}"
-                @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('admin.server-instances.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('admin.server-instances.*')])
-            >{{ __('admin.dashboard.instances.heading') }}</a>
-            <a
-                href="{{ route('admin.apis.index') }}"
-                @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('admin.apis.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('admin.apis.*')])
-            >{{ __('admin.dashboard.apis.heading') }}</a>
-            <a
-                href="{{ route('admin.activity-logs.index') }}"
-                @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => request()->routeIs('admin.activity-logs.*'), 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! request()->routeIs('admin.activity-logs.*')])
-            >{{ __('admin.dashboard.activity_logs.heading') }}</a>
+            @foreach ($administrationNavigation as $item)
+                @php($itemActive = request()->routeIs($item['active']))
+                <a
+                    href="{{ $item['href'] }}"
+                    @class(['block w-full rounded-xl px-4 py-2.5 text-start text-base font-medium transition focus:outline-hidden focus:ring-2 focus:ring-purple-300', 'bg-purple-700 text-white' => $itemActive, 'text-purple-100 hover:bg-purple-900/70 hover:text-white' => ! $itemActive])
+                >{{ $item['label'] }}</a>
+            @endforeach
         @endif
 
         <div class="mt-3 border-t border-purple-900/60 pt-3">
