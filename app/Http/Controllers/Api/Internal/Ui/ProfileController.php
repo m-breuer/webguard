@@ -11,11 +11,11 @@ use Illuminate\Http\JsonResponse;
 
 final class ProfileController extends Controller
 {
-    public function update(UpdateProfileAccountRequest $request): JsonResponse
+    public function update(UpdateProfileAccountRequest $updateProfileAccountRequest): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
-        $user->fill($request->validated());
+        $user = $updateProfileAccountRequest->user();
+        $user->fill($updateProfileAccountRequest->validated());
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;

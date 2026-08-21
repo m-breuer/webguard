@@ -20,12 +20,12 @@ final class InternalUiProfileApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create(['notification_channels' => ['telegram' => ['bot_token' => 'secret']]]);
 
-        $response = $this->actingAs($user)->patchJson(route('api.v1.internal.ui.profile.update'), [
+        $testResponse = $this->actingAs($user)->patchJson(route('api.v1.internal.ui.profile.update'), [
             'name' => 'Updated member',
             'email' => 'updated@example.test',
         ]);
 
-        $response
+        $testResponse
             ->assertOk()
             ->assertJsonPath('data.name', 'Updated member')
             ->assertJsonPath('data.email', 'updated@example.test')
@@ -33,7 +33,7 @@ final class InternalUiProfileApiTest extends TestCase
             ->assertJsonMissing(['bot_token' => 'secret']);
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated member', 'email' => 'updated@example.test', 'email_verified_at' => null]);
-        $this->assertInternalUiTelemetry($response, 4, 131072);
+        $this->assertInternalUiTelemetry($testResponse, 4, 131072);
     }
 
     public function test_profile_contract_requires_authentication_and_valid_data(): void
