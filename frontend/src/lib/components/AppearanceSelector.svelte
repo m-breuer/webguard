@@ -56,24 +56,25 @@
 </script>
 
 {#if compact}
-    <details class="compact">
-        <summary aria-label="Appearance" title="Appearance">☼</summary>
-        <div class="compact-menu" aria-label="Appearance" aria-busy={saving}>
+    <details class="relative">
+        <summary class="grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border border-purple-700 text-xl text-purple-100 [&::-webkit-details-marker]:hidden" aria-label="Appearance" title="Appearance">☼</summary>
+        <div class="absolute bottom-[calc(100%+0.5rem)] left-0 z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface" aria-label="Appearance" aria-busy={saving}>
             {@render optionsList()}
         </div>
     </details>
 {:else}
-    <fieldset aria-busy={saving}>
-        <legend>Appearance</legend>
+    <fieldset class="m-0 border-0 p-0" aria-busy={saving}>
+        <legend class="mb-2 text-sm font-bold text-wg-text">Appearance</legend>
         {@render optionsList()}
     </fieldset>
 {/if}
 
 {#snippet optionsList()}
-    <div class="options">
+    <div class="grid grid-cols-3 overflow-hidden rounded-xl border border-wg-border">
         {#each options as option}
             <button
                 type="button"
+                class={`min-h-10 border-0 border-r border-wg-border bg-wg-surface text-[0.8125rem] font-bold text-wg-text-muted last:border-r-0 disabled:cursor-wait disabled:opacity-65 ${theme === option.value ? "bg-wg-accent text-wg-accent-contrast" : ""}`}
                 aria-pressed={theme === option.value}
                 disabled={saving}
                 onclick={() => select(option.value)}
@@ -82,92 +83,5 @@
             </button>
         {/each}
     </div>
-    {#if error}<p role="alert">{error}</p>{/if}
+    {#if error}<p class="mt-2 text-[0.8125rem] text-wg-danger" role="alert">{error}</p>{/if}
 {/snippet}
-
-<style>
-    fieldset {
-        margin: 0;
-        padding: 0;
-        border: 0;
-    }
-
-    .compact {
-        position: relative;
-    }
-
-    summary {
-        display: grid;
-        width: 2.75rem;
-        height: 2.75rem;
-        place-items: center;
-        border: 1px solid #7e22ce;
-        border-radius: 0.65rem;
-        color: #f3e8ff;
-        cursor: pointer;
-        list-style: none;
-        font-size: 1.25rem;
-    }
-
-    summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .compact-menu {
-        position: absolute;
-        bottom: calc(100% + 0.5rem);
-        left: 0;
-        z-index: 30;
-        width: 12rem;
-        border: 1px solid var(--wg-border);
-        border-radius: 0.75rem;
-        background: var(--wg-surface);
-        box-shadow: var(--wg-shadow);
-        padding: 0.5rem;
-    }
-
-    legend {
-        margin-bottom: 0.5rem;
-        color: var(--wg-text);
-        font-size: 0.875rem;
-        font-weight: 700;
-    }
-
-    .options {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        overflow: hidden;
-        border: 1px solid var(--wg-border);
-        border-radius: 0.75rem;
-    }
-
-    button {
-        min-height: 2.5rem;
-        border: 0;
-        border-right: 1px solid var(--wg-border);
-        background: var(--wg-surface);
-        color: var(--wg-text-muted);
-        font-size: 0.8125rem;
-        font-weight: 700;
-    }
-
-    button:last-child {
-        border-right: 0;
-    }
-
-    button[aria-pressed="true"] {
-        background: var(--wg-accent);
-        color: var(--wg-accent-contrast);
-    }
-
-    button:disabled {
-        cursor: wait;
-        opacity: 0.65;
-    }
-
-    p {
-        margin: 0.5rem 0 0;
-        color: var(--wg-danger);
-        font-size: 0.8125rem;
-    }
-</style>
