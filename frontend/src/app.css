@@ -1,0 +1,72 @@
+:root {
+    color-scheme: light;
+    --wg-font-sans: "Sen", ui-sans-serif, system-ui, sans-serif;
+    --wg-canvas: #f8fafc;
+    --wg-surface: #ffffff;
+    --wg-surface-muted: #f1f5f9;
+    --wg-text: #172033;
+    --wg-text-muted: #64748b;
+    --wg-border: #d9e0ea;
+    --wg-accent: #7e22ce;
+    --wg-accent-strong: #6b21a8;
+    --wg-accent-contrast: #ffffff;
+    --wg-danger: #dc2626;
+    --wg-focus: #c084fc;
+    --wg-shadow: 0 14px 34px rgb(15 23 42 / 12%);
+}
+
+:root.dark {
+    color-scheme: dark;
+    --wg-canvas: #020617;
+    --wg-surface: #0f172a;
+    --wg-surface-muted: #172033;
+    --wg-text: #f8fafc;
+    --wg-text-muted: #a8b3c7;
+    --wg-border: #29364d;
+    --wg-accent: #c084fc;
+    --wg-accent-strong: #a855f7;
+    --wg-accent-contrast: #1f0a35;
+    --wg-danger: #f87171;
+    --wg-focus: #d8b4fe;
+    --wg-shadow: 0 14px 34px rgb(0 0 0 / 30%);
+}
+
+html {
+    background: var(--wg-canvas);
+}
+
+body {
+    min-width: 20rem;
+    margin: 0;
+    background: var(--wg-canvas);
+    color: var(--wg-text);
+    font-family: var(--wg-font-sans);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button:not(:disabled),
+summary {
+    cursor: pointer;
+}
+
+:focus-visible {
+    outline: 2px solid var(--wg-focus);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
