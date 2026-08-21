@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Internal\Ui\DashboardController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringCardsController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringIndexController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringShowController;
+use App\Http\Controllers\Api\Internal\Ui\PasswordController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileController;
 use App\Http\Controllers\Api\Internal\Ui\SessionController;
 use App\Http\Middleware\MeasureInternalUiRequest;
@@ -21,6 +22,9 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('role:member,admin')
         ->name('profile.update');
+    Route::put('/profile/password', [PasswordController::class, 'update'])
+        ->middleware('role:member,admin')
+        ->name('profile.password.update');
 
     Route::middleware('verified')->group(function (): void {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
