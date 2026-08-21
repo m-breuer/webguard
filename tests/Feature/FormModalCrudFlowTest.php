@@ -81,7 +81,12 @@ class FormModalCrudFlowTest extends TestCase
         $this->actingAs($user)->get(route('status-pages.edit', [$statusPage, 'modal' => 1]))
             ->assertOk()
             ->assertSeeHtml('name="modal_form"')
-            ->assertSeeHtml('action="' . route('status-pages.update', $statusPage) . '"');
+            ->assertSeeHtml('action="' . route('status-pages.update', $statusPage) . '"')
+            ->assertSeeHtml('data-status-page-modal-form')
+            ->assertDontSeeHtml('shadow-md rounded-lg');
+        $this->actingAs($user)->get(route('status-pages.edit', $statusPage))
+            ->assertOk()
+            ->assertSeeHtml('shadow-md rounded-lg');
         $this->actingAs($user)->get(route('status-pages.index'))
             ->assertOk()
             ->assertSeeHtml('data-form-modal-name="status-page-form-modal"');

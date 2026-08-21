@@ -14,9 +14,16 @@
             )->values()->all()
             : $defaultComponents,
     );
+    $isModal = isset($modal) && $modal;
 @endphp
 
-<x-container>
+<div
+    data-status-page-form
+    @if ($isModal) data-status-page-modal-form @endif
+    @class([
+        'w-full px-4 sm:px-6 lg:px-8 bg-white shadow-md rounded-lg dark:bg-gray-800 p-6 text-gray-900 dark:text-gray-100' => ! $isModal,
+    ])
+>
     @if ($errors->any())
         <div class="mb-4 text-sm text-red-600 dark:text-red-400">{{ __('status_page.validation.fix_errors') }}</div>
     @endif
@@ -83,7 +90,7 @@
                 <x-input-error :messages="$errors->get('components')" />
 
                 <template x-for="(component, index) in components" :key="index">
-                    <div class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
+                    <div data-status-page-component class="rounded-md border border-gray-200 p-4 dark:border-gray-700">
                         <input
                             type="hidden"
                             x-bind:name="'components[' + index + '][source_type]'"
@@ -187,4 +194,4 @@
             </div>
         </div>
     </form>
-</x-container>
+</div>
