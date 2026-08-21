@@ -3,9 +3,17 @@
     import Dialog from "$lib/components/Dialog.svelte";
     import Field from "$lib/components/Field.svelte";
     import AppShell from "$lib/components/AppShell.svelte";
+    import Card from "$lib/components/Card.svelte";
+    import DataTable from "$lib/components/DataTable.svelte";
+    import EmptyState from "$lib/components/EmptyState.svelte";
     import type { FirstPartySession } from "$lib/api/models";
+    import LoadingState from "$lib/components/LoadingState.svelte";
+    import Pagination from "$lib/components/Pagination.svelte";
+    import StatusBadge from "$lib/components/StatusBadge.svelte";
+    import ToastRegion from "$lib/components/ToastRegion.svelte";
 
     let dialogOpen = $state(false);
+    let toastItems = $state([{ id: "preview-saved", tone: "success" as const, message: "Monitoring preferences saved." }]);
 
     const previewSession: FirstPartySession = {
         user: {
@@ -61,6 +69,20 @@
         <h2 id="dialog-heading">Dialog</h2>
         <Button onclick={() => (dialogOpen = true)}>Open confirmation</Button>
     </section>
+
+    <Card title="Monitoring overview" description="Shared content patterns used by migrated feature pages.">
+        {#snippet actions()}<StatusBadge tone="healthy" label="Operational" />{/snippet}
+        <DataTable caption="Recent monitorings">
+            <thead><tr><th>Name</th><th>Status</th></tr></thead>
+            <tbody><tr><td>API gateway</td><td><StatusBadge tone="healthy" label="Up" /></td></tr></tbody>
+        </DataTable>
+        <div class="pagination"><Pagination page={2} pages={4} href={(page) => `?page=${page}`} /></div>
+    </Card>
+
+    <section aria-label="Feedback states" class="feedback-states">
+        <LoadingState label="Loading monitoring results" />
+        <EmptyState title="No maintenance windows" description="Planned maintenance will appear here once it is scheduled." />
+    </section>
 </div>
 
 <Dialog bind:open={dialogOpen} title="Discard unsaved changes?" description="Your edits have not been saved yet.">
@@ -70,6 +92,8 @@
     </div>
 </Dialog>
 </AppShell>
+
+<ToastRegion items={toastItems} onDismiss={(id) => (toastItems = toastItems.filter((item) => item.id !== id))} />
 
 <style>
     .preview-content {
@@ -139,6 +163,9 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1rem;
     }
+
+    .pagination { margin-top: 1rem; }
+    .feedback-states { display: grid; gap: 1.25rem; }
 
     input {
         width: 100%;
