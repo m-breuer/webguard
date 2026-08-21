@@ -58,32 +58,17 @@
     }
 </script>
 
-<form onsubmit={submit} novalidate>
+<form class="grid gap-4" onsubmit={submit} novalidate>
     {@render children?.()}
 
     {#if message}
-        <p class:error={Object.keys(errors).length > 0} class="message" role={Object.keys(errors).length > 0 ? "alert" : "status"}>
+        <p
+            class={`m-0 text-sm font-semibold ${Object.keys(errors).length > 0 ? "text-wg-danger" : "text-green-700 dark:text-green-300"}`}
+            role={Object.keys(errors).length > 0 ? "alert" : "status"}
+        >
             {message}
         </p>
     {/if}
 
     <Button type="submit" loading={submitting}>{submitLabel}</Button>
 </form>
-
-<style>
-    form {
-        display: grid;
-        gap: 1rem;
-    }
-
-    .message {
-        margin: 0;
-        color: #15803d;
-        font-size: 0.875rem;
-        font-weight: 600;
-    }
-
-    .message.error {
-        color: var(--wg-danger);
-    }
-</style>
