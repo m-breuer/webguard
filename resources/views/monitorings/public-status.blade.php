@@ -9,7 +9,13 @@
             <div class="mx-auto mt-3 flex max-w-2xl flex-wrap items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                 <x-badge type="info">{{ __('monitoring.types.' . $monitoring->type->value) }}</x-badge>
                 @if ($displayTarget)
-                    <a href="{{ $displayTarget }}" target="_blank" rel="noopener" title="{{ $monitoring->name }}" class="break-all hover:text-gray-700 dark:hover:text-white">
+                    <a
+                        href="{{ $displayTarget }}"
+                        target="_blank"
+                        rel="noopener"
+                        title="{{ $monitoring->name }}"
+                        class="break-all hover:text-gray-700 dark:hover:text-white"
+                    >
                         {{ $displayTarget }}
                     </a>
                 @else
@@ -45,25 +51,34 @@
                 </div>
             @endif
 
-            <section id="public-current-status" class="rounded-2xl border px-5 py-5 shadow-sm sm:px-6 {{ $statusSurfaceClasses }}">
+            <section
+                id="public-current-status"
+                class="rounded-2xl border px-5 py-5 shadow-sm sm:px-6 {{ $statusSurfaceClasses }}"
+            >
                 <div class="flex items-center gap-4">
                     <span class="h-3.5 w-3.5 shrink-0 rounded-full {{ $statusDotClasses }}" aria-hidden="true"></span>
                     <div>
                         <p class="text-lg font-bold sm:text-xl">{{ $statusLabel }}</p>
-                        <p class="mt-1 text-sm opacity-80">{{ __('monitoring.public_label.current_status') }}: {{ mb_strtoupper($status) }}</p>
+                        <p class="mt-1 text-sm opacity-80">
+                            {{ __('monitoring.public_label.current_status') }}: {{ mb_strtoupper($status) }}
+                        </p>
                     </div>
                 </div>
             </section>
 
             <section>
-                <div id="public-monitoring-component-{{ $monitoring->id }}" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900">
+                <div
+                    id="public-monitoring-component-{{ $monitoring->id }}"
+                    class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900"
+                >
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <x-heading type="h2">{{ $monitoring->name }}</x-heading>
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                 {{ __('monitoring.types.' . $monitoring->type->value) }}
                                 @if (data_get($statusNow, 'checked_at'))
-                                    - {{ __('monitoring.detail.last_check') }} <x-date-time :value="data_get($statusNow, 'checked_at')" />
+                                    - {{ __('monitoring.detail.last_check') }}
+                                    <x-date-time :value="data_get($statusNow, 'checked_at')" />
                                 @endif
                             </p>
                         </div>
@@ -75,24 +90,33 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-200 pt-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400 md:grid-cols-2">
+                    <div class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-200 pt-4 text-sm text-gray-500 md:grid-cols-2 dark:border-gray-700 dark:text-gray-400">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-gray-100">{{ __('monitoring.detail.ssl.heading') }}</p>
+                            <p class="font-medium text-gray-900 dark:text-gray-100">
+                                {{ __('monitoring.detail.ssl.heading') }}
+                            </p>
                             @if (($monitoring->type === \App\Enums\MonitoringType::HTTP || $monitoring->type === \App\Enums\MonitoringType::KEYWORD) && $monitoring->sslResult)
                                 <p class="mt-1 {{ $monitoring->sslResult->is_valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
                                     {{ $monitoring->sslResult->is_valid ? __('monitoring.detail.ssl.valid') : __('monitoring.detail.ssl.expired') }}
                                 </p>
                                 @if ($monitoring->sslResult->expires_at)
-                                    <p class="mt-1">{{ __('monitoring.detail.ssl.expires_in') }}: <x-date-time :value="$monitoring->sslResult->expires_at" format="date" /></p>
+                                    <p class="mt-1">
+                                        {{ __('monitoring.detail.ssl.expires_in') }}:
+                                        <x-date-time :value="$monitoring->sslResult->expires_at" format="date" />
+                                    </p>
                                 @endif
                             @else
                                 <p class="mt-1">{{ __('monitoring.public_label.no_data') }}</p>
                             @endif
                         </div>
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-gray-100">{{ __('monitoring.public_label.current_status') }}</p>
+                            <p class="font-medium text-gray-900 dark:text-gray-100">
+                                {{ __('monitoring.public_label.current_status') }}
+                            </p>
                             @if ($statusSince)
-                                <p class="mt-1">{{ __('monitoring.index.table.since') }} <x-date-time :value="$statusSince" /></p>
+                                <p class="mt-1">
+                                    {{ __('monitoring.index.table.since') }} <x-date-time :value="$statusSince" />
+                                </p>
                             @endif
                             @if ($monitoring->latestResponseResult?->http_status_code)
                                 <p class="mt-1">HTTP {{ $monitoring->latestResponseResult->http_status_code }}</p>
@@ -118,11 +142,17 @@
                         </div>
                         <dl class="mt-4 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                             <div>
-                                <dt class="font-medium text-gray-500 dark:text-gray-400">{{ __('monitoring.public_label.maintenance.starts_at') }}</dt>
-                                <dd class="mt-1 text-gray-900 dark:text-gray-100"><x-date-time :value="$maintenanceWindow['starts_at']" /></dd>
+                                <dt class="font-medium text-gray-500 dark:text-gray-400">
+                                    {{ __('monitoring.public_label.maintenance.starts_at') }}
+                                </dt>
+                                <dd class="mt-1 text-gray-900 dark:text-gray-100">
+                                    <x-date-time :value="$maintenanceWindow['starts_at']" />
+                                </dd>
                             </div>
                             <div>
-                                <dt class="font-medium text-gray-500 dark:text-gray-400">{{ __('monitoring.public_label.maintenance.ends_at') }}</dt>
+                                <dt class="font-medium text-gray-500 dark:text-gray-400">
+                                    {{ __('monitoring.public_label.maintenance.ends_at') }}
+                                </dt>
                                 <dd class="mt-1 text-gray-900 dark:text-gray-100">
                                     @if ($maintenanceWindow['ends_at'])
                                         <x-date-time :value="$maintenanceWindow['ends_at']" />
@@ -145,10 +175,19 @@
                             $uptime = data_get($summary, 'uptime.percentage');
                             $incidentsCount = (int) data_get($summary, 'downtime.incidentsCount', 0);
                         @endphp
-                        <div id="public-uptime-card-{{ $days }}" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                            <p class="font-semibold text-gray-900 dark:text-gray-100">{{ trans_choice('monitoring.public_label.range_days', $days, ['days' => $days]) }}</p>
-                            <p class="mt-3 text-2xl font-bold text-purple-600 dark:text-purple-300">{{ is_numeric($uptime) ? number_format((float) $uptime, 2) . '%' : __('monitoring.public_label.no_data') }}</p>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ trans_choice('monitoring.public_label.incidents_count', $incidentsCount, ['count' => $incidentsCount]) }}</p>
+                        <div
+                            id="public-uptime-card-{{ $days }}"
+                            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+                        >
+                            <p class="font-semibold text-gray-900 dark:text-gray-100">
+                                {{ trans_choice('monitoring.public_label.range_days', $days, ['days' => $days]) }}
+                            </p>
+                            <p class="mt-3 text-2xl font-bold text-purple-600 dark:text-purple-300">
+                                {{ is_numeric($uptime) ? number_format((float) $uptime, 2) . '%' : __('monitoring.public_label.no_data') }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ trans_choice('monitoring.public_label.incidents_count', $incidentsCount, ['count' => $incidentsCount]) }}
+                            </p>
                         </div>
                     @endforeach
                 </div>
@@ -156,11 +195,18 @@
 
             <section id="public-uptime-calendar-{{ $monitoring->id }}">
                 <div class="mb-4"><x-heading type="h2">{{ __('monitoring.detail.calendar.heading') }}</x-heading></div>
-                <div x-data="uptimeCalendar('{{ $monitoring->id }}', @js(route('public.monitorings.uptime-calendar', $monitoring)))" x-init="fetchUptimeCalendar">
+                <div
+                    x-data="uptimeCalendar('{{ $monitoring->id }}', @js(route('public.monitorings.uptime-calendar', $monitoring)))"
+                    x-init="fetchUptimeCalendar"
+                >
                     <template x-if="isLoading">
-                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900"><p>{{ __('calendar.loading') }}</p></div>
+                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                            <p>{{ __('calendar.loading') }}</p>
+                        </div>
                     </template>
-                    <template x-if="! isLoading && calendarData"><div x-data="{ data: calendarData }">@include('components.monitoring-calendar')</div></template>
+                    <template x-if="! isLoading && calendarData"
+                        ><div x-data="{ data: calendarData }">@include('components.monitoring-calendar')</div
+                    ></template>
                 </div>
             </section>
 
@@ -169,13 +215,30 @@
                     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
                             <x-heading type="h2">{{ __('monitoring.public_label.subscribe.heading') }}</x-heading>
-                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.public_label.subscribe.description') }}</p>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('monitoring.public_label.subscribe.description') }}
+                            </p>
                         </div>
-                        <form method="POST" action="{{ route('public-status-pages.subscribers.store', $monitoring) }}" class="w-full md:max-w-md">
+                        <form
+                            method="POST"
+                            action="{{ route('public-status-pages.subscribers.store', $monitoring) }}"
+                            class="w-full md:max-w-md"
+                        >
                             @csrf
-                            <x-input-label for="status-page-subscriber-email" :value="__('monitoring.public_label.subscribe.email')" />
+                            <x-input-label
+                                for="status-page-subscriber-email"
+                                :value="__('monitoring.public_label.subscribe.email')"
+                            />
                             <div class="mt-2 flex flex-col gap-3 sm:flex-row">
-                                <x-text-input id="status-page-subscriber-email" type="email" name="email" :value="old('email')" required autocomplete="email" :placeholder="__('monitoring.public_label.subscribe.email_placeholder')" />
+                                <x-text-input
+                                    id="status-page-subscriber-email"
+                                    type="email"
+                                    name="email"
+                                    :value="old('email')"
+                                    required
+                                    autocomplete="email"
+                                    :placeholder="__('monitoring.public_label.subscribe.email_placeholder')"
+                                />
                                 <x-primary-button class="shrink-0 justify-center">{{ __('monitoring.public_label.subscribe.button') }}</x-primary-button>
                             </div>
                             <x-input-error class="mt-2" :messages="$errors->get('email')" />
@@ -189,9 +252,17 @@
                     <x-heading type="h2">{{ __('monitoring.public_label.recent_incidents') }}</x-heading>
                     @if ($incidents->isEmpty())
                         <div class="mt-5 rounded-xl border border-dashed border-gray-200 bg-slate-50 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-950/50">
-                            <span class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300" aria-hidden="true"><x-icon name="check" class="h-5 w-5" /></span>
-                            <p class="mt-3 font-semibold text-gray-900 dark:text-gray-100">{{ __('status_page.public.no_recent_incidents') }}</p>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('monitoring.detail.incidents.no_incidents') }}</p>
+                            <span
+                                class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                                aria-hidden="true"
+                                ><x-icon name="check" class="h-5 w-5"
+                            /></span>
+                            <p class="mt-3 font-semibold text-gray-900 dark:text-gray-100">
+                                {{ __('status_page.public.no_recent_incidents') }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('monitoring.detail.incidents.no_incidents') }}
+                            </p>
                         </div>
                     @else
                         <div class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
@@ -203,13 +274,16 @@
                                 @endphp
                                 <div class="py-3">
                                     <div class="flex flex-wrap items-center justify-between gap-2">
-                                        <span class="font-medium text-gray-900 dark:text-gray-100"><x-date-time :value="$downAt" /></span>
+                                        <span class="font-medium text-gray-900 dark:text-gray-100"
+                                            ><x-date-time :value="$downAt"
+                                        /></span>
                                         <x-badge :type="$upAt ? 'success' : 'danger'">{{ $upAt ? __('monitoring.public_label.resolved') : __('monitoring.public_label.ongoing') }}</x-badge>
                                     </div>
                                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         {{ __('monitoring.detail.incidents.incident.duration') }}: {{ $duration }}
                                         @if ($upAt)
-                                            - {{ __('monitoring.detail.incidents.incident.up_at') }} <x-date-time :value="$upAt" />
+                                            - {{ __('monitoring.detail.incidents.incident.up_at') }}
+                                            <x-date-time :value="$upAt" />
                                         @endif
                                     </p>
                                 </div>
