@@ -26,6 +26,14 @@
             <Field label="Email" required><input name="email" type="email" autocomplete="email" value={data.session.user.email} /></Field>
         </MutationForm>
     </Card>
+
+    <Card title="Password" description="Use your current password to confirm this security-sensitive change.">
+        <MutationForm action="/api/v1/internal/ui/profile/password" method="PUT" submitLabel="Update password" successMessage="Password updated." >
+            <Field label="Current password" required><input name="current_password" type="password" autocomplete="current-password" /></Field>
+            <Field label="New password" required><input name="password" type="password" autocomplete="new-password" /></Field>
+            <Field label="Confirm new password" required><input name="password_confirmation" type="password" autocomplete="new-password" /></Field>
+        </MutationForm>
+    </Card>
 </main>
 
 <style>
