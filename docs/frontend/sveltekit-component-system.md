@@ -37,6 +37,15 @@ users with the `admin` role. Appearance is available in the persistent sidebar:
 the compact shell exposes it through a labelled settings control rather than
 removing it when the sidebar collapses.
 
+## Authenticated route boundary
+
+Routes placed below `frontend/src/routes/(app)` load the Laravel-owned
+first-party session before rendering `AppShell`. An unauthenticated response
+redirects to Laravel's `/login`; other failed responses render the route-group
+error boundary. The shell ends a session through the first-party JSON contract
+and then performs a full navigation to `/login`, so Laravel remains the owner
+of authentication transitions during the migration.
+
 ## Development preview
 
 `/_ui` is a development-only component preview. It returns `404` in production
