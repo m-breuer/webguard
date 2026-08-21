@@ -50,6 +50,10 @@
     "
     x-on:open-form-modal.window="$event.detail === @js($name) ? openModal() : null"
     x-on:close-form-modal.window="$event.detail === @js($name) ? closeModal() : null"
+    x-on:form-modal-submission-failed.window="if ($event.detail === @js($name)) {
+        submitting = false;
+        $el.querySelectorAll('button[type=submit]').forEach((button) => (button.disabled = false));
+    }"
     x-on:keydown.escape.window="if (open) closeModal();"
     x-show="open"
     x-cloak

@@ -224,9 +224,14 @@ function () {
 JS, true)
         ->clear($nameField)
         ->fill($nameField, 'Updated browser monitor')
-        ->press($submit)
+        ->click($submit)
         ->waitForText(__('monitoring.messages.updated'))
         ->assertSee('Updated browser monitor')
+        ->assertScript(<<<JS
+function () {
+    return window.location.pathname === '/monitorings/{$monitoring->getRouteKey()}';
+}
+JS, true)
         ->assertNoJavaScriptErrors();
 });
 
