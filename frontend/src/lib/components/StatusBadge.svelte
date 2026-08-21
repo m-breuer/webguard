@@ -3,13 +3,14 @@
 
     interface Props { tone?: StatusTone; label: string; }
     let { tone = "neutral", label }: Props = $props();
+
+    const tones: Record<StatusTone, string> = {
+        healthy: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200",
+        degraded: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+        danger: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-200",
+        neutral: "bg-wg-surface-muted text-wg-text-muted",
+        paused: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200",
+    };
 </script>
 
-<span class={`badge ${tone}`}><span class="dot" aria-hidden="true"></span>{label}</span>
-
-<style>
-    .badge { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 999px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 800; line-height: 1; }
-    .dot { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
-    .healthy { background: #dcfce7; color: #166534; } .degraded { background: #fef3c7; color: #92400e; } .danger { background: #fee2e2; color: #b91c1c; } .neutral { background: var(--wg-surface-muted); color: var(--wg-text-muted); } .paused { background: #e0e7ff; color: #4338ca; }
-    :global(:root.dark) .healthy { background: #14532d; color: #bbf7d0; } :global(:root.dark) .degraded { background: #78350f; color: #fde68a; } :global(:root.dark) .danger { background: #7f1d1d; color: #fecaca; } :global(:root.dark) .paused { background: #312e81; color: #c7d2fe; }
-</style>
+<span class={`inline-flex items-center gap-[0.4rem] rounded-full px-[0.6rem] py-[0.3rem] text-xs leading-none font-extrabold ${tones[tone]}`}><span class="size-[0.45rem] rounded-full bg-current" aria-hidden="true"></span>{label}</span>
