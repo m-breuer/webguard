@@ -9,6 +9,7 @@ use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\ServerInstance;
@@ -85,6 +86,8 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertUnauthorized();
         $this->getJson(route('api.v1.internal.ui.monitorings.show', $monitoring))
             ->assertUnauthorized();
+        $this->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring))
+            ->assertUnauthorized();
         $this->getJson(route('api.v1.internal.ui.monitorings.cards', ['ids' => [$monitoring->id]]))
             ->assertUnauthorized();
         $this->getJson(route('api.v1.internal.ui.monitorings.form-options'))
@@ -100,6 +103,63 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.show', $foreignMonitoring))
             ->assertNotFound();
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $foreignMonitoring))
+            ->assertNotFound();
+    }
+
+    public function test_internal_ui_monitoring_detail_data_returns_bounded_diagnostics_without_configuration_secrets(): void
+    {
+        Date::setTestNow('2026-08-22 12:00:00');
+
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'server_health_token' => 'private-token',
+            'http_headers' => ['Authorization' => 'Bearer private-token'],
+        ]);
+        $checkedAt = now()->subMinute();
+        MonitoringResponse::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'response_time' => 123.4,
+            'created_at' => $checkedAt,
+            'updated_at' => $checkedAt,
+        ]);
+        MonitoringDailyResult::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'date' => now()->subDay()->toDateString(),
+            'uptime_total' => 1440,
+            'downtime_total' => 0,
+            'unknown_total' => 0,
+            'uptime_percentage' => 100,
+            'downtime_percentage' => 0,
+            'unknown_percentage' => 0,
+            'uptime_minutes' => 1440,
+            'downtime_minutes' => 0,
+            'unknown_minutes' => 0,
+            'avg_response_time' => 120,
+            'min_response_time' => 100,
+            'max_response_time' => 140,
+            'incidents_count' => 0,
+        ]);
+        Incident::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'down_at' => now()->subHours(2),
+            'up_at' => now()->subHour(),
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring));
+
+        $response->assertOk()
+            ->assertJsonPath('data.recent_checks.0.response_time', 123.4)
+            ->assertJsonPath('data.response_times.aggregated.avg', 120)
+            ->assertJsonPath('data.incidents.0.down_at', now()->subHours(2)->toIso8601String())
+            ->assertJsonPath('meta.range.days', 30)
+            ->assertJsonPath('meta.recent_checks.limit', 10)
+            ->assertJsonMissing(['server_health_token' => 'private-token'])
+            ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
+
+        $this->assertInternalUiTelemetry($response, 20, 262144);
     }
 
     public function test_internal_ui_monitoring_cards_are_scoped_and_require_a_verified_session(): void

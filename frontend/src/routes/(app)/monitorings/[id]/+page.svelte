@@ -2,10 +2,12 @@
     import { goto } from "$app/navigation";
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
     import Card from "$lib/components/Card.svelte";
+    import MonitoringAnalytics from "$lib/components/MonitoringAnalytics.svelte";
+    import MonitoringTypeDiagnostics from "$lib/components/MonitoringTypeDiagnostics.svelte";
     import StatusBadge from "$lib/components/StatusBadge.svelte";
-    import type { MonitoringSummary } from "$lib/api/monitoring";
+    import type { MonitoringDetailData, MonitoringSummary } from "$lib/api/monitoring";
 
-    interface Props { data: { monitoring: MonitoringSummary }; }
+    interface Props { data: { monitoring: MonitoringSummary; detail: MonitoringDetailData }; }
     let { data }: Props = $props();
     let deleting = $state(false);
     let error = $state("");
@@ -44,5 +46,7 @@
     {#if data.monitoring.latest_check === null && data.monitoring.initial_results_wait_minutes !== null && data.monitoring.initial_results_wait_minutes !== undefined}
         <p class="mt-6 rounded-xl border border-wg-border bg-wg-surface-muted p-4 text-sm leading-6 text-wg-text-muted">The first monitoring results can take up to {data.monitoring.initial_results_wait_minutes} minutes, based on the configured check interval.</p>
     {/if}
+    <MonitoringAnalytics detail={data.detail} />
+    <MonitoringTypeDiagnostics detail={data.detail} />
     {#if error}<p class="mt-6 text-sm font-bold text-wg-danger" role="alert">{error}</p>{/if}
 </main>
