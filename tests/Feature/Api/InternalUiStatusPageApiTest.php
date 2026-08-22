@@ -22,8 +22,8 @@ class InternalUiStatusPageApiTest extends TestCase
     {
         $this->getJson(route('api.v1.internal.ui.status-pages.index'))->assertUnauthorized();
 
-        $owner = $this->user();
-        $statusPage = StatusPage::query()->create(['user_id' => $owner->id, 'name' => 'Owner page', 'is_public' => true]);
+        $user = $this->user();
+        $statusPage = StatusPage::query()->create(['user_id' => $user->id, 'name' => 'Owner page', 'is_public' => true]);
         $otherUser = $this->user();
 
         $this->actingAs($otherUser)
@@ -42,7 +42,7 @@ class InternalUiStatusPageApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.monitorings.0.id', $monitoring->id);
 
-        $createResponse = $this->actingAs($user)
+        $testResponse = $this->actingAs($user)
             ->postJson(route('api.v1.internal.ui.status-pages.store'), [
                 'name' => 'Acme Status',
                 'description' => 'Current service availability.',
@@ -58,7 +58,7 @@ class InternalUiStatusPageApiTest extends TestCase
             ->assertJsonPath('data.name', 'Acme Status')
             ->assertJsonPath('data.components.0.monitorings.0.id', $monitoring->id);
 
-        $statusPageId = $createResponse->json('data.id');
+        $statusPageId = $testResponse->json('data.id');
         $this->assertDatabaseHas('status_pages', ['id' => $statusPageId, 'user_id' => $user->id]);
 
         $this->actingAs($user)
