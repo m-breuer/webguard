@@ -16,14 +16,14 @@ use Illuminate\Http\Request;
 final class MonitoringOwnershipController extends Controller
 {
     public function moveToTeam(
-        InternalUiMonitoringOwnershipRequest $request,
+        InternalUiMonitoringOwnershipRequest $internalUiMonitoringOwnershipRequest,
         string $monitoring,
         MonitoringOwnershipService $monitoringOwnershipService,
     ): JsonResponse {
         /** @var User $user */
-        $user = $request->user();
+        $user = $internalUiMonitoringOwnershipRequest->user();
         $monitoring = $this->manageableMonitoring($user, $monitoring);
-        $team = Team::query()->findOrFail($request->validated('team_id'));
+        $team = Team::query()->findOrFail($internalUiMonitoringOwnershipRequest->validated('team_id'));
 
         return response()->json([
             'data' => $this->payload($monitoringOwnershipService->moveToTeam($monitoring, $team, $user)),

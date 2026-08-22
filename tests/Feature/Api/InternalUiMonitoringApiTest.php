@@ -174,13 +174,13 @@ class InternalUiMonitoringApiTest extends TestCase
         $firstMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
         $secondMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Website']);
 
-        $groupResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitoring-groups.store'), [
+        $testResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitoring-groups.store'), [
             'name' => 'Production',
             'description' => 'Critical services',
             'monitoring_ids' => [$firstMonitoring->id],
         ])->assertCreated()
             ->assertJsonPath('data.assignments.0.id', $firstMonitoring->id);
-        $groupId = $groupResponse->json('data.id');
+        $groupId = $testResponse->json('data.id');
 
         $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitoring-groups.update', $groupId), [
             'monitoring_ids' => [$secondMonitoring->id],
