@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
+use App\Enums\MonitoringType;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
+use App\Models\ServerInstance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
@@ -84,6 +87,10 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertUnauthorized();
         $this->getJson(route('api.v1.internal.ui.monitorings.cards', ['ids' => [$monitoring->id]]))
             ->assertUnauthorized();
+        $this->getJson(route('api.v1.internal.ui.monitorings.form-options'))
+            ->assertUnauthorized();
+        $this->postJson(route('api.v1.internal.ui.monitorings.store'), [])
+            ->assertUnauthorized();
     }
 
     public function test_internal_ui_monitoring_detail_returns_not_found_for_another_users_monitoring(): void
@@ -142,7 +149,8 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $this->assertDataEnvelope($testResponse, ['data.id', 'data.name']);
         $testResponse->assertJsonPath('data.id', $monitoring->id)
-            ->assertJsonPath('data.name', 'Scoped detail API');
+            ->assertJsonPath('data.name', 'Scoped detail API')
+            ->assertJsonStructure(['data' => ['initial_results_wait_minutes']]);
         $this->assertInternalUiTelemetry($testResponse, 15, 131072);
     }
 
@@ -247,6 +255,59 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $this->assertGreaterThan($batchedSelectCount, $unbatchedSelectCount);
         $this->assertLessThanOrEqual(4, $batchedSelectCount, (string) collect(DB::getQueryLog())->pluck('query')->implode(PHP_EOL));
+    }
+
+    public function test_verified_user_can_manage_monitorings_without_leaking_configuration_secrets(): void
+    {
+        $user = User::factory()->create();
+        $location = ServerInstance::query()->create([
+            'code' => 'ui-management-1',
+            'ip_address' => '192.0.2.101',
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.form-options'))
+            ->assertOk()
+            ->assertSee($location->code)
+            ->assertJsonFragment(['http']);
+
+        $payload = [
+            'name' => 'First-party API check',
+            'type' => MonitoringType::HTTP->value,
+            'target' => 'https://monitoring.example.test',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'http_method' => 'get',
+            'preferred_locations' => [$location->code],
+            'notification_on_failure' => true,
+            'failure_confirmation_threshold' => 2,
+            'ssl_expiry_warning_days' => 7,
+        ];
+
+        $created = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), $payload)
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'First-party API check')
+            ->assertJsonMissingPath('data.auth_password');
+        $monitoringId = $created->json('data.id');
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.form-options.edit', $monitoringId))
+            ->assertOk()
+            ->assertJsonPath('data.monitoring.name', 'First-party API check')
+            ->assertJsonMissingPath('data.monitoring.auth_password')
+            ->assertJsonMissingPath('data.monitoring.http_headers');
+
+        $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitorings.update', $monitoringId), [
+            ...$payload,
+            'name' => 'Updated first-party API check',
+            'status' => MonitoringLifecycleStatus::PAUSED->value,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Updated first-party API check');
+
+        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.monitorings.destroy', $monitoringId))
+            ->assertOk()
+            ->assertJsonPath('data.deleted', true);
     }
 
     private function selectQueryCount(): int

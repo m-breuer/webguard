@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api\Internal\Ui;
+
+use App\Enums\MonitoringType;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\InternalUiMonitoringRequest;
+use App\Models\Monitoring;
+use App\Models\User;
+use App\Services\Monitorings\MonitoringGroupAssignmentService;
+use App\Support\MonitoringPayload;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+class MonitoringManagementController extends Controller
+{
+    public function store(InternalUiMonitoringRequest $request, MonitoringGroupAssignmentService $groupAssignments): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        abort_if($user->isDemo(), 403);
+
+        if ($user->monitorings()->whereNull('team_id')->count() >= $user->package->monitoring_limit
+            && blank($request->input('team_id'))) {
+            return response()->json(['message' => __('monitoring.messages.limit_reached')], 422);
+        }
+
+        $validated = $request->validated();
+        $teamId = $validated['team_id'] ?? null;
+        $groupIds = $validated['group_ids'] ?? [];
+        unset($validated['group_ids'], $validated['team_id']);
+
+        if ($teamId !== null && $groupIds !== []) {
+            throw ValidationException::withMessages([
+                'group_ids' => [__('monitoring_group.validation.monitoring_not_manageable')],
+            ]);
+        }
+
+        $monitoring = DB::transaction(function () use ($teamId, $groupAssignments, $groupIds, $user, $validated): Monitoring {
+            $payload = MonitoringPayload::prepareStore($validated);
+
+            if ($teamId !== null) {
+                $payload['user_id'] = null;
+                $payload['team_id'] = $teamId;
+                $payload['created_by_user_id'] = $user->id;
+
+                return Monitoring::query()->create($payload);
+            }
+
+            $monitoring = $user->monitorings()->create($payload);
+            $groupAssignments->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
+
+            return $monitoring;
+        });
+
+        return response()->json(['data' => $this->successPayload($monitoring)], 201);
+    }
+
+    public function update(InternalUiMonitoringRequest $request, Monitoring $monitoring, MonitoringGroupAssignmentService $groupAssignments): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        abort_if($user->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy($user), 403);
+
+        $validated = $request->validated();
+        $hasGroupIds = array_key_exists('group_ids', $validated);
+        $groupIds = $validated['group_ids'] ?? [];
+        unset($validated['group_ids'], $validated['team_id']);
+
+        if (in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
+            $validated['http_headers'] = $monitoring->http_headers ?? [];
+            $validated['auth_password'] = $request->boolean('clear_auth_password')
+                ? null
+                : $monitoring->auth_password;
+        }
+
+        if ($hasGroupIds && ! $monitoring->isPrivateOwned()) {
+            throw ValidationException::withMessages([
+                'group_ids' => [__('monitoring_group.validation.monitoring_not_manageable')],
+            ]);
+        }
+
+        $payload = MonitoringPayload::prepareUpdate($validated, $monitoring);
+        $payload['public_label_enabled'] = (bool) ($payload['public_label_enabled'] ?? false);
+
+        DB::transaction(function () use ($groupAssignments, $groupIds, $hasGroupIds, $monitoring, $payload, $user): void {
+            $monitoring->update($payload);
+
+            if ($hasGroupIds) {
+                $groupAssignments->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
+            }
+        });
+
+        return response()->json(['data' => $this->successPayload($monitoring->refresh())]);
+    }
+
+    public function destroy(Request $request, Monitoring $monitoring): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        abort_if($user->isDemo(), 403);
+        abort_unless($monitoring->isManageableBy($user), 403);
+
+        $monitoring->delete();
+
+        return response()->json(['data' => ['deleted' => true]]);
+    }
+
+    /**
+     * @return array{id: string, name: string, type: string}
+     */
+    private function successPayload(Monitoring $monitoring): array
+    {
+        return [
+            'id' => $monitoring->id,
+            'name' => $monitoring->name,
+            'type' => $monitoring->type->value,
+        ];
+    }
+}
