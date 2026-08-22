@@ -28,7 +28,7 @@ class MonitoringFormOptionsController extends Controller
         $user = $request->user();
         abort_unless($monitoring->isManageableBy($user) && ! $user->isDemo(), 403);
 
-        return response()->json(['data' => $this->payload($user, $monitoring->loadMissing('groups'))]);
+        return response()->json(['data' => $this->payload($user, $monitoring->loadMissing(['groups', 'team']))]);
     }
 
     /**
@@ -82,6 +82,11 @@ class MonitoringFormOptionsController extends Controller
             'preferred_locations' => $monitoring->preferredLocationCodes(),
             'group_ids' => $monitoring->groups->pluck('id')->values()->all(),
             'can_assign_groups' => $monitoring->isPrivateOwned(),
+            'ownership' => [
+                'type' => $monitoring->isTeamOwned() ? 'team' : 'private',
+                'team_id' => $monitoring->team_id,
+                'team_name' => $monitoring->team?->name,
+            ],
             'notification_on_failure' => $monitoring->notification_on_failure,
             'notification_channels' => $monitoring->notification_channels,
             'failure_confirmation_threshold' => $monitoring->failure_confirmation_threshold,

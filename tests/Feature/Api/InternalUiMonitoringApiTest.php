@@ -7,12 +7,14 @@ namespace Tests\Feature\Api;
 use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
+use App\Enums\TeamRole;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\ServerInstance;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
@@ -92,6 +94,10 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertUnauthorized();
         $this->getJson(route('api.v1.internal.ui.monitorings.form-options'))
             ->assertUnauthorized();
+        $this->getJson(route('api.v1.internal.ui.monitoring-groups.index'))
+            ->assertUnauthorized();
+        $this->getJson(route('api.v1.internal.ui.maintenance.capabilities'))
+            ->assertUnauthorized();
         $this->postJson(route('api.v1.internal.ui.monitorings.store'), [])
             ->assertUnauthorized();
     }
@@ -160,6 +166,78 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
 
         $this->assertInternalUiTelemetry($testResponse, 20, 262144);
+    }
+
+    public function test_internal_ui_monitoring_operations_manage_private_groups_preferences_and_maintenance(): void
+    {
+        $user = User::factory()->create();
+        $firstMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
+        $secondMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Website']);
+
+        $groupResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitoring-groups.store'), [
+            'name' => 'Production',
+            'description' => 'Critical services',
+            'monitoring_ids' => [$firstMonitoring->id],
+        ])->assertCreated()
+            ->assertJsonPath('data.assignments.0.id', $firstMonitoring->id);
+        $groupId = $groupResponse->json('data.id');
+
+        $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitoring-groups.update', $groupId), [
+            'monitoring_ids' => [$secondMonitoring->id],
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.assignments.0.id', $secondMonitoring->id);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.notification-preferences.show', $firstMonitoring))
+            ->assertOk()
+            ->assertJsonPath('data.monitoring_id', $firstMonitoring->id);
+        $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitorings.notification-preferences.update', $firstMonitoring), [
+            'notification_on_failure' => false,
+            'notification_channels' => [],
+            'ssl_expiry_warning_days' => 14,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.effective.notification_on_failure', false)
+            ->assertJsonPath('data.effective.ssl_expiry_warning_days', 14);
+
+        $this->actingAs($user)
+            ->withHeader('Idempotency-Key', 'internal-ui-maintenance-001')
+            ->postJson(route('api.v1.internal.ui.maintenance.store'), [
+                'mode' => 'one_off',
+                'scope' => 'group',
+                'monitoring_group_id' => $groupId,
+                'maintenance_from' => '2026-08-22T15:00:00Z',
+                'maintenance_until' => '2026-08-22T16:00:00Z',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.kind', 'one_off')
+            ->assertJsonPath('data.updated_count', 1);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.maintenance.one-off.index'))
+            ->assertOk()
+            ->assertJsonPath('data.0.target.id', $secondMonitoring->id);
+    }
+
+    public function test_internal_ui_monitoring_operations_only_allow_team_administrators_to_change_ownership(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($owner)->create();
+        $team = Team::factory()->create(['created_by_user_id' => $owner->id]);
+        $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::ADMIN]);
+
+        $this->actingAs($owner)->postJson(route('api.v1.internal.ui.monitorings.ownership.team.store', $monitoring), [
+            'team_id' => $team->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.ownership.type', 'team')
+            ->assertJsonPath('data.ownership.team_id', $team->id);
+
+        $this->actingAs($otherUser)->postJson(route('api.v1.internal.ui.monitorings.ownership.private.store', $monitoring))
+            ->assertNotFound();
+        $this->actingAs($owner)->postJson(route('api.v1.internal.ui.monitorings.ownership.private.store', $monitoring))
+            ->assertOk()
+            ->assertJsonPath('data.ownership.type', 'private');
     }
 
     public function test_internal_ui_monitoring_cards_are_scoped_and_require_a_verified_session(): void
