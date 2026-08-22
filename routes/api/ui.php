@@ -14,11 +14,13 @@ use App\Http\Controllers\Api\Internal\Ui\MonitoringShowController;
 use App\Http\Controllers\Api\Internal\Ui\PasswordController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileController;
 use App\Http\Controllers\Api\Internal\Ui\SessionController;
+use App\Http\Controllers\Api\Internal\Ui\StatusPageManagementController;
 use App\Http\Controllers\Api\Internal\Ui\TeamIndexController;
 use App\Http\Controllers\Api\Internal\Ui\TeamStoreController;
 use App\Http\Controllers\Api\Mobile\MobileMaintenanceController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringNotificationPreferenceController;
+use App\Http\Controllers\Api\Mobile\MobileStatusPageWorkspaceController;
 use App\Http\Middleware\MeasureInternalUiRequest;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +40,24 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
     Route::middleware('verified')->group(function (): void {
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
         Route::post('/teams', TeamStoreController::class)->name('teams.store');
+        Route::get('/status-pages', [MobileStatusPageWorkspaceController::class, 'index'])->name('status-pages.index');
+        Route::get('/status-pages/options', [StatusPageManagementController::class, 'options'])->name('status-pages.options');
+        Route::post('/status-pages', [StatusPageManagementController::class, 'store'])->name('status-pages.store');
+        Route::get('/status-pages/{statusPage}', [MobileStatusPageWorkspaceController::class, 'show'])->name('status-pages.show');
+        Route::patch('/status-pages/{statusPage}', [StatusPageManagementController::class, 'update'])->name('status-pages.update');
+        Route::delete('/status-pages/{statusPage}', [StatusPageManagementController::class, 'destroy'])->name('status-pages.destroy');
+        Route::patch('/status-pages/{statusPage}/publication', [MobileStatusPageWorkspaceController::class, 'updatePublication'])->name('status-pages.publication.update');
+        Route::get('/status-pages/{statusPage}/incidents', [MobileStatusPageWorkspaceController::class, 'incidents'])->name('status-pages.incidents.index');
+        Route::get('/status-pages/{statusPage}/incidents/{incident}', [MobileStatusPageWorkspaceController::class, 'showIncident'])->name('status-pages.incidents.show');
+        Route::post('/status-pages/{statusPage}/incidents/{incident}/updates', [MobileStatusPageWorkspaceController::class, 'storeIncidentUpdate'])->name('status-pages.incidents.updates.store');
+        Route::patch('/status-pages/{statusPage}/incidents/{incident}/metadata', [MobileStatusPageWorkspaceController::class, 'updateMetadata'])->name('status-pages.incidents.metadata.update');
+        Route::patch('/status-pages/{statusPage}/incidents/{incident}/review', [MobileStatusPageWorkspaceController::class, 'updateReview'])->name('status-pages.incidents.review.update');
+        Route::post('/status-pages/{statusPage}/incidents/{incident}/follow-ups', [MobileStatusPageWorkspaceController::class, 'storeFollowUp'])->name('status-pages.incidents.follow-ups.store');
+        Route::patch('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [MobileStatusPageWorkspaceController::class, 'updateFollowUp'])->name('status-pages.incidents.follow-ups.update');
+        Route::delete('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [MobileStatusPageWorkspaceController::class, 'destroyFollowUp'])->name('status-pages.incidents.follow-ups.destroy');
+        Route::post('/status-pages/{statusPage}/incidents/{incident}/timeline', [MobileStatusPageWorkspaceController::class, 'storeTimelineEvent'])->name('status-pages.incidents.timeline.store');
+        Route::patch('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [MobileStatusPageWorkspaceController::class, 'updateTimelineEvent'])->name('status-pages.incidents.timeline.update');
+        Route::delete('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [MobileStatusPageWorkspaceController::class, 'destroyTimelineEvent'])->name('status-pages.incidents.timeline.destroy');
         Route::get('/monitoring-groups', [MobileMonitoringGroupController::class, 'index'])->name('monitoring-groups.index');
         Route::get('/monitoring-groups/assignment-options', [MobileMonitoringGroupController::class, 'assignmentOptions'])->name('monitoring-groups.assignment-options');
         Route::post('/monitoring-groups', [MobileMonitoringGroupController::class, 'store'])->name('monitoring-groups.store');
