@@ -33,7 +33,7 @@ final class MonitoringDetailDataController extends Controller
         /** @var User $user */
         $user = $request->user();
         $monitoring = $monitoringDetailQuery->findVisible($user, $monitoring);
-        $range = MonitoringDateRange::pastDays(self::DAYS);
+        $monitoringDateRange = MonitoringDateRange::pastDays(self::DAYS);
         $payload = $mobileMonitoringDetailPayloadService->for(
             $monitoring,
             $user,
@@ -43,8 +43,8 @@ final class MonitoringDetailDataController extends Controller
         );
         $recentChecks = $monitoringCheckHistoryService->getHistory(
             $monitoring,
-            $range->startDate,
-            $range->endDate,
+            $monitoringDateRange->startDate,
+            $monitoringDateRange->endDate,
             self::RECENT_CHECKS_LIMIT,
             0,
         );
@@ -56,7 +56,7 @@ final class MonitoringDetailDataController extends Controller
             'next_offset' => $recentChecks['next_offset'],
         ];
         $payload['data']['server_health_telemetry'] = $monitoring->isServerHealth()
-            ? $monitoringServerHealthTelemetryService->getTelemetry($monitoring, $range->startDate, $range->endDate)
+            ? $monitoringServerHealthTelemetryService->getTelemetry($monitoring, $monitoringDateRange->startDate, $monitoringDateRange->endDate)
             : null;
 
         return response()->json($payload);

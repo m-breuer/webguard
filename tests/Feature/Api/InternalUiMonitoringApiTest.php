@@ -148,9 +148,9 @@ class InternalUiMonitoringApiTest extends TestCase
             'up_at' => now()->subHour(),
         ]);
 
-        $response = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring));
+        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring));
 
-        $response->assertOk()
+        $testResponse->assertOk()
             ->assertJsonPath('data.recent_checks.0.response_time', 123.4)
             ->assertJsonPath('data.response_times.aggregated.avg', 120)
             ->assertJsonPath('data.incidents.0.down_at', now()->subHours(2)->toIso8601String())
@@ -159,7 +159,7 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonMissing(['server_health_token' => 'private-token'])
             ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
 
-        $this->assertInternalUiTelemetry($response, 20, 262144);
+        $this->assertInternalUiTelemetry($testResponse, 20, 262144);
     }
 
     public function test_internal_ui_monitoring_cards_are_scoped_and_require_a_verified_session(): void
