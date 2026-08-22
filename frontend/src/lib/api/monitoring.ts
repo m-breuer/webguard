@@ -79,6 +79,8 @@ export interface MonitoringSummary {
         response_time_ms: number | null;
     } | null;
     open_incident: boolean;
+    can_manage?: boolean;
+    initial_results_wait_minutes?: number | null;
     maintenance: {
         starts_at: string | null;
         ends_at: string | null;
@@ -90,4 +92,50 @@ export interface MonitoringListResponse {
     data: MonitoringSummary[];
     links: Record<string, string | null>;
     meta: PaginationMeta & { as_of: string };
+}
+
+export interface MonitoringFormConfiguration {
+    id: string;
+    name: string;
+    type: MonitoringType;
+    target: string;
+    status: "active" | "paused";
+    port: number | null;
+    keyword: string | null;
+    dns_record_type: string | null;
+    dns_expected_values: string[] | null;
+    timeout: number | null;
+    http_method: "get" | "post" | "put" | "patch" | "delete" | null;
+    expected_http_statuses: string | null;
+    preferred_locations: string[];
+    group_ids: string[];
+    can_assign_groups: boolean;
+    notification_on_failure: boolean;
+    notification_channels: string[] | null;
+    failure_confirmation_threshold: number | null;
+    ssl_expiry_warning_days: number | null;
+    heartbeat_interval_minutes: number | null;
+    heartbeat_grace_minutes: number | null;
+    server_health_cpu_threshold_percent: number | null;
+    server_health_ram_threshold_percent: number | null;
+    server_health_storage_threshold_percent: number | null;
+    server_health_report_interval_minutes: number | null;
+    server_health_grace_minutes: number | null;
+}
+
+export type MonitoringType = "http" | "ping" | "keyword" | "port" | "heartbeat" | "server_health" | "domain_expiration" | "dns_record";
+
+export interface MonitoringFormOptions {
+    types: MonitoringType[];
+    locations: string[];
+    groups: Array<{ id: string; name: string }>;
+    teams: Array<{ id: string; name: string }>;
+    notification_channels: string[];
+    monitoring: MonitoringFormConfiguration | null;
+}
+
+export interface MonitoringMutationResult {
+    id: string;
+    name: string;
+    type: MonitoringType;
 }

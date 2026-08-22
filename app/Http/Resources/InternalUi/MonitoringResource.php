@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\InternalUi;
 
 use App\Models\Monitoring;
+use App\Models\User;
 use App\Services\MonitoringHealthEvaluator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -17,6 +18,9 @@ class MonitoringResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var User|null $user */
+        $user = $request->user();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -37,6 +41,7 @@ class MonitoringResource extends JsonResource
                 'degraded_at' => $this->performanceState->degraded_at?->toIso8601String(),
             ] : null),
             'open_incident' => $this->whenLoaded('latestIncident', fn (): bool => $this->latestIncident?->up_at === null),
+            'can_manage' => $user !== null && ! $user->isDemo() && $this->isManageableBy($user),
             'maintenance' => [
                 'starts_at' => $this->maintenance_from?->toIso8601String(),
                 'ends_at' => $this->maintenance_until?->toIso8601String(),
