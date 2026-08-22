@@ -110,6 +110,11 @@ export interface MonitoringFormConfiguration {
     preferred_locations: string[];
     group_ids: string[];
     can_assign_groups: boolean;
+    ownership: {
+        type: "private" | "team";
+        team_id: string | null;
+        team_name: string | null;
+    };
     notification_on_failure: boolean;
     notification_channels: string[] | null;
     failure_confirmation_threshold: number | null;

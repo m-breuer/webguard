@@ -31,14 +31,14 @@ class MobileMonitoringNotificationPreferenceController extends Controller
         $monitoringModel = Monitoring::query()->visibleTo($user)->whereKey($monitoring)->firstOrFail();
         $validated = $request->validate([
             'notification_on_failure' => ['required', 'boolean'],
-            'notification_channels' => ['required', 'array'],
+            'notification_channels' => ['nullable', 'array'],
             'notification_channels.*' => ['string', Rule::in($user->enabledNotificationChannelKeys())],
             'ssl_expiry_warning_days' => ['required', 'integer', 'min:1', 'max:365'],
         ]);
         $monitoringNotificationPreference = $monitoringNotificationPreferenceResolver->preferenceFor($monitoringModel, $user);
         $monitoringNotificationPreference->update([
             'notification_on_failure' => (bool) $validated['notification_on_failure'],
-            'notification_channels' => array_values(array_unique($validated['notification_channels'])),
+            'notification_channels' => array_values(array_unique($validated['notification_channels'] ?? [])),
             'ssl_expiry_warning_days' => (int) $validated['ssl_expiry_warning_days'],
         ]);
 

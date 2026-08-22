@@ -68,5 +68,9 @@ export async function requestFirstPartyApi<T>(
         throw new FirstPartyApiError(response.status, payload);
     }
 
+    if (response.status === 204) {
+        return { data: undefined as T };
+    }
+
     return (await response.json()) as ApiEnvelope<T>;
 }
