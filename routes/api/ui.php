@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Internal\Ui\AppearanceController;
 use App\Http\Controllers\Api\Internal\Ui\DashboardController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringCardsController;
+use App\Http\Controllers\Api\Internal\Ui\MonitoringDetailDataController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringFormOptionsController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringIndexController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringManagementController;
@@ -39,6 +40,7 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
         Route::post('/monitorings', [MonitoringManagementController::class, 'store'])->name('monitorings.store');
         Route::get('/monitorings/cards', MonitoringCardsController::class)->name('monitorings.cards');
         Route::get('/monitorings/{monitoring}/form-options', [MonitoringFormOptionsController::class, 'edit'])->name('monitorings.form-options.edit');
+        Route::get('/monitorings/{monitoring}/detail-data', MonitoringDetailDataController::class)->name('monitorings.detail-data');
         Route::patch('/monitorings/{monitoring}', [MonitoringManagementController::class, 'update'])->name('monitorings.update');
         Route::delete('/monitorings/{monitoring}', [MonitoringManagementController::class, 'destroy'])->name('monitorings.destroy');
         Route::get('/monitorings/{monitoring}', MonitoringShowController::class)->name('monitorings.show');

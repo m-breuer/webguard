@@ -139,3 +139,56 @@ export interface MonitoringMutationResult {
     name: string;
     type: MonitoringType;
 }
+
+export interface MonitoringDetailData {
+    availability: {
+        has_data: boolean;
+        uptime: { percentage: number | null };
+        downtime: { percentage: number | null; incidents_count: number };
+        unknown: { percentage: number | null };
+    };
+    response_times: {
+        data: Array<{ date: string; avg: number | null; min: number | null; max: number | null }>;
+        aggregated: { avg: number | null; min: number | null; max: number | null };
+    };
+    incidents: Array<{ down_at: string; up_at: string | null }>;
+    uptime_calendar: Record<string, {
+        days: Array<{ date: string; uptime_percentage: number | null }>;
+        monthly_average_uptime: number | null;
+    }>;
+    recent_checks: Array<{
+        id: string;
+        checked_at: string;
+        status: "up" | "down" | "unknown";
+        http_status_code: number | null;
+        response_time: number | null;
+        source: "live" | "archived";
+    }>;
+    ssl: {
+        valid: boolean;
+        expiration: string | null;
+        issuer: string | null;
+        issue_date: string | null;
+    } | null;
+    domain: {
+        valid: boolean;
+        expires_at: string | null;
+        registrar: string | null;
+        checked_at: string | null;
+    } | null;
+    server_health_telemetry: {
+        data: Array<{
+            checked_at: string;
+            cpu_usage_percent: number | null;
+            ram_usage_percent: number | null;
+            storage_usage_percent: number | null;
+            normalized_load: number | null;
+        }>;
+        thresholds: {
+            cpu_usage_percent: number;
+            ram_usage_percent: number;
+            storage_usage_percent: number;
+            load_per_cpu: number | null;
+        };
+    } | null;
+}
