@@ -17,16 +17,32 @@
 </script>
 
 <svelte:head><title>Teams | WebGuard</title></svelte:head>
-<main>
-    <header><div><p>Collaboration</p><h1>Teams</h1><span>Manage the monitorings and members you collaborate with.</span></div><Button onclick={() => (createOpen = true)}>Create team</Button></header>
+<main class="mx-auto w-[min(70rem,calc(100%_-_2rem))] py-6 sm:py-12">
+    <header class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row">
+        <div>
+            <p class="m-0 text-[0.8125rem] font-extrabold tracking-[0.1em] text-wg-accent uppercase">Collaboration</p>
+            <h1 class="mt-2 text-[clamp(2rem,6vw,3rem)] leading-[1.1] font-bold">Teams</h1>
+            <span class="mt-3 block text-wg-text-muted">Manage the monitorings and members you collaborate with.</span>
+        </div>
+        <Button onclick={() => (createOpen = true)}>Create team</Button>
+    </header>
     {#if teams.length === 0}
         <EmptyState title="No teams yet" description="Create a team to share monitoring ownership and collaborate with colleagues." />
     {:else}
-        <div class="teams">
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">
             {#each teams as team (team.id)}
                 <Card title={team.name} description={team.description ?? "No description provided."}>
                     {#snippet actions()}<StatusBadge tone={team.role === "admin" ? "healthy" : "neutral"} label={team.role === "admin" ? "Admin" : "Member"} />{/snippet}
-                    <dl><div><dt>Members</dt><dd>{team.member_count}</dd></div><div><dt>Monitorings</dt><dd>{team.monitoring_count}</dd></div></dl>
+                    <dl class="m-0 grid grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-[0.8125rem] text-wg-text-muted">Members</dt>
+                            <dd class="mt-1 text-xl font-extrabold">{team.member_count}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-[0.8125rem] text-wg-text-muted">Monitorings</dt>
+                            <dd class="mt-1 text-xl font-extrabold">{team.monitoring_count}</dd>
+                        </div>
+                    </dl>
                 </Card>
             {/each}
         </div>
@@ -34,10 +50,7 @@
 </main>
 <Dialog bind:open={createOpen} title="Create team" description="You will become this team's first administrator.">
     <MutationForm action="/api/v1/internal/ui/teams" submitLabel="Create team" successMessage="Team created. Refreshing…" onSuccess={refreshTeams}>
-        <Field label="Name" required><input name="name" autocomplete="organization" /></Field>
-        <Field label="Description"><textarea name="description" rows="3"></textarea></Field>
+        <Field label="Name" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" autocomplete="organization" /></Field>
+        <Field label="Description"><textarea class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="description" rows="3"></textarea></Field>
     </MutationForm>
 </Dialog>
-<style>
-    main { width: min(70rem, calc(100% - 2rem)); margin: 0 auto; padding: 3rem 0; } header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:2rem; } h1, p, span { margin: 0; } header p { color: var(--wg-accent); font-size: .8125rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; } h1 { margin-top: .5rem; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; } header span { display:block; margin-top:.75rem; color:var(--wg-text-muted); } .teams { display:grid; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); gap:1rem; } dl { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin:0; } dt { color:var(--wg-text-muted); font-size:.8125rem; } dd { margin:.25rem 0 0; font-size:1.25rem; font-weight:800; } input,textarea { width:100%; box-sizing:border-box; border:1px solid var(--wg-border); border-radius:.625rem; background:var(--wg-surface); color:var(--wg-text); padding:.65rem .75rem; } @media (max-width:42rem) { header { flex-direction:column; } }
-</style>
