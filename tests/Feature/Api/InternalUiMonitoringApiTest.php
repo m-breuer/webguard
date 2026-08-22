@@ -260,7 +260,7 @@ class InternalUiMonitoringApiTest extends TestCase
     public function test_verified_user_can_manage_monitorings_without_leaking_configuration_secrets(): void
     {
         $user = User::factory()->create();
-        $location = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'ui-management-1',
             'ip_address' => '192.0.2.101',
             'api_key_hash' => 'test-token-1234567890',
@@ -269,7 +269,7 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.form-options'))
             ->assertOk()
-            ->assertSee($location->code)
+            ->assertSee($serverInstance->code)
             ->assertJsonFragment(['http']);
 
         $payload = [
@@ -279,17 +279,17 @@ class InternalUiMonitoringApiTest extends TestCase
             'status' => MonitoringLifecycleStatus::ACTIVE->value,
             'timeout' => 5,
             'http_method' => 'get',
-            'preferred_locations' => [$location->code],
+            'preferred_locations' => [$serverInstance->code],
             'notification_on_failure' => true,
             'failure_confirmation_threshold' => 2,
             'ssl_expiry_warning_days' => 7,
         ];
 
-        $created = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), $payload)
+        $testResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), $payload)
             ->assertCreated()
             ->assertJsonPath('data.name', 'First-party API check')
             ->assertJsonMissingPath('data.auth_password');
-        $monitoringId = $created->json('data.id');
+        $monitoringId = $testResponse->json('data.id');
 
         $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.form-options.edit', $monitoringId))
             ->assertOk()

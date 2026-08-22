@@ -36,20 +36,20 @@ class MonitoringFormOptionsController extends Controller
      */
     private function payload(User $user, ?Monitoring $monitoring = null): array
     {
-        $locationQuery = ServerInstance::query();
+        $builder = ServerInstance::query();
 
         if ($monitoring !== null) {
-            $locationQuery->where(function ($query) use ($monitoring): void {
+            $builder->where(function ($query) use ($monitoring): void {
                 $query->where('is_active', true)
                     ->orWhereIn('code', $monitoring->preferredLocationCodes());
             });
         } else {
-            $locationQuery->active();
+            $builder->active();
         }
 
         return [
-            'types' => array_map(static fn (MonitoringType $type): string => $type->value, MonitoringType::cases()),
-            'locations' => $locationQuery->orderBy('code')->pluck('code')->values()->all(),
+            'types' => array_map(static fn (MonitoringType $monitoringType): string => $monitoringType->value, MonitoringType::cases()),
+            'locations' => $builder->orderBy('code')->pluck('code')->values()->all(),
             'groups' => $user->monitoringGroups()->orderBy('name')->get(['id', 'name'])->map(
                 static fn ($group): array => ['id' => $group->id, 'name' => $group->name]
             )->values()->all(),

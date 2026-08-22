@@ -18,18 +18,18 @@ use Illuminate\Validation\ValidationException;
 
 class MonitoringManagementController extends Controller
 {
-    public function store(InternalUiMonitoringRequest $request, MonitoringGroupAssignmentService $groupAssignments): JsonResponse
+    public function store(InternalUiMonitoringRequest $internalUiMonitoringRequest, MonitoringGroupAssignmentService $monitoringGroupAssignmentService): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $internalUiMonitoringRequest->user();
         abort_if($user->isDemo(), 403);
 
         if ($user->monitorings()->whereNull('team_id')->count() >= $user->package->monitoring_limit
-            && blank($request->input('team_id'))) {
+            && blank($internalUiMonitoringRequest->input('team_id'))) {
             return response()->json(['message' => __('monitoring.messages.limit_reached')], 422);
         }
 
-        $validated = $request->validated();
+        $validated = $internalUiMonitoringRequest->validated();
         $teamId = $validated['team_id'] ?? null;
         $groupIds = $validated['group_ids'] ?? [];
         unset($validated['group_ids'], $validated['team_id']);
@@ -40,7 +40,7 @@ class MonitoringManagementController extends Controller
             ]);
         }
 
-        $monitoring = DB::transaction(function () use ($teamId, $groupAssignments, $groupIds, $user, $validated): Monitoring {
+        $monitoring = DB::transaction(function () use ($teamId, $monitoringGroupAssignmentService, $groupIds, $user, $validated): Monitoring {
             $payload = MonitoringPayload::prepareStore($validated);
 
             if ($teamId !== null) {
@@ -52,7 +52,7 @@ class MonitoringManagementController extends Controller
             }
 
             $monitoring = $user->monitorings()->create($payload);
-            $groupAssignments->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
+            $monitoringGroupAssignmentService->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
 
             return $monitoring;
         });
@@ -60,21 +60,21 @@ class MonitoringManagementController extends Controller
         return response()->json(['data' => $this->successPayload($monitoring)], 201);
     }
 
-    public function update(InternalUiMonitoringRequest $request, Monitoring $monitoring, MonitoringGroupAssignmentService $groupAssignments): JsonResponse
+    public function update(InternalUiMonitoringRequest $internalUiMonitoringRequest, Monitoring $monitoring, MonitoringGroupAssignmentService $monitoringGroupAssignmentService): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user();
+        $user = $internalUiMonitoringRequest->user();
         abort_if($user->isDemo(), 403);
         abort_unless($monitoring->isManageableBy($user), 403);
 
-        $validated = $request->validated();
+        $validated = $internalUiMonitoringRequest->validated();
         $hasGroupIds = array_key_exists('group_ids', $validated);
         $groupIds = $validated['group_ids'] ?? [];
         unset($validated['group_ids'], $validated['team_id']);
 
         if (in_array($monitoring->type, [MonitoringType::HTTP, MonitoringType::KEYWORD], true)) {
             $validated['http_headers'] = $monitoring->http_headers ?? [];
-            $validated['auth_password'] = $request->boolean('clear_auth_password')
+            $validated['auth_password'] = $internalUiMonitoringRequest->boolean('clear_auth_password')
                 ? null
                 : $monitoring->auth_password;
         }
@@ -88,11 +88,11 @@ class MonitoringManagementController extends Controller
         $payload = MonitoringPayload::prepareUpdate($validated, $monitoring);
         $payload['public_label_enabled'] = (bool) ($payload['public_label_enabled'] ?? false);
 
-        DB::transaction(function () use ($groupAssignments, $groupIds, $hasGroupIds, $monitoring, $payload, $user): void {
+        DB::transaction(function () use ($monitoringGroupAssignmentService, $groupIds, $hasGroupIds, $monitoring, $payload, $user): void {
             $monitoring->update($payload);
 
             if ($hasGroupIds) {
-                $groupAssignments->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
+                $monitoringGroupAssignmentService->syncGroupsForPrivateMonitoring($monitoring, $user, $groupIds);
             }
         });
 
