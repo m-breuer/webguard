@@ -47,6 +47,22 @@ try {
         await page.close();
     }
 
+    const noJavaScriptPage = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
+    const noJavaScriptResponse = await noJavaScriptPage.goto(`${baseUrl}/status/${statusPageId}`, { waitUntil: "domcontentloaded" });
+
+    if (noJavaScriptResponse?.status() !== 200) {
+        throw new Error(`JavaScript-free public status page returned ${noJavaScriptResponse?.status() ?? "no response"}.`);
+    }
+
+    await noJavaScriptPage.getByRole("heading", { level: 1, name: "SvelteKit Browser Smoke" }).waitFor();
+    await noJavaScriptPage.getByLabel("Email address").fill("sveltekit-browser-subscription@example.test");
+    await Promise.all([
+        noJavaScriptPage.waitForNavigation(),
+        noJavaScriptPage.getByRole("button", { name: "Subscribe" }).click(),
+    ]);
+    await noJavaScriptPage.getByRole("status").filter({ hasText: "Check your inbox to confirm your subscription." }).waitFor();
+    await noJavaScriptPage.close();
+
     const legacyStatusPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     let receivedLegacyRedirect = false;
     let receivedLegacySubscriptionRedirect = false;
@@ -86,24 +102,7 @@ try {
         throw new Error("Legacy public status subscription did not preserve its POST request with a canonical redirect.");
     }
 
-    await legacyStatusPage.getByRole("status").filter({ hasText: "Check your inbox to confirm your subscription." }).waitFor();
     await legacyStatusPage.close();
-
-    const noJavaScriptPage = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
-    const noJavaScriptResponse = await noJavaScriptPage.goto(`${baseUrl}/status/${statusPageId}`, { waitUntil: "domcontentloaded" });
-
-    if (noJavaScriptResponse?.status() !== 200) {
-        throw new Error(`JavaScript-free public status page returned ${noJavaScriptResponse?.status() ?? "no response"}.`);
-    }
-
-    await noJavaScriptPage.getByRole("heading", { level: 1, name: "SvelteKit Browser Smoke" }).waitFor();
-    await noJavaScriptPage.getByLabel("Email address").fill("sveltekit-browser-subscription@example.test");
-    await Promise.all([
-        noJavaScriptPage.waitForNavigation(),
-        noJavaScriptPage.getByRole("button", { name: "Subscribe" }).click(),
-    ]);
-    await noJavaScriptPage.getByRole("status").filter({ hasText: "Check your inbox to confirm your subscription." }).waitFor();
-    await noJavaScriptPage.close();
 
     const unsubscribePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     const unsubscribeResponse = await unsubscribePage.goto(`${baseUrl}/status/${statusPageId}/subscribers/unsubscribe/${unsubscribeToken}`, { waitUntil: "networkidle" });
