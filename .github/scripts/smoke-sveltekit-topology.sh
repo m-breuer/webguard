@@ -29,6 +29,7 @@ $compose exec --no-TTY gateway wget --quiet --output-document=/dev/null http://1
 $compose exec --no-TTY gateway wget --quiet --output-document=/dev/null http://127.0.0.1:8080/_health/laravel
 $compose exec --no-TTY queue-default healthcheck-queue
 $compose exec --no-TTY schedule php artisan schedule:list --no-interaction --no-ansi
+$compose exec --no-TTY php php artisan db:seed --class=PackageSeeder --force --no-interaction
 
 status_page_id="$(
     $compose exec --no-TTY php php -r '

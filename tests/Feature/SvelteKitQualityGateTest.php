@@ -35,6 +35,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('/_health/laravel', $script);
         $this->assertStringContainsString('healthcheck-queue', $script);
         $this->assertStringContainsString('php artisan schedule:list', $script);
+        $this->assertStringContainsString('db:seed --class=PackageSeeder', $script);
         $this->assertStringContainsString('sveltekit-browser-smoke@example.test', $script);
         $this->assertStringContainsString('mcr.microsoft.com/playwright:v1.62.1-noble', $script);
         $this->assertStringContainsString('smoke-public-status.mjs', $script);
