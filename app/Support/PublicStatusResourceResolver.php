@@ -11,7 +11,10 @@ class PublicStatusResourceResolver
 {
     public function resolve(string $id): Monitoring|StatusPage
     {
-        $statusPage = StatusPage::query()->find($id);
+        $statusPage = StatusPage::query()
+            ->whereKey($id)
+            ->orWhere('slug', $id)
+            ->first();
 
         if ($statusPage instanceof StatusPage) {
             return $statusPage;
