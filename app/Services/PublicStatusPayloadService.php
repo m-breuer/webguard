@@ -52,8 +52,8 @@ class PublicStatusPayloadService
                 ->orderBy('name'),
         ]);
 
-        $components = $statusPage->components->map(function (StatusPageComponent $component): array {
-            $monitorings = $this->componentMonitorings($component)->map(function (Monitoring $monitoring): array {
+        $components = $statusPage->components->map(function (StatusPageComponent $statusPageComponent): array {
+            $monitorings = $this->componentMonitorings($statusPageComponent)->map(function (Monitoring $monitoring): array {
                 $status = $this->monitoringStatus($monitoring);
 
                 return [
@@ -67,9 +67,9 @@ class PublicStatusPayloadService
             })->values();
 
             return [
-                'id' => $component->id,
-                'name' => $component->name,
-                'description' => $component->description,
+                'id' => $statusPageComponent->id,
+                'name' => $statusPageComponent->name,
+                'description' => $statusPageComponent->description,
                 'status' => $this->aggregateStatus($monitorings->pluck('status')),
                 'has_maintenance' => $monitorings->contains(
                     static fn (array $monitoring): bool => $monitoring['is_under_maintenance'] === true
@@ -180,13 +180,13 @@ class PublicStatusPayloadService
     /**
      * @return Collection<int, Monitoring>
      */
-    private function componentMonitorings(StatusPageComponent $component): Collection
+    private function componentMonitorings(StatusPageComponent $statusPageComponent): Collection
     {
-        if ($component->source_type === StatusPageComponentSource::MONITORING_GROUP) {
-            return $component->monitoringGroup?->monitorings ?? collect();
+        if ($statusPageComponent->source_type === StatusPageComponentSource::MONITORING_GROUP) {
+            return $statusPageComponent->monitoringGroup?->monitorings ?? collect();
         }
 
-        return $component->monitorings;
+        return $statusPageComponent->monitorings;
     }
 
     /**
@@ -195,7 +195,7 @@ class PublicStatusPayloadService
     private function statusPageIncidents(StatusPage $statusPage): array
     {
         $monitoringIds = $statusPage->components
-            ->flatMap(fn (StatusPageComponent $component): Collection => $this->componentMonitorings($component)->pluck('id'))
+            ->flatMap(fn (StatusPageComponent $statusPageComponent): Collection => $this->componentMonitorings($statusPageComponent)->pluck('id'))
             ->unique()
             ->values();
 

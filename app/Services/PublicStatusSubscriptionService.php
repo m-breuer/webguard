@@ -34,44 +34,44 @@ class PublicStatusSubscriptionService
     private function subscribeToStatusPage(StatusPage $statusPage, string $email): void
     {
         abort_unless($statusPage->is_public, 404);
-        $subscription = StatusPageSubscription::query()->firstOrNew([
+        $statusPageSubscription = StatusPageSubscription::query()->firstOrNew([
             'status_page_id' => $statusPage->id,
             'email' => Str::lower($email),
         ]);
 
-        if ($subscription->exists && $subscription->isVerified()) {
+        if ($statusPageSubscription->exists && $statusPageSubscription->isVerified()) {
             return;
         }
 
         $confirmationToken = Str::random(48);
-        $subscription->forceFill([
+        $statusPageSubscription->forceFill([
             'confirmation_token_hash' => StatusPageSubscription::hashToken($confirmationToken),
             'unsubscribe_token' => Str::random(48),
             'verified_at' => null,
         ])->save();
 
-        Mail::to($subscription->email)->send(new PublicStatusPageSubscriptionConfirmationMail($subscription, $confirmationToken));
+        Mail::to($statusPageSubscription->email)->send(new PublicStatusPageSubscriptionConfirmationMail($statusPageSubscription, $confirmationToken));
     }
 
     private function subscribeToMonitoring(Monitoring $monitoring, string $email): void
     {
         abort_unless($monitoring->public_label_enabled, 404);
-        $subscriber = StatusPageSubscriber::query()->firstOrNew([
+        $statusPageSubscriber = StatusPageSubscriber::query()->firstOrNew([
             'monitoring_id' => $monitoring->id,
             'email' => Str::lower($email),
         ]);
 
-        if ($subscriber->exists && $subscriber->isVerified()) {
+        if ($statusPageSubscriber->exists && $statusPageSubscriber->isVerified()) {
             return;
         }
 
         $confirmationToken = Str::random(48);
-        $subscriber->forceFill([
+        $statusPageSubscriber->forceFill([
             'confirmation_token_hash' => StatusPageSubscriber::hashToken($confirmationToken),
             'unsubscribe_token' => Str::random(48),
             'verified_at' => null,
         ])->save();
 
-        Mail::to($subscriber->email)->send(new StatusPageSubscriptionConfirmationMail($subscriber, $confirmationToken));
+        Mail::to($statusPageSubscriber->email)->send(new StatusPageSubscriptionConfirmationMail($statusPageSubscriber, $confirmationToken));
     }
 }
