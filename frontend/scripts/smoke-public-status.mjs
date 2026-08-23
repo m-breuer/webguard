@@ -63,6 +63,20 @@ try {
     await noJavaScriptPage.getByRole("status").filter({ hasText: "Check your inbox to confirm your subscription." }).waitFor();
     await noJavaScriptPage.close();
 
+    const unsubscribePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    const unsubscribeResponse = await unsubscribePage.goto(`${baseUrl}/status/${statusPageId}/subscribers/unsubscribe/${unsubscribeToken}`, { waitUntil: "networkidle" });
+
+    if (unsubscribeResponse?.status() !== 200) {
+        throw new Error(`Unsubscribe page returned ${unsubscribeResponse?.status() ?? "no response"}.`);
+    }
+
+    await unsubscribePage.getByRole("heading", { level: 1, name: "Unsubscribe from updates" }).waitFor();
+    await unsubscribePage.getByLabel("Email address").fill("sveltekit-browser-smoke@example.test");
+    await unsubscribePage.getByRole("button", { name: "Unsubscribe" }).click();
+    await unsubscribePage.waitForURL(`${baseUrl}/status/${statusPageId}?subscription=unsubscribed`);
+    await unsubscribePage.getByRole("status").filter({ hasText: "You have been unsubscribed." }).waitFor();
+    await unsubscribePage.close();
+
     const legacyStatusPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     let receivedLegacyRedirect = false;
     let receivedLegacySubscriptionRedirect = false;
@@ -103,20 +117,6 @@ try {
     }
 
     await legacyStatusPage.close();
-
-    const unsubscribePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-    const unsubscribeResponse = await unsubscribePage.goto(`${baseUrl}/status/${statusPageId}/subscribers/unsubscribe/${unsubscribeToken}`, { waitUntil: "networkidle" });
-
-    if (unsubscribeResponse?.status() !== 200) {
-        throw new Error(`Unsubscribe page returned ${unsubscribeResponse?.status() ?? "no response"}.`);
-    }
-
-    await unsubscribePage.getByRole("heading", { level: 1, name: "Unsubscribe from updates" }).waitFor();
-    await unsubscribePage.getByLabel("Email address").fill("sveltekit-browser-smoke@example.test");
-    await unsubscribePage.getByRole("button", { name: "Unsubscribe" }).click();
-    await unsubscribePage.waitForURL(`${baseUrl}/status/${statusPageId}?subscription=unsubscribed`);
-    await unsubscribePage.getByRole("status").filter({ hasText: "You have been unsubscribed." }).waitFor();
-    await unsubscribePage.close();
 } finally {
     await browser.close();
 }
