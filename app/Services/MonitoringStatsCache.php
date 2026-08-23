@@ -79,6 +79,13 @@ class MonitoringStatsCache
         }
     }
 
+    public function flush(Monitoring $monitoring): void
+    {
+        if ($this->shouldCache()) {
+            Cache::tags($this->tags($monitoring))->flush();
+        }
+    }
+
     public function dashboardKey(
         Monitoring $monitoring,
         int $days,

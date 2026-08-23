@@ -9,7 +9,9 @@ use App\Models\Monitoring;
 use App\Services\MonitoringStatsCache;
 use App\Support\MonitoringDateRange;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
+use Mockery;
 use Tests\TestCase;
 
 class MonitoringStatsCacheTest extends TestCase
@@ -103,6 +105,19 @@ class MonitoringStatsCacheTest extends TestCase
             'monitoring_daily_uptime_calendar_monitoring-123_2026-04-01_2026-04-12',
             $monitoringStatsCache->uptimeCalendarKey($monitoring, $calendarStartDate, $calendarEndDate)
         );
+    }
+
+    public function test_flush_invalidates_all_cached_monitoring_statistics_in_production(): void
+    {
+        $monitoring = $this->monitoring('monitoring-123');
+        $mock = Mockery::mock();
+        $monitoringStatsCache = Mockery::mock(MonitoringStatsCache::class)->makePartial();
+
+        $monitoringStatsCache->shouldReceive('shouldCache')->once()->andReturnTrue();
+        Cache::shouldReceive('tags')->once()->with(['monitoring:monitoring-123'])->andReturn($mock);
+        $mock->shouldReceive('flush')->once();
+
+        $monitoringStatsCache->flush($monitoring);
     }
 
     private function monitoring(string $id): Monitoring

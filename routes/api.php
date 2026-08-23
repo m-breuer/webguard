@@ -16,6 +16,7 @@ use App\Http\Middleware\TrackApiUsage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/public/monitorings/{monitoring}/badge', [ApiController::class, 'badge'])
+    ->middleware('throttle:60,1')
     ->name('public.monitorings.badge');
 Route::get('/public/monitorings/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar'])
     ->name('public.monitorings.uptime-calendar');

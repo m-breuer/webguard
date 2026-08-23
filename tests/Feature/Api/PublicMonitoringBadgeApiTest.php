@@ -93,6 +93,10 @@ class PublicMonitoringBadgeApiTest extends TestCase
         $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertOk();
+        $testResponse->assertHeader('Access-Control-Allow-Origin', '*');
+        $this->assertStringContainsString('public', (string) $testResponse->headers->get('Cache-Control'));
+        $this->assertStringContainsString('max-age=30', (string) $testResponse->headers->get('Cache-Control'));
+        $this->assertStringContainsString('stale-while-revalidate=60', (string) $testResponse->headers->get('Cache-Control'));
         $testResponse->assertJsonPath('name', 'Primary API');
         $testResponse->assertJsonPath('status', MonitoringStatus::UP->value);
         $testResponse->assertJsonPath('status_label', 'UP');
@@ -230,6 +234,22 @@ class PublicMonitoringBadgeApiTest extends TestCase
         $testResponse = $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge');
 
         $testResponse->assertNotFound();
+    }
+
+    public function test_public_badge_endpoint_is_rate_limited(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'public_label_enabled' => true,
+        ]);
+
+        for ($attempt = 0; $attempt < 60; $attempt++) {
+            $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge')->assertOk();
+        }
+
+        $this->getJson('/api/public/monitorings/' . $monitoring->id . '/badge')
+            ->assertTooManyRequests();
     }
 
     public function test_public_badge_endpoint_returns_unknown_state_when_monitoring_has_no_results_yet(): void
