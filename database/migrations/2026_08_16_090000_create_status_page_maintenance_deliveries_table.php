@@ -16,7 +16,7 @@ return new class() extends Migration
 
         Schema::create('status_page_maintenance_deliveries', function (Blueprint $table): void {
             $table->ulid('id')->primary();
-            $table->foreignUlid('status_page_subscription_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlid('status_page_subscription_id')->constrained(null, null, 'spm_delivery_subscription_id_fk')->cascadeOnDelete();
             $table->char('fingerprint', 64);
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();

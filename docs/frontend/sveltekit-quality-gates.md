@@ -15,10 +15,12 @@ for the affected route family.
 | First-party API budget | Feature-contract tests | Dashboard projection at most 30 queries and 128 KiB response bytes |
 | Laravel contracts | Pest feature tests and OpenAPI drift check | Authorization, response shape, and generated external contract remain valid |
 | Runtime topology | `.github/scripts/smoke-sveltekit-topology.sh` | Gateway, SvelteKit, Laravel, queue worker, and scheduler start with MySQL and Redis; all readiness endpoints pass |
+| Browser route smoke | Chromium in the isolated topology network | Public status SSR renders at desktop and mobile widths with no console errors or horizontal overflow; labelled subscription input accepts keyboard focus |
 
 The topology smoke test runs in Docker with an isolated network, volume set,
-application key, and database. It never calls external services or production
-data.
+application key, and database. It creates only a disposable public status page,
+loads it through Chromium over the gateway, and removes all resources on exit.
+It never calls external services or production data.
 
 ## Browser, accessibility, and performance evidence
 
@@ -28,7 +30,7 @@ Before a migrated route family is released, capture the following in staging at
 | Measurement | Budget | Baseline | Collection method |
 | --- | --- | --- | --- |
 | Initial authenticated navigation | at most 1,500 ms | Capture before the first route-family cutover | Browser performance trace with a warm authenticated session |
-| Public status SSR response | at most 1,000 ms | Capture before public cutover | Browser performance trace plus `Server-Timing` response header |
+| Public status SSR response | at most 1,000 ms | Browser smoke baseline in CI | Chromium navigation timing plus `Server-Timing` response header |
 | Client-side route transition | at most 300 ms | Capture per migrated workspace | Browser performance trace after first hydration |
 | First-party API response | at most 128 KiB and 30 queries for dashboard | Enforced by feature contract | `X-Response-Bytes` and `X-Query-Count` headers |
 | Accessibility | No critical or serious automated violations | Capture per migrated route family | Keyboard journey and browser accessibility scan |
