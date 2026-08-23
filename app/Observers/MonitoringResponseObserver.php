@@ -9,6 +9,7 @@ use App\Models\Incident;
 use App\Models\MonitoringResponse;
 use App\Services\MonitoringHealthEvaluator;
 use App\Services\MonitoringPerformanceService;
+use App\Services\MonitoringStatsCache;
 use App\Services\OperationsOverviewCache;
 use App\Services\RegionalConsensusService;
 
@@ -22,6 +23,7 @@ class MonitoringResponseObserver
         resolve(OperationsOverviewCache::class)->flush();
 
         $monitoring = $monitoringResponse->monitoring;
+        resolve(MonitoringStatsCache::class)->flush($monitoring);
         $monitoringHealthEvaluator = resolve(MonitoringHealthEvaluator::class);
         $monitoringStatus = $monitoringHealthEvaluator->availabilityFor($monitoring, $monitoringResponse);
 

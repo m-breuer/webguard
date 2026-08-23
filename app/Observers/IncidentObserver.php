@@ -7,6 +7,7 @@ namespace App\Observers;
 use App\Enums\NotificationType;
 use App\Models\Incident;
 use App\Models\MonitoringNotification;
+use App\Services\MonitoringStatsCache;
 use App\Services\OperationsOverviewCache;
 
 class IncidentObserver
@@ -17,6 +18,7 @@ class IncidentObserver
     public function created(Incident $incident): void
     {
         resolve(OperationsOverviewCache::class)->flush();
+        resolve(MonitoringStatsCache::class)->flush($incident->monitoring);
 
         MonitoringNotification::query()->create([
             'monitoring_id' => $incident->monitoring_id,
@@ -33,6 +35,7 @@ class IncidentObserver
     public function updated(Incident $incident): void
     {
         resolve(OperationsOverviewCache::class)->flush();
+        resolve(MonitoringStatsCache::class)->flush($incident->monitoring);
 
         if ($incident->wasChanged('up_at') && $incident->up_at !== null) {
             MonitoringNotification::query()->create([

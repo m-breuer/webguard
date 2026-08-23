@@ -423,7 +423,10 @@ class ApiController extends Controller
             fn (): array => $monitoringBadgePayloadService->getPayload($monitoring)->toArray()
         );
 
-        return response()->json($data);
+        return response()
+            ->json($data)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
     }
 
     /**
