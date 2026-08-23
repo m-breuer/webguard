@@ -65,5 +65,6 @@ docker run --rm \
     --env SMOKE_BASE_URL="http://gateway:8080" \
     --env SMOKE_STATUS_PAGE_ID="$status_page_id" \
     --volume "$repository_path/frontend/scripts:/ms-playwright/smoke:ro" \
+    --volume "$repository_path/node_modules:/ms-playwright/node_modules:ro" \
     mcr.microsoft.com/playwright:v1.62.1-noble \
     node /ms-playwright/smoke/smoke-public-status.mjs
