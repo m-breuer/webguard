@@ -37,6 +37,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('php artisan schedule:list', $script);
         $this->assertStringContainsString('db:seed --class=PackageSeeder', $script);
         $this->assertStringContainsString('sveltekit-browser-smoke@example.test', $script);
+        $this->assertStringContainsString('SMOKE_STATUS_PAGE_SLUG', $script);
         $this->assertStringContainsString('SMOKE_UNSUBSCRIBE_TOKEN', $script);
         $this->assertStringContainsString('mcr.microsoft.com/playwright:v1.62.1-noble', $script);
         $this->assertStringContainsString('node_modules:/ms-playwright/node_modules:ro', $script);
@@ -106,6 +107,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertFileExists($statusPageAction);
         $this->assertStringContainsString('export const actions', (string) file_get_contents($statusPageAction));
         $this->assertStringContainsString('/api/public/status/', (string) file_get_contents($statusPageAction));
+        $this->assertStringContainsString('redirect(301', (string) file_get_contents($statusPageAction));
+        $this->assertStringContainsString('redirect(307', (string) file_get_contents($statusPageAction));
     }
 
     public function test_topology_smoke_uses_the_log_mailer_without_changing_the_default_transport(): void

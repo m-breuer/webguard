@@ -2,10 +2,11 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.SMOKE_BASE_URL;
 const statusPageId = process.env.SMOKE_STATUS_PAGE_ID;
+const statusPageSlug = process.env.SMOKE_STATUS_PAGE_SLUG;
 const unsubscribeToken = process.env.SMOKE_UNSUBSCRIBE_TOKEN;
 
-if (!baseUrl || !statusPageId || !unsubscribeToken) {
-    throw new Error("SMOKE_BASE_URL, SMOKE_STATUS_PAGE_ID, and SMOKE_UNSUBSCRIBE_TOKEN are required.");
+if (!baseUrl || !statusPageId || !statusPageSlug || !unsubscribeToken) {
+    throw new Error("SMOKE_BASE_URL, SMOKE_STATUS_PAGE_ID, SMOKE_STATUS_PAGE_SLUG, and SMOKE_UNSUBSCRIBE_TOKEN are required.");
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -45,6 +46,30 @@ try {
 
         await page.close();
     }
+
+    const legacyStatusPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    let receivedLegacyRedirect = false;
+    legacyStatusPage.on("response", (response) => {
+        if (new URL(response.url()).pathname === `/status/${statusPageSlug}` && response.status() === 301) {
+            receivedLegacyRedirect = true;
+        }
+    });
+    await legacyStatusPage.goto(`${baseUrl}/status/${statusPageSlug}`, { waitUntil: "networkidle" });
+
+    if (!receivedLegacyRedirect || legacyStatusPage.url() !== `${baseUrl}/status/${statusPageId}`) {
+        throw new Error("Legacy public status page URL did not redirect to its canonical identifier.");
+    }
+
+    const legacySubscription = await legacyStatusPage.request.post(`${baseUrl}/status/${statusPageSlug}`, {
+        form: { email: "legacy-sveltekit-browser-subscription@example.test" },
+        maxRedirects: 0,
+    });
+
+    if (legacySubscription.status() !== 307 || legacySubscription.headers().location !== `/status/${statusPageId}`) {
+        throw new Error("Legacy public status subscription did not preserve its POST request with a canonical redirect.");
+    }
+
+    await legacyStatusPage.close();
 
     const noJavaScriptPage = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
     const noJavaScriptResponse = await noJavaScriptPage.goto(`${baseUrl}/status/${statusPageId}`, { waitUntil: "domcontentloaded" });
