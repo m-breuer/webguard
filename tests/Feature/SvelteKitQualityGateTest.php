@@ -71,15 +71,19 @@ class SvelteKitQualityGateTest extends TestCase
         $gatewayConfiguration = file_get_contents(base_path('docker/gateway/nginx.conf'));
         $proxyHeaders = file_get_contents(base_path('docker/gateway/proxy-headers.conf'));
         $svelteHooks = file_get_contents(base_path('frontend/src/hooks.server.ts'));
+        $applicationBootstrap = file_get_contents(base_path('bootstrap/app.php'));
 
         $this->assertIsString($gatewayConfiguration);
         $this->assertIsString($proxyHeaders);
         $this->assertIsString($svelteHooks);
+        $this->assertIsString($applicationBootstrap);
         $this->assertStringContainsString('request_id=$request_id', $gatewayConfiguration);
         $this->assertStringContainsString('X-Request-Id $request_id', $proxyHeaders);
         $this->assertStringContainsString('request.headers.set("X-Request-Id", requestId)', $svelteHooks);
         $this->assertStringContainsString('event.request.headers.get("x-forwarded-for")', $svelteHooks);
         $this->assertStringContainsString('request.headers.set("X-Forwarded-For", forwardedFor)', $svelteHooks);
+        $this->assertStringContainsString('$middleware->trustProxies', $applicationBootstrap);
+        $this->assertStringContainsString("'172.16.0.0/12'", $applicationBootstrap);
     }
 
     public function test_gateway_serves_canonical_unsubscribe_pages_from_sveltekit(): void
