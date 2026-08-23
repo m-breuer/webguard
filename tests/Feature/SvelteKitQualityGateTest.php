@@ -78,6 +78,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('request_id=$request_id', $gatewayConfiguration);
         $this->assertStringContainsString('X-Request-Id $request_id', $proxyHeaders);
         $this->assertStringContainsString('request.headers.set("X-Request-Id", requestId)', $svelteHooks);
+        $this->assertStringContainsString('event.request.headers.get("x-forwarded-for")', $svelteHooks);
+        $this->assertStringContainsString('request.headers.set("X-Forwarded-For", forwardedFor)', $svelteHooks);
     }
 
     public function test_gateway_serves_canonical_unsubscribe_pages_from_sveltekit(): void

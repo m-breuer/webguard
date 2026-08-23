@@ -4,9 +4,16 @@ const correlationIdPattern = /^(?:[\da-f]{32}|[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-
 
 export const handleFetch: HandleFetch = async ({ event, fetch, request }) => {
     const requestId = event.request.headers.get("x-request-id");
+    const forwardedFor = event.request.headers.get("x-forwarded-for");
 
-    if (requestId && correlationIdPattern.test(requestId) && new URL(request.url).origin === event.url.origin) {
-        request.headers.set("X-Request-Id", requestId);
+    if (new URL(request.url).origin === event.url.origin) {
+        if (requestId && correlationIdPattern.test(requestId)) {
+            request.headers.set("X-Request-Id", requestId);
+        }
+
+        if (forwardedFor) {
+            request.headers.set("X-Forwarded-For", forwardedFor);
+        }
     }
 
     return fetch(request);

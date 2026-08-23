@@ -48,6 +48,7 @@ try {
     }
 
     const unsubscribePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await unsubscribePage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.10" });
     const unsubscribeResponse = await unsubscribePage.goto(`${baseUrl}/status/${statusPageId}/subscribers/unsubscribe/${unsubscribeToken}`, { waitUntil: "networkidle" });
 
     if (unsubscribeResponse?.status() !== 200) {
@@ -62,6 +63,7 @@ try {
     await unsubscribePage.close();
 
     const noJavaScriptPage = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
+    await noJavaScriptPage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.11" });
     const noJavaScriptResponse = await noJavaScriptPage.goto(`${baseUrl}/status/${statusPageId}`, { waitUntil: "domcontentloaded" });
 
     if (noJavaScriptResponse?.status() !== 200) {
@@ -78,6 +80,7 @@ try {
     await noJavaScriptPage.close();
 
     const legacyStatusPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await legacyStatusPage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.12" });
     let receivedLegacyRedirect = false;
     let receivedLegacySubscriptionRedirect = false;
     legacyStatusPage.on("response", (response) => {
