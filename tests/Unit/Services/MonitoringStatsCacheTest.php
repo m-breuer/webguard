@@ -110,12 +110,12 @@ class MonitoringStatsCacheTest extends TestCase
     public function test_flush_invalidates_all_cached_monitoring_statistics_in_production(): void
     {
         $monitoring = $this->monitoring('monitoring-123');
-        $taggedCache = Mockery::mock();
+        $mock = Mockery::mock();
         $monitoringStatsCache = Mockery::mock(MonitoringStatsCache::class)->makePartial();
 
         $monitoringStatsCache->shouldReceive('shouldCache')->once()->andReturnTrue();
-        Cache::shouldReceive('tags')->once()->with(['monitoring:monitoring-123'])->andReturn($taggedCache);
-        $taggedCache->shouldReceive('flush')->once();
+        Cache::shouldReceive('tags')->once()->with(['monitoring:monitoring-123'])->andReturn($mock);
+        $mock->shouldReceive('flush')->once();
 
         $monitoringStatsCache->flush($monitoring);
     }

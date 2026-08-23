@@ -45,9 +45,9 @@ class OperationsOverviewCacheObserverTest extends TestCase
 
     private function expectMonitoringStatsFlush(): void
     {
-        $monitoringStatsCache = Mockery::mock(MonitoringStatsCache::class);
-        $monitoringStatsCache->shouldReceive('flush')->once()->with(Mockery::on(static fn (Monitoring $monitoring): bool => $monitoring->id === 'monitoring-123'));
+        $mock = Mockery::mock(MonitoringStatsCache::class);
+        $mock->shouldReceive('flush')->once()->with(Mockery::on(static fn (Monitoring $monitoring): bool => $monitoring->id === 'monitoring-123'));
 
-        $this->app->instance(MonitoringStatsCache::class, $monitoringStatsCache);
+        $this->app->instance(MonitoringStatsCache::class, $mock);
     }
 }

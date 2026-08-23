@@ -25,19 +25,19 @@ class IncidentObserverTest extends TestCase
 
         $this->expectOverviewFlush();
 
-        $monitoringStatsCache = Mockery::mock(MonitoringStatsCache::class);
-        $monitoringStatsCache->shouldReceive('flush')->once()->with($monitoring);
-        $this->app->instance(MonitoringStatsCache::class, $monitoringStatsCache);
+        $mock = Mockery::mock(MonitoringStatsCache::class);
+        $mock->shouldReceive('flush')->once()->with($monitoring);
+        $this->app->instance(MonitoringStatsCache::class, $mock);
 
         resolve(IncidentObserver::class)->updated($incident);
     }
 
     private function expectOverviewFlush(): void
     {
-        $cacheStore = Mockery::mock(TaggableStore::class);
+        $mock = Mockery::mock(TaggableStore::class);
         $taggedCache = Mockery::mock();
 
-        Cache::shouldReceive('getStore')->once()->andReturn($cacheStore);
+        Cache::shouldReceive('getStore')->once()->andReturn($mock);
         Cache::shouldReceive('tags')->once()->with(['operations-overview'])->andReturn($taggedCache);
         $taggedCache->shouldReceive('flush')->once();
     }
