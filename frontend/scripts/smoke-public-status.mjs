@@ -62,6 +62,7 @@ try {
 
     const legacySubscription = await legacyStatusPage.request.post(`${baseUrl}/status/${statusPageSlug}`, {
         form: { email: "legacy-sveltekit-browser-subscription@example.test" },
+        headers: { Origin: baseUrl },
         maxRedirects: 0,
     });
 
