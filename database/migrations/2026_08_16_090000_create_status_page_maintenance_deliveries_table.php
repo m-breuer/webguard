@@ -21,7 +21,7 @@ return new class() extends Migration
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['status_page_subscription_id', 'fingerprint']);
+            $table->unique(['status_page_subscription_id', 'fingerprint'], 'spm_delivery_subscription_fingerprint_unique');
         });
     }
 
