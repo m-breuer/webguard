@@ -32,6 +32,13 @@ class IncidentObserverTest extends TestCase
         resolve(IncidentObserver::class)->updated($incident);
     }
 
+    public function test_it_ignores_an_incident_without_a_resolved_monitoring(): void
+    {
+        $this->expectOverviewFlush();
+
+        resolve(IncidentObserver::class)->updated(new Incident());
+    }
+
     private function expectOverviewFlush(): void
     {
         $mock = Mockery::mock(TaggableStore::class);
