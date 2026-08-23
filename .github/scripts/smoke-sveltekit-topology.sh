@@ -20,6 +20,7 @@ export WEBGUARD_NETWORK="$network_name"
 export APP_KEY="${APP_KEY:-base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10=}"
 export MARKETING_URL="${MARKETING_URL:-https://marketing.webguard.test}"
 export SERVICE_URL_PHP="${SERVICE_URL_PHP:-http://gateway:8080}"
+export MAIL_MAILER="${MAIL_MAILER:-log}"
 
 $compose build php frontend gateway queue-default
 $compose up --no-build --detach --wait --wait-timeout 180 php frontend gateway schedule queue-default mysql redis

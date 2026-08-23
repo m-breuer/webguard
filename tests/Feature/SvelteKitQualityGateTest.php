@@ -59,6 +59,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('subscription=unsubscribed', $browserSmokeTest);
         $this->assertStringContainsString('javaScriptEnabled: false', $browserSmokeTest);
         $this->assertStringContainsString('sveltekit-browser-subscription@example.test', $browserSmokeTest);
+        $this->assertStringContainsString('Check your inbox to confirm your subscription.', $browserSmokeTest);
         $this->assertStringContainsString('consoleErrors', $browserSmokeTest);
         $this->assertStringContainsString('noHorizontalOverflow', $browserSmokeTest);
         $this->assertStringContainsString('1000 ms rendering budget', $browserSmokeTest);
@@ -105,5 +106,16 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertFileExists($statusPageAction);
         $this->assertStringContainsString('export const actions', (string) file_get_contents($statusPageAction));
         $this->assertStringContainsString('/api/public/status/', (string) file_get_contents($statusPageAction));
+    }
+
+    public function test_topology_smoke_uses_the_log_mailer_without_changing_the_default_transport(): void
+    {
+        $smokeScript = file_get_contents(base_path('.github/scripts/smoke-sveltekit-topology.sh'));
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($smokeScript);
+        $this->assertIsString($composeConfiguration);
+        $this->assertStringContainsString('export MAIL_MAILER="${MAIL_MAILER:-log}"', $smokeScript);
+        $this->assertStringContainsString('MAIL_MAILER: "${MAIL_MAILER:-smtp}"', $composeConfiguration);
     }
 }
