@@ -61,7 +61,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $assignedPackage = Package::factory()->create();
         $admin = User::factory()->create(['role' => UserRole::ADMIN]);
         $assignedUser = User::factory()->create(['package_id' => $assignedPackage->id]);
-        $instance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'de-test-1',
             'display_name' => 'Test Germany',
             'country_code' => 'DE',
@@ -74,7 +74,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors('package');
         $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.admin.users.destroy', $admin))
             ->assertUnprocessable()->assertJsonValidationErrors('user');
-        $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.admin.server-instances.destroy', $instance))
+        $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.admin.server-instances.destroy', $serverInstance))
             ->assertNoContent();
         $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.api-logs.index'))
             ->assertOk()->assertJsonPath('data.items.0.user_email', $admin->email);

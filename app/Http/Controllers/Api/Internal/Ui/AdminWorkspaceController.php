@@ -45,13 +45,13 @@ class AdminWorkspaceController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'role' => ['nullable', Rule::enum(UserRole::class)],
         ]);
-        $paginator = User::query()->with('package')
+        $lengthAwarePaginator = User::query()->with('package')
             ->when($validated['search'] ?? null, fn (Builder $query, string $search): Builder => $query->where(fn (Builder $builder): Builder => $builder->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
-            ->when($validated['role'] ?? null, fn (Builder $query, string $role): Builder => $query->where('role', $role))
+            ->when($validated['role'] ?? null, fn (Builder $builder, string $role): Builder => $builder->where('role', $role))
             ->latest('created_at')
             ->paginate((int) ($validated['per_page'] ?? 20));
 
-        return response()->json(['data' => $this->paginated($paginator, fn (User $user): array => $this->user($user)), 'options' => [
+        return response()->json(['data' => $this->paginated($lengthAwarePaginator, fn (User $user): array => $this->user($user)), 'options' => [
             'packages' => Package::query()->withoutGlobalScope('selectable')->orderBy('monitoring_limit')->get()->map(fn (Package $package): array => $this->package($package))->all(),
             'roles' => UserRole::values(),
         ]]);
@@ -66,7 +66,7 @@ class AdminWorkspaceController extends Controller
             'role' => ['required', Rule::enum(UserRole::class)],
             'package_id' => ['nullable', 'exists:packages,id'],
         ]);
-        $user = User::query()->create([
+        $model = User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -74,7 +74,7 @@ class AdminWorkspaceController extends Controller
             'package_id' => $validated['package_id'] ?? null,
         ]);
 
-        return response()->json(['data' => $this->user($user->load('package'))], 201);
+        return response()->json(['data' => $this->user($model->load('package'))], 201);
     }
 
     public function updateUser(Request $request, User $user): JsonResponse
@@ -109,13 +109,13 @@ class AdminWorkspaceController extends Controller
         return response()->json(['data' => $this->user($user->load('package'))]);
     }
 
-    public function destroyUser(Request $request, User $user, UserDeletionPreparationService $deletionPreparation): JsonResponse
+    public function destroyUser(Request $request, User $user, UserDeletionPreparationService $userDeletionPreparationService): JsonResponse
     {
         if ($request->user()?->is($user)) {
             throw ValidationException::withMessages(['user' => ['You cannot delete your own account.']]);
         }
         activity('user')->performedOn($user)->event('delete_requested')->withProperties(['action' => 'admin_user_deletion_requested'])->log('user_delete_requested');
-        $deletionPreparation->disableLoginUntilDeletion($user);
+        $userDeletionPreparationService->disableLoginUntilDeletion($user);
         dispatch(new DeleteUser($user));
 
         return response()->json(status: 204);
@@ -124,11 +124,11 @@ class AdminWorkspaceController extends Controller
     public function packages(Request $request): JsonResponse
     {
         $validated = $request->validate(['page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'search' => ['nullable', 'string', 'max:100']]);
-        $paginator = Package::query()->withoutGlobalScope('selectable')
-            ->when($validated['search'] ?? null, fn (Builder $query, string $search): Builder => $query->where('monitoring_limit', 'like', "%{$search}%")->orWhere('price', 'like', "%{$search}%"))
+        $lengthAwarePaginator = Package::query()->withoutGlobalScope('selectable')
+            ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where('monitoring_limit', 'like', "%{$search}%")->orWhere('price', 'like', "%{$search}%"))
             ->orderBy('price')->paginate((int) ($validated['per_page'] ?? 20));
 
-        return response()->json(['data' => $this->paginated($paginator, fn (Package $package): array => $this->package($package))]);
+        return response()->json(['data' => $this->paginated($lengthAwarePaginator, fn (Package $package): array => $this->package($package))]);
     }
 
     public function storePackage(Request $request): JsonResponse
@@ -160,11 +160,11 @@ class AdminWorkspaceController extends Controller
     public function serverInstances(Request $request): JsonResponse
     {
         $validated = $request->validate(['page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'search' => ['nullable', 'string', 'max:100']]);
-        $paginator = ServerInstance::query()
-            ->when($validated['search'] ?? null, fn (Builder $query, string $search): Builder => $query->where('code', 'like', "%{$search}%")->orWhere('display_name', 'like', "%{$search}%")->orWhere('ip_address', 'like', "%{$search}%"))
+        $lengthAwarePaginator = ServerInstance::query()
+            ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where('code', 'like', "%{$search}%")->orWhere('display_name', 'like', "%{$search}%")->orWhere('ip_address', 'like', "%{$search}%"))
             ->orderBy('code')->paginate((int) ($validated['per_page'] ?? 20));
 
-        return response()->json(['data' => $this->paginated($paginator, fn (ServerInstance $instance): array => $this->serverInstance($instance))]);
+        return response()->json(['data' => $this->paginated($lengthAwarePaginator, fn (ServerInstance $serverInstance): array => $this->serverInstance($serverInstance))]);
     }
 
     public function storeServerInstance(Request $request): JsonResponse
@@ -172,9 +172,9 @@ class AdminWorkspaceController extends Controller
         $validated = $this->validateServerInstance($request);
         $validated['api_key_hash'] = $validated['api_key'];
         unset($validated['api_key']);
-        $instance = ServerInstance::query()->create($validated);
+        $serverInstance = ServerInstance::query()->create($validated);
 
-        return response()->json(['data' => $this->serverInstance($instance)], 201);
+        return response()->json(['data' => $this->serverInstance($serverInstance)], 201);
     }
 
     public function updateServerInstance(Request $request, ServerInstance $serverInstance): JsonResponse
@@ -202,21 +202,21 @@ class AdminWorkspaceController extends Controller
     public function apiLogs(Request $request): JsonResponse
     {
         $validated = $request->validate(['page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'search' => ['nullable', 'string', 'max:100']]);
-        $paginator = ApiLog::query()->withoutGlobalScope('api_logs')->with('user')
-            ->when($validated['search'] ?? null, fn (Builder $query, string $search): Builder => $query->where('route', 'like', "%{$search}%")->orWhereHas('user', fn (Builder $users): Builder => $users->where('email', 'like', "%{$search}%")))
+        $lengthAwarePaginator = ApiLog::query()->withoutGlobalScope('api_logs')->with('user')
+            ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where('route', 'like', "%{$search}%")->orWhereHas('user', fn (Builder $builder): Builder => $builder->where('email', 'like', "%{$search}%")))
             ->latest('created_at')->paginate((int) ($validated['per_page'] ?? 25));
 
-        return response()->json(['data' => $this->paginated($paginator, fn (ApiLog $log): array => ['id' => $log->id, 'route' => $log->route, 'created_at' => $log->created_at?->toIso8601String(), 'user_email' => $log->user?->email])]);
+        return response()->json(['data' => $this->paginated($lengthAwarePaginator, fn (ApiLog $apiLog): array => ['id' => $apiLog->id, 'route' => $apiLog->route, 'created_at' => $apiLog->created_at?->toIso8601String(), 'user_email' => $apiLog->user?->email])]);
     }
 
     public function activityLogs(Request $request): JsonResponse
     {
         $validated = $request->validate(['page' => ['nullable', 'integer', 'min:1'], 'per_page' => ['nullable', 'integer', 'min:1', 'max:100'], 'search' => ['nullable', 'string', 'max:100']]);
-        $paginator = Activity::query()->with('causer')
-            ->when($validated['search'] ?? null, fn (Builder $query, string $search): Builder => $query->where('description', 'like', "%{$search}%")->orWhere('log_name', 'like', "%{$search}%")->orWhere('event', 'like', "%{$search}%"))
+        $lengthAwarePaginator = Activity::query()->with('causer')
+            ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where('description', 'like', "%{$search}%")->orWhere('log_name', 'like', "%{$search}%")->orWhere('event', 'like', "%{$search}%"))
             ->latest('created_at')->paginate((int) ($validated['per_page'] ?? 25));
 
-        return response()->json(['data' => $this->paginated($paginator, fn (Activity $activity): array => ['id' => (string) $activity->id, 'description' => $activity->description, 'log_name' => $activity->log_name, 'event' => $activity->event, 'subject_id' => $activity->subject_id, 'actor' => $activity->causer instanceof User ? $activity->causer->email : null, 'created_at' => $activity->created_at?->toIso8601String()])]);
+        return response()->json(['data' => $this->paginated($lengthAwarePaginator, fn (Activity $activity): array => ['id' => (string) $activity->id, 'description' => $activity->description, 'log_name' => $activity->log_name, 'event' => $activity->event, 'subject_id' => $activity->subject_id, 'actor' => $activity->causer instanceof User ? $activity->causer->email : null, 'created_at' => $activity->created_at?->toIso8601String()])]);
     }
 
     /** @return array<string, mixed> */
@@ -232,20 +232,20 @@ class AdminWorkspaceController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function serverInstance(ServerInstance $instance): array
+    private function serverInstance(ServerInstance $serverInstance): array
     {
-        return ['id' => $instance->id, 'code' => $instance->code, 'display_name' => $instance->display_name, 'country_code' => $instance->country_code, 'region' => $instance->region, 'ip_address' => $instance->ip_address, 'is_active' => $instance->is_active, 'health' => $instance->healthStatus(), 'last_seen_at' => $instance->last_seen_at?->toIso8601String()];
+        return ['id' => $serverInstance->id, 'code' => $serverInstance->code, 'display_name' => $serverInstance->display_name, 'country_code' => $serverInstance->country_code, 'region' => $serverInstance->region, 'ip_address' => $serverInstance->ip_address, 'is_active' => $serverInstance->is_active, 'health' => $serverInstance->healthStatus(), 'last_seen_at' => $serverInstance->last_seen_at?->toIso8601String()];
     }
 
     /** @return array{items: list<array<string, mixed>>, pagination: array{current_page: int, last_page: int, total: int}} */
-    private function paginated(LengthAwarePaginator $paginator, callable $map): array
+    private function paginated(LengthAwarePaginator $lengthAwarePaginator, callable $map): array
     {
-        return ['items' => $paginator->getCollection()->map($map)->values()->all(), 'pagination' => ['current_page' => $paginator->currentPage(), 'last_page' => $paginator->lastPage(), 'total' => $paginator->total()]];
+        return ['items' => $lengthAwarePaginator->getCollection()->map($map)->values()->all(), 'pagination' => ['current_page' => $lengthAwarePaginator->currentPage(), 'last_page' => $lengthAwarePaginator->lastPage(), 'total' => $lengthAwarePaginator->total()]];
     }
 
     /** @return array<string, mixed> */
-    private function validateServerInstance(Request $request, ?ServerInstance $instance = null): array
+    private function validateServerInstance(Request $request, ?ServerInstance $serverInstance = null): array
     {
-        return $request->validate(['code' => ['required', 'string', 'max:32', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('server_instances', 'code')->ignore($instance?->id)], 'display_name' => ['required', 'string', 'max:100'], 'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'], 'region' => ['nullable', 'string', 'max:100'], 'ip_address' => ['required', 'ipv4'], 'api_key' => [$instance ? 'nullable' : 'required', 'string', 'min:16', 'max:255'], 'is_active' => ['boolean']]);
+        return $request->validate(['code' => ['required', 'string', 'max:32', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('server_instances', 'code')->ignore($serverInstance?->id)], 'display_name' => ['required', 'string', 'max:100'], 'country_code' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'], 'region' => ['nullable', 'string', 'max:100'], 'ip_address' => ['required', 'ipv4'], 'api_key' => [$serverInstance ? 'nullable' : 'required', 'string', 'min:16', 'max:255'], 'is_active' => ['boolean']]);
     }
 }
