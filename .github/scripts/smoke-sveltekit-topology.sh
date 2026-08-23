@@ -21,7 +21,8 @@ export APP_KEY="${APP_KEY:-base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10=}"
 export MARKETING_URL="${MARKETING_URL:-https://marketing.webguard.test}"
 export SERVICE_URL_PHP="${SERVICE_URL_PHP:-http://gateway:8080}"
 
-$compose up --build --detach --wait --wait-timeout 180 php frontend gateway schedule queue-default mysql redis
+$compose build php frontend gateway queue-default
+$compose up --no-build --detach --wait --wait-timeout 180 php frontend gateway schedule queue-default mysql redis
 
 $compose exec --no-TTY gateway wget --quiet --output-document=/dev/null http://127.0.0.1:8080/_health/gateway
 $compose exec --no-TTY gateway wget --quiet --output-document=/dev/null http://127.0.0.1:8080/_health/frontend

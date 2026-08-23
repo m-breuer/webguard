@@ -27,6 +27,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertIsString($script);
         $this->assertStringContainsString('--profile internal-services', $script);
         $this->assertStringContainsString('docker network create', $script);
+        $this->assertStringContainsString('build php frontend gateway queue-default', $script);
+        $this->assertStringContainsString('up --no-build --detach --wait', $script);
         $this->assertStringContainsString('php frontend gateway schedule queue-default mysql redis', $script);
         $this->assertStringContainsString('/_health/gateway', $script);
         $this->assertStringContainsString('/_health/frontend', $script);
