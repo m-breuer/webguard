@@ -6,6 +6,7 @@ namespace Tests\Feature\Api;
 
 use App\Enums\MonitoringStatus;
 use App\Mail\PublicStatusPageSubscriptionConfirmationMail;
+use App\Mail\StatusPageSubscriptionConfirmationMail;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
@@ -122,6 +123,22 @@ class PublicStatusPayloadApiTest extends TestCase
             'email' => 'customer@example.test',
         ]);
         Mail::assertSent(PublicStatusPageSubscriptionConfirmationMail::class);
+    }
+
+    public function test_public_monitoring_subscription_endpoint_sends_confirmation_without_authentication(): void
+    {
+        Mail::fake();
+        $monitoring = Monitoring::factory()->for($this->user())->create(['public_label_enabled' => true]);
+
+        $this->postJson(route('public.status.subscribers.store', $monitoring), ['email' => 'Customer@Example.test'])
+            ->assertStatus(202)
+            ->assertJsonPath('data.message', 'Check your inbox to confirm your subscription.');
+
+        $this->assertDatabaseHas('status_page_subscribers', [
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.test',
+        ]);
+        Mail::assertSent(StatusPageSubscriptionConfirmationMail::class);
     }
 
     public function test_public_status_page_subscription_endpoint_removes_a_matching_subscription(): void

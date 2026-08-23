@@ -21,14 +21,17 @@ class MonitoringStatsCacheObserverTest extends TestCase
         $monitoring->id = 'monitoring-123';
 
         $mock = Mockery::mock(MonitoringStatsCache::class);
-        $mock->shouldReceive('flush')->times(3)->with($monitoring);
+        $mock->shouldReceive('flush')->times(9)->with($monitoring);
         $this->app->instance(MonitoringStatsCache::class, $mock);
 
         $monitoringStatsCacheObserver = resolve(MonitoringStatsCacheObserver::class);
 
         foreach ([new MonitoringDailyResult(), new MonitoringDomainResult(), new MonitoringSslResult()] as $result) {
             $result->setRelation('monitoring', $monitoring);
+
+            $monitoringStatsCacheObserver->created($result);
             $monitoringStatsCacheObserver->updated($result);
+            $monitoringStatsCacheObserver->deleted($result);
         }
     }
 }

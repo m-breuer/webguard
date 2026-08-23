@@ -11,6 +11,7 @@ use App\Enums\TeamRole;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
+use App\Models\MonitoringGroup;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\ServerInstance;
@@ -446,6 +447,63 @@ class InternalUiMonitoringApiTest extends TestCase
         $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.monitorings.destroy', $monitoringId))
             ->assertOk()
             ->assertJsonPath('data.deleted', true);
+    }
+
+    public function test_internal_ui_monitoring_creation_rejects_private_monitoring_limit_overflow(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 1]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        Monitoring::factory()->for($user)->create();
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'ui-limit-1',
+            'ip_address' => '192.0.2.102',
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), [
+            'name' => 'Overflow check',
+            'type' => MonitoringType::HTTP->value,
+            'target' => 'https://monitoring.example.test',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'http_method' => 'get',
+            'preferred_locations' => [$serverInstance->code],
+            'failure_confirmation_threshold' => 2,
+            'ssl_expiry_warning_days' => 7,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', __('monitoring.messages.limit_reached'));
+    }
+
+    public function test_internal_ui_monitoring_creation_rejects_group_assignments_for_team_monitorings(): void
+    {
+        $user = User::factory()->create();
+        $team = Team::factory()->create(['created_by_user_id' => $user->id]);
+        $team->memberships()->create(['user_id' => $user->id, 'role' => TeamRole::ADMIN]);
+        $group = MonitoringGroup::factory()->create(['user_id' => $user->id]);
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'ui-team-1',
+            'ip_address' => '192.0.2.103',
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), [
+            'name' => 'Team check',
+            'type' => MonitoringType::HTTP->value,
+            'target' => 'https://monitoring.example.test',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'http_method' => 'get',
+            'preferred_locations' => [$serverInstance->code],
+            'failure_confirmation_threshold' => 2,
+            'ssl_expiry_warning_days' => 7,
+            'team_id' => $team->id,
+            'group_ids' => [$group->id],
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('group_ids');
     }
 
     private function selectQueryCount(): int

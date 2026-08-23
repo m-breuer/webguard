@@ -10,6 +10,7 @@ use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
@@ -81,5 +82,29 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.activity-logs.index'))->assertOk();
 
         $this->assertDatabaseHas('users', ['id' => $assignedUser->id]);
+    }
+
+    public function test_admin_can_update_users_and_verify_an_email_address(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 50]);
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $user = User::factory()->unverified()->create(['email' => 'original@example.test']);
+
+        $this->actingAs($admin)->patchJson(route('api.v1.internal.ui.admin.users.update', $user), [
+            'name' => 'Updated user',
+            'email' => 'updated@example.test',
+            'password' => 'updated-password',
+            'role' => UserRole::ADMIN->value,
+            'package_id' => $package->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.email', 'updated@example.test')
+            ->assertJsonPath('data.package_limit', 50);
+
+        $this->assertTrue(Hash::check('updated-password', $user->refresh()->password));
+
+        $this->actingAs($admin)->postJson(route('api.v1.internal.ui.admin.users.verify', $user))
+            ->assertOk()
+            ->assertJsonPath('data.email_verified_at', $user->refresh()->email_verified_at?->toIso8601String());
     }
 }
