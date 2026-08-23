@@ -131,7 +131,7 @@ class PublicStatusPayloadApiTest extends TestCase
             'name' => 'Acme Status',
             'is_public' => true,
         ]);
-        $subscription = StatusPageSubscription::query()->create([
+        $statusPageSubscription = StatusPageSubscription::query()->create([
             'status_page_id' => $statusPage->id,
             'email' => 'customer@example.test',
             'unsubscribe_token' => 'unsubscribe-token',
@@ -140,19 +140,19 @@ class PublicStatusPayloadApiTest extends TestCase
 
         $this->deleteJson(route('public.status.subscribers.destroy', [
             'status' => $statusPage,
-            'token' => $subscription->unsubscribe_token,
+            'token' => $statusPageSubscription->unsubscribe_token,
         ]), ['email' => 'Customer@Example.test'])
             ->assertOk()
             ->assertJsonPath('data.is_public', true);
 
-        $this->assertDatabaseMissing('status_page_subscriptions', ['id' => $subscription->id]);
+        $this->assertDatabaseMissing('status_page_subscriptions', ['id' => $statusPageSubscription->id]);
     }
 
     public function test_public_unsubscribe_endpoint_removes_a_subscription_after_the_resource_is_unpublished(): void
     {
         $user = $this->user();
         $monitoring = Monitoring::factory()->for($user)->create(['public_label_enabled' => false]);
-        $subscriber = StatusPageSubscriber::query()->create([
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
             'monitoring_id' => $monitoring->id,
             'email' => 'customer@example.test',
             'unsubscribe_token' => 'unsubscribe-token',
@@ -161,12 +161,12 @@ class PublicStatusPayloadApiTest extends TestCase
 
         $this->deleteJson(route('public.status.subscribers.destroy', [
             'status' => $monitoring,
-            'token' => $subscriber->unsubscribe_token,
-        ]), ['email' => $subscriber->email])
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]), ['email' => $statusPageSubscriber->email])
             ->assertOk()
             ->assertJsonPath('data.is_public', false);
 
-        $this->assertDatabaseMissing('status_page_subscribers', ['id' => $subscriber->id]);
+        $this->assertDatabaseMissing('status_page_subscribers', ['id' => $statusPageSubscriber->id]);
     }
 
     public function test_public_unsubscribe_endpoint_requires_the_email_bound_to_the_token(): void
@@ -176,7 +176,7 @@ class PublicStatusPayloadApiTest extends TestCase
             'name' => 'Acme Status',
             'is_public' => true,
         ]);
-        $subscription = StatusPageSubscription::query()->create([
+        $statusPageSubscription = StatusPageSubscription::query()->create([
             'status_page_id' => $statusPage->id,
             'email' => 'customer@example.test',
             'unsubscribe_token' => 'unsubscribe-token',
@@ -185,10 +185,10 @@ class PublicStatusPayloadApiTest extends TestCase
 
         $this->deleteJson(route('public.status.subscribers.destroy', [
             'status' => $statusPage,
-            'token' => $subscription->unsubscribe_token,
+            'token' => $statusPageSubscription->unsubscribe_token,
         ]), ['email' => 'other@example.test'])->assertNotFound();
 
-        $this->assertDatabaseHas('status_page_subscriptions', ['id' => $subscription->id]);
+        $this->assertDatabaseHas('status_page_subscriptions', ['id' => $statusPageSubscription->id]);
     }
 
     private function user(): User

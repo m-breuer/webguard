@@ -101,13 +101,11 @@ class StatusPageSubscriberController extends Controller
             ->where('unsubscribe_token', $token)
             ->delete();
 
-        $redirect = $monitoring->public_label_enabled
+        return $monitoring->public_label_enabled
             ? to_route('public-status-pages.show', [
                 'statusPage' => $monitoring,
                 'subscription' => 'unsubscribed',
             ])
             : redirect('/');
-
-        return $redirect;
     }
 }
