@@ -57,6 +57,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('getByLabel("Email address")', $browserSmokeTest);
         $this->assertStringContainsString('Unsubscribe from updates', $browserSmokeTest);
         $this->assertStringContainsString('subscription=unsubscribed', $browserSmokeTest);
+        $this->assertStringContainsString('javaScriptEnabled: false', $browserSmokeTest);
+        $this->assertStringContainsString('sveltekit-browser-subscription@example.test', $browserSmokeTest);
         $this->assertStringContainsString('consoleErrors', $browserSmokeTest);
         $this->assertStringContainsString('noHorizontalOverflow', $browserSmokeTest);
         $this->assertStringContainsString('1000 ms rendering budget', $browserSmokeTest);
@@ -89,5 +91,19 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertFileExists($unsubscribePage);
         $this->assertFileExists($unsubscribeAction);
         $this->assertStringContainsString('subscribers/unsubscribe', (string) file_get_contents($unsubscribeAction));
+    }
+
+    public function test_gateway_forwards_canonical_status_page_subscription_posts_to_sveltekit(): void
+    {
+        $gatewayConfiguration = file_get_contents(base_path('docker/gateway/nginx.conf'));
+        $statusPageAction = base_path('frontend/src/routes/status/[id]/+page.server.ts');
+
+        $this->assertIsString($gatewayConfiguration);
+        $this->assertStringContainsString('$public_status_cache_control', $gatewayConfiguration);
+        $this->assertStringContainsString('^GET$|^HEAD$|^POST$', $gatewayConfiguration);
+        $this->assertStringContainsString('proxy_pass http://sveltekit', $gatewayConfiguration);
+        $this->assertFileExists($statusPageAction);
+        $this->assertStringContainsString('export const actions', (string) file_get_contents($statusPageAction));
+        $this->assertStringContainsString('/api/public/status/', (string) file_get_contents($statusPageAction));
     }
 }
