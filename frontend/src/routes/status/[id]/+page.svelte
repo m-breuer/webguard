@@ -1,22 +1,28 @@
 <script lang="ts">
-    import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import { enhance } from "$app/forms";
     import type { PublicStatusPayload } from "$lib/api/public-status";
+
+    interface FormState {
+        email?: string;
+        error?: string;
+        message?: string;
+    }
 
     interface PublicStatusPageData extends PublicStatusPayload {
         subscriptionNotice: string | null;
     }
 
-    interface Props { data: PublicStatusPageData; }
-    let { data }: Props = $props();
+    interface Props {
+        data: PublicStatusPageData;
+        form?: FormState;
+    }
+
+    let { data, form }: Props = $props();
 
     const statusLabel = $derived(data.status === "up" ? "All systems operational" : data.status === "down" ? "Service disruption" : "Status unavailable");
     const statusClasses = $derived(data.status === "up" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : data.status === "down" ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900");
     const statusDot = $derived(data.status === "up" ? "bg-emerald-500" : data.status === "down" ? "bg-red-500" : "bg-amber-500");
     const calendarDays = $derived(Object.values(data.uptime_calendar ?? {}).flatMap((month) => month.days));
-    let subscriptionMessage = $state("");
-    let subscriptionError = $state("");
-    let subscribing = $state(false);
-
     function dateTime(value: string | null): string {
         return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Not recorded";
     }
@@ -37,24 +43,6 @@
         return "bg-red-500";
     }
 
-    async function subscribe(event: SubmitEvent): Promise<void> {
-        event.preventDefault();
-        subscribing = true;
-        subscriptionMessage = "";
-        subscriptionError = "";
-
-        try {
-            const response = await requestFirstPartyApi<{ message: string }>(`/api/public/status/${data.identifier}/subscribers`, {
-                body: new FormData(event.currentTarget as HTMLFormElement),
-                method: "POST",
-            });
-            subscriptionMessage = response.data.message;
-        } catch (exception) {
-            subscriptionError = exception instanceof FirstPartyApiError ? exception.message : "The subscription could not be started.";
-        } finally {
-            subscribing = false;
-        }
-    }
 </script>
 
 <svelte:head><title>{data.name} | WebGuard Status</title><meta name="description" content={data.description ?? `Current status for ${data.name}.`} /></svelte:head>
@@ -71,7 +59,7 @@
 
         {#if calendarDays.length > 0}<section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><h2 class="text-xl font-bold">30-day uptime</h2><p class="mt-2 text-sm text-wg-text-muted">Each square represents a day of aggregated availability.</p><div class="mt-5 grid grid-cols-10 gap-2 sm:grid-cols-[repeat(15,minmax(0,1fr))]">{#each calendarDays as day (day.date)}<div class={`aspect-square rounded-md ${dayClasses(day.uptime_percentage)}`} title={`${day.date}: ${percentage(day.uptime_percentage)}`} aria-label={`${day.date}: ${percentage(day.uptime_percentage)}`}></div>{/each}</div></section>{/if}
 
-        <section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"><div><h2 class="text-xl font-bold">Subscribe to updates</h2><p class="mt-2 text-sm leading-6 text-wg-text-muted">Receive email notifications when this status changes.</p></div><form class="grid w-full gap-3 md:max-w-md" onsubmit={subscribe} novalidate><label class="sr-only" for="subscriber-email">Email address</label><div class="flex flex-col gap-3 sm:flex-row"><input id="subscriber-email" class="min-h-11 min-w-0 flex-1 rounded-xl border border-wg-border bg-wg-surface px-3 text-wg-text" name="email" type="email" autocomplete="email" required placeholder="you@example.com" /><button class="min-h-11 rounded-xl bg-wg-accent px-4 text-sm font-bold text-wg-accent-contrast disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={subscribing}>{subscribing ? "Subscribing…" : "Subscribe"}</button></div>{#if data.subscriptionNotice}<p class="text-sm font-bold text-emerald-700" role="status">{data.subscriptionNotice}</p>{/if}{#if subscriptionMessage}<p class="text-sm font-bold text-emerald-700" role="status">{subscriptionMessage}</p>{/if}{#if subscriptionError}<p class="text-sm font-bold text-wg-danger" role="alert">{subscriptionError}</p>{/if}</form></div></section>
+        <section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"><div><h2 class="text-xl font-bold">Subscribe to updates</h2><p class="mt-2 text-sm leading-6 text-wg-text-muted">Receive email notifications when this status changes.</p></div><form method="POST" class="grid w-full gap-3 md:max-w-md" use:enhance novalidate><label class="sr-only" for="subscriber-email">Email address</label><div class="flex flex-col gap-3 sm:flex-row"><input id="subscriber-email" class="min-h-11 min-w-0 flex-1 rounded-xl border border-wg-border bg-wg-surface px-3 text-wg-text" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby={form?.error ? "subscriber-email-error" : undefined} value={form?.email ?? ""} /><button class="min-h-11 rounded-xl bg-wg-accent px-4 text-sm font-bold text-wg-accent-contrast" type="submit">Subscribe</button></div>{#if data.subscriptionNotice}<p class="text-sm font-bold text-emerald-700" role="status">{data.subscriptionNotice}</p>{/if}{#if form?.message}<p class="text-sm font-bold text-emerald-700" role="status">{form.message}</p>{/if}{#if form?.error}<p id="subscriber-email-error" class="text-sm font-bold text-wg-danger" role="alert">{form.error}</p>{/if}</form></div></section>
 
         <section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><h2 class="text-xl font-bold">Recent incidents</h2>{#if data.incidents.length === 0}<p class="mt-4 text-sm leading-6 text-wg-text-muted">No recent incidents have been recorded.</p>{:else}<div class="mt-4 divide-y divide-wg-border">{#each data.incidents as incident, index (`${incident.monitoring_name}-${index}`)}<article class="py-5 first:pt-0 last:pb-0"><div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-bold">{incident.monitoring_name}</h3><span class={`rounded-full px-3 py-1 text-xs font-bold ${incident.up_at ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>{incident.up_at ? "Resolved" : "Ongoing"}</span></div><p class="mt-2 text-sm text-wg-text-muted">Started {dateTime(incident.down_at)}{#if incident.up_at} · Resolved {dateTime(incident.up_at)}{/if}</p>{#if incident.updates.length > 0}<div class="mt-4 grid gap-3">{#each incident.updates as update, updateIndex (`${update.published_at}-${updateIndex}`)}<div class="border-l-2 border-wg-accent pl-3"><p class="text-sm font-bold capitalize">{update.status}</p><p class="mt-1 text-sm leading-6 text-wg-text-muted">{update.message}</p><p class="mt-1 text-xs text-wg-text-muted">{dateTime(update.published_at)}</p></div>{/each}</div>{/if}</article>{/each}</div>{/if}</section>
     </div>
