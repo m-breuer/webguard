@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Internal\Ui\AdminWorkspaceController;
 use App\Http\Controllers\Api\Internal\Ui\AppearanceController;
 use App\Http\Controllers\Api\Internal\Ui\DashboardController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringCardsController;
@@ -38,6 +39,25 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
         ->name('profile.password.update');
 
     Route::middleware('verified')->group(function (): void {
+        Route::prefix('admin')->middleware('role:admin')->as('admin.')->group(function (): void {
+            Route::get('/dashboard', [AdminWorkspaceController::class, 'dashboard'])->name('dashboard');
+            Route::get('/users', [AdminWorkspaceController::class, 'users'])->name('users.index');
+            Route::post('/users', [AdminWorkspaceController::class, 'storeUser'])->name('users.store');
+            Route::patch('/users/{user}', [AdminWorkspaceController::class, 'updateUser'])->name('users.update');
+            Route::post('/users/{user}/verify', [AdminWorkspaceController::class, 'verifyUser'])->name('users.verify');
+            Route::delete('/users/{user}', [AdminWorkspaceController::class, 'destroyUser'])->name('users.destroy');
+            Route::get('/packages', [AdminWorkspaceController::class, 'packages'])->name('packages.index');
+            Route::post('/packages', [AdminWorkspaceController::class, 'storePackage'])->name('packages.store');
+            Route::patch('/packages/{package}', [AdminWorkspaceController::class, 'updatePackage'])->name('packages.update');
+            Route::delete('/packages/{package}', [AdminWorkspaceController::class, 'destroyPackage'])->name('packages.destroy');
+            Route::get('/server-instances', [AdminWorkspaceController::class, 'serverInstances'])->name('server-instances.index');
+            Route::post('/server-instances', [AdminWorkspaceController::class, 'storeServerInstance'])->name('server-instances.store');
+            Route::patch('/server-instances/{serverInstance}', [AdminWorkspaceController::class, 'updateServerInstance'])->name('server-instances.update');
+            Route::delete('/server-instances/{serverInstance}', [AdminWorkspaceController::class, 'destroyServerInstance'])->name('server-instances.destroy');
+            Route::get('/api-logs', [AdminWorkspaceController::class, 'apiLogs'])->name('api-logs.index');
+            Route::get('/activity-logs', [AdminWorkspaceController::class, 'activityLogs'])->name('activity-logs.index');
+        });
+
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
         Route::post('/teams', TeamStoreController::class)->name('teams.store');
         Route::get('/status-pages', [MobileStatusPageWorkspaceController::class, 'index'])->name('status-pages.index');
