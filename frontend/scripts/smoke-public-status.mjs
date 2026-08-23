@@ -49,9 +49,14 @@ try {
 
     const legacyStatusPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     let receivedLegacyRedirect = false;
+    let receivedLegacySubscriptionRedirect = false;
     legacyStatusPage.on("response", (response) => {
         if (new URL(response.url()).pathname === `/status/${statusPageSlug}` && response.status() === 301) {
             receivedLegacyRedirect = true;
+        }
+
+        if (response.request().method() === "POST" && new URL(response.url()).pathname === `/status/${statusPageSlug}` && response.status() === 307) {
+            receivedLegacySubscriptionRedirect = true;
         }
     });
     await legacyStatusPage.goto(`${baseUrl}/status/${statusPageSlug}`, { waitUntil: "networkidle" });
@@ -60,16 +65,28 @@ try {
         throw new Error("Legacy public status page URL did not redirect to its canonical identifier.");
     }
 
-    const legacySubscription = await legacyStatusPage.request.post(`${baseUrl}/status/${statusPageSlug}`, {
-        form: { email: "legacy-sveltekit-browser-subscription@example.test" },
-        headers: { Origin: baseUrl },
-        maxRedirects: 0,
-    });
+    await Promise.all([
+        legacyStatusPage.waitForNavigation(),
+        legacyStatusPage.evaluate(({ email, slug }) => {
+            const form = document.createElement("form");
+            form.action = `/status/${slug}`;
+            form.method = "POST";
 
-    if (legacySubscription.status() !== 307 || legacySubscription.headers().location !== `/status/${statusPageId}`) {
+            const emailInput = document.createElement("input");
+            emailInput.name = "email";
+            emailInput.type = "email";
+            emailInput.value = email;
+            form.append(emailInput);
+            document.body.append(form);
+            form.submit();
+        }, { email: "legacy-sveltekit-browser-subscription@example.test", slug: statusPageSlug }),
+    ]);
+
+    if (!receivedLegacySubscriptionRedirect) {
         throw new Error("Legacy public status subscription did not preserve its POST request with a canonical redirect.");
     }
 
+    await legacyStatusPage.getByRole("status").filter({ hasText: "Check your inbox to confirm your subscription." }).waitFor();
     await legacyStatusPage.close();
 
     const noJavaScriptPage = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
