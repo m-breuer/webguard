@@ -129,6 +129,7 @@ jobs:
         bun run build
         bun run frontend:check
         bun run frontend:build
+        bun run --cwd frontend budget
 
     - name: Run PHPStan
       run: |
@@ -166,3 +167,6 @@ jobs:
           -w /var/www/html "${{ env.CI_IMAGE }}" \
           php artisan scribe:generate --no-interaction
         git diff --exit-code -- storage/app/private/scribe/openapi.yaml
+
+    - name: Run SvelteKit container topology smoke test
+      run: .github/scripts/smoke-sveltekit-topology.sh
