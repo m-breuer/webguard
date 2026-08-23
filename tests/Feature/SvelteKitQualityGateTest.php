@@ -33,7 +33,25 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('/_health/laravel', $script);
         $this->assertStringContainsString('healthcheck-queue', $script);
         $this->assertStringContainsString('php artisan schedule:list', $script);
+        $this->assertStringContainsString('sveltekit-browser-smoke@example.test', $script);
+        $this->assertStringContainsString('mcr.microsoft.com/playwright:v1.62.1-noble', $script);
+        $this->assertStringContainsString('smoke-public-status.mjs', $script);
         $this->assertStringContainsString('down --volumes --remove-orphans', $script);
+    }
+
+    public function test_browser_smoke_test_checks_the_public_status_page_at_desktop_and_mobile_viewports(): void
+    {
+        $browserSmokeTest = file_get_contents(base_path('frontend/scripts/smoke-public-status.mjs'));
+
+        $this->assertIsString($browserSmokeTest);
+        $this->assertStringContainsString('chromium.launch', $browserSmokeTest);
+        $this->assertStringContainsString('width: 1280', $browserSmokeTest);
+        $this->assertStringContainsString('width: 390', $browserSmokeTest);
+        $this->assertStringContainsString('getByRole("heading"', $browserSmokeTest);
+        $this->assertStringContainsString('getByLabel("Email address")', $browserSmokeTest);
+        $this->assertStringContainsString('consoleErrors', $browserSmokeTest);
+        $this->assertStringContainsString('noHorizontalOverflow', $browserSmokeTest);
+        $this->assertStringContainsString('1000 ms rendering budget', $browserSmokeTest);
     }
 
     public function test_gateway_and_sveltekit_preserve_safe_request_correlation(): void
