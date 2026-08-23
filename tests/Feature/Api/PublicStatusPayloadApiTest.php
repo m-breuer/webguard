@@ -11,6 +11,8 @@ use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\StatusPage;
+use App\Models\StatusPageSubscriber;
+use App\Models\StatusPageSubscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Date;
@@ -120,6 +122,73 @@ class PublicStatusPayloadApiTest extends TestCase
             'email' => 'customer@example.test',
         ]);
         Mail::assertSent(PublicStatusPageSubscriptionConfirmationMail::class);
+    }
+
+    public function test_public_status_page_subscription_endpoint_removes_a_matching_subscription(): void
+    {
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $this->user()->id,
+            'name' => 'Acme Status',
+            'is_public' => true,
+        ]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'customer@example.test',
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $this->deleteJson(route('public.status.subscribers.destroy', [
+            'status' => $statusPage,
+            'token' => $statusPageSubscription->unsubscribe_token,
+        ]), ['email' => 'Customer@Example.test'])
+            ->assertOk()
+            ->assertJsonPath('data.is_public', true);
+
+        $this->assertDatabaseMissing('status_page_subscriptions', ['id' => $statusPageSubscription->id]);
+    }
+
+    public function test_public_unsubscribe_endpoint_removes_a_subscription_after_the_resource_is_unpublished(): void
+    {
+        $user = $this->user();
+        $monitoring = Monitoring::factory()->for($user)->create(['public_label_enabled' => false]);
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.test',
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $this->deleteJson(route('public.status.subscribers.destroy', [
+            'status' => $monitoring,
+            'token' => $statusPageSubscriber->unsubscribe_token,
+        ]), ['email' => $statusPageSubscriber->email])
+            ->assertOk()
+            ->assertJsonPath('data.is_public', false);
+
+        $this->assertDatabaseMissing('status_page_subscribers', ['id' => $statusPageSubscriber->id]);
+    }
+
+    public function test_public_unsubscribe_endpoint_requires_the_email_bound_to_the_token(): void
+    {
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $this->user()->id,
+            'name' => 'Acme Status',
+            'is_public' => true,
+        ]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'customer@example.test',
+            'unsubscribe_token' => 'unsubscribe-token',
+            'verified_at' => Date::now(),
+        ]);
+
+        $this->deleteJson(route('public.status.subscribers.destroy', [
+            'status' => $statusPage,
+            'token' => $statusPageSubscription->unsubscribe_token,
+        ]), ['email' => 'other@example.test'])->assertNotFound();
+
+        $this->assertDatabaseHas('status_page_subscriptions', ['id' => $statusPageSubscription->id]);
     }
 
     private function user(): User

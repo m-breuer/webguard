@@ -31,6 +31,31 @@ class PublicStatusSubscriptionService
         $this->subscribeToMonitoring($resource, $email);
     }
 
+    public function unsubscribe(string $identifier, string $email, string $token): bool
+    {
+        $statusPage = StatusPage::query()->find($identifier);
+
+        if ($statusPage instanceof StatusPage) {
+            $statusPage->subscriptions()
+                ->where('email', Str::lower($email))
+                ->where('unsubscribe_token', $token)
+                ->firstOrFail()
+                ->delete();
+
+            return $statusPage->is_public;
+        }
+
+        $monitoring = Monitoring::query()->findOrFail($identifier);
+
+        $monitoring->statusPageSubscribers()
+            ->where('email', Str::lower($email))
+            ->where('unsubscribe_token', $token)
+            ->firstOrFail()
+            ->delete();
+
+        return $monitoring->public_label_enabled;
+    }
+
     private function subscribeToStatusPage(StatusPage $statusPage, string $email): void
     {
         abort_unless($statusPage->is_public, 404);

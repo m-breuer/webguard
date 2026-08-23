@@ -557,8 +557,10 @@ class StatusPageManagementTest extends TestCase
             'email' => 'Customer@Example.com',
         ]);
 
-        $testResponse->assertRedirect(route('public-status-pages.show', $statusPage));
-        $testResponse->assertSessionHas('status_page_subscription_success');
+        $testResponse->assertRedirect(route('public-status-pages.show', [
+            'statusPage' => $statusPage,
+            'subscription' => 'confirmation-sent',
+        ]));
 
         $statusPageSubscription = StatusPageSubscription::query()->firstOrFail();
         $this->assertSame($statusPage->id, $statusPageSubscription->status_page_id);
@@ -576,7 +578,10 @@ class StatusPageManagementTest extends TestCase
         $this->get(route('public-status-pages.subscribers.confirm', [
             'statusPage' => $statusPage,
             'token' => $confirmationToken,
-        ]))->assertRedirect(route('public-status-pages.show', $statusPage));
+        ]))->assertRedirect(route('public-status-pages.show', [
+            'statusPage' => $statusPage,
+            'subscription' => 'confirmed',
+        ]));
 
         $this->assertTrue($statusPageSubscription->refresh()->isVerified());
         $this->assertNull($statusPageSubscription->confirmation_token_hash);
@@ -594,7 +599,10 @@ class StatusPageManagementTest extends TestCase
             'token' => $statusPageSubscription->unsubscribe_token,
         ]), [
             'email' => 'CUSTOMER@example.com',
-        ])->assertRedirect(route('public-status-pages.show', $statusPage));
+        ])->assertRedirect(route('public-status-pages.show', [
+            'statusPage' => $statusPage,
+            'subscription' => 'unsubscribed',
+        ]));
 
         $this->assertDatabaseMissing('status_page_subscriptions', [
             'id' => $statusPageSubscription->id,
