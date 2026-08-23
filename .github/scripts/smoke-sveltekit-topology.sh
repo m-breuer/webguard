@@ -66,4 +66,4 @@ docker run --rm \
     --env SMOKE_STATUS_PAGE_ID="$status_page_id" \
     --volume "$repository_path/frontend/scripts:/ms-playwright/smoke:ro" \
     mcr.microsoft.com/playwright:v1.62.1-noble \
-    node smoke/smoke-public-status.mjs
+    node /ms-playwright/smoke/smoke-public-status.mjs

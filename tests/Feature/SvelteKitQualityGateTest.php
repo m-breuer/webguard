@@ -38,6 +38,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('db:seed --class=PackageSeeder', $script);
         $this->assertStringContainsString('sveltekit-browser-smoke@example.test', $script);
         $this->assertStringContainsString('mcr.microsoft.com/playwright:v1.62.1-noble', $script);
+        $this->assertStringContainsString('/ms-playwright/smoke/smoke-public-status.mjs', $script);
         $this->assertStringContainsString('smoke-public-status.mjs', $script);
         $this->assertStringContainsString('down --volumes --remove-orphans', $script);
     }
