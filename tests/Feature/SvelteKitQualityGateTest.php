@@ -83,6 +83,7 @@ class SvelteKitQualityGateTest extends TestCase
         $unsubscribeAction = base_path('frontend/src/routes/status/[id]/subscribers/unsubscribe/[token]/+page.server.ts');
 
         $this->assertIsString($gatewayConfiguration);
+        $this->assertStringContainsString('location ~* "^/status/[0-9a-hjkmnp-tv-z]{26}/subscribers/unsubscribe/', $gatewayConfiguration);
         $this->assertStringContainsString('^/status/[0-9a-hjkmnp-tv-z]{26}/subscribers/unsubscribe/', $gatewayConfiguration);
         $this->assertStringContainsString('proxy_pass http://sveltekit', $gatewayConfiguration);
         $this->assertFileExists($unsubscribePage);
