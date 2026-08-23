@@ -97,7 +97,12 @@ For frontend dependency or build checks:
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun install
 docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
+docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run frontend:check
+docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run --cwd frontend budget
 ```
+
+SvelteKit route-family releases also follow the measurable thresholds and
+evidence process in [SvelteKit quality gates](frontend/sveltekit-quality-gates.md).
 
 Host execution is acceptable only when Docker is unavailable or the repository
 explicitly requires a host-specific check. Document that limitation in the final

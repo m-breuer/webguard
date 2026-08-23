@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "budget": "node scripts/assert-production-budgets.mjs",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "dev": "vite dev",
         "start": "node build"

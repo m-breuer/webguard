@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Jobs\LogApiUsage;
+use App\Support\Http\RequestCorrelationId;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -27,7 +28,7 @@ class TrackApiUsage
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $requestId = Str::uuid()->toString();
+        $requestId = RequestCorrelationId::for($request);
         $request->attributes->set('request_id', $requestId);
 
         if (auth('sanctum')->check()) {
