@@ -44,8 +44,10 @@ class StatusPageSubscriptionController extends Controller
             );
         }
 
-        return to_route('public-status-pages.show', $statusPage)
-            ->with('status_page_subscription_success', __('status_page.public.subscribe.confirmation_sent'));
+        return to_route('public-status-pages.show', [
+            'statusPage' => $statusPage,
+            'subscription' => 'confirmation-sent',
+        ]);
     }
 
     public function confirm(StatusPage $statusPage, string $token): RedirectResponse
@@ -58,8 +60,10 @@ class StatusPageSubscriptionController extends Controller
 
         $statusPageSubscription->markVerified();
 
-        return to_route('public-status-pages.show', $statusPage)
-            ->with('status_page_subscription_success', __('status_page.public.subscribe.confirmed'));
+        return to_route('public-status-pages.show', [
+            'statusPage' => $statusPage,
+            'subscription' => 'confirmed',
+        ]);
     }
 
     public function unsubscribe(StatusPage $statusPage, string $token): View
@@ -98,9 +102,12 @@ class StatusPageSubscriptionController extends Controller
             ->delete();
 
         $redirect = $statusPage->is_public
-            ? to_route('public-status-pages.show', $statusPage)
+            ? to_route('public-status-pages.show', [
+                'statusPage' => $statusPage,
+                'subscription' => 'unsubscribed',
+            ])
             : redirect('/');
 
-        return $redirect->with('status_page_subscription_success', __('status_page.public.subscribe.unsubscribed'));
+        return $redirect;
     }
 }

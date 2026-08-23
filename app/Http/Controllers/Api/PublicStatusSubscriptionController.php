@@ -20,4 +20,15 @@ class PublicStatusSubscriptionController extends Controller
             'data' => ['message' => 'Check your inbox to confirm your subscription.'],
         ], 202);
     }
+
+    public function destroy(string $status, string $token, Request $request, PublicStatusSubscriptionService $publicStatusSubscriptionService): JsonResponse
+    {
+        $validated = $request->validate(['email' => ['required', 'string', 'email', 'max:255']]);
+
+        return response()->json([
+            'data' => [
+                'is_public' => $publicStatusSubscriptionService->unsubscribe($status, $validated['email'], $token),
+            ],
+        ]);
+    }
 }

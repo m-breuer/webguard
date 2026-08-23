@@ -2,9 +2,10 @@ import { chromium } from "playwright";
 
 const baseUrl = process.env.SMOKE_BASE_URL;
 const statusPageId = process.env.SMOKE_STATUS_PAGE_ID;
+const unsubscribeToken = process.env.SMOKE_UNSUBSCRIBE_TOKEN;
 
-if (!baseUrl || !statusPageId) {
-    throw new Error("SMOKE_BASE_URL and SMOKE_STATUS_PAGE_ID are required.");
+if (!baseUrl || !statusPageId || !unsubscribeToken) {
+    throw new Error("SMOKE_BASE_URL, SMOKE_STATUS_PAGE_ID, and SMOKE_UNSUBSCRIBE_TOKEN are required.");
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -44,6 +45,20 @@ try {
 
         await page.close();
     }
+
+    const unsubscribePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    const unsubscribeResponse = await unsubscribePage.goto(`${baseUrl}/status/${statusPageId}/subscribers/unsubscribe/${unsubscribeToken}`, { waitUntil: "networkidle" });
+
+    if (unsubscribeResponse?.status() !== 200) {
+        throw new Error(`Unsubscribe page returned ${unsubscribeResponse?.status() ?? "no response"}.`);
+    }
+
+    await unsubscribePage.getByRole("heading", { level: 1, name: "Unsubscribe from updates" }).waitFor();
+    await unsubscribePage.getByLabel("Email address").fill("sveltekit-browser-smoke@example.test");
+    await unsubscribePage.getByRole("button", { name: "Unsubscribe" }).click();
+    await unsubscribePage.waitForURL(`${baseUrl}/status/${statusPageId}?subscription=unsubscribed`);
+    await unsubscribePage.getByRole("status").filter({ hasText: "You have been unsubscribed." }).waitFor();
+    await unsubscribePage.close();
 } finally {
     await browser.close();
 }

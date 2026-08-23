@@ -31,7 +31,7 @@ $compose exec --no-TTY queue-default healthcheck-queue
 $compose exec --no-TTY schedule php artisan schedule:list --no-interaction --no-ansi
 $compose exec --no-TTY php php artisan db:seed --class=PackageSeeder --force --no-interaction
 
-status_page_id="$(
+status_page_fixture="$(
     $compose exec --no-TTY php php -r '
         require "vendor/autoload.php";
 
@@ -48,15 +48,26 @@ status_page_id="$(
             "privacy_accepted_at" => now(),
         ]);
 
-        echo App\Models\StatusPage::query()->create([
+        $statusPage = App\Models\StatusPage::query()->create([
             "user_id" => $user->id,
             "name" => "SvelteKit Browser Smoke",
             "slug" => "sveltekit-browser-smoke",
             "description" => "Isolated browser smoke-test data.",
             "is_public" => true,
-        ])->id;
+        ]);
+
+        $statusPage->subscriptions()->create([
+            "email" => "sveltekit-browser-smoke@example.test",
+            "unsubscribe_token" => "sveltekit-browser-smoke-unsubscribe-token",
+            "verified_at" => now(),
+        ]);
+
+        echo $statusPage->id . "|sveltekit-browser-smoke-unsubscribe-token";
     '
 )"
+
+status_page_id="${status_page_fixture%%|*}"
+unsubscribe_token="${status_page_fixture#*|}"
 
 repository_path="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 
@@ -64,6 +75,7 @@ docker run --rm \
     --network "$network_name" \
     --env SMOKE_BASE_URL="http://gateway:8080" \
     --env SMOKE_STATUS_PAGE_ID="$status_page_id" \
+    --env SMOKE_UNSUBSCRIBE_TOKEN="$unsubscribe_token" \
     --volume "$repository_path/frontend/scripts:/ms-playwright/smoke:ro" \
     --volume "$repository_path/node_modules:/ms-playwright/node_modules:ro" \
     mcr.microsoft.com/playwright:v1.62.1-noble \
