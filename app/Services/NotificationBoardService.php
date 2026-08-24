@@ -95,7 +95,8 @@ class NotificationBoardService
 
     public function markRead(User $user, MonitoringNotification $monitoringNotification): void
     {
-        abort_unless($monitoringNotification->monitoring->isVisibleTo($user), 404);
+        $monitoring = Monitoring::query()->withoutGlobalScopes()->find($monitoringNotification->monitoring_id);
+        abort_unless($monitoring instanceof Monitoring && $monitoring->isVisibleTo($user), 404);
         $notificationIds = $monitoringNotification->type === NotificationType::STATUS_CHANGE
             ? MonitoringNotification::query()->withoutGlobalScopes()->where('monitoring_id', $monitoringNotification->monitoring_id)->statusChange()
                 ->where(fn (Builder $builder) => $builder->where('created_at', '<', $monitoringNotification->created_at)

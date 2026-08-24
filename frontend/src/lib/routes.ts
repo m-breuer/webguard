@@ -8,6 +8,7 @@ export const appRoutes = {
     teams: "/teams",
     notifications: "/notifications",
     profile: "/profile",
+    profileNotifications: "/profile/notifications",
     adminDashboard: "/admin",
     adminUsers: "/admin/users",
     adminPackages: "/admin/packages",

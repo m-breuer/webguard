@@ -12,6 +12,7 @@ use App\Jobs\DeleteUser;
 use App\Models\User;
 use App\Services\ApiKeyService;
 use App\Services\Notifications\NotificationChannelTestService;
+use App\Services\NotificationSettingsService;
 use App\Services\UserDeletionPreparationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,8 +77,10 @@ class ProfileController extends Controller
      * @param  ProfileRequest  $profileRequest  The request containing validated profile data.
      * @return RedirectResponse A redirect response after updating the profile.
      */
-    public function update(ProfileRequest $profileRequest): RedirectResponse
-    {
+    public function update(
+        ProfileRequest $profileRequest,
+        NotificationSettingsService $notificationSettingsService
+    ): RedirectResponse {
         $validated = $profileRequest->validated();
         $user = $profileRequest->user();
         $user->fill(Arr::only($validated, ['name', 'email', 'theme']));
@@ -86,18 +89,7 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
-        $user->notification_channels = $this->normalizeNotificationChannels($profileRequest);
-        $user->monitoring_digest_enabled = $profileRequest->boolean('monitoring_digest_enabled');
-        $user->monitoring_digest_frequency = $this->normalizeFrequency(
-            $profileRequest->input('monitoring_digest_frequency'),
-            'weekly'
-        );
-        $user->unread_notifications_reminder_enabled = $profileRequest->boolean('unread_notifications_reminder_enabled');
-        $user->unread_notifications_reminder_frequency = $this->normalizeFrequency(
-            $profileRequest->input('unread_notifications_reminder_frequency'),
-            'daily'
-        );
-        $user->save();
+        $notificationSettingsService->update($user, $profileRequest);
 
         return to_route('profile.edit')
             ->with('success', __('profile.messages.profile_updated'));
@@ -179,52 +171,5 @@ class ProfileController extends Controller
         }
 
         return back()->with('success', __('profile.notification_settings.test.messages.sent', ['channel' => $channelName]));
-    }
-
-    /**
-     * @return array<string, array<string, mixed>>
-     */
-    private function normalizeNotificationChannels(ProfileRequest $profileRequest): array
-    {
-        $normalized = [];
-
-        foreach (NotificationChannel::values() as $channel) {
-            if ($channel === NotificationChannel::MOBILE_PUSH->value && ! $profileRequest->has('notification_channels.mobile_push')) {
-                $existingConfig = data_get($profileRequest->user()->notification_channels, 'mobile_push', []);
-                $normalized[$channel] = is_array($existingConfig) ? $existingConfig : ['enabled' => false];
-
-                continue;
-            }
-
-            $channelConfig = [
-                'enabled' => $profileRequest->boolean(sprintf('notification_channels.%s.enabled', $channel)),
-            ];
-
-            if (in_array($channel, [
-                NotificationChannel::SLACK->value,
-                NotificationChannel::DISCORD->value,
-                NotificationChannel::TEAMS->value,
-            ], true)) {
-                $channelConfig['webhook_url'] = mb_trim((string) $profileRequest->input(sprintf('notification_channels.%s.webhook_url', $channel)));
-            }
-
-            if ($channel === NotificationChannel::WEBHOOK->value) {
-                $channelConfig['url'] = mb_trim((string) $profileRequest->input('notification_channels.webhook.url'));
-            }
-
-            if ($channel === NotificationChannel::TELEGRAM->value) {
-                $channelConfig['bot_token'] = mb_trim((string) $profileRequest->input('notification_channels.telegram.bot_token'));
-                $channelConfig['chat_id'] = mb_trim((string) $profileRequest->input('notification_channels.telegram.chat_id'));
-            }
-
-            $normalized[$channel] = $channelConfig;
-        }
-
-        return $normalized;
-    }
-
-    private function normalizeFrequency(mixed $value, string $default): string
-    {
-        return blank($value) ? $default : (string) $value;
     }
 }

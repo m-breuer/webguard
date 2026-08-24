@@ -1,8 +1,8 @@
 export type AppearanceTheme = "light" | "dark" | "system";
 
-export interface ApiEnvelope<T> {
+export interface ApiEnvelope<T, TMeta = Record<string, unknown>> {
     data: T;
-    meta?: Record<string, unknown>;
+    meta?: TMeta;
 }
 
 export interface ApiValidationErrors {

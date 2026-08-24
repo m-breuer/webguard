@@ -30,10 +30,10 @@ export function setCsrfEndpoint(endpoint: string): void {
     csrfEndpoint = endpoint;
 }
 
-export async function requestFirstPartyApi<T>(
+export async function requestFirstPartyApi<T, TMeta = Record<string, unknown>>(
     path: string,
     init: RequestInit = {},
-): Promise<ApiEnvelope<T>> {
+): Promise<ApiEnvelope<T, TMeta>> {
     const method = (init.method ?? "GET").toUpperCase();
 
     if (!["GET", "HEAD", "OPTIONS"].includes(method) && !csrfBootstrapped) {
@@ -49,7 +49,9 @@ export async function requestFirstPartyApi<T>(
         csrfBootstrapped = true;
     }
 
-    const csrfToken = !["GET", "HEAD", "OPTIONS"].includes(method) ? xsrfToken() : undefined;
+    const csrfToken = !["GET", "HEAD", "OPTIONS"].includes(method)
+        ? xsrfToken()
+        : undefined;
 
     const response = await fetch(path, {
         ...init,
@@ -57,14 +59,18 @@ export async function requestFirstPartyApi<T>(
         headers: {
             Accept: "application/json",
             "X-Requested-With": "XMLHttpRequest",
-            ...(init.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+            ...(init.body instanceof FormData
+                ? {}
+                : { "Content-Type": "application/json" }),
             ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
             ...init.headers,
         },
     });
 
     if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as Partial<ApiValidationErrors>;
+        const payload = (await response
+            .json()
+            .catch(() => ({}))) as Partial<ApiValidationErrors>;
         throw new FirstPartyApiError(response.status, payload);
     }
 
@@ -72,5 +78,5 @@ export async function requestFirstPartyApi<T>(
         return { data: undefined as T };
     }
 
-    return (await response.json()) as ApiEnvelope<T>;
+    return (await response.json()) as ApiEnvelope<T, TMeta>;
 }
