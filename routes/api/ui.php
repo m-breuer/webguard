@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\Internal\Ui\MonitoringIndexController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringManagementController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringOwnershipController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringShowController;
+use App\Http\Controllers\Api\Internal\Ui\NotificationInboxController;
+use App\Http\Controllers\Api\Internal\Ui\NotificationSettingsController;
 use App\Http\Controllers\Api\Internal\Ui\PasswordController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileApiKeyController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileController;
@@ -52,6 +54,15 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
     Route::delete('/profile/account', ProfileDeletionController::class)
         ->middleware('role:member,admin')
         ->name('profile.destroy');
+    Route::get('/profile/notification-settings', [NotificationSettingsController::class, 'show'])
+        ->middleware('role:member,admin')
+        ->name('profile.notification-settings.show');
+    Route::patch('/profile/notification-settings', [NotificationSettingsController::class, 'update'])
+        ->middleware('role:member,admin')
+        ->name('profile.notification-settings.update');
+    Route::post('/profile/notification-settings/{channel}/test', [NotificationSettingsController::class, 'test'])
+        ->middleware('role:member,admin')
+        ->name('profile.notification-settings.test');
 
     Route::middleware('verified')->group(function (): void {
         Route::prefix('admin')->middleware('role:admin')->as('admin.')->group(function (): void {
@@ -75,6 +86,9 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
 
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
         Route::post('/teams', TeamStoreController::class)->name('teams.store');
+        Route::get('/notifications', [NotificationInboxController::class, 'index'])->name('notifications.index');
+        Route::patch('/notifications/read-all', [NotificationInboxController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::patch('/notifications/{notification}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.read');
         Route::get('/status-pages', [MobileStatusPageWorkspaceController::class, 'index'])->name('status-pages.index');
         Route::get('/status-pages/options', [StatusPageManagementController::class, 'options'])->name('status-pages.options');
         Route::post('/status-pages', [StatusPageManagementController::class, 'store'])->name('status-pages.store');
