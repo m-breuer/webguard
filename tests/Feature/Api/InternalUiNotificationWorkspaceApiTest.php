@@ -102,7 +102,7 @@ final class InternalUiNotificationWorkspaceApiTest extends TestCase
         Date::setTestNow('2026-08-24 12:00:00');
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
-        $first = $this->notification($monitoring, NotificationType::STATUS_CHANGE, 'Service down', Date::now()->subMinutes(2));
+        $monitoringNotification = $this->notification($monitoring, NotificationType::STATUS_CHANGE, 'Service down', Date::now()->subMinutes(2));
         $second = $this->notification($monitoring, NotificationType::SSL_EXPIRY, 'SSL_EXPIRING', Date::now()->subMinute());
         $hiddenMonitoring = Monitoring::factory()->for(User::factory()->create())->create();
         $hidden = $this->notification($hiddenMonitoring, NotificationType::DOMAIN_EXPIRY, 'DOMAIN_EXPIRED', Date::now());
@@ -117,7 +117,7 @@ final class InternalUiNotificationWorkspaceApiTest extends TestCase
         $this->actingAs($user)->getJson(route('api.v1.internal.ui.notifications.index', [
             'limit' => 1,
             'cursor' => $testResponse->json('meta.next_cursor'),
-        ]))->assertOk()->assertJsonPath('data.0.id', $first->id);
+        ]))->assertOk()->assertJsonPath('data.0.id', $monitoringNotification->id);
 
         $this->actingAs($user)->patchJson(route('api.v1.internal.ui.notifications.read', ['notification' => $second->id]))
             ->assertOk()
@@ -131,15 +131,15 @@ final class InternalUiNotificationWorkspaceApiTest extends TestCase
             ->assertJsonPath('meta.unread_count', 0);
     }
 
-    private function notification(Monitoring $monitoring, NotificationType $type, string $message, mixed $createdAt): MonitoringNotification
+    private function notification(Monitoring $monitoring, NotificationType $notificationType, string $message, mixed $createdAt): MonitoringNotification
     {
-        $notification = MonitoringNotification::query()->create([
+        $monitoringNotification = MonitoringNotification::query()->create([
             'monitoring_id' => $monitoring->id,
-            'type' => $type,
+            'type' => $notificationType,
             'message' => $message,
         ]);
-        $notification->update(['created_at' => $createdAt, 'updated_at' => $createdAt]);
+        $monitoringNotification->update(['created_at' => $createdAt, 'updated_at' => $createdAt]);
 
-        return $notification->refresh();
+        return $monitoringNotification->refresh();
     }
 }
