@@ -30,7 +30,7 @@ final class ProfileDeletionController extends Controller
 
         Auth::logout();
         $userDeletionPreparationService->disableLoginUntilDeletion($user);
-        DeleteUser::dispatch($user);
+        dispatch(new DeleteUser($user));
 
         $deleteUserRequest->session()->invalidate();
         $deleteUserRequest->session()->regenerateToken();

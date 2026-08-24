@@ -81,7 +81,7 @@ final class InternalUiProfileSecurityApiTest extends TestCase
         ])->assertOk()->assertJsonPath('data.deletion_scheduled', true);
 
         $this->assertGuest();
-        Queue::assertPushed(DeleteUser::class, fn (DeleteUser $job): bool => $job->user->is($user));
+        Queue::assertPushed(DeleteUser::class, fn (DeleteUser $deleteUser): bool => $deleteUser->user->is($user));
         $this->assertStringEndsWith('@webguard.invalid', (string) $user->fresh()?->email);
     }
 }

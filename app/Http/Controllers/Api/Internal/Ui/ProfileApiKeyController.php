@@ -24,7 +24,7 @@ final class ProfileApiKeyController extends Controller
         return response()->json([
             'data' => $this->apiKeyService->paginate($user, 100, null)
                 ->getCollection()
-                ->map(fn (PersonalAccessToken $token): array => $this->payload($token))
+                ->map(fn (PersonalAccessToken $personalAccessToken): array => $this->payload($personalAccessToken))
                 ->values()
                 ->all(),
         ]);
@@ -74,14 +74,14 @@ final class ProfileApiKeyController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function payload(PersonalAccessToken $token): array
+    private function payload(PersonalAccessToken $personalAccessToken): array
     {
         return [
-            'id' => $token->getKey(),
-            'name' => ApiKeyService::displayName($token),
-            'abilities' => $token->abilities ?? [],
-            'last_used_at' => $token->last_used_at?->toIso8601String(),
-            'revoked_at' => $token->revoked_at?->toIso8601String(),
+            'id' => $personalAccessToken->getKey(),
+            'name' => ApiKeyService::displayName($personalAccessToken),
+            'abilities' => $personalAccessToken->abilities ?? [],
+            'last_used_at' => $personalAccessToken->last_used_at?->toIso8601String(),
+            'revoked_at' => $personalAccessToken->revoked_at?->toIso8601String(),
         ];
     }
 }
