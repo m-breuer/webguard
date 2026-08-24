@@ -13,7 +13,9 @@ use App\Http\Controllers\Api\Internal\Ui\MonitoringManagementController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringOwnershipController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringShowController;
 use App\Http\Controllers\Api\Internal\Ui\PasswordController;
+use App\Http\Controllers\Api\Internal\Ui\ProfileApiKeyController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileController;
+use App\Http\Controllers\Api\Internal\Ui\ProfileDeletionController;
 use App\Http\Controllers\Api\Internal\Ui\SessionController;
 use App\Http\Controllers\Api\Internal\Ui\StatusPageManagementController;
 use App\Http\Controllers\Api\Internal\Ui\TeamIndexController;
@@ -37,6 +39,19 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
     Route::put('/profile/password', [PasswordController::class, 'update'])
         ->middleware('role:member,admin')
         ->name('profile.password.update');
+    Route::get('/profile/api-keys', [ProfileApiKeyController::class, 'index'])
+        ->middleware('role:member,admin')
+        ->name('profile.api-keys.index');
+    Route::post('/profile/api-keys', [ProfileApiKeyController::class, 'store'])
+        ->middleware('role:member,admin')
+        ->name('profile.api-keys.store');
+    Route::delete('/profile/api-keys/{apiKey}', [ProfileApiKeyController::class, 'destroy'])
+        ->middleware('role:member,admin')
+        ->whereNumber('apiKey')
+        ->name('profile.api-keys.destroy');
+    Route::delete('/profile/account', ProfileDeletionController::class)
+        ->middleware('role:member,admin')
+        ->name('profile.destroy');
 
     Route::middleware('verified')->group(function (): void {
         Route::prefix('admin')->middleware('role:admin')->as('admin.')->group(function (): void {
