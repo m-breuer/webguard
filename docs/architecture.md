@@ -17,6 +17,8 @@ observations is described in [Derived monitoring health](architecture/derived-mo
 The accepted migration from Blade and Alpine to SvelteKit, including runtime
 ownership, route inventory, security boundaries, and rollout gates, is described
 in the [SvelteKit frontend migration ADR](architecture/sveltekit-frontend-migration.md).
+The controlled release and rollback procedure is documented in the
+[SvelteKit production cutover runbook](operations/sveltekit-cutover.md).
 
 ## Backend
 
@@ -29,11 +31,11 @@ in the [SvelteKit frontend migration ADR](architecture/sveltekit-frontend-migrat
 
 ## Frontend
 
-- **Build tool:** Vite
+- **Application UI:** SvelteKit with the Node adapter behind the same-origin gateway
 - **CSS framework:** Tailwind CSS
-- **Reactive components:** Alpine.js
+- **Laravel rendering:** API, mail, framework-error, signed-link, and fallback ownership
 - **Data visualization:** Chart.js
-- **HTTP requests:** Axios
+- **Browser API client:** first-party fetch client with Laravel Sanctum CSRF
 
 ## Runtime Responsibilities
 

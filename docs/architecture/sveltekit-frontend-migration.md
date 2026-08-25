@@ -1,22 +1,21 @@
 # SvelteKit frontend migration
 
-**Status:** Accepted for phased implementation.  
+**Status:** Application migration complete; production cutover evidence pending.  
 **Tracking:** [WebGuard #734](https://github.com/marcel-breuer/webguard/issues/734)  
 **Architecture and inventory:** [WebGuard #735](https://github.com/marcel-breuer/webguard/issues/735)
 
 ## Context
 
-WebGuard currently renders its browser UI with Laravel Blade, Alpine, Tailwind,
-and Vite. The application contains 150 Blade view files, including 47 reusable
-components, and a TypeScript entry point that registers Alpine modules for
-dashboard loading, monitoring detail and cards, charts, modals, notifications,
-and theme handling. The current production image builds those assets with Bun
-and serves them from the PHP container.
+The gateway now serves SvelteKit as the primary browser UI while Laravel remains
+the authoritative domain and integration backend. Legacy Blade controllers and
+views stay available behind the gateway fallback during the production evidence
+and rollback window, and continue to support mail, framework errors, signed
+links, legacy public URLs, and operational recovery.
 
-That arrangement keeps Laravel close to the UI, but it also makes browser state,
-modal lifecycle, and progressively added asynchronous views cross-cutting Blade
-and Alpine concerns. WebGuard will move the complete browser UI to SvelteKit
-while retaining Laravel as the authoritative domain and integration backend.
+The earlier Blade/Alpine arrangement made browser state, modal lifecycle, and
+progressively added asynchronous views cross-cutting concerns. The SvelteKit
+application now owns supported browser journeys; legacy presentation code is
+retired only after the controlled cutover criteria are met.
 
 Laravel 13 offers a Svelte starter through Inertia, but that is a different
 topology from the requested SvelteKit application. This decision therefore does
