@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\Internal\Ui\AdminWorkspaceController;
 use App\Http\Controllers\Api\Internal\Ui\AppearanceController;
 use App\Http\Controllers\Api\Internal\Ui\DashboardController;
+use App\Http\Controllers\Api\Internal\Ui\IncidentAnalyticsController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringCardsController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringDetailDataController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringFormOptionsController;
@@ -128,6 +129,7 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
         Route::patch('/maintenance/recurring/{maintenanceWindow}', [MobileMaintenanceController::class, 'updateRecurring'])->name('maintenance.recurring.update');
         Route::delete('/maintenance/one-off/{monitoring}', [MobileMaintenanceController::class, 'cancelOneOff'])->name('maintenance.one-off.destroy');
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/incidents/analytics', IncidentAnalyticsController::class)->name('incidents.analytics');
         Route::get('/monitorings', MonitoringIndexController::class)->name('monitorings.index');
         Route::get('/monitorings/form-options', [MonitoringFormOptionsController::class, 'create'])->name('monitorings.form-options');
         Route::post('/monitorings', [MonitoringManagementController::class, 'store'])->name('monitorings.store');
