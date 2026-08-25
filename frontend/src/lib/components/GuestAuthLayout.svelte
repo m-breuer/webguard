@@ -1,0 +1,25 @@
+<script lang="ts">
+    import type { Snippet } from "svelte";
+
+    interface Props {
+        title: string;
+        description: string;
+        children?: Snippet;
+    }
+
+    let { title, description, children }: Props = $props();
+</script>
+
+<main class="mx-auto flex min-h-screen w-[min(36rem,calc(100%_-_2rem))] items-center py-8 sm:py-12">
+    <section class="w-full rounded-3xl border border-wg-border bg-wg-surface p-6 shadow-wg-surface sm:p-10">
+        <a class="inline-flex items-center gap-3 text-wg-text no-underline" href="/login" aria-label="WebGuard login">
+            <span class="grid size-10 place-items-center rounded-xl bg-purple-800 font-black text-white">W</span>
+            <span class="font-extrabold tracking-tight">WebGuard</span>
+        </a>
+        <header class="mt-8">
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+            <p class="mt-3 leading-6 text-wg-text-muted">{description}</p>
+        </header>
+        <div class="mt-8">{@render children?.()}</div>
+    </section>
+</main>

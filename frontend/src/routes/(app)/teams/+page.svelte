@@ -43,6 +43,7 @@
                             <dd class="mt-1 text-xl font-extrabold">{team.monitoring_count}</dd>
                         </div>
                     </dl>
+                    <a class="mt-5 inline-flex text-sm font-bold text-wg-accent no-underline hover:underline" href={`/teams/${team.id}`}>Open workspace →</a>
                 </Card>
             {/each}
         </div>

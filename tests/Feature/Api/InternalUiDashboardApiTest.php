@@ -60,6 +60,19 @@ class InternalUiDashboardApiTest extends TestCase
         $this->assertInternalUiTelemetry($testResponse, 30, 131072);
     }
 
+    public function test_dashboard_projection_preserves_a_gateway_request_identifier(): void
+    {
+        Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create();
+        $requestId = str_repeat('a', 32);
+
+        $this->actingAs($user)
+            ->withHeader('X-Request-Id', $requestId)
+            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->assertOk()
+            ->assertHeader('X-Request-Id', $requestId);
+    }
+
     public function test_unverified_user_cannot_read_the_internal_ui_dashboard(): void
     {
         Package::factory()->create();

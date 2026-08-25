@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\External\ApiKeyController;
 use App\Http\Controllers\Api\External\BearerServerHealthReportController;
 use App\Http\Controllers\Api\External\PublicMonitoringLocationController;
 use App\Http\Controllers\Api\Mobile\MobileAuthController;
+use App\Http\Controllers\Api\PublicStatusPayloadController;
+use App\Http\Controllers\Api\PublicStatusSubscriptionController;
 use App\Http\Controllers\Api\ServerHealthReportController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\PublicStatusPageUptimeCalendarController;
@@ -14,11 +16,21 @@ use App\Http\Middleware\TrackApiUsage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/public/monitorings/{monitoring}/badge', [ApiController::class, 'badge'])
+    ->middleware('throttle:60,1')
     ->name('public.monitorings.badge');
 Route::get('/public/monitorings/{monitoring}/uptime-calendar', [ApiController::class, 'uptimeCalendar'])
     ->name('public.monitorings.uptime-calendar');
 Route::get('/public/status-pages/{statusPage}/uptime-calendar', PublicStatusPageUptimeCalendarController::class)
     ->name('public.status-pages.uptime-calendar');
+Route::get('/public/status/{status}', PublicStatusPayloadController::class)
+    ->middleware('throttle:60,1')
+    ->name('public.status.show');
+Route::post('/public/status/{status}/subscribers', PublicStatusSubscriptionController::class)
+    ->middleware('throttle:6,1')
+    ->name('public.status.subscribers.store');
+Route::delete('/public/status/{status}/subscribers/unsubscribe/{token}', [PublicStatusSubscriptionController::class, 'destroy'])
+    ->middleware('throttle:6,1')
+    ->name('public.status.subscribers.destroy');
 
 Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
     ->middleware('throttle:60,1')

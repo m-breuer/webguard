@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Internal\Ui\AdminWorkspaceController;
 use App\Http\Controllers\Api\Internal\Ui\AppearanceController;
 use App\Http\Controllers\Api\Internal\Ui\DashboardController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringCardsController;
@@ -11,12 +12,17 @@ use App\Http\Controllers\Api\Internal\Ui\MonitoringIndexController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringManagementController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringOwnershipController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringShowController;
+use App\Http\Controllers\Api\Internal\Ui\NotificationInboxController;
+use App\Http\Controllers\Api\Internal\Ui\NotificationSettingsController;
 use App\Http\Controllers\Api\Internal\Ui\PasswordController;
+use App\Http\Controllers\Api\Internal\Ui\ProfileApiKeyController;
 use App\Http\Controllers\Api\Internal\Ui\ProfileController;
+use App\Http\Controllers\Api\Internal\Ui\ProfileDeletionController;
 use App\Http\Controllers\Api\Internal\Ui\SessionController;
 use App\Http\Controllers\Api\Internal\Ui\StatusPageManagementController;
 use App\Http\Controllers\Api\Internal\Ui\TeamIndexController;
 use App\Http\Controllers\Api\Internal\Ui\TeamStoreController;
+use App\Http\Controllers\Api\Internal\Ui\TeamWorkspaceController;
 use App\Http\Controllers\Api\Mobile\MobileMaintenanceController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringNotificationPreferenceController;
@@ -36,10 +42,61 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
     Route::put('/profile/password', [PasswordController::class, 'update'])
         ->middleware('role:member,admin')
         ->name('profile.password.update');
+    Route::get('/profile/api-keys', [ProfileApiKeyController::class, 'index'])
+        ->middleware('role:member,admin')
+        ->name('profile.api-keys.index');
+    Route::post('/profile/api-keys', [ProfileApiKeyController::class, 'store'])
+        ->middleware('role:member,admin')
+        ->name('profile.api-keys.store');
+    Route::delete('/profile/api-keys/{apiKey}', [ProfileApiKeyController::class, 'destroy'])
+        ->middleware('role:member,admin')
+        ->whereNumber('apiKey')
+        ->name('profile.api-keys.destroy');
+    Route::delete('/profile/account', ProfileDeletionController::class)
+        ->middleware('role:member,admin')
+        ->name('profile.destroy');
+    Route::get('/profile/notification-settings', [NotificationSettingsController::class, 'show'])
+        ->middleware('role:member,admin')
+        ->name('profile.notification-settings.show');
+    Route::patch('/profile/notification-settings', [NotificationSettingsController::class, 'update'])
+        ->middleware('role:member,admin')
+        ->name('profile.notification-settings.update');
+    Route::post('/profile/notification-settings/{channel}/test', [NotificationSettingsController::class, 'test'])
+        ->middleware('role:member,admin')
+        ->name('profile.notification-settings.test');
 
     Route::middleware('verified')->group(function (): void {
+        Route::prefix('admin')->middleware('role:admin')->as('admin.')->group(function (): void {
+            Route::get('/dashboard', [AdminWorkspaceController::class, 'dashboard'])->name('dashboard');
+            Route::get('/users', [AdminWorkspaceController::class, 'users'])->name('users.index');
+            Route::post('/users', [AdminWorkspaceController::class, 'storeUser'])->name('users.store');
+            Route::patch('/users/{user}', [AdminWorkspaceController::class, 'updateUser'])->name('users.update');
+            Route::post('/users/{user}/verify', [AdminWorkspaceController::class, 'verifyUser'])->name('users.verify');
+            Route::delete('/users/{user}', [AdminWorkspaceController::class, 'destroyUser'])->name('users.destroy');
+            Route::get('/packages', [AdminWorkspaceController::class, 'packages'])->name('packages.index');
+            Route::post('/packages', [AdminWorkspaceController::class, 'storePackage'])->name('packages.store');
+            Route::patch('/packages/{package}', [AdminWorkspaceController::class, 'updatePackage'])->name('packages.update');
+            Route::delete('/packages/{package}', [AdminWorkspaceController::class, 'destroyPackage'])->name('packages.destroy');
+            Route::get('/server-instances', [AdminWorkspaceController::class, 'serverInstances'])->name('server-instances.index');
+            Route::post('/server-instances', [AdminWorkspaceController::class, 'storeServerInstance'])->name('server-instances.store');
+            Route::patch('/server-instances/{serverInstance}', [AdminWorkspaceController::class, 'updateServerInstance'])->name('server-instances.update');
+            Route::delete('/server-instances/{serverInstance}', [AdminWorkspaceController::class, 'destroyServerInstance'])->name('server-instances.destroy');
+            Route::get('/api-logs', [AdminWorkspaceController::class, 'apiLogs'])->name('api-logs.index');
+            Route::get('/activity-logs', [AdminWorkspaceController::class, 'activityLogs'])->name('activity-logs.index');
+        });
+
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
         Route::post('/teams', TeamStoreController::class)->name('teams.store');
+        Route::get('/teams/{team}', [TeamWorkspaceController::class, 'show'])->name('teams.show');
+        Route::patch('/teams/{team}', [TeamWorkspaceController::class, 'update'])->name('teams.update');
+        Route::patch('/teams/{team}/members/{teamMembership}', [TeamWorkspaceController::class, 'updateMember'])->name('teams.members.update');
+        Route::delete('/teams/{team}/members/{teamMembership}', [TeamWorkspaceController::class, 'destroyMember'])->name('teams.members.destroy');
+        Route::post('/teams/{team}/invitations', [TeamWorkspaceController::class, 'invite'])->name('teams.invitations.store');
+        Route::delete('/teams/{team}/invitations/{teamInvitation}', [TeamWorkspaceController::class, 'destroyInvitation'])->name('teams.invitations.destroy');
+        Route::delete('/teams/{team}/leave', [TeamWorkspaceController::class, 'leave'])->name('teams.leave');
+        Route::get('/notifications', [NotificationInboxController::class, 'index'])->name('notifications.index');
+        Route::patch('/notifications/read-all', [NotificationInboxController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::patch('/notifications/{notification}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.read');
         Route::get('/status-pages', [MobileStatusPageWorkspaceController::class, 'index'])->name('status-pages.index');
         Route::get('/status-pages/options', [StatusPageManagementController::class, 'options'])->name('status-pages.options');
         Route::post('/status-pages', [StatusPageManagementController::class, 'store'])->name('status-pages.store');

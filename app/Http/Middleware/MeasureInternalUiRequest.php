@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Http\RequestCorrelationId;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 final class MeasureInternalUiRequest
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $requestId = Str::uuid()->toString();
+        $requestId = RequestCorrelationId::for($request);
+        $request->attributes->set('request_id', $requestId);
         $startedAt = hrtime(true);
         $connection = DB::connection();
         $connection->flushQueryLog();

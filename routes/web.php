@@ -124,7 +124,11 @@ Route::get('/status/{statusPageSlug}', [LegacyPublicStatusPageController::class,
     ->where('statusPageSlug', $legacyStatusPageSlugPattern);
 
 Route::get('/badge.js', function () {
-    return response(file_get_contents(public_path('js/badge.js')))->header('Content-Type', 'application/javascript');
+    return response(file_get_contents(public_path('js/badge.js')))
+        ->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=60')
+        ->header('Content-Type', 'application/javascript; charset=UTF-8')
+        ->header('Cross-Origin-Resource-Policy', 'cross-origin')
+        ->header('X-Content-Type-Options', 'nosniff');
 })->name('badge.js');
 
 Route::middleware(['auth', 'role:member,admin'])
@@ -229,6 +233,13 @@ Route::group(
     ['prefix' => 'api', 'as' => 'api.', 'middleware' => 'auth'],
     function () {
         require __DIR__ . '/api/internal.php';
+    }
+);
+
+Route::group(
+    ['prefix' => 'api/v1/internal/ui/auth', 'as' => 'api.v1.internal.ui.auth.'],
+    function (): void {
+        require __DIR__ . '/api/auth-ui.php';
     }
 );
 
