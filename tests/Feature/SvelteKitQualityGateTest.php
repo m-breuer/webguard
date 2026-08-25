@@ -9,6 +9,32 @@ use Tests\TestCase;
 
 class SvelteKitQualityGateTest extends TestCase
 {
+    public function test_sveltekit_operational_forms_guard_duplicate_submissions(): void
+    {
+        $singleSubmitComponents = [
+            'frontend/src/lib/components/MonitoringForm.svelte',
+            'frontend/src/lib/components/MonitoringGroupForm.svelte',
+            'frontend/src/lib/components/StatusPageForm.svelte',
+            'frontend/src/routes/(app)/maintenance/+page.svelte',
+        ];
+
+        foreach ($singleSubmitComponents as $component) {
+            $contents = file_get_contents(base_path($component));
+
+            $this->assertIsString($contents);
+            $this->assertStringContainsString('if (submitting)', $contents, $component);
+        }
+
+        $monitoringOperations = file_get_contents(base_path('frontend/src/lib/components/MonitoringOperationsPanel.svelte'));
+        $monitoringGroupForm = file_get_contents(base_path('frontend/src/lib/components/MonitoringGroupForm.svelte'));
+
+        $this->assertIsString($monitoringOperations);
+        $this->assertIsString($monitoringGroupForm);
+        $this->assertStringContainsString('notificationsSaving)', $monitoringOperations);
+        $this->assertStringContainsString('ownershipSaving)', $monitoringOperations);
+        $this->assertStringContainsString('await onSuccess()', $monitoringGroupForm);
+    }
+
     public function test_sveltekit_components_use_tailwind_without_scoped_or_inline_styles(): void
     {
         foreach (File::allFiles(base_path('frontend/src')) as $file) {

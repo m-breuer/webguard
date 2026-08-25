@@ -12,6 +12,7 @@
     let mode = $state<"one_off" | "recurring">("one_off");
     let scope = $state<"monitoring" | "group">("monitoring");
     let submitting = $state(false);
+    let pendingWindowAction = $state<string | null>(null);
     let error = $state("");
     let message = $state("");
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -28,6 +29,11 @@
 
     async function schedule(event: SubmitEvent): Promise<void> {
         event.preventDefault();
+
+        if (submitting) {
+            return;
+        }
+
         submitting = true;
         error = "";
         message = "";
@@ -46,19 +52,30 @@
 
     async function cancel(window: MaintenanceWindow): Promise<void> {
         if (!globalThis.confirm(`Clear maintenance for ${window.target.name}?`)) return;
+
+        if (pendingWindowAction !== null) {
+            return;
+        }
+
+        pendingWindowAction = `one-off:${window.id}`;
         error = "";
         try {
             await requestFirstPartyApi(`/api/v1/internal/ui/maintenance/one-off/${window.id}`, { method: "DELETE" });
             await invalidateAll();
-        } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "Maintenance could not be cleared."; }
+        } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "Maintenance could not be cleared."; } finally { pendingWindowAction = null; }
     }
 
     async function toggle(window: MaintenanceWindow): Promise<void> {
+        if (pendingWindowAction !== null) {
+            return;
+        }
+
+        pendingWindowAction = `recurring:${window.id}`;
         error = "";
         try {
             await requestFirstPartyApi(`/api/v1/internal/ui/maintenance/recurring/${window.id}`, { body: JSON.stringify({ enabled: !window.enabled }), method: "PATCH" });
             await invalidateAll();
-        } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "Recurring maintenance could not be updated."; }
+        } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "Recurring maintenance could not be updated."; } finally { pendingWindowAction = null; }
     }
 </script>
 
@@ -68,6 +85,6 @@
     <header class="mb-8"><p class="m-0 text-[0.8125rem] font-extrabold tracking-[0.1em] text-wg-accent uppercase">Operations</p><h1 class="mt-2 text-[clamp(2rem,6vw,3rem)] leading-[1.1] font-bold">Maintenance</h1><p class="mt-3 leading-6 text-wg-text-muted">Schedule planned maintenance for manageable monitorings and private groups.</p></header>
     {#if message}<p class="mb-6 text-sm font-bold text-green-700 dark:text-green-300" role="status">{message}</p>{/if}{#if error}<p class="mb-6 text-sm font-bold text-wg-danger" role="alert">{error}</p>{/if}
     <section class="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]"><Card title="Schedule maintenance" description="One-off changes are protected against duplicate submissions.">{#if data.capabilities.can_schedule}<form class="grid gap-4" onsubmit={schedule} novalidate><Field label="Type"><select class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="mode" bind:value={mode}><option value="one_off">One-off</option><option value="recurring">Recurring</option></select></Field><Field label="Scope"><select class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="scope" bind:value={scope}><option value="monitoring">Monitoring</option><option value="group">Monitoring group</option></select></Field>{#if scope === "monitoring"}<Field label="Monitoring" required><select class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="monitoring_id" required>{#each data.capabilities.manageable_monitorings as monitoring}<option value={monitoring.id}>{monitoring.name}</option>{/each}</select></Field>{:else}<Field label="Monitoring group" required><select class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="monitoring_group_id" required>{#each data.capabilities.monitoring_groups as group}<option value={group.id}>{group.name} ({group.monitorings_count})</option>{/each}</select></Field>{/if}{#if mode === "one_off"}<div class="grid gap-4 sm:grid-cols-2"><Field label="Starts at" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="maintenance_from" type="datetime-local" required /></Field><Field label="Ends at"><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="maintenance_until" type="datetime-local" /></Field></div>{:else}<div class="grid gap-4 sm:grid-cols-2"><Field label="First start" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="recurring_starts_at" type="datetime-local" required /></Field><Field label="Repeat" required><select class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="recurrence"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></Field><Field label="Duration (minutes)" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="recurring_duration_minutes" type="number" min="1" max="1440" value="60" required /></Field><Field label="Timezone" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="recurring_timezone" value={timezone} required /></Field></div>{/if}<Button type="submit" loading={submitting}>Schedule maintenance</Button></form>{:else}<p class="text-sm leading-6 text-wg-text-muted">You do not have manageable monitorings for maintenance scheduling.</p>{/if}</Card>
-        <div class="grid gap-6"><Card title="One-off maintenance" description="Active, upcoming, and past maintenance applied to monitorings.">{#if data.oneOff.data.length > 0}<div class="grid gap-3">{#each data.oneOff.data as window (window.id)}<article class="flex flex-col justify-between gap-3 rounded-xl border border-wg-border p-4 sm:flex-row sm:items-center"><div><div class="flex items-center gap-3"><h3 class="font-bold">{window.target.name}</h3><StatusBadge tone={tone(window.state)} label={stateLabel(window.state)} /></div><p class="mt-2 text-sm text-wg-text-muted">{timestamp(window.schedule.starts_at)} · {timestamp(window.schedule.ends_at)}</p></div>{#if window.can_manage}<button class="min-h-10 rounded-xl border border-wg-border px-3 text-sm font-bold text-wg-text" type="button" onclick={() => cancel(window)}>Clear</button>{/if}</article>{/each}</div>{:else}<p class="text-sm leading-6 text-wg-text-muted">No one-off maintenance is scheduled.</p>{/if}</Card>
-        <Card title="Recurring maintenance" description="Enable or pause recurring maintenance windows.">{#if data.recurring.data.length > 0}<div class="grid gap-3">{#each data.recurring.data as window (window.id)}<article class="flex flex-col justify-between gap-3 rounded-xl border border-wg-border p-4 sm:flex-row sm:items-center"><div><div class="flex items-center gap-3"><h3 class="font-bold">{window.target.name}</h3><StatusBadge tone={tone(window.state)} label={stateLabel(window.state)} /></div><p class="mt-2 text-sm text-wg-text-muted">{window.schedule.recurrence} · {timestamp(window.schedule.starts_at)} · {window.schedule.duration_minutes} minutes</p></div>{#if window.can_manage}<button class="min-h-10 rounded-xl border border-wg-border px-3 text-sm font-bold text-wg-text" type="button" onclick={() => toggle(window)}>{window.enabled ? "Pause" : "Enable"}</button>{/if}</article>{/each}</div>{:else}<p class="text-sm leading-6 text-wg-text-muted">No recurring maintenance is scheduled.</p>{/if}</Card></div></section>
+        <div class="grid gap-6"><Card title="One-off maintenance" description="Active, upcoming, and past maintenance applied to monitorings.">{#if data.oneOff.data.length > 0}<div class="grid gap-3">{#each data.oneOff.data as window (window.id)}<article class="flex flex-col justify-between gap-3 rounded-xl border border-wg-border p-4 sm:flex-row sm:items-center"><div><div class="flex items-center gap-3"><h3 class="font-bold">{window.target.name}</h3><StatusBadge tone={tone(window.state)} label={stateLabel(window.state)} /></div><p class="mt-2 text-sm text-wg-text-muted">{timestamp(window.schedule.starts_at)} · {timestamp(window.schedule.ends_at)}</p></div>{#if window.can_manage}<button class="min-h-10 rounded-xl border border-wg-border px-3 text-sm font-bold text-wg-text disabled:cursor-not-allowed disabled:opacity-60" type="button" disabled={pendingWindowAction !== null} aria-busy={pendingWindowAction === `one-off:${window.id}`} onclick={() => cancel(window)}>Clear</button>{/if}</article>{/each}</div>{:else}<p class="text-sm leading-6 text-wg-text-muted">No one-off maintenance is scheduled.</p>{/if}</Card>
+        <Card title="Recurring maintenance" description="Enable or pause recurring maintenance windows.">{#if data.recurring.data.length > 0}<div class="grid gap-3">{#each data.recurring.data as window (window.id)}<article class="flex flex-col justify-between gap-3 rounded-xl border border-wg-border p-4 sm:flex-row sm:items-center"><div><div class="flex items-center gap-3"><h3 class="font-bold">{window.target.name}</h3><StatusBadge tone={tone(window.state)} label={stateLabel(window.state)} /></div><p class="mt-2 text-sm text-wg-text-muted">{window.schedule.recurrence} · {timestamp(window.schedule.starts_at)} · {window.schedule.duration_minutes} minutes</p></div>{#if window.can_manage}<button class="min-h-10 rounded-xl border border-wg-border px-3 text-sm font-bold text-wg-text disabled:cursor-not-allowed disabled:opacity-60" type="button" disabled={pendingWindowAction !== null} aria-busy={pendingWindowAction === `recurring:${window.id}`} onclick={() => toggle(window)}>{window.enabled ? "Pause" : "Enable"}</button>{/if}</article>{/each}</div>{:else}<p class="text-sm leading-6 text-wg-text-muted">No recurring maintenance is scheduled.</p>{/if}</Card></div></section>
 </main>

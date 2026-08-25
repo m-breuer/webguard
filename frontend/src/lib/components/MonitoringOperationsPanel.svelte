@@ -26,7 +26,11 @@
 
     async function updateNotifications(event: SubmitEvent): Promise<void> {
         event.preventDefault();
-        if (!monitoring) return;
+
+        if (!monitoring || notificationsSaving) {
+            return;
+        }
+
         notificationsSaving = true;
         message = "";
         error = "";
@@ -40,7 +44,11 @@
 
     async function updateOwnership(event: SubmitEvent): Promise<void> {
         event.preventDefault();
-        if (!monitoring) return;
+
+        if (!monitoring || ownershipSaving) {
+            return;
+        }
+
         ownershipSaving = true;
         message = "";
         error = "";

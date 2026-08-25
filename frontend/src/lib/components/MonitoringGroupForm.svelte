@@ -27,13 +27,18 @@
 
     async function submit(event: SubmitEvent): Promise<void> {
         event.preventDefault();
+
+        if (submitting) {
+            return;
+        }
+
         submitting = true;
         error = "";
         errors = {};
 
         try {
             await requestFirstPartyApi(action, { body: new FormData(event.currentTarget as HTMLFormElement), method });
-            onSuccess();
+            await onSuccess();
         } catch (exception) {
             if (exception instanceof FirstPartyApiError) {
                 error = exception.message;

@@ -41,6 +41,11 @@
 
     async function submit(event: SubmitEvent): Promise<void> {
         event.preventDefault();
+
+        if (submitting) {
+            return;
+        }
+
         submitting = true;
         message = "";
         errors = {};
