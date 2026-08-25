@@ -28,6 +28,7 @@ class IncidentAnalyticsRequest extends FormRequest
             'severity' => ['nullable', Rule::enum(IncidentSeverity::class)],
             'customer_impact' => ['nullable', Rule::enum(IncidentCustomerImpact::class)],
             'affected_service' => ['nullable', 'string', 'max:255'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }
