@@ -237,6 +237,13 @@ Route::group(
 );
 
 Route::group(
+    ['prefix' => 'api/v1/internal/ui/auth', 'as' => 'api.v1.internal.ui.auth.'],
+    function (): void {
+        require __DIR__ . '/api/auth-ui.php';
+    }
+);
+
+Route::group(
     ['prefix' => 'api/v1/internal/ui', 'as' => 'api.v1.internal.ui.', 'middleware' => 'auth'],
     function (): void {
         require __DIR__ . '/api/ui.php';

@@ -1,0 +1,138 @@
+<script lang="ts">
+    import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import type { AuthOptions } from "$lib/server/auth";
+    import Button from "$lib/components/Button.svelte";
+    import Field from "$lib/components/Field.svelte";
+    import GuestAuthLayout from "$lib/components/GuestAuthLayout.svelte";
+
+    type AuthMode = "login" | "register" | "demo";
+
+    interface AuthNavigation {
+        next_url: string;
+    }
+
+    interface Props {
+        options: AuthOptions;
+        initialMode?: AuthMode;
+        initialEmail?: string;
+        expired?: boolean;
+        notice?: string;
+    }
+
+    let {
+        options,
+        initialMode = "login",
+        initialEmail = "",
+        expired = false,
+        notice = "",
+    }: Props = $props();
+    let mode = $state<AuthMode>("login");
+    let email = $state("");
+    let password = $state("");
+    let submitting = $state(false);
+    let loadingDemo = $state(false);
+    let message = $state("");
+    let errors = $state<Record<string, string[]>>({});
+    let captchaNonce = $state(Date.now());
+    let initialized = $state(false);
+
+    const fieldClass = "w-full rounded-xl border border-wg-border bg-wg-surface px-3 py-2.5 text-wg-text";
+    const captchaUrl = $derived(`${options.captcha_url}?${captchaNonce}`);
+
+    $effect.pre(() => {
+        if (initialized) {
+            return;
+        }
+
+        mode = initialMode;
+        email = initialEmail;
+        message = notice || (expired ? "Your session has expired. Sign in again to continue." : "");
+        initialized = true;
+    });
+
+    async function selectMode(nextMode: AuthMode): Promise<void> {
+        mode = nextMode;
+        message = "";
+        errors = {};
+
+        if (nextMode !== "demo") {
+            return;
+        }
+
+        loadingDemo = true;
+        try {
+            const response = await requestFirstPartyApi<{ email: string }>("/api/v1/internal/ui/auth/demo-credentials");
+            email = response.data.email;
+            password = "password";
+        } catch (exception) {
+            message = exception instanceof FirstPartyApiError ? exception.message : "Demo credentials could not be loaded.";
+        } finally {
+            loadingDemo = false;
+        }
+    }
+
+    async function submit(event: SubmitEvent): Promise<void> {
+        event.preventDefault();
+
+        if (submitting) {
+            return;
+        }
+
+        submitting = true;
+        message = "";
+        errors = {};
+
+        try {
+            const form = event.currentTarget as HTMLFormElement;
+            const endpoint = mode === "register" ? "/api/v1/internal/ui/auth/register" : "/api/v1/internal/ui/auth/login";
+            const response = await requestFirstPartyApi<AuthNavigation>(endpoint, {
+                body: new FormData(form),
+                method: "POST",
+            });
+
+            window.location.assign(response.data.next_url);
+        } catch (exception) {
+            if (exception instanceof FirstPartyApiError) {
+                errors = exception.errors;
+                message = exception.message;
+            } else {
+                message = "The request could not be completed. Please try again.";
+            }
+        } finally {
+            submitting = false;
+        }
+    }
+
+    function errorFor(field: string): string | undefined {
+        return errors[field]?.[0];
+    }
+</script>
+
+<GuestAuthLayout title={mode === "register" ? "Create your account" : "Welcome to WebGuard"} description={mode === "register" ? "Start monitoring the services your team depends on." : "Sign in to manage your monitorings, status pages, and notifications."}>
+    <div class="mb-7 grid grid-cols-3 gap-2 rounded-xl bg-wg-surface-muted p-1.5" aria-label="Authentication mode">
+        <Button variant={mode === "login" ? "primary" : "quiet"} onclick={() => selectMode("login")}>Sign in</Button>
+        <Button variant={mode === "register" ? "primary" : "quiet"} onclick={() => selectMode("register")}>Register</Button>
+        <Button variant={mode === "demo" ? "primary" : "quiet"} loading={loadingDemo} onclick={() => selectMode("demo")}>Demo</Button>
+    </div>
+
+    {#if message}
+        <p class={`mb-5 text-sm font-semibold ${Object.keys(errors).length > 0 ? "text-wg-danger" : "text-green-700 dark:text-green-300"}`} role={Object.keys(errors).length > 0 ? "alert" : "status"}>{message}</p>
+    {/if}
+
+    <form class="grid gap-5" onsubmit={submit} novalidate>
+        {#if mode === "register"}
+            <Field label="Name" required error={errorFor("name")}><input class={fieldClass} name="name" autocomplete="name" required /></Field>
+        {/if}
+        <Field label="Email" required error={errorFor("email")}><input class={fieldClass} name="email" type="email" autocomplete={mode === "register" ? "username" : "email"} bind:value={email} required /></Field>
+        <Field label="Password" required error={errorFor("password")}><input class={fieldClass} name="password" type="password" autocomplete={mode === "register" ? "new-password" : "current-password"} bind:value={password} required /></Field>
+        {#if mode === "login" || mode === "demo"}
+            <label class="flex items-center gap-2 text-sm text-wg-text-muted"><input class="size-4" name="remember" type="checkbox" value="1" /> Keep me signed in</label>
+            <a class="text-sm font-bold text-wg-accent no-underline hover:underline" href="/forgot-password">Forgot your password?</a>
+        {:else}
+            <Field label="Confirm password" required error={errorFor("password_confirmation")}><input class={fieldClass} name="password_confirmation" type="password" autocomplete="new-password" required /></Field>
+            <label class="flex items-start gap-3 text-sm leading-6 text-wg-text-muted"><input class="mt-1 size-4" name="terms" type="checkbox" value="1" required /><span>I agree to the <a class="font-bold text-wg-accent" href={options.terms_url} target="_blank" rel="noopener">terms of use</a> and <a class="font-bold text-wg-accent" href={options.privacy_url} target="_blank" rel="noopener">privacy policy</a>.</span></label>
+            <Field label="Security check" required error={errorFor("captcha")}><div class="flex flex-col gap-3 sm:flex-row sm:items-center"><img class="h-[54px] w-[220px] rounded-xl border border-wg-border object-cover" src={captchaUrl} alt="Security check" /><Button type="button" variant="secondary" onclick={() => (captchaNonce = Date.now())}>Reload</Button></div><input class={fieldClass} name="captcha" autocomplete="off" inputmode="text" required /></Field>
+        {/if}
+        <Button type="submit" loading={submitting}>{mode === "register" ? "Create account" : "Sign in"}</Button>
+    </form>
+</GuestAuthLayout>
