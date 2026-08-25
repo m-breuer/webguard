@@ -56,6 +56,31 @@ class PublicStatusSubscriptionService
         return $monitoring->public_label_enabled;
     }
 
+    public function confirm(string $identifier, string $token): bool
+    {
+        $resource = $this->publicStatusResourceResolver->resolve($identifier);
+
+        if ($resource instanceof StatusPage) {
+            abort_unless($resource->is_public, 404);
+
+            $resource->subscriptions()
+                ->where('confirmation_token_hash', StatusPageSubscription::hashToken($token))
+                ->firstOrFail()
+                ->markVerified();
+
+            return true;
+        }
+
+        abort_unless($resource->public_label_enabled, 404);
+
+        $resource->statusPageSubscribers()
+            ->where('confirmation_token_hash', StatusPageSubscriber::hashToken($token))
+            ->firstOrFail()
+            ->markVerified();
+
+        return true;
+    }
+
     private function subscribeToStatusPage(StatusPage $statusPage, string $email): void
     {
         abort_unless($statusPage->is_public, 404);

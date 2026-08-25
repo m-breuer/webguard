@@ -141,6 +141,78 @@ class PublicStatusPayloadApiTest extends TestCase
         Mail::assertSent(StatusPageSubscriptionConfirmationMail::class);
     }
 
+    public function test_public_status_page_confirmation_endpoint_verifies_a_pending_subscription(): void
+    {
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $this->user()->id,
+            'name' => 'Acme Status',
+            'is_public' => true,
+        ]);
+        $statusPageSubscription = StatusPageSubscription::query()->create([
+            'status_page_id' => $statusPage->id,
+            'email' => 'customer@example.test',
+            'confirmation_token_hash' => StatusPageSubscription::hashToken('confirmation-token'),
+            'unsubscribe_token' => 'unsubscribe-token',
+        ]);
+
+        $this->postJson(route('public.status.subscribers.confirm', [
+            'status' => $statusPage,
+            'token' => 'confirmation-token',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.is_public', true);
+
+        $statusPageSubscription->refresh();
+        $this->assertTrue($statusPageSubscription->isVerified());
+        $this->assertNull($statusPageSubscription->confirmation_token_hash);
+    }
+
+    public function test_public_monitoring_confirmation_endpoint_verifies_a_pending_subscription(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->user())->create(['public_label_enabled' => true]);
+        $statusPageSubscriber = StatusPageSubscriber::query()->create([
+            'monitoring_id' => $monitoring->id,
+            'email' => 'customer@example.test',
+            'confirmation_token_hash' => StatusPageSubscriber::hashToken('confirmation-token'),
+            'unsubscribe_token' => 'unsubscribe-token',
+        ]);
+
+        $this->postJson(route('public.status.subscribers.confirm', [
+            'status' => $monitoring,
+            'token' => 'confirmation-token',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.is_public', true);
+
+        $statusPageSubscriber->refresh();
+        $this->assertTrue($statusPageSubscriber->isVerified());
+        $this->assertNull($statusPageSubscriber->confirmation_token_hash);
+    }
+
+    public function test_public_confirmation_endpoint_does_not_expose_private_resources_or_accept_unknown_tokens(): void
+    {
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $this->user()->id,
+            'name' => 'Private status',
+            'is_public' => false,
+        ]);
+        $publicStatusPage = StatusPage::query()->create([
+            'user_id' => $statusPage->user_id,
+            'name' => 'Public status',
+            'is_public' => true,
+        ]);
+
+        $this->postJson(route('public.status.subscribers.confirm', [
+            'status' => $statusPage,
+            'token' => 'confirmation-token',
+        ]))->assertNotFound();
+
+        $this->postJson(route('public.status.subscribers.confirm', [
+            'status' => $publicStatusPage,
+            'token' => 'confirmation-token',
+        ]))->assertNotFound();
+    }
+
     public function test_public_status_page_subscription_endpoint_removes_a_matching_subscription(): void
     {
         $statusPage = StatusPage::query()->create([
