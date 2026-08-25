@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Internal\Ui\SessionController;
 use App\Http\Controllers\Api\Internal\Ui\StatusPageManagementController;
 use App\Http\Controllers\Api\Internal\Ui\TeamIndexController;
 use App\Http\Controllers\Api\Internal\Ui\TeamStoreController;
+use App\Http\Controllers\Api\Internal\Ui\TeamWorkspaceController;
 use App\Http\Controllers\Api\Mobile\MobileMaintenanceController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringNotificationPreferenceController;
@@ -86,6 +87,13 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
 
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
         Route::post('/teams', TeamStoreController::class)->name('teams.store');
+        Route::get('/teams/{team}', [TeamWorkspaceController::class, 'show'])->name('teams.show');
+        Route::patch('/teams/{team}', [TeamWorkspaceController::class, 'update'])->name('teams.update');
+        Route::patch('/teams/{team}/members/{teamMembership}', [TeamWorkspaceController::class, 'updateMember'])->name('teams.members.update');
+        Route::delete('/teams/{team}/members/{teamMembership}', [TeamWorkspaceController::class, 'destroyMember'])->name('teams.members.destroy');
+        Route::post('/teams/{team}/invitations', [TeamWorkspaceController::class, 'invite'])->name('teams.invitations.store');
+        Route::delete('/teams/{team}/invitations/{teamInvitation}', [TeamWorkspaceController::class, 'destroyInvitation'])->name('teams.invitations.destroy');
+        Route::delete('/teams/{team}/leave', [TeamWorkspaceController::class, 'leave'])->name('teams.leave');
         Route::get('/notifications', [NotificationInboxController::class, 'index'])->name('notifications.index');
         Route::patch('/notifications/read-all', [NotificationInboxController::class, 'markAllRead'])->name('notifications.read-all');
         Route::patch('/notifications/{notification}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.read');
