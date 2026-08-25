@@ -36,16 +36,16 @@
 </svelte:head>
 
 <AppShell session={previewSession} currentPath="/dashboard">
-<div class="preview-content">
-    <header>
-        <p>Development-only component preview</p>
-        <h1>WebGuard interface primitives</h1>
-        <span>Dark-aware, keyboard-accessible and ready for the SvelteKit workspace.</span>
+<div class="mx-auto w-[min(70rem,calc(100%_-_2rem))] py-6 sm:py-12">
+    <header class="mb-10 max-w-2xl">
+        <p class="mb-2 text-[0.8125rem] font-bold tracking-[0.08em] text-wg-text-muted uppercase">Development-only component preview</p>
+        <h1 class="m-0 text-[clamp(2rem,6vw,3.5rem)] leading-[1.05]">WebGuard interface primitives</h1>
+        <span class="mt-4 block text-base leading-[1.6] text-wg-text-muted">Dark-aware, keyboard-accessible and ready for the SvelteKit workspace.</span>
     </header>
 
-    <section aria-labelledby="buttons-heading">
-        <h2 id="buttons-heading">Actions</h2>
-        <div class="actions">
+    <section aria-labelledby="buttons-heading" class="mt-5 rounded-2xl border border-wg-border bg-wg-surface p-[1.125rem] shadow-wg-surface sm:p-6">
+        <h2 id="buttons-heading" class="mb-4 mt-0 text-base">Actions</h2>
+        <div class="flex flex-wrap gap-3">
             <Button>Save changes</Button>
             <Button variant="secondary">Cancel</Button>
             <Button variant="danger">Delete monitoring</Button>
@@ -53,20 +53,20 @@
         </div>
     </section>
 
-    <section aria-labelledby="form-heading">
-        <h2 id="form-heading">Fields</h2>
-        <div class="field-grid">
+    <section aria-labelledby="form-heading" class="mt-5 rounded-2xl border border-wg-border bg-wg-surface p-[1.125rem] shadow-wg-surface sm:p-6">
+        <h2 id="form-heading" class="mb-4 mt-0 text-base">Fields</h2>
+        <div class="grid gap-4 md:grid-cols-2">
             <Field label="Monitoring name" required hint="Visible to your team.">
-                <input name="name" value="API gateway" />
+                <input class="box-border w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" value="API gateway" />
             </Field>
             <Field label="Target URL" error="Enter a publicly reachable URL.">
-                <input name="url" aria-invalid="true" value="localhost" />
+                <input class="box-border w-full rounded-[0.625rem] border border-wg-danger bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="url" aria-invalid="true" value="localhost" />
             </Field>
         </div>
     </section>
 
-    <section aria-labelledby="dialog-heading">
-        <h2 id="dialog-heading">Dialog</h2>
+    <section aria-labelledby="dialog-heading" class="mt-5 rounded-2xl border border-wg-border bg-wg-surface p-[1.125rem] shadow-wg-surface sm:p-6">
+        <h2 id="dialog-heading" class="mb-4 mt-0 text-base">Dialog</h2>
         <Button onclick={() => (dialogOpen = true)}>Open confirmation</Button>
     </section>
 
@@ -76,17 +76,17 @@
             <thead><tr><th>Name</th><th>Status</th></tr></thead>
             <tbody><tr><td>API gateway</td><td><StatusBadge tone="healthy" label="Up" /></td></tr></tbody>
         </DataTable>
-        <div class="pagination"><Pagination page={2} pages={4} href={(page) => `?page=${page}`} /></div>
+        <div class="mt-4"><Pagination page={2} pages={4} href={(page) => `?page=${page}`} /></div>
     </Card>
 
-    <section aria-label="Feedback states" class="feedback-states">
+    <section aria-label="Feedback states" class="mt-5 grid gap-5 rounded-2xl border border-wg-border bg-wg-surface p-[1.125rem] shadow-wg-surface sm:p-6">
         <LoadingState label="Loading monitoring results" />
         <EmptyState title="No maintenance windows" description="Planned maintenance will appear here once it is scheduled." />
     </section>
 </div>
 
 <Dialog bind:open={dialogOpen} title="Discard unsaved changes?" description="Your edits have not been saved yet.">
-    <div class="dialog-actions">
+    <div class="flex flex-wrap gap-3">
         <Button variant="secondary" onclick={() => (dialogOpen = false)}>Keep editing</Button>
         <Button variant="danger" onclick={() => (dialogOpen = false)}>Discard changes</Button>
     </div>
@@ -94,104 +94,3 @@
 </AppShell>
 
 <ToastRegion items={toastItems} onDismiss={(id) => (toastItems = toastItems.filter((item) => item.id !== id))} />
-
-<style>
-    .preview-content {
-        width: min(70rem, calc(100% - 2rem));
-        margin: 0 auto;
-        padding: 3rem 0;
-    }
-
-    header {
-        max-width: 42rem;
-        margin-bottom: 2.5rem;
-    }
-
-    header p,
-    header span {
-        color: var(--wg-text-muted);
-    }
-
-    header p {
-        margin: 0 0 0.5rem;
-        font-size: 0.8125rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
-
-    h1,
-    h2 {
-        margin: 0;
-    }
-
-    h1 {
-        font-size: clamp(2rem, 6vw, 3.5rem);
-        line-height: 1.05;
-    }
-
-    header span {
-        display: block;
-        margin-top: 1rem;
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-
-    section {
-        margin-top: 1.25rem;
-        border: 1px solid var(--wg-border);
-        border-radius: 1rem;
-        background: var(--wg-surface);
-        box-shadow: var(--wg-shadow);
-        padding: 1.5rem;
-    }
-
-    h2 {
-        margin-bottom: 1rem;
-        font-size: 1rem;
-    }
-
-    .actions,
-    .dialog-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-
-    .field-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
-    }
-
-    .pagination { margin-top: 1rem; }
-    .feedback-states { display: grid; gap: 1.25rem; }
-
-    input {
-        width: 100%;
-        box-sizing: border-box;
-        border: 1px solid var(--wg-border);
-        border-radius: 0.625rem;
-        background: var(--wg-surface);
-        color: var(--wg-text);
-        padding: 0.65rem 0.75rem;
-    }
-
-    input[aria-invalid="true"] {
-        border-color: var(--wg-danger);
-    }
-
-    @media (max-width: 42rem) {
-        .preview-content {
-            padding: 1.5rem 0;
-        }
-
-        section {
-            padding: 1.125rem;
-        }
-
-        .field-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>

@@ -9,6 +9,8 @@ than recreating controls, dialog behavior, or mutation state.
 `frontend/src/app.css` imports Tailwind CSS and maps the shared color, focus,
 surface, and motion tokens into Tailwind utilities. New and migrated Svelte
 components use those utilities instead of local style blocks or inline styles.
+The SvelteKit quality gate rejects both patterns in component and route files,
+so shared tokens stay in the Tailwind layer rather than drifting into routes.
 The tokens mirror the established WebGuard purple navigation and light/dark
 surface contrast without depending on the Laravel Vite pipeline. Appearance is
 applied in `app.html` before SvelteKit hydrates, then persisted by
