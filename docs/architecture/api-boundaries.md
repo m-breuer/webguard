@@ -82,7 +82,9 @@ Verified workspace routes remain behind `verified`; the session and appearance
 contracts deliberately do not, matching the existing profile behavior. Every
 future SvelteKit feature-area endpoint must use this namespace, a `data`
 envelope, request validation, and an ownership or policy check before accepting
-client-supplied identifiers.
+client-supplied identifiers. The complete browser endpoint catalogue and
+transport rules are maintained in the
+[first-party UI API contract](first-party-ui-contract.md).
 
 ## Current-to-target migration
 
