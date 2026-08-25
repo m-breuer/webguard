@@ -1,4 +1,4 @@
-import { error, fail } from "@sveltejs/kit";
+import { error, fail, redirect } from "@sveltejs/kit";
 import type { PublicStatusPayload } from "$lib/api/public-status";
 import type { Actions } from "./$types";
 
@@ -22,10 +22,16 @@ export async function load({ fetch, params, url }) {
         error(response.status, "This public status page is unavailable.");
     }
 
+    const payload = await response.json() as { data: PublicStatusPayload };
+
+    if (payload.data.identifier !== params.id) {
+        redirect(301, `/status/${encodeURIComponent(payload.data.identifier)}${url.search}`);
+    }
+
     const subscription = url.searchParams.get("subscription");
 
     return {
-        ...(await response.json() as { data: PublicStatusPayload }).data,
+        ...payload.data,
         subscriptionNotice: subscription === "confirmation-sent"
             ? "Check your inbox to confirm your subscription."
             : subscription === "confirmed"
@@ -40,6 +46,18 @@ export const actions = {
     default: async ({ fetch, params, request }) => {
         const formData = await request.formData();
         const email = String(formData.get("email") ?? "");
+        const statusResponse = await fetch(`/api/public/status/${encodeURIComponent(params.id)}`, {
+            headers: { Accept: "application/json" },
+        });
+
+        if (statusResponse.ok) {
+            const payload = await statusResponse.json() as { data: PublicStatusPayload };
+
+            if (payload.data.identifier !== params.id) {
+                redirect(307, `/status/${encodeURIComponent(payload.data.identifier)}`);
+            }
+        }
+
         const response = await fetch(`/api/public/status/${encodeURIComponent(params.id)}/subscribers`, {
             body: formData,
             headers: { Accept: "application/json" },
