@@ -7,18 +7,9 @@
     <title>Unable to load | WebGuard</title>
 </svelte:head>
 
-<main>
-    <p class="eyebrow">{page.status}</p>
-    <h1>Unable to load this page</h1>
-    <p>{page.error?.message ?? "Please try again in a moment."}</p>
-    <a href={appRoutes.dashboard}>Return to dashboard</a>
+<main class="mx-auto grid min-h-screen max-w-2xl content-center gap-4 p-8">
+    <p class="m-0 text-[0.8125rem] font-extrabold tracking-[0.12em] text-wg-accent uppercase">{page.status}</p>
+    <h1 class="m-0 text-[clamp(2rem,8vw,3.5rem)] leading-[1.05]">Unable to load this page</h1>
+    <p class="m-0 leading-[1.6] text-wg-text-muted">{page.error?.message ?? "Please try again in a moment."}</p>
+    <a class="w-fit rounded-xl bg-wg-accent px-4 py-3 font-bold text-wg-accent-contrast no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus" href={appRoutes.dashboard}>Return to dashboard</a>
 </main>
-
-<style>
-    main { display: grid; min-height: 100vh; max-width: 38rem; align-content: center; gap: 1rem; margin: 0 auto; padding: 2rem; }
-    h1, p { margin: 0; }
-    h1 { font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; }
-    p { color: var(--wg-text-muted); line-height: 1.6; }
-    .eyebrow { color: var(--wg-accent); font-size: 0.8125rem; font-weight: 800; letter-spacing: 0.12em; }
-    a { width: fit-content; border-radius: 0.75rem; background: var(--wg-accent); color: var(--wg-accent-contrast); padding: 0.75rem 1rem; font-weight: 700; text-decoration: none; }
-</style>

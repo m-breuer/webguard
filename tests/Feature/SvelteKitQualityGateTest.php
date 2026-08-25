@@ -4,10 +4,25 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 class SvelteKitQualityGateTest extends TestCase
 {
+    public function test_sveltekit_components_use_tailwind_without_scoped_or_inline_styles(): void
+    {
+        foreach (File::allFiles(base_path('frontend/src')) as $file) {
+            if ($file->getExtension() !== 'svelte') {
+                continue;
+            }
+
+            $contents = $file->getContents();
+
+            $this->assertStringNotContainsString('<style', $contents, $file->getPathname());
+            $this->assertDoesNotMatchRegularExpression('/\\sstyle\\s*=/i', $contents, $file->getPathname());
+        }
+    }
+
     public function test_ci_runs_sveltekit_checks_budgets_and_container_smoke_test(): void
     {
         $workflow = file_get_contents(base_path('.github/workflows/ci.yml'));
