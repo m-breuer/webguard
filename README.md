@@ -1,7 +1,7 @@
 # WebGuard
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-WebGuard is an open-source monitoring core built with Laravel 13. It provides the management UI, REST API, public status pages, notification workflows, and package administration for monitoring websites, DNS records, domains, SSL certificates, and background jobs.
+WebGuard is an open-source monitoring core built with Laravel 13 and SvelteKit. It provides the management UI, REST API, public status pages, notification workflows, and package administration for monitoring websites, DNS records, domains, SSL certificates, and background jobs.
 
 > **System architecture note:** this repository contains the Management Core & API. Distributed scanning nodes live in the [WebGuard Instance Repository](https://github.com/marcel-breuer/webguard-instance), while the mobile client is maintained in the [WebGuard App Repository](https://github.com/marcel-breuer/webguard-app).
 ## What It Does
@@ -40,10 +40,10 @@ php artisan test
 - [Features](docs/features.md)
 - [Architecture and technology stack](docs/architecture.md)
 - [Installation, Docker, and operations](docs/installation.md)
+- [SvelteKit production cutover](docs/operations/sveltekit-cutover.md)
 - [Test concept](docs/test-concept.md)
 - [Contributing](docs/contributing.md)
 - [Releases and changelog](docs/releases.md)
-
 ## License
 
 WebGuard is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
