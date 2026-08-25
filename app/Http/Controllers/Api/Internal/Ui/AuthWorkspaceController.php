@@ -65,7 +65,7 @@ final class AuthWorkspaceController extends Controller
             'captcha.captcha' => __('auth.register.captcha_invalid'),
         ]);
 
-        $user = User::query()->create([
+        $model = User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -74,8 +74,8 @@ final class AuthWorkspaceController extends Controller
             'privacy_accepted_at' => now(),
         ]);
 
-        event(new Registered($user));
-        Auth::login($user);
+        event(new Registered($model));
+        Auth::login($model);
         $request->session()->regenerate();
 
         return response()->json(['data' => ['next_url' => '/verify-email']], 201);

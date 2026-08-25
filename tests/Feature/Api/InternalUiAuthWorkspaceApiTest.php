@@ -62,9 +62,9 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
             'captcha' => $this->validCaptchaValue(),
         ])->assertCreated()->assertJsonPath('data.next_url', '/verify-email');
 
-        $registered = User::query()->where('email', 'new-member@example.test')->firstOrFail();
-        $this->assertAuthenticatedAs($registered);
-        Notification::assertSentTo($registered, VerifyEmail::class);
+        $model = User::query()->where('email', 'new-member@example.test')->firstOrFail();
+        $this->assertAuthenticatedAs($model);
+        Notification::assertSentTo($model, VerifyEmail::class);
     }
 
     public function test_guest_can_request_and_complete_a_password_reset(): void
