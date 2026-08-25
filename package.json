@@ -15,22 +15,22 @@
         "@tailwindcss/postcss": "^4.3.3",
         "@types/alpinejs": "^3.13.11",
         "@types/node": "^25.9.5",
-        "alpinejs": "^3.16.1",
+        "alpinejs": "^3.16.2",
         "axios": "^1.19.0",
         "concurrently": "^9.2.4",
         "laravel-vite-plugin": "^3.2.0",
         "postcss": "^8.5.26",
         "prettier": "^3.9.6",
-        "prettier-plugin-blade": "^3.2.2",
+        "prettier-plugin-blade": "^3.3.0",
         "prettier-plugin-tailwindcss": "^0.8.1",
         "tailwindcss": "^4.3.3",
         "typescript": "^6.0.3",
-        "vite": "^8.2.1"
+        "vite": "^8.2.2"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.3.3",
         "chart.js": "^4.5.1",
-        "dayjs": "^1.11.21",
+        "dayjs": "^1.11.23",
         "playwright": "^1.62.1"
     },
     "overrides": {
