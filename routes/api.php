@@ -28,6 +28,9 @@ Route::get('/public/status/{status}', PublicStatusPayloadController::class)
 Route::post('/public/status/{status}/subscribers', PublicStatusSubscriptionController::class)
     ->middleware('throttle:6,1')
     ->name('public.status.subscribers.store');
+Route::post('/public/status/{status}/subscribers/confirm/{token}', [PublicStatusSubscriptionController::class, 'confirm'])
+    ->middleware('throttle:6,1')
+    ->name('public.status.subscribers.confirm');
 Route::delete('/public/status/{status}/subscribers/unsubscribe/{token}', [PublicStatusSubscriptionController::class, 'destroy'])
     ->middleware('throttle:6,1')
     ->name('public.status.subscribers.destroy');

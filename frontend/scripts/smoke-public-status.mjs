@@ -4,9 +4,10 @@ const baseUrl = process.env.SMOKE_BASE_URL;
 const statusPageId = process.env.SMOKE_STATUS_PAGE_ID;
 const statusPageSlug = process.env.SMOKE_STATUS_PAGE_SLUG;
 const unsubscribeToken = process.env.SMOKE_UNSUBSCRIBE_TOKEN;
+const confirmationToken = process.env.SMOKE_CONFIRMATION_TOKEN;
 
-if (!baseUrl || !statusPageId || !statusPageSlug || !unsubscribeToken) {
-    throw new Error("SMOKE_BASE_URL, SMOKE_STATUS_PAGE_ID, SMOKE_STATUS_PAGE_SLUG, and SMOKE_UNSUBSCRIBE_TOKEN are required.");
+if (!baseUrl || !statusPageId || !statusPageSlug || !unsubscribeToken || !confirmationToken) {
+    throw new Error("SMOKE_BASE_URL, SMOKE_STATUS_PAGE_ID, SMOKE_STATUS_PAGE_SLUG, SMOKE_UNSUBSCRIBE_TOKEN, and SMOKE_CONFIRMATION_TOKEN are required.");
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -61,6 +62,17 @@ try {
     await unsubscribePage.waitForURL(`${baseUrl}/status/${statusPageId}?subscription=unsubscribed`);
     await unsubscribePage.getByRole("status").filter({ hasText: "You have been unsubscribed." }).waitFor();
     await unsubscribePage.close();
+
+    const confirmationPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await confirmationPage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.13" });
+    const confirmationResponse = await confirmationPage.goto(`${baseUrl}/status/${statusPageId}/subscribers/confirm/${confirmationToken}`, { waitUntil: "networkidle" });
+
+    if (confirmationResponse?.status() !== 200 || confirmationPage.url() !== `${baseUrl}/status/${statusPageId}?subscription=confirmed`) {
+        throw new Error("Subscription confirmation did not redirect to the canonical public status page.");
+    }
+
+    await confirmationPage.getByRole("status").filter({ hasText: "Your subscription has been confirmed." }).waitFor();
+    await confirmationPage.close();
 
     const noJavaScriptPage = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 1280, height: 800 } });
     await noJavaScriptPage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.11" });

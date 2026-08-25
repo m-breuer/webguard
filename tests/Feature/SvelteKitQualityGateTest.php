@@ -39,6 +39,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('sveltekit-browser-smoke@example.test', $script);
         $this->assertStringContainsString('SMOKE_STATUS_PAGE_SLUG', $script);
         $this->assertStringContainsString('SMOKE_UNSUBSCRIBE_TOKEN', $script);
+        $this->assertStringContainsString('SMOKE_CONFIRMATION_TOKEN', $script);
         $this->assertStringContainsString('mcr.microsoft.com/playwright:v1.62.1-noble', $script);
         $this->assertStringContainsString('node_modules:/ms-playwright/node_modules:ro', $script);
         $this->assertStringContainsString('/ms-playwright/smoke/smoke-public-status.mjs', $script);
@@ -99,6 +100,22 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertFileExists($unsubscribePage);
         $this->assertFileExists($unsubscribeAction);
         $this->assertStringContainsString('subscribers/unsubscribe', (string) file_get_contents($unsubscribeAction));
+    }
+
+    public function test_gateway_serves_canonical_subscription_confirmations_from_sveltekit(): void
+    {
+        $gatewayConfiguration = file_get_contents(base_path('docker/gateway/nginx.conf'));
+        $confirmationPage = base_path('frontend/src/routes/status/[id]/subscribers/confirm/[token]/+page.svelte');
+        $confirmationAction = base_path('frontend/src/routes/status/[id]/subscribers/confirm/[token]/+page.server.ts');
+
+        $this->assertIsString($gatewayConfiguration);
+        $this->assertStringContainsString('location ~* "^/status/[0-9a-hjkmnp-tv-z]{26}/subscribers/confirm/', $gatewayConfiguration);
+        $this->assertStringContainsString('if ($request_method !~ "^GET$")', $gatewayConfiguration);
+        $this->assertStringContainsString('proxy_pass http://sveltekit', $gatewayConfiguration);
+        $this->assertFileExists($confirmationPage);
+        $this->assertFileExists($confirmationAction);
+        $this->assertStringContainsString('subscribers/confirm', (string) file_get_contents($confirmationAction));
+        $this->assertStringContainsString('subscription=confirmed', (string) file_get_contents($confirmationAction));
     }
 
     public function test_gateway_forwards_canonical_status_page_subscription_posts_to_sveltekit(): void

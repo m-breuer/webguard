@@ -31,4 +31,13 @@ class PublicStatusSubscriptionController extends Controller
             ],
         ]);
     }
+
+    public function confirm(string $status, string $token, PublicStatusSubscriptionService $publicStatusSubscriptionService): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'is_public' => $publicStatusSubscriptionService->confirm($status, $token),
+            ],
+        ]);
+    }
 }

@@ -63,7 +63,13 @@ status_page_fixture="$(
             "verified_at" => now(),
         ]);
 
-        echo $statusPage->id . "|sveltekit-browser-smoke-unsubscribe-token|" . $statusPage->slug;
+        $statusPage->subscriptions()->create([
+            "email" => "sveltekit-browser-smoke-confirmation@example.test",
+            "confirmation_token_hash" => App\Models\StatusPageSubscription::hashToken("sveltekit-browser-smoke-confirmation-token"),
+            "unsubscribe_token" => "sveltekit-browser-smoke-confirmation-unsubscribe-token",
+        ]);
+
+        echo $statusPage->id . "|sveltekit-browser-smoke-unsubscribe-token|" . $statusPage->slug . "|sveltekit-browser-smoke-confirmation-token";
     '
 )"
 
@@ -71,6 +77,8 @@ status_page_id="${status_page_fixture%%|*}"
 status_page_fixture_without_id="${status_page_fixture#*|}"
 unsubscribe_token="${status_page_fixture_without_id%%|*}"
 status_page_slug="${status_page_fixture_without_id#*|}"
+confirmation_token="${status_page_slug#*|}"
+status_page_slug="${status_page_slug%%|*}"
 
 repository_path="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 
@@ -80,6 +88,7 @@ docker run --rm \
     --env SMOKE_STATUS_PAGE_ID="$status_page_id" \
     --env SMOKE_STATUS_PAGE_SLUG="$status_page_slug" \
     --env SMOKE_UNSUBSCRIBE_TOKEN="$unsubscribe_token" \
+    --env SMOKE_CONFIRMATION_TOKEN="$confirmation_token" \
     --volume "$repository_path/frontend/scripts:/ms-playwright/smoke:ro" \
     --volume "$repository_path/node_modules:/ms-playwright/node_modules:ro" \
     mcr.microsoft.com/playwright:v1.62.1-noble \
