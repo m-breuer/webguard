@@ -196,7 +196,7 @@ final class IncidentAnalyticsPayloadService
     private function incidentQuery(User $user, array $filters, int $days): Builder
     {
         $builder = Incident::query()
-            ->whereHas('monitoring', fn (Builder $query): Builder => $query->visibleTo($user))
+            ->whereHas('monitoring', fn (Builder $builder): Builder => $builder->visibleTo($user))
             ->with('monitoring')
             ->whereBetween('down_at', [Date::now()->subDays($days)->startOfDay(), Date::now()->endOfDay()])
             ->latest('down_at');
@@ -215,12 +215,12 @@ final class IncidentAnalyticsPayloadService
     }
 
     /**
-     * @param  EloquentCollection<int, Incident>  $incidents
+     * @param  EloquentCollection<int, Incident>  $eloquentCollection
      * @return Collection<string, int>
      */
-    private function groupCounts(EloquentCollection $incidents, callable $keyResolver): Collection
+    private function groupCounts(EloquentCollection $eloquentCollection, callable $keyResolver): Collection
     {
-        return $incidents->groupBy($keyResolver)
+        return $eloquentCollection->groupBy($keyResolver)
             ->map(static fn (Collection $group): int => $group->count())
             ->sortDesc();
     }
@@ -282,10 +282,10 @@ final class IncidentAnalyticsPayloadService
     }
 
     /**
-     * @param  EloquentCollection<int, Incident>  $incidents
+     * @param  EloquentCollection<int, Incident>  $eloquentCollection
      * @return array{points:list<array{label:string,count:int,x:float,y:float}>,max:int}
      */
-    private function incidentTrend(EloquentCollection $incidents, int $days): array
+    private function incidentTrend(EloquentCollection $eloquentCollection, int $days): array
     {
         $pointCount = $days >= 90 ? 10 : 7;
         $bucketDays = max(1, (int) ceil($days / $pointCount));
@@ -302,7 +302,7 @@ final class IncidentAnalyticsPayloadService
 
             $bucketEnd = $bucketStart->copy()->addDays($bucketDays - 1)->endOfDay();
             $bucketEnd = $bucketEnd->isAfter($now) ? $now : $bucketEnd;
-            $count = $incidents->filter(static fn (Incident $incident): bool => $incident->down_at->betweenIncluded($bucketStart, $bucketEnd))->count();
+            $count = $eloquentCollection->filter(static fn (Incident $incident): bool => $incident->down_at->betweenIncluded($bucketStart, $bucketEnd))->count();
 
             $points->push([
                 'label' => $bucketStart->locale(app()->getLocale())->isoFormat('D. MMM'),
