@@ -18,11 +18,11 @@ class SvelteKitQualityGateTest extends TestCase
             'frontend/src/routes/(app)/maintenance/+page.svelte',
         ];
 
-        foreach ($singleSubmitComponents as $component) {
-            $contents = file_get_contents(base_path($component));
+        foreach ($singleSubmitComponents as $singleSubmitComponent) {
+            $contents = file_get_contents(base_path($singleSubmitComponent));
 
             $this->assertIsString($contents);
-            $this->assertStringContainsString('if (submitting)', $contents, $component);
+            $this->assertStringContainsString('if (submitting)', $contents, $singleSubmitComponent);
         }
 
         $monitoringOperations = file_get_contents(base_path('frontend/src/lib/components/MonitoringOperationsPanel.svelte'));
