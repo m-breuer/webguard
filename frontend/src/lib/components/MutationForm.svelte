@@ -23,6 +23,7 @@
     let submitting = $state(false);
     let message = $state("");
     let errors = $state<Record<string, string[]>>({});
+    let sessionRecovery = $state(false);
 
     async function submit(event: SubmitEvent): Promise<void> {
         event.preventDefault();
@@ -34,6 +35,7 @@
         submitting = true;
         message = "";
         errors = {};
+        sessionRecovery = false;
 
         try {
             const form = event.currentTarget as HTMLFormElement;
@@ -48,7 +50,10 @@
         } catch (error) {
             if (error instanceof FirstPartyApiError) {
                 errors = error.errors;
-                message = error.message;
+                sessionRecovery = error.status === 401 || error.status === 419;
+                message = sessionRecovery
+                    ? "Your session has expired. Sign in again, then retry without losing the values entered here."
+                    : error.message;
             } else {
                 message = "The request could not be completed. Please try again.";
             }
@@ -68,6 +73,7 @@
         >
             {message}
         </p>
+        {#if sessionRecovery}<a class="text-sm font-bold text-wg-accent no-underline hover:underline" href="/login?expired=1">Sign in again</a>{/if}
     {/if}
 
     <Button type="submit" loading={submitting}>{submitLabel}</Button>
