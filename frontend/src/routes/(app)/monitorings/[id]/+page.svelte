@@ -22,6 +22,8 @@
     }
 
     async function remove(): Promise<void> {
+        if (deleting) return;
+
         if (!window.confirm(`Delete ${data.monitoring.name}? This cannot be undone.`)) return;
 
         deleting = true;

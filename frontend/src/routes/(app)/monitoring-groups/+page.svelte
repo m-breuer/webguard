@@ -14,6 +14,7 @@
     let editOpen = $state(false);
     let editing = $state<MonitoringGroup | null>(null);
     let actionError = $state("");
+    let actionPending = $state(false);
 
     async function reload(): Promise<void> {
         createOpen = false;
@@ -23,23 +24,38 @@
     }
 
     async function edit(group: MonitoringGroup): Promise<void> {
+        if (actionPending) {
+            return;
+        }
+
+        actionPending = true;
         actionError = "";
         try {
             editing = (await requestFirstPartyApi<MonitoringGroup>(`/api/v1/internal/ui/monitoring-groups/${group.id}`)).data;
             editOpen = true;
         } catch (exception) {
             actionError = exception instanceof FirstPartyApiError ? exception.message : "The monitoring group could not be loaded.";
+        } finally {
+            actionPending = false;
         }
     }
 
     async function remove(group: MonitoringGroup): Promise<void> {
+        if (actionPending) {
+            return;
+        }
+
         if (!window.confirm(`Delete ${group.name}? Monitorings will not be deleted.`)) return;
+
+        actionPending = true;
         actionError = "";
         try {
             await requestFirstPartyApi(`/api/v1/internal/ui/monitoring-groups/${group.id}`, { method: "DELETE" });
             await reload();
         } catch (exception) {
             actionError = exception instanceof FirstPartyApiError ? exception.message : "The monitoring group could not be deleted.";
+        } finally {
+            actionPending = false;
         }
     }
 </script>
@@ -49,7 +65,7 @@
 <main class="mx-auto w-[min(70rem,calc(100%_-_2rem))] py-6 sm:py-12">
     <header class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row"><div><p class="m-0 text-[0.8125rem] font-extrabold tracking-[0.1em] text-wg-accent uppercase">Operations</p><h1 class="mt-2 text-[clamp(2rem,6vw,3rem)] leading-[1.1] font-bold">Monitoring groups</h1><p class="mt-3 leading-6 text-wg-text-muted">Organize privately owned monitorings into reusable groups.</p></div><Button onclick={() => (createOpen = true)}>Create group</Button></header>
     {#if actionError}<p class="mb-6 text-sm font-bold text-wg-danger" role="alert">{actionError}</p>{/if}
-    {#if data.groups.data.length === 0}<EmptyState title="No monitoring groups yet" description="Create a group to organize related private monitorings." />{:else}<section class="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">{#each data.groups.data as group (group.id)}<Card title={group.name} description={group.description ?? "No description provided."}>{#snippet actions()}<span class="text-sm font-bold text-wg-text-muted">{group.assignable_monitoring_count} monitorings</span>{/snippet}<div class="flex flex-wrap gap-3"><button class="min-h-10 rounded-xl border border-wg-border px-3 text-sm font-bold text-wg-text" type="button" onclick={() => edit(group)}>Edit</button><button class="min-h-10 rounded-xl border border-red-300 px-3 text-sm font-bold text-wg-danger" type="button" onclick={() => remove(group)}>Delete</button></div></Card>{/each}</section>{/if}
+    {#if data.groups.data.length === 0}<EmptyState title="No monitoring groups yet" description="Create a group to organize related private monitorings." />{:else}<section class="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">{#each data.groups.data as group (group.id)}<Card title={group.name} description={group.description ?? "No description provided."}>{#snippet actions()}<span class="text-sm font-bold text-wg-text-muted">{group.assignable_monitoring_count} monitorings</span>{/snippet}<div class="flex flex-wrap gap-3"><button class="min-h-10 rounded-xl border border-wg-border px-3 text-sm font-bold text-wg-text disabled:cursor-not-allowed disabled:opacity-60" type="button" disabled={actionPending} aria-busy={actionPending} onclick={() => edit(group)}>Edit</button><button class="min-h-10 rounded-xl border border-red-300 px-3 text-sm font-bold text-wg-danger disabled:cursor-not-allowed disabled:opacity-60" type="button" disabled={actionPending} aria-busy={actionPending} onclick={() => remove(group)}>Delete</button></div></Card>{/each}</section>{/if}
 </main>
 
 <Dialog bind:open={createOpen} title="Create monitoring group" description="Assign private monitorings now or update the group later."><MonitoringGroupForm action="/api/v1/internal/ui/monitoring-groups" method="POST" assignments={data.assignments.data} onSuccess={reload} /></Dialog>
