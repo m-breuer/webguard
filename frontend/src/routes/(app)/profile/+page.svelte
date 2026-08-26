@@ -1,8 +1,10 @@
 <script lang="ts">
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
+    import Checkbox from "$lib/components/Checkbox.svelte";
     import Dialog from "$lib/components/Dialog.svelte";
     import Field from "$lib/components/Field.svelte";
+    import Input from "$lib/components/Input.svelte";
     import MutationForm from "$lib/components/MutationForm.svelte";
     import { appRoutes } from "$lib/routes";
     import type { FirstPartySession } from "$lib/api/models";
@@ -37,16 +39,16 @@
     <div class="grid gap-6">
         <Card title="Account information" description="Changing your email requires verification again.">
             <MutationForm action="/api/v1/internal/ui/profile" method="PATCH" submitLabel="Save changes" successMessage="Profile saved. Refreshing your session…" onSuccess={refreshProfile}>
-                <Field label="Name" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" autocomplete="name" value={data.session.user.name} /></Field>
-                <Field label="Email" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="email" type="email" autocomplete="email" value={data.session.user.email} /></Field>
+                <Field label="Name" required><Input name="name" autocomplete="name" value={data.session.user.name} /></Field>
+                <Field label="Email" required><Input name="email" type="email" autocomplete="email" value={data.session.user.email} /></Field>
             </MutationForm>
         </Card>
 
         <Card title="Password" description="Use your current password to confirm this security-sensitive change.">
             <MutationForm action="/api/v1/internal/ui/profile/password" method="PUT" submitLabel="Update password" successMessage="Password updated.">
-                <Field label="Current password" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="current_password" type="password" autocomplete="current-password" /></Field>
-                <Field label="New password" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="password" type="password" autocomplete="new-password" /></Field>
-                <Field label="Confirm new password" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="password_confirmation" type="password" autocomplete="new-password" /></Field>
+                <Field label="Current password" required><Input name="current_password" type="password" autocomplete="current-password" /></Field>
+                <Field label="New password" required><Input name="password" type="password" autocomplete="new-password" /></Field>
+                <Field label="Confirm new password" required><Input name="password_confirmation" type="password" autocomplete="new-password" /></Field>
             </MutationForm>
         </Card>
 
@@ -69,11 +71,11 @@
 
 <Dialog bind:open={createOpen} title="Create API key" description="Copy the key immediately. It will only be shown once.">
     <MutationForm action="/api/v1/internal/ui/profile/api-keys" submitLabel="Create API key" successMessage="API key created." onSuccess={revealCreatedApiKey}>
-        <Field label="Name" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" maxlength="100" autocomplete="off" /></Field>
-        <fieldset class="grid gap-3"><legend class="text-sm font-bold text-wg-text">Permissions</legend><label class="flex items-start gap-3 text-sm"><input class="mt-1 size-4" name="abilities[]" type="checkbox" value="analytics:read" /><span><strong>Read analytics</strong><br /><span class="text-wg-text-muted">Read monitoring analytics and availability data.</span></span></label><label class="flex items-start gap-3 text-sm"><input class="mt-1 size-4" name="abilities[]" type="checkbox" value="server-health:write" /><span><strong>Write server health</strong><br /><span class="text-wg-text-muted">Submit server health reports from an approved integration.</span></span></label></fieldset>
+        <Field label="Name" required><Input name="name" maxlength={100} autocomplete="off" /></Field>
+        <fieldset class="grid gap-3"><legend class="text-sm font-bold text-wg-text">Permissions</legend><label class="flex items-start gap-3 text-sm"><Checkbox class="mt-1" name="abilities[]" value="analytics:read" /><span><strong>Read analytics</strong><br /><span class="text-wg-text-muted">Read monitoring analytics and availability data.</span></span></label><label class="flex items-start gap-3 text-sm"><Checkbox class="mt-1" name="abilities[]" value="server-health:write" /><span><strong>Write server health</strong><br /><span class="text-wg-text-muted">Submit server health reports from an approved integration.</span></span></label></fieldset>
     </MutationForm>
 </Dialog>
 
 <Dialog open={revokeTarget !== null} onclose={() => (revokeTarget = null)} title="Revoke API key" description="The key will stop working immediately.">{#if revokeTarget}<MutationForm action={`/api/v1/internal/ui/profile/api-keys/${revokeTarget.id}`} method="DELETE" submitLabel="Revoke API key" successMessage="API key revoked." onSuccess={markApiKeyRevoked}><p class="m-0 text-sm text-wg-text-muted">Revoke <strong>{revokeTarget.name}</strong>?</p></MutationForm>{/if}</Dialog>
-<Dialog bind:open={deleteOpen} title="Delete account" description="Confirm your password to permanently schedule the deletion of your account."><MutationForm action="/api/v1/internal/ui/profile/account" method="DELETE" submitLabel="Delete account" successMessage="Account deletion scheduled." onSuccess={finishDeletion}><Field label="Current password" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="password" type="password" autocomplete="current-password" /></Field></MutationForm></Dialog>
+<Dialog bind:open={deleteOpen} title="Delete account" description="Confirm your password to permanently schedule the deletion of your account."><MutationForm action="/api/v1/internal/ui/profile/account" method="DELETE" submitLabel="Delete account" successMessage="Account deletion scheduled." onSuccess={finishDeletion}><Field label="Current password" required><Input name="password" type="password" autocomplete="current-password" /></Field></MutationForm></Dialog>
 <Dialog open={revealedToken !== null} onclose={() => (revealedToken = null)} title="Copy your API key" description="Store this value securely. It cannot be recovered after this dialog is closed.">{#if revealedToken}<p class="m-0 break-all rounded-xl border border-wg-border bg-wg-surface-muted p-4 font-mono text-sm" aria-live="polite">{revealedToken}</p>{/if}</Dialog>

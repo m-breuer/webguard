@@ -2,7 +2,11 @@
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
     import type { StatusPage, StatusPageComponent, StatusPageMonitoring } from "$lib/api/status-pages";
     import Button from "$lib/components/Button.svelte";
+    import Checkbox from "$lib/components/Checkbox.svelte";
     import Field from "$lib/components/Field.svelte";
+    import Input from "$lib/components/Input.svelte";
+    import Select from "$lib/components/Select.svelte";
+    import Textarea from "$lib/components/Textarea.svelte";
 
     interface FormComponent {
         id?: string;
@@ -77,20 +81,20 @@
 
 <form class="grid gap-6" onsubmit={submit} novalidate>
     <div class="grid gap-5 sm:grid-cols-2">
-        <Field label="Name" error={errorFor("name")} required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" value={statusPage?.name ?? ""} required /></Field>
-        <Field label="Visibility" hint="Published pages are available at their public status URL."><input name="is_public" type="hidden" value="0" /><label class="flex min-h-11 items-center gap-3 rounded-[0.625rem] border border-wg-border px-3 text-sm font-bold"><input name="is_public" type="checkbox" value="1" checked={statusPage?.publication.is_public ?? true} /> Publish this status page</label></Field>
+        <Field label="Name" error={errorFor("name")} required><Input name="name" value={statusPage?.name ?? ""} required /></Field>
+        <Field label="Visibility" hint="Published pages are available at their public status URL."><Input name="is_public" type="hidden" value="0" /><label class="flex min-h-11 items-center gap-3 rounded-md border border-wg-border px-3 text-sm font-bold"><Checkbox name="is_public" value="1" checked={statusPage?.publication.is_public ?? true} /> Publish this status page</label></Field>
     </div>
-    <Field label="Description" error={errorFor("description")}><textarea class="min-h-24 w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="description">{statusPage?.description ?? ""}</textarea></Field>
+    <Field label="Description" error={errorFor("description")}><Textarea name="description" value={statusPage?.description ?? ""} /></Field>
 
     <fieldset class="grid gap-4 border-t border-wg-border pt-6">
         <div class="flex flex-wrap items-end justify-between gap-3"><div><legend class="text-xl font-bold">Components</legend><p class="mt-1 text-sm leading-5 text-wg-text-muted">Each component can show selected monitorings or keep its monitoring-group source.</p></div><Button type="button" variant="secondary" onclick={() => components.push(emptyComponent())}>Add component</Button></div>
         {#each components as component, index (component.id ?? index)}
             <section class="grid gap-4 border-b border-wg-border pb-5 last:border-b-0">
-                <input name={`components[${index}][source_type]`} type="hidden" value={component.sourceType} />
-                {#if component.sourceType === "monitoring_group" && component.monitoringGroup}<input name={`components[${index}][monitoring_group_id]`} type="hidden" value={component.monitoringGroup.id} />{/if}
-                <div class="flex items-center justify-between gap-3"><h3 class="font-bold">Component {index + 1}</h3><button class="min-h-10 rounded-xl border border-red-300 px-3 text-sm font-bold text-wg-danger" type="button" aria-label={`Remove component ${index + 1}`} onclick={() => (components = components.filter((_, componentIndex) => componentIndex !== index))}>Remove</button></div>
-                <div class="grid gap-4 sm:grid-cols-2"><Field label="Component name" error={errorFor(`components.${index}.name`)} required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name={`components[${index}][name]`} bind:value={component.name} required /></Field>{#if component.sourceType === "monitoring_group" && component.monitoringGroup}<Field label="Monitoring group"><div class="min-h-11 rounded-[0.625rem] border border-wg-border bg-wg-surface-muted px-3 py-[0.65rem] text-sm font-bold">{component.monitoringGroup.name} · {component.monitoringGroup.monitoring_count} monitorings</div></Field>{:else}<Field label="Monitorings" error={errorFor(`components.${index}.monitoring_ids`)} required><select class="min-h-28 w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name={`components[${index}][monitoring_ids][]`} multiple bind:value={component.monitoringIds} required>{#each monitorings as monitoring}<option value={monitoring.id}>{monitoring.name} · {monitoring.target}</option>{/each}</select></Field>{/if}</div>
-                <Field label="Component description" error={errorFor(`components.${index}.description`)}><textarea class="min-h-20 w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name={`components[${index}][description]`} bind:value={component.description}></textarea></Field>
+                <Input name={`components[${index}][source_type]`} type="hidden" value={component.sourceType} />
+                {#if component.sourceType === "monitoring_group" && component.monitoringGroup}<Input name={`components[${index}][monitoring_group_id]`} type="hidden" value={component.monitoringGroup.id} />{/if}
+                <div class="flex items-center justify-between gap-3"><h3 class="font-bold">Component {index + 1}</h3><Button class="min-h-10 px-3 py-1.5" variant="danger" type="button" aria-label={`Remove component ${index + 1}`} onclick={() => (components = components.filter((_, componentIndex) => componentIndex !== index))}>Remove</Button></div>
+                <div class="grid gap-4 sm:grid-cols-2"><Field label="Component name" error={errorFor(`components.${index}.name`)} required><Input name={`components[${index}][name]`} bind:value={component.name} required /></Field>{#if component.sourceType === "monitoring_group" && component.monitoringGroup}<Field label="Monitoring group"><div class="min-h-11 rounded-md border border-wg-border bg-wg-surface-muted px-3 py-2 text-sm font-bold">{component.monitoringGroup.name} · {component.monitoringGroup.monitoring_count} monitorings</div></Field>{:else}<Field label="Monitorings" error={errorFor(`components.${index}.monitoring_ids`)} required><Select class="min-h-28" name={`components[${index}][monitoring_ids][]`} multiple bind:value={component.monitoringIds} required>{#each monitorings as monitoring}<option value={monitoring.id}>{monitoring.name} · {monitoring.target}</option>{/each}</Select></Field>{/if}</div>
+                <Field label="Component description" error={errorFor(`components.${index}.description`)}><Textarea class="min-h-20" name={`components[${index}][description]`} bind:value={component.description} /></Field>
             </section>
         {/each}
         {#if errorFor("components")}<p class="text-sm font-bold text-wg-danger" role="alert">{errorFor("components")}</p>{/if}

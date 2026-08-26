@@ -5,7 +5,9 @@
     import Button from "$lib/components/Button.svelte";
     import Dialog from "$lib/components/Dialog.svelte";
     import Field from "$lib/components/Field.svelte";
+    import Input from "$lib/components/Input.svelte";
     import MutationForm from "$lib/components/MutationForm.svelte";
+    import Textarea from "$lib/components/Textarea.svelte";
 
     interface TeamSummary { id: string; name: string; description: string | null; member_count: number; monitoring_count: number; role: "admin" | "member"; }
     interface Props { data: { data: { teams: TeamSummary[] } }; }
@@ -51,7 +53,7 @@
 </main>
 <Dialog bind:open={createOpen} title="Create team" description="You will become this team's first administrator.">
     <MutationForm action="/api/v1/internal/ui/teams" submitLabel="Create team" successMessage="Team created. Refreshing…" onSuccess={refreshTeams}>
-        <Field label="Name" required><input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" autocomplete="organization" /></Field>
-        <Field label="Description"><textarea class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="description" rows="3"></textarea></Field>
+        <Field label="Name" required><Input name="name" autocomplete="organization" /></Field>
+        <Field label="Description"><Textarea name="description" rows={3} /></Field>
     </MutationForm>
 </Dialog>

@@ -1,7 +1,9 @@
 <script lang="ts">
     import Button from "$lib/components/Button.svelte";
+    import Checkbox from "$lib/components/Checkbox.svelte";
     import Dialog from "$lib/components/Dialog.svelte";
     import Field from "$lib/components/Field.svelte";
+    import Input from "$lib/components/Input.svelte";
     import AppShell from "$lib/components/AppShell.svelte";
     import Card from "$lib/components/Card.svelte";
     import DataTable from "$lib/components/DataTable.svelte";
@@ -10,6 +12,8 @@
     import LoadingState from "$lib/components/LoadingState.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
     import StatusBadge from "$lib/components/StatusBadge.svelte";
+    import Select from "$lib/components/Select.svelte";
+    import Textarea from "$lib/components/Textarea.svelte";
     import ToastRegion from "$lib/components/ToastRegion.svelte";
 
     let dialogOpen = $state(false);
@@ -57,11 +61,20 @@
         <h2 id="form-heading" class="mb-4 mt-0 text-base">Fields</h2>
         <div class="grid gap-4 md:grid-cols-2">
             <Field label="Monitoring name" required hint="Visible to your team.">
-                <input class="box-border w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="name" value="API gateway" />
+                <Input name="name" value="API gateway" />
             </Field>
             <Field label="Target URL" error="Enter a publicly reachable URL.">
-                <input class="box-border w-full rounded-[0.625rem] border border-wg-danger bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="url" aria-invalid="true" value="localhost" />
+                <Input class="border-wg-danger" name="url" aria-invalid="true" value="localhost" />
             </Field>
+            <Field label="Monitoring type" hint="Use the same native control contract as the management forms.">
+                <Select name="type"><option value="http">HTTP</option><option value="keyword">Keyword</option></Select>
+            </Field>
+            <Field label="Description">
+                <Textarea name="description" value="API availability checks for the public gateway." />
+            </Field>
+            <label class="flex items-center gap-3 rounded-md border border-wg-border px-3 py-2 text-sm font-bold">
+                <Checkbox name="notifications" checked /> Notify on failure
+            </label>
         </div>
     </section>
 

@@ -59,7 +59,7 @@
 <dialog
     bind:this={dialog}
     aria-label={title}
-    class="m-auto max-h-[min(46rem,calc(100%_-_2rem))] w-[min(42rem,calc(100%_-_2rem))] rounded-2xl border border-wg-border bg-wg-surface p-0 text-wg-text shadow-wg-surface backdrop:bg-slate-900/65"
+    class="m-auto max-h-[min(46rem,calc(100%_-_2rem))] w-[min(42rem,calc(100%_-_2rem))] rounded-lg border border-wg-border bg-wg-surface p-0 text-wg-text shadow-wg-surface backdrop:bg-slate-900/65"
     oncancel={handleCancel}
     onclose={handleDialogClose}
     onclick={handleBackdropClick}
@@ -72,7 +72,7 @@
             </div>
             <button
                 type="button"
-                class="inline-grid size-9 shrink-0 place-items-center rounded-[0.625rem] border border-wg-border bg-transparent text-2xl leading-none text-wg-text enabled:hover:bg-wg-surface-muted"
+                class="inline-grid size-9 shrink-0 place-items-center rounded-md border border-wg-border bg-transparent text-2xl leading-none text-wg-text enabled:hover:bg-wg-surface-muted"
                 aria-label={closeLabel}
                 onclick={close}
             >×</button>

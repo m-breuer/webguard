@@ -1,0 +1,15 @@
+<script lang="ts">
+    import type { HTMLInputAttributes } from "svelte/elements";
+
+    interface Props extends Omit<HTMLInputAttributes, "value"> {
+        value?: string | number | readonly string[];
+    }
+
+    let { value = $bindable(), class: className = "", ...attributes }: Props = $props();
+</script>
+
+<input
+    {...attributes}
+    bind:value
+    class={`min-h-11 w-full rounded-md border border-wg-border bg-wg-surface px-3 py-2 text-sm text-wg-text shadow-xs transition-colors placeholder:text-wg-text-muted focus:border-wg-accent focus:ring-2 focus:ring-wg-focus/40 disabled:cursor-not-allowed disabled:bg-wg-surface-muted disabled:text-wg-text-muted read-only:bg-wg-surface-muted ${className}`}
+/>

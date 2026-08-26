@@ -1,7 +1,10 @@
 <script lang="ts">
+    import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
+    import Input from "$lib/components/Input.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
+    import Select from "$lib/components/Select.svelte";
     import StatusBadge, { type StatusTone } from "$lib/components/StatusBadge.svelte";
     import type { AnalyticsDistribution, IncidentAnalyticsItem, IncidentAnalyticsResponse, OperationalSummary } from "$lib/api/incidents";
 
@@ -83,12 +86,12 @@
         <div class="mb-5"><p class="text-[0.8125rem] font-extrabold tracking-[0.1em] text-wg-accent uppercase">Analytics</p><h2 id="incidents-heading" class="mt-1 text-2xl font-bold">Incidents</h2><p class="mt-2 text-sm leading-6 text-wg-text-muted">Incident count includes incidents opened in the selected period. MTTR is the average time between down and recovery for resolved incidents.</p></div>
         <Card title="Filter incidents" description="Narrow the operational view without a separate submit step.">
             <form class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" method="GET" action="/incidents/analytics">
-                <label class="grid gap-2 text-sm font-bold"><span>Period</span><select class="rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="days" value={analytics.filters.days}><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option></select></label>
-                <label class="grid gap-2 text-sm font-bold"><span>Type</span><select class="rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="incident_type"><option value="">All</option>{#each analytics.filter_options.incident_types as option}<option value={option.value} selected={analytics.filters.incident_type === option.value}>{option.label}</option>{/each}</select></label>
-                <label class="grid gap-2 text-sm font-bold"><span>Severity</span><select class="rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="severity"><option value="">All</option>{#each analytics.filter_options.severities as option}<option value={option.value} selected={analytics.filters.severity === option.value}>{option.label}</option>{/each}</select></label>
-                <label class="grid gap-2 text-sm font-bold"><span>Customer impact</span><select class="rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="customer_impact"><option value="">All</option>{#each analytics.filter_options.customer_impacts as option}<option value={option.value} selected={analytics.filters.customer_impact === option.value}>{option.label}</option>{/each}</select></label>
-                <label class="grid gap-2 text-sm font-bold sm:col-span-2 lg:col-span-3"><span>Affected service</span><input class="rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="affected_service" value={analytics.filters.affected_service ?? ""} type="search" /></label>
-                <div class="flex items-end"><button class="min-h-11 w-full rounded-xl bg-wg-accent px-4 py-2.5 text-sm font-bold tracking-[0.035em] text-wg-accent-contrast" type="submit">Apply filters</button></div>
+                <label class="grid gap-2 text-sm font-bold"><span>Period</span><Select name="days" value={String(analytics.filters.days)}><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option></Select></label>
+                <label class="grid gap-2 text-sm font-bold"><span>Type</span><Select name="incident_type"><option value="">All</option>{#each analytics.filter_options.incident_types as option}<option value={option.value} selected={analytics.filters.incident_type === option.value}>{option.label}</option>{/each}</Select></label>
+                <label class="grid gap-2 text-sm font-bold"><span>Severity</span><Select name="severity"><option value="">All</option>{#each analytics.filter_options.severities as option}<option value={option.value} selected={analytics.filters.severity === option.value}>{option.label}</option>{/each}</Select></label>
+                <label class="grid gap-2 text-sm font-bold"><span>Customer impact</span><Select name="customer_impact"><option value="">All</option>{#each analytics.filter_options.customer_impacts as option}<option value={option.value} selected={analytics.filters.customer_impact === option.value}>{option.label}</option>{/each}</Select></label>
+                <label class="grid gap-2 text-sm font-bold sm:col-span-2 lg:col-span-3"><span>Affected service</span><Input name="affected_service" value={analytics.filters.affected_service ?? ""} type="search" /></label>
+                <div class="flex items-end"><Button class="w-full" type="submit">Apply filters</Button></div>
             </form>
         </Card>
 
@@ -109,3 +112,4 @@
 {#snippet DistributionCard(title: string, items: AnalyticsDistribution[])}
     <Card {title}>{#if items.length === 0}<p class="text-sm text-wg-text-muted">No incidents match the selected filters.</p>{:else}<dl class="divide-y divide-wg-border">{#each items as item}<div class="flex items-center justify-between gap-3 py-2 text-sm"><dt class="text-wg-text-muted">{item.label}</dt><dd class="font-extrabold">{item.count}</dd></div>{/each}</dl>{/if}</Card>
 {/snippet}
+    import Button from "$lib/components/Button.svelte";

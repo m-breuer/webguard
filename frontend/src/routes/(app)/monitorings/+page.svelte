@@ -1,8 +1,11 @@
 <script lang="ts">
     import { appRoutes } from "$lib/routes";
+    import Button from "$lib/components/Button.svelte";
     import DataTable from "$lib/components/DataTable.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
+    import Input from "$lib/components/Input.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
+    import Select from "$lib/components/Select.svelte";
     import StatusBadge from "$lib/components/StatusBadge.svelte";
     import type { MonitoringListResponse, MonitoringSummary } from "$lib/api/monitoring";
 
@@ -65,17 +68,17 @@
     <form class="mb-6 grid gap-3 rounded-2xl border border-wg-border bg-wg-surface p-4 shadow-wg-surface sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-end" method="GET">
         <label class="grid gap-2 text-sm font-bold">
             Search
-            <input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="search" type="search" value={data.filters.search} placeholder="Name or target" />
+            <Input name="search" type="search" value={data.filters.search} placeholder="Name or target" />
         </label>
         <label class="grid gap-2 text-sm font-bold">
             Lifecycle
-            <select class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" name="lifecycle_status" value={data.filters.lifecycleStatus}>
+            <Select name="lifecycle_status" value={data.filters.lifecycleStatus}>
                 <option value="">All monitorings</option>
                 <option value="active">Active</option>
                 <option value="paused">Paused</option>
-            </select>
+            </Select>
         </label>
-        <button class="min-h-11 rounded-xl bg-wg-accent px-4 py-2.5 text-sm font-bold tracking-[0.035em] text-wg-accent-contrast transition hover:bg-wg-accent-strong" type="submit">Apply filters</button>
+        <Button type="submit">Apply filters</Button>
     </form>
 
     {#if data.monitorings.data.length === 0}
