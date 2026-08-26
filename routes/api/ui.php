@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Internal\Ui\AdminWorkspaceController;
 use App\Http\Controllers\Api\Internal\Ui\AppearanceController;
 use App\Http\Controllers\Api\Internal\Ui\DashboardController;
 use App\Http\Controllers\Api\Internal\Ui\IncidentAnalyticsController;
+use App\Http\Controllers\Api\Internal\Ui\LocaleController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringCardsController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringDetailDataController;
 use App\Http\Controllers\Api\Internal\Ui\MonitoringFormOptionsController;
@@ -37,6 +38,9 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
     Route::patch('/appearance', AppearanceController::class)
         ->middleware('role:member,admin')
         ->name('appearance.update');
+    Route::patch('/locale', LocaleController::class)
+        ->middleware('role:member,admin')
+        ->name('locale.update');
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('role:member,admin')
         ->name('profile.update');

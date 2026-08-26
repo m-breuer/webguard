@@ -23,6 +23,7 @@ class InternalUiSessionApiTest extends TestCase
         $this->getJson(route('api.v1.internal.ui.session.show'))->assertUnauthorized();
         $this->postJson(route('api.v1.internal.ui.session.destroy'))->assertUnauthorized();
         $this->patchJson(route('api.v1.internal.ui.appearance.update'), ['theme' => 'dark'])->assertUnauthorized();
+        $this->patchJson(route('api.v1.internal.ui.locale.update'), ['locale' => 'de'])->assertUnauthorized();
     }
 
     public function test_authenticated_user_can_bootstrap_their_own_session_context(): void
@@ -100,6 +101,25 @@ class InternalUiSessionApiTest extends TestCase
         $this->actingAs($demoUser)
             ->patchJson(route('api.v1.internal.ui.appearance.update'), ['theme' => 'dark'])
             ->assertForbidden();
+    }
+
+    public function test_authenticated_user_can_update_their_locale_for_the_sveltekit_sidebar(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create(['locale' => 'en']);
+
+        $testResponse = $this->actingAs($user)
+            ->patchJson(route('api.v1.internal.ui.locale.update'), ['locale' => 'de']);
+
+        $testResponse
+            ->assertOk()
+            ->assertJsonPath('data.locale', 'de')
+            ->assertCookie('webguard_locale', 'de');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'locale' => 'de',
+        ]);
     }
 
     public function test_authenticated_user_can_end_their_first_party_session(): void

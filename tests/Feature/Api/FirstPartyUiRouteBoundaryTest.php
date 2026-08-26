@@ -15,7 +15,7 @@ class FirstPartyUiRouteBoundaryTest extends TestCase
         $routes = collect(RouteFacade::getRoutes()->getRoutes())
             ->filter(fn (Route $route): bool => str_starts_with($route->uri(), 'api/v1/internal/ui/'));
 
-        $this->assertCount(93, $routes);
+        $this->assertCount(94, $routes);
 
         foreach ($routes as $route) {
             $name = $route->getName();
