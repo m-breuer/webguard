@@ -3,6 +3,7 @@
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
+    import Select from "$lib/components/Select.svelte";
     import StatusBadge from "$lib/components/StatusBadge.svelte";
     import type { NotificationEntry, NotificationInboxMeta } from "./+page.server";
 
@@ -112,7 +113,7 @@
     <Card>
         <div class="flex flex-col gap-4 border-b border-wg-border pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div class="grid gap-2"><span class="text-sm font-bold">Show</span><div class="flex flex-wrap gap-2"><Button variant={showRead ? "secondary" : "primary"} onclick={() => { showRead = false; load(true); }}>Unread</Button><Button variant={showRead ? "primary" : "secondary"} onclick={() => { showRead = true; load(true); }}>All</Button></div></div>
-            <label class="grid gap-2 text-sm font-bold">Event type<select class="min-h-11 rounded-xl border border-wg-border bg-wg-surface px-3 text-wg-text" value={eventType} onchange={(event) => { eventType = event.currentTarget.value; load(true); }}>{#each eventTypes as [value, label]}<option {value}>{label}</option>{/each}</select></label>
+            <label class="grid gap-2 text-sm font-bold">Event type<Select value={eventType} onchange={(event) => { eventType = event.currentTarget.value; load(true); }}>{#each eventTypes as [value, label]}<option {value}>{label}</option>{/each}</Select></label>
         </div>
 
         {#if errorMessage}<p class="mt-5 text-sm font-semibold text-wg-danger" role="alert">{errorMessage}</p>{/if}

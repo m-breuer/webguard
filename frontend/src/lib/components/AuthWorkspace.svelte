@@ -2,8 +2,10 @@
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
     import type { AuthOptions } from "$lib/server/auth";
     import Button from "$lib/components/Button.svelte";
+    import Checkbox from "$lib/components/Checkbox.svelte";
     import Field from "$lib/components/Field.svelte";
     import GuestAuthLayout from "$lib/components/GuestAuthLayout.svelte";
+    import Input from "$lib/components/Input.svelte";
 
     type AuthMode = "login" | "register" | "demo";
 
@@ -36,7 +38,6 @@
     let captchaNonce = $state(Date.now());
     let initialized = $state(false);
 
-    const fieldClass = "w-full rounded-xl border border-wg-border bg-wg-surface px-3 py-2.5 text-wg-text";
     const captchaUrl = $derived(`${options.captcha_url}?${captchaNonce}`);
 
     $effect.pre(() => {
@@ -121,17 +122,17 @@
 
     <form class="grid gap-5" onsubmit={submit} novalidate>
         {#if mode === "register"}
-            <Field label="Name" required error={errorFor("name")}><input class={fieldClass} name="name" autocomplete="name" required /></Field>
+            <Field label="Name" required error={errorFor("name")}><Input name="name" autocomplete="name" required /></Field>
         {/if}
-        <Field label="Email" required error={errorFor("email")}><input class={fieldClass} name="email" type="email" autocomplete={mode === "register" ? "username" : "email"} bind:value={email} required /></Field>
-        <Field label="Password" required error={errorFor("password")}><input class={fieldClass} name="password" type="password" autocomplete={mode === "register" ? "new-password" : "current-password"} bind:value={password} required /></Field>
+        <Field label="Email" required error={errorFor("email")}><Input name="email" type="email" autocomplete={mode === "register" ? "username" : "email"} bind:value={email} required /></Field>
+        <Field label="Password" required error={errorFor("password")}><Input name="password" type="password" autocomplete={mode === "register" ? "new-password" : "current-password"} bind:value={password} required /></Field>
         {#if mode === "login" || mode === "demo"}
-            <label class="flex items-center gap-2 text-sm text-wg-text-muted"><input class="size-4" name="remember" type="checkbox" value="1" /> Keep me signed in</label>
+            <label class="flex items-center gap-2 text-sm text-wg-text-muted"><Checkbox name="remember" value="1" /> Keep me signed in</label>
             <a class="text-sm font-bold text-wg-accent no-underline hover:underline" href="/forgot-password">Forgot your password?</a>
         {:else}
-            <Field label="Confirm password" required error={errorFor("password_confirmation")}><input class={fieldClass} name="password_confirmation" type="password" autocomplete="new-password" required /></Field>
-            <label class="flex items-start gap-3 text-sm leading-6 text-wg-text-muted"><input class="mt-1 size-4" name="terms" type="checkbox" value="1" required /><span>I agree to the <a class="font-bold text-wg-accent" href={options.terms_url} target="_blank" rel="noopener">terms of use</a> and <a class="font-bold text-wg-accent" href={options.privacy_url} target="_blank" rel="noopener">privacy policy</a>.</span></label>
-            <Field label="Security check" required error={errorFor("captcha")}><div class="flex flex-col gap-3 sm:flex-row sm:items-center"><img class="h-[54px] w-[220px] rounded-xl border border-wg-border object-cover" src={captchaUrl} alt="Security check" /><Button type="button" variant="secondary" onclick={() => (captchaNonce = Date.now())}>Reload</Button></div><input class={fieldClass} name="captcha" autocomplete="off" inputmode="text" required /></Field>
+            <Field label="Confirm password" required error={errorFor("password_confirmation")}><Input name="password_confirmation" type="password" autocomplete="new-password" required /></Field>
+            <label class="flex items-start gap-3 text-sm leading-6 text-wg-text-muted"><Checkbox class="mt-1" name="terms" value="1" required /><span>I agree to the <a class="font-bold text-wg-accent" href={options.terms_url} target="_blank" rel="noopener">terms of use</a> and <a class="font-bold text-wg-accent" href={options.privacy_url} target="_blank" rel="noopener">privacy policy</a>.</span></label>
+            <Field label="Security check" required error={errorFor("captcha")}><div class="flex flex-col gap-3 sm:flex-row sm:items-center"><img class="h-[54px] w-[220px] rounded-md border border-wg-border object-cover" src={captchaUrl} alt="Security check" /><Button type="button" variant="secondary" onclick={() => (captchaNonce = Date.now())}>Reload</Button></div><Input name="captcha" autocomplete="off" inputmode="text" required /></Field>
         {/if}
         <Button type="submit" loading={submitting}>{mode === "register" ? "Create account" : "Sign in"}</Button>
     </form>

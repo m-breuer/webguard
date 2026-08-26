@@ -1,7 +1,9 @@
 <script lang="ts">
     import { appRoutes } from "$lib/routes";
+    import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
+    import Input from "$lib/components/Input.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
     import StatusBadge from "$lib/components/StatusBadge.svelte";
     import type { DashboardResponse, DashboardService } from "$lib/api/monitoring";
@@ -106,12 +108,12 @@
                     </div>
                     <label class="w-full sm:max-w-sm">
                         <span class="sr-only">Search monitorings</span>
-                        <input class="w-full rounded-[0.625rem] border border-wg-border bg-wg-surface px-3 py-[0.65rem] text-wg-text" bind:value={serviceQuery} type="search" placeholder="Search services" />
+                        <Input bind:value={serviceQuery} type="search" placeholder="Search services" />
                     </label>
                 </div>
                 <div class="flex flex-wrap gap-2" aria-label="Service filters">
                     {#each [["all", "All"], ["attention", "Attention"], ["maintenance", "Maintenance"], ["paused", "Paused"]] as [filter, label]}
-                        <button class={`rounded-full border px-3 py-1.5 text-sm font-bold ${activeFilter === filter ? "border-wg-accent bg-wg-accent text-wg-accent-contrast" : "border-wg-border bg-wg-surface text-wg-text"}`} type="button" onclick={() => (activeFilter = filter as typeof activeFilter)}>{label}</button>
+                        <Button class={`min-h-9 rounded-full px-3 py-1.5 text-xs ${activeFilter === filter ? "" : "border-wg-border bg-wg-surface text-wg-text hover:bg-wg-surface-muted"}`} variant={activeFilter === filter ? "primary" : "secondary"} type="button" onclick={() => (activeFilter = filter as typeof activeFilter)}>{label}</Button>
                     {/each}
                 </div>
             </div>

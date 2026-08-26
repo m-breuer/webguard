@@ -13,4 +13,4 @@
     };
 </script>
 
-<span class={`inline-flex items-center gap-[0.4rem] rounded-full px-[0.6rem] py-[0.3rem] text-xs leading-none font-extrabold ${tones[tone]}`}><span class="size-[0.45rem] rounded-full bg-current" aria-hidden="true"></span>{label}</span>
+<span class={`inline-flex items-center gap-[0.4rem] rounded px-[0.6rem] py-[0.3rem] text-xs leading-none font-semibold ${tones[tone]}`}><span class="size-[0.45rem] rounded-full bg-current" aria-hidden="true"></span>{label}</span>
