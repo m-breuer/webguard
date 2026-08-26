@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { appRoutes } from "$lib/routes";
     import AppearanceSelector from "$lib/components/AppearanceSelector.svelte";
+    import LocaleSelector from "$lib/components/LocaleSelector.svelte";
     import NavIcon, { type NavIconName } from "$lib/components/NavIcon.svelte";
     import type { FirstPartySession } from "$lib/api/models";
     import type { Snippet } from "svelte";
@@ -61,7 +62,7 @@
     <aside class={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-purple-900 bg-purple-950 text-purple-100 transition-[width,transform] duration-150 max-[54rem]:w-[min(18rem,calc(100vw_-_3.5rem))] max-[54rem]:-translate-x-full max-[54rem]:shadow-wg-surface ${collapsed ? "w-[5.5rem]" : "w-68"} ${mobileOpen ? "max-[54rem]:translate-x-0" : ""}`} aria-label="Application navigation">
         <div class="flex min-h-18 items-center justify-between gap-2 px-3.5">
             <a class="flex min-w-0 items-center gap-3 font-extrabold tracking-tight no-underline" href={appRoutes.dashboard} aria-label="WebGuard dashboard">
-                <span class="grid size-9 shrink-0 place-items-center rounded-[0.65rem] bg-white font-black text-purple-800">W</span>
+                <img class="size-9 shrink-0 rounded-[0.65rem] bg-white object-contain p-0.5" src="/brand/webguard-logo.png" alt="" />
                 <span class:sr-only={collapsed} class="transition-opacity duration-100 max-[54rem]:not-sr-only">WebGuard</span>
             </a>
             <button class="grid size-9 shrink-0 place-items-center rounded-[0.65rem] border border-purple-700 bg-transparent text-xl text-purple-100 max-[54rem]:hidden" type="button" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"} onclick={toggleCollapsed}>
@@ -80,7 +81,10 @@
         </nav>
 
         <div class="grid gap-3 border-t border-purple-900 p-3.5">
-            <AppearanceSelector initialTheme={session.user.theme} compact={collapsed} />
+            <div class="grid grid-cols-2 gap-2">
+                <AppearanceSelector initialTheme={session.user.theme} />
+                <LocaleSelector initialLocale={session.user.locale} />
+            </div>
             <a class={`flex min-h-11 items-center gap-3 rounded-[0.65rem] border px-3 text-sm font-semibold no-underline ${isActive(appRoutes.notifications) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={appRoutes.notifications} aria-label="Notifications" title="Notifications">
                 <NavIcon name="bell" /> <span>Notifications</span>
             </a>
@@ -95,7 +99,7 @@
     </aside>
 
     <header class="hidden min-h-16 items-center justify-between border-b border-wg-border bg-wg-surface px-4 max-[54rem]:flex">
-        <a class="flex items-center gap-3 font-extrabold tracking-tight no-underline" href={appRoutes.dashboard} aria-label="WebGuard dashboard"><span class="grid size-9 place-items-center rounded-[0.65rem] bg-white font-black text-purple-800">W</span><span>WebGuard</span></a>
+        <a class="flex items-center gap-3 font-extrabold tracking-tight no-underline" href={appRoutes.dashboard} aria-label="WebGuard dashboard"><img class="size-9 rounded-[0.65rem] bg-white object-contain p-0.5" src="/brand/webguard-logo.png" alt="" /><span>WebGuard</span></a>
         <button type="button" class="grid size-9 place-items-center rounded-[0.65rem] border border-wg-border bg-transparent text-xl text-wg-text" aria-expanded={mobileOpen} aria-label="Toggle navigation" onclick={() => (mobileOpen = !mobileOpen)}>☰</button>
     </header>
 

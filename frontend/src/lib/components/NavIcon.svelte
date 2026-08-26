@@ -11,8 +11,11 @@
         | "group"
         | "home"
         | "monitoring"
+        | "moon"
         | "package"
         | "settings"
+        | "sun"
+        | "system"
         | "team"
         | "users"
         | "wrench";
@@ -52,6 +55,12 @@
         <circle cx="12" cy="12" r="3.5" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
     {:else if name === "globe"}
         <circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+    {:else if name === "sun"}
+        <circle cx="12" cy="12" r="3.5" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    {:else if name === "moon"}
+        <path d="M20.5 15.3A8.5 8.5 0 0 1 8.7 3.5 8.5 8.5 0 1 0 20.5 15.3Z" />
+    {:else if name === "system"}
+        <rect x="3.5" y="4" width="17" height="12" rx="1.5" /><path d="M8.5 20h7M12 16v4" />
     {:else if name === "activity"}
         <path d="M3 12h4l2-7 4 14 2-7h6" />
     {/if}

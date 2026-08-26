@@ -13,7 +13,7 @@
 <main class="mx-auto flex min-h-screen w-[min(36rem,calc(100%_-_2rem))] items-center py-8 sm:py-12">
     <section class="w-full rounded-3xl border border-wg-border bg-wg-surface p-6 shadow-wg-surface sm:p-10">
         <a class="inline-flex items-center gap-3 text-wg-text no-underline" href="/login" aria-label="WebGuard login">
-            <span class="grid size-10 place-items-center rounded-xl bg-purple-800 font-black text-white">W</span>
+            <img class="size-10 rounded-xl bg-white object-contain p-0.5" src="/brand/webguard-logo.png" alt="" />
             <span class="font-extrabold tracking-tight">WebGuard</span>
         </a>
         <header class="mt-8">

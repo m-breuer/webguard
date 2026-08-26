@@ -60,7 +60,8 @@ administrator role.
 | `GET` | `/session` | User, verification, role, locale, appearance, visible teams, and CSRF endpoint |
 | `POST` | `/session/logout` | End the session with `data.authenticated: false` |
 | `PATCH` | `/appearance` | Persist `light`, `dark`, or `system` |
-| `PATCH` | `/profile` | Update profile identity and locale |
+| `PATCH` | `/locale` | Persist `en` or `de` and refresh the language cookie |
+| `PATCH` | `/profile` | Update profile identity |
 | `PUT` | `/profile/password` | Update password through Laravel validation |
 | `GET`, `POST`, `DELETE` | `/profile/api-keys[/{apiKey}]` | List, create once, and revoke personal API keys |
 | `DELETE` | `/profile/account` | Schedule account deletion after password confirmation |

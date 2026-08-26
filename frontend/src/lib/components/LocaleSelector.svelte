@@ -1,0 +1,66 @@
+<script lang="ts">
+    import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import NavIcon from "$lib/components/NavIcon.svelte";
+
+    interface Props {
+        initialLocale: string;
+    }
+
+    let { initialLocale }: Props = $props();
+    let locale = $state("");
+    let saving = $state(false);
+    let error = $state("");
+
+    const options = [
+        { value: "en", label: "English", shortLabel: "EN" },
+        { value: "de", label: "Deutsch", shortLabel: "DE" },
+    ];
+
+    $effect(() => {
+        locale = initialLocale;
+    });
+
+    async function select(nextLocale: string): Promise<void> {
+        if (saving || nextLocale === locale) {
+            return;
+        }
+
+        saving = true;
+        error = "";
+
+        try {
+            await requestFirstPartyApi<{ locale: string }>("/api/v1/internal/ui/locale", {
+                body: JSON.stringify({ locale: nextLocale }),
+                method: "PATCH",
+            });
+
+            window.location.reload();
+        } catch (exception) {
+            error = exception instanceof FirstPartyApiError ? exception.message : "Language could not be saved.";
+            saving = false;
+        }
+    }
+</script>
+
+<details class="relative">
+    <summary class="grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border border-purple-700 text-purple-100 [&::-webkit-details-marker]:hidden" aria-label="Language" title="Language">
+        <NavIcon name="globe" />
+    </summary>
+    <div class="absolute bottom-[calc(100%+0.5rem)] left-0 z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface" aria-label="Language" aria-busy={saving}>
+        <p class="mb-2 px-1 text-sm font-bold text-wg-text">Language</p>
+        <div class="grid gap-1">
+            {#each options as option}
+                <button
+                    type="button"
+                    class={`flex min-h-10 items-center justify-between rounded-lg border-0 px-3 text-left text-sm font-bold disabled:cursor-wait disabled:opacity-65 ${locale === option.value ? "bg-wg-accent text-wg-accent-contrast" : "bg-transparent text-wg-text hover:bg-wg-surface-muted"}`}
+                    aria-pressed={locale === option.value}
+                    disabled={saving}
+                    onclick={() => select(option.value)}
+                >
+                    <span>{option.label}</span><span class="text-xs font-extrabold tracking-[0.08em]">{option.shortLabel}</span>
+                </button>
+            {/each}
+        </div>
+        {#if error}<p class="mt-2 text-[0.8125rem] text-wg-danger" role="alert">{error}</p>{/if}
+    </div>
+</details>
