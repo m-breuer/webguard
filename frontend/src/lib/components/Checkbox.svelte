@@ -14,13 +14,13 @@
         {...attributes}
         bind:group
         type="checkbox"
-        class={`size-4 shrink-0 rounded border-wg-border text-wg-accent accent-wg-accent focus:ring-2 focus:ring-wg-focus/40 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+        class={`size-5 shrink-0 rounded border-wg-border text-wg-accent accent-wg-accent focus:ring-2 focus:ring-wg-focus/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     />
 {:else}
     <input
         {...attributes}
         bind:checked
         type="checkbox"
-        class={`size-4 shrink-0 rounded border-wg-border text-wg-accent accent-wg-accent focus:ring-2 focus:ring-wg-focus/40 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+        class={`size-5 shrink-0 rounded border-wg-border text-wg-accent accent-wg-accent focus:ring-2 focus:ring-wg-focus/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     />
 {/if}

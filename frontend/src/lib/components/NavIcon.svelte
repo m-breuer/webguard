@@ -1,11 +1,15 @@
 <script lang="ts">
     export type NavIconName =
         | "activity"
+        | "arrow-left"
         | "api"
         | "archive"
         | "bell"
         | "chart"
         | "dashboard"
+        | "ellipsis"
+        | "eye"
+        | "external"
         | "file"
         | "globe"
         | "group"
@@ -13,6 +17,7 @@
         | "monitoring"
         | "moon"
         | "package"
+        | "pencil"
         | "settings"
         | "sun"
         | "system"
@@ -31,6 +36,8 @@
 <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     {#if name === "home"}
         <path d="m3 10 9-7 9 7" /><path d="M5 9.5V21h14V9.5M9 21v-6h6v6" />
+    {:else if name === "arrow-left"}
+        <path d="M19 12H5M11 18l-6-6 6-6" />
     {:else if name === "monitoring"}
         <path d="M4 5h16v12H4z" /><path d="m7 13 3-3 2 2 4-4" /><path d="M8 21h8M12 17v4" />
     {:else if name === "group" || name === "team" || name === "users"}
@@ -41,8 +48,16 @@
         <path d="m14.7 6.3 3-3a4 4 0 0 0-5 5L4 17a2.1 2.1 0 0 0 3 3l8.8-8.7a4 4 0 0 0 5-5l-3 3-3.1-.9-.9-3.1Z" />
     {:else if name === "dashboard"}
         <rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" />
+    {:else if name === "ellipsis"}
+        <circle cx="5" cy="12" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="19" cy="12" r="1" fill="currentColor" />
+    {:else if name === "eye"}
+        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" />
+    {:else if name === "external"}
+        <path d="M14 4h6v6M20 4l-9 9" /><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" />
     {:else if name === "package"}
         <path d="m4 8 8-4 8 4-8 4-8-4Z" /><path d="M4 8v8l8 4 8-4V8M12 12v8" />
+    {:else if name === "pencil"}
+        <path fill="currentColor" stroke="none" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm14.85-9.46 1.85-1.85a1 1 0 0 0 0-1.41l-.28-.28a1 1 0 0 0-1.41 0l-1.85 1.85 3.75 3.75Z" />
     {:else if name === "archive"}
         <path d="M4 4h16v4H4zM5 8h14v12H5z" /><path d="M9 12h6" />
     {:else if name === "api"}

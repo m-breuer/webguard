@@ -51,6 +51,24 @@
                             : status;
     }
 
+    function statusDotClass(status: string): string {
+        if (status === "up") return "bg-emerald-500";
+        if (status === "down") return "bg-red-500";
+
+        return "bg-slate-400";
+    }
+
+    function attentionDotClass(type: string): string {
+        return type === "down" || type === "incident" ? "bg-red-500" : "bg-slate-400";
+    }
+
+    function attentionStatusLabel(type: string): string {
+        if (type === "down" || type === "incident") return "Monitoring is down";
+        if (type === "delivery") return "Notification delivery needs attention";
+
+        return "Monitoring status is unknown";
+    }
+
     function dateTime(value: string | null): string {
         if (value === null) return "No result yet";
 
@@ -125,6 +143,8 @@
                         <a class="flex flex-col gap-3 px-5 py-4 text-wg-text no-underline transition hover:bg-wg-surface-muted sm:flex-row sm:items-center sm:justify-between sm:px-7" href={`/monitorings/${service.id}`}>
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
+                                    <span class={`size-2.5 shrink-0 rounded-full ${statusDotClass(service.status)}`} aria-hidden="true"></span>
+                                    <span class="sr-only">Current status: {statusLabel(service.status)}</span>
                                     <h3 class="truncate text-base font-bold">{service.name}</h3>
                                     <StatusBadge tone={statusTone(service.status)} label={statusLabel(service.status)} />
                                     {#if service.open_incident}<StatusBadge tone="danger" label="Incident" />{/if}
@@ -150,7 +170,7 @@
                     <ul class="m-0 grid list-none gap-3 p-0">
                         {#each dashboard.attention as item}
                             <li class="rounded-xl border border-wg-border p-3">
-                                <p class="font-bold">{item.monitoring_name ?? `${item.count ?? 0} notification deliveries`}</p>
+                                <div class="flex items-center gap-2"><span class={`size-2.5 shrink-0 rounded-full ${attentionDotClass(item.type)}`} aria-hidden="true"></span><span class="sr-only">{attentionStatusLabel(item.type)}</span><p class="font-bold">{item.monitoring_name ?? `${item.count ?? 0} notification deliveries`}</p></div>
                                 <p class="mt-1 text-sm text-wg-text-muted">{item.monitoring_target ?? "Review failed delivery configuration."}</p>
                             </li>
                         {/each}

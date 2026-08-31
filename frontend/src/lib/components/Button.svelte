@@ -29,7 +29,7 @@
 
 <button
     {...attributes}
-    class={`inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-transparent px-4 py-2.5 text-sm leading-5 font-semibold tracking-[0.035em] transition-[background-color,border-color,color,transform] duration-150 ease-out active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${className}`}
+    class={`inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-transparent px-4 py-2.5 text-sm leading-5 font-semibold tracking-[0.035em] transition-[background-color,border-color,color,transform] duration-150 ease-out active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${className}`}
     disabled={disabled || loading}
     aria-busy={loading}
 >

@@ -94,6 +94,27 @@ export interface MonitoringListResponse {
     meta: PaginationMeta & { as_of: string };
 }
 
+export interface MonitoringHeatmapPoint {
+    uptime: number;
+    downtime: number;
+}
+
+export interface MonitoringCardPayload {
+    status: "up" | "down" | "unknown" | null;
+    since: string | null;
+    heatmap: MonitoringHeatmapPoint[];
+}
+
+export interface MonitoringCardsResponse {
+    data: Record<string, MonitoringCardPayload>;
+    summary: {
+        attention: number;
+        healthy: number;
+        paused: number;
+        maintenance: number;
+    };
+}
+
 export interface MonitoringFormConfiguration {
     id: string;
     name: string;
@@ -146,17 +167,50 @@ export interface MonitoringMutationResult {
 }
 
 export interface MonitoringDetailData {
+    summary: {
+        id: string;
+        name: string;
+        target: string;
+        type: string;
+        lifecycle_status: "active" | "paused";
+        public_status_enabled: boolean;
+        ownership: { type: "private" | "team"; can_manage: boolean; name: string | null };
+        groups: Array<{ id: string; name: string }>;
+        check_regions: string[];
+        notification_channels: string[];
+        status_pages: Array<{ id: string; name: string }>;
+        open_incident: boolean;
+    };
+    current_check: {
+        status: "up" | "down" | "unknown";
+        checked_at: string | null;
+        interval: number | null;
+        status_code: number | null;
+    };
+    heatmap: MonitoringHeatmapPoint[];
     availability: {
         has_data: boolean;
         uptime: { percentage: number | null };
         downtime: { percentage: number | null; incidents_count: number };
         unknown: { percentage: number | null };
     };
+    availability_periods: Record<string, {
+        has_data: boolean;
+        uptime: { percentage: number | null };
+        downtime: { percentage: number | null; incidents_count: number };
+        unknown: { percentage: number | null };
+    }>;
     response_times: {
         data: Array<{ date: string; avg: number | null; min: number | null; max: number | null }>;
         aggregated: { avg: number | null; min: number | null; max: number | null };
     };
     incidents: Array<{ down_at: string; up_at: string | null }>;
+    maintenance: {
+        active: boolean;
+        starts_at: string | null;
+        ends_at: string | null;
+        has_recurring_window: boolean;
+    };
     uptime_calendar: Record<string, {
         days: Array<{ date: string; uptime_percentage: number | null }>;
         monthly_average_uptime: number | null;
@@ -196,4 +250,21 @@ export interface MonitoringDetailData {
             load_per_cpu: number | null;
         };
     } | null;
+}
+
+export interface MonitoringDetailMeta {
+    incidents: {
+        limit: number;
+        offset: number;
+        has_more: boolean;
+        next_offset: number | null;
+    };
+    recent_checks: {
+        limit: number;
+        has_more: boolean;
+        next_offset: number | null;
+    };
+    response_times: {
+        days: 1 | 7 | 30;
+    };
 }

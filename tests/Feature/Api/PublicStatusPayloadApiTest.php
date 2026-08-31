@@ -114,8 +114,7 @@ class PublicStatusPayloadApiTest extends TestCase
             'is_public' => true,
         ]);
 
-        $this->postJson(route('public.status.subscribers.store', $statusPage), ['email' => 'Customer@Example.test'])
-            ->assertStatus(202)
+        $this->postJson(route('public.status.subscribers.store', $statusPage), ['email' => 'Customer@Example.test'])->assertAccepted()
             ->assertJsonPath('data.message', 'Check your inbox to confirm your subscription.');
 
         $this->assertDatabaseHas('status_page_subscriptions', [
@@ -130,8 +129,7 @@ class PublicStatusPayloadApiTest extends TestCase
         Mail::fake();
         $monitoring = Monitoring::factory()->for($this->user())->create(['public_label_enabled' => true]);
 
-        $this->postJson(route('public.status.subscribers.store', $monitoring), ['email' => 'Customer@Example.test'])
-            ->assertStatus(202)
+        $this->postJson(route('public.status.subscribers.store', $monitoring), ['email' => 'Customer@Example.test'])->assertAccepted()
             ->assertJsonPath('data.message', 'Check your inbox to confirm your subscription.');
 
         $this->assertDatabaseHas('status_page_subscribers', [

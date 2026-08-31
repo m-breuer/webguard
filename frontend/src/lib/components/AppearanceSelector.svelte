@@ -8,9 +8,11 @@
     interface Props {
         initialTheme?: AppearanceTheme;
         endpoint?: string;
+        open?: boolean;
+        onOpen?: () => void;
     }
 
-    let { initialTheme, endpoint = "/api/v1/internal/ui/appearance" }: Props = $props();
+    let { initialTheme, endpoint = "/api/v1/internal/ui/appearance", open = $bindable(false), onOpen }: Props = $props();
     let theme = $state<AppearanceTheme>("system");
     let saving = $state(false);
     let error = $state("");
@@ -53,9 +55,16 @@
             saving = false;
         }
     }
+
+    function handleToggle(): void {
+        if (open) {
+            onOpen?.();
+        }
+    }
+
 </script>
 
-<details class="relative">
+<details class="relative" bind:open ontoggle={handleToggle}>
     <summary class="grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border border-purple-700 text-purple-100 [&::-webkit-details-marker]:hidden" aria-label="Appearance" title="Appearance"><NavIcon name="sun" /></summary>
     <div class="absolute bottom-[calc(100%+0.5rem)] left-0 z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface" aria-label="Appearance" aria-busy={saving}>
         {@render optionsList()}

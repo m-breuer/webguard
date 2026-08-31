@@ -107,6 +107,24 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
             ->assertJsonCount(0, 'data.incidents');
     }
 
+    public function test_incident_analytics_sorts_the_incident_table(): void
+    {
+        $package = Package::factory()->create(['monitoring_limit' => 20]);
+        $user = User::factory()->create(['package_id' => $package->id]);
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $this->incidentFor($monitoring, ['affected_service' => 'Zulu service', 'down_at' => now()->subMinutes(10)]);
+        $this->incidentFor($monitoring, ['affected_service' => 'Alpha service', 'down_at' => now()->subMinutes(20)]);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics', [
+            'sort' => 'affected_service',
+            'direction' => 'asc',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.filters.sort', 'affected_service')
+            ->assertJsonPath('data.filters.direction', 'asc')
+            ->assertJsonPath('data.incidents.0.affected_service', 'Alpha service');
+    }
+
     public function test_incident_analytics_validates_filters_and_supports_conditional_requests(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 10]);

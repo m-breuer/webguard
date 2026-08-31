@@ -188,7 +188,7 @@ Laravel checks its framework health route at `http://127.0.0.1:8080/status`. Sve
 The local override adds everything that should only exist during development:
 
 - Traefik
-- Bun / Vite and SvelteKit HMR
+- built SvelteKit server for browser-stable local testing
 - Gateway
 - MySQL
 - Redis
@@ -234,12 +234,12 @@ The local override adds everything that should only exist during development:
 
 `start-dev.sh` builds the local stack, starts it, and opens a shell inside the `php` container.
 
+The local frontend uses the built SvelteKit server rather than Vite HMR. Re-run `./start-dev.sh` after frontend changes so the local browser receives the rebuilt assets.
+
 ### Local URLs
 
 - App: [http://webguard.test](http://webguard.test)
 - HTTPS app: [https://webguard.test](https://webguard.test)
-- Vite: [http://webguard.test:5173](http://webguard.test:5173)
-- SvelteKit HMR is available through the app URL and is not exposed as a second browser origin.
 - Mailpit UI: [http://mailpit.webguard.test](http://mailpit.webguard.test)
 
 ### Local Environment Values
@@ -288,7 +288,6 @@ MAIL_PASSWORD=null
 MAIL_FROM_ADDRESS=noreply@webguard.test
 MAIL_FROM_NAME=WebGuard
 
-VITE_DEV_SERVER_URL=http://webguard.test:5173
 VITE_HMR_HOST=webguard.test
 DOCKER_VITE_HMR_CLIENT_PORT=80
 
@@ -296,7 +295,6 @@ DOCKER_APP_HOST=webguard.test
 DOCKER_MAILPIT_HOST=mailpit.webguard.test
 DOCKER_HTTP_PORT=80
 DOCKER_HTTPS_PORT=443
-DOCKER_VITE_PORT=5173
 DOCKER_MYSQL_PORT=3306
 DOCKER_MAILPIT_SMTP_PORT=1025
 DOCKER_MAILPIT_UI_PORT=8025
@@ -325,15 +323,16 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml exec queue-d
 Build frontend assets:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
 docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm frontend bun run --cwd frontend build
 ```
 
 Install frontend dependencies:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun install
+docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm frontend bun run --cwd frontend install
 ```
+
+The former Laravel Vite process is only retained for legacy Blade work. It is excluded from normal local starts; explicitly enable the `legacy-vite` profile only when that workflow is required.
 
 ## webguard-instance Integration With Local Docker
 

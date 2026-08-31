@@ -4,9 +4,11 @@
 
     interface Props {
         initialLocale: string;
+        open?: boolean;
+        onOpen?: () => void;
     }
 
-    let { initialLocale }: Props = $props();
+    let { initialLocale, open = $bindable(false), onOpen }: Props = $props();
     let locale = $state("");
     let saving = $state(false);
     let error = $state("");
@@ -40,9 +42,16 @@
             saving = false;
         }
     }
+
+    function handleToggle(): void {
+        if (open) {
+            onOpen?.();
+        }
+    }
+
 </script>
 
-<details class="relative">
+<details class="relative" bind:open ontoggle={handleToggle}>
     <summary class="grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border border-purple-700 text-purple-100 [&::-webkit-details-marker]:hidden" aria-label="Language" title="Language">
         <NavIcon name="globe" />
     </summary>
