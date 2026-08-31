@@ -67,7 +67,6 @@ services:
         - GROUP_ID=${GROUP_ID:-1000}
     volumes:
       - ./:/var/www/html
-      - webguard_node_modules:/var/www/html/node_modules
     environment:
       <<: *local-app-environment
       AUTORUN_DEBUG: "true"
@@ -107,30 +106,6 @@ services:
     environment:
       <<: *local-app-environment
 
-  node:
-    container_name: webguard-node
-    profiles:
-      - legacy-vite
-    build:
-      context: .
-      dockerfile: docker/node/Dockerfile
-    command: ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "${DOCKER_VITE_PORT:-5173}"]
-    environment:
-      APP_URL: "http://${DOCKER_APP_HOST:-webguard.test}"
-      VITE_DEV_SERVER_URL: "http://${DOCKER_APP_HOST:-webguard.test}:${DOCKER_VITE_PORT:-5173}"
-      VITE_HMR_HOST: "${DOCKER_APP_HOST:-webguard.test}"
-      VITE_USE_POLLING: "true"
-      VITE_POLLING_INTERVAL: "300"
-      CHOKIDAR_USEPOLLING: "true"
-    ports:
-      - "${DOCKER_VITE_PORT:-5173}:${DOCKER_VITE_PORT:-5173}"
-    volumes:
-      - ./:/var/www/html
-      - webguard_node_modules:/var/www/html/node_modules
-      - webguard_bun_cache:/tmp/.bun/install/cache
-    networks:
-      - webguard-network
-
   mysql:
     environment:
       MYSQL_ROOT_PASSWORD: "root"
@@ -139,9 +114,3 @@ services:
       MYSQL_PASSWORD: "webguard"
     ports:
       - "${DOCKER_MYSQL_PORT:-3306}:3306"
-
-volumes:
-  webguard_node_modules:
-    driver: local
-  webguard_bun_cache:
-    driver: local

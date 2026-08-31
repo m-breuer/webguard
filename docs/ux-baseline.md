@@ -4,7 +4,7 @@ This document records the repository-grounded baseline for issue [#442](https://
 
 ## Scope and method
 
-The baseline was completed on 2026-07-17 as a scripted internal walkthrough of the authenticated WebGuard surface. It combines the rendered Blade structure, route definitions, existing feature/browser tests, and the responsive navigation rules. The desktop reference is a viewport at least 640px wide; the mobile reference is the `<640px` responsive branch, represented by a 390px-wide viewport.
+The baseline was completed on 2026-07-17 as a scripted internal walkthrough of the authenticated WebGuard surface. The current implementation is SvelteKit; historical Blade implementation details were retired during the #744 cutover. The desktop reference is a viewport at least 640px wide; the mobile reference is the `<640px` responsive branch, represented by a 390px-wide viewport.
 
 This is not user telemetry and does not claim observed behaviour from external participants. Route transitions, visible action counts, and additional disclosure steps below are repeatable source-based measurements. Real-user sessions should be added before committing to a larger visual redesign.
 
@@ -14,12 +14,12 @@ The counts below start on the authenticated dashboard where a dashboard path exi
 
 | Task | Desktop journey and baseline | Mobile journey and baseline | Current evidence |
 | --- | --- | --- | --- |
-| Find the current status of a monitored service | `/dashboard` → the relevant attention item → `/monitorings/{monitoring}`: 1 transition when the item is visible; otherwise `/dashboard` → `/monitorings` → detail: 2 transitions. | The dashboard attention link is already direct. From another page, open the menu, then choose Monitoring: 1 menu action plus 1 route transition. | Dashboard attention links and health summaries are rendered in `resources/views/dashboard.blade.php`; authenticated navigation is in `resources/views/layouts/navigation.blade.php`. |
+| Find the current status of a monitored service | `/dashboard` → the relevant attention item → `/monitorings/{monitoring}`: 1 transition when the item is visible; otherwise `/dashboard` → `/monitorings` → detail: 2 transitions. | The dashboard attention link is already direct. From another page, open the menu, then choose Monitoring: 1 menu action plus 1 route transition. | SvelteKit dashboard and shared application layout. |
 | Identify what needs attention after a failure | `/dashboard` exposes the recommended action, attention list, health counters, and recent incidents in the first operations view. The next action is normally 1 transition. | The same dashboard links remain available in the single-column layout; the global menu is not required when starting on `/dashboard`. | Covered by `tests/Feature/DashboardOverviewTest.php`. |
-| Open and update an incident | `/dashboard` → `/incidents/analytics` is 1 transition for analysis. Updating public/private incident context requires `/status-pages` → `/status-pages/{statusPage}`, then opening the collapsed Incident Workbench: 2 transitions plus 1 expand action from the status-page index. | From a non-dashboard page, add the menu open action before entering Status Pages. The workbench remains collapsed per incident. | Analytics is linked from the dashboard; update forms and the collapsed workbench are rendered in `resources/views/status-pages/show.blade.php` and covered by `tests/Feature/IncidentWorkflowTest.php`. |
-| Schedule maintenance for one monitor or group | `/dashboard` → `/maintenance`: 1 transition, then submit the central maintenance form on that page. | From another page, open the menu and choose Maintenance; the page then uses its existing single-column form. | `resources/views/maintenance/index.blade.php` and `tests/Feature/MaintenanceManagementTest.php`. |
-| Create a new HTTP monitoring | `/dashboard` → `/monitorings/create`: 1 transition. The form has six visible sections in source order: Basic, Organization, Check, Sharing, Notifications, and Operations. | The route is the same, but the form changes to a single-column flow and requires more vertical scrolling. | `resources/views/monitorings/_form.blade.php` and `tests/Feature/MonitoringFormPresentationTest.php`. |
-| Find and share a public status page | `/dashboard` → `/status-pages` → `/status-pages/{statusPage}`: 2 transitions; the public URL is shown on the detail page only when the page is public. | From another page, open the menu before Status Pages, then use the same two-route journey. | `resources/views/status-pages/show.blade.php` and `tests/Feature/StatusPageManagementTest.php`. |
+| Open and update an incident | `/dashboard` → `/incidents/analytics` is 1 transition for analysis. Public incident context is managed from `/status-pages/{statusPage}`. | From a non-dashboard page, add the menu open action before entering Status Pages. | SvelteKit incident analytics and status-page workspace routes. |
+| Schedule maintenance for one monitor or group | `/dashboard` → `/maintenance`: 1 transition, then submit the central maintenance form in the SvelteKit workspace. | From another page, open the menu and choose Maintenance. | SvelteKit maintenance route and first-party UI API. |
+| Create a new HTTP monitoring | `/dashboard` → `/monitorings`, then open the create dialog. | The modal remains responsive and keyboard accessible. | SvelteKit monitoring list and shared dialog/form components. |
+| Find and share a public status page | `/dashboard` → `/status-pages` → `/status-pages/{statusPage}`: 2 transitions; the public URL is shown on the detail page only when the page is public. | From another page, open the menu before Status Pages, then use the same two-route journey. | SvelteKit status-page routes and public status payload API. |
 
 ### View-level measurements
 
@@ -67,13 +67,7 @@ The follow-up study should recruit representative operators, evaluate at least f
 
 ## Repository references
 
-- Dashboard: [`/dashboard`](../resources/views/dashboard.blade.php)
-- Shared navigation: [`resources/views/layouts/navigation.blade.php`](../resources/views/layouts/navigation.blade.php)
-- Monitoring list and filters: [`resources/views/monitorings/index.blade.php`](../resources/views/monitorings/index.blade.php)
-- Monitoring form: [`resources/views/monitorings/_form.blade.php`](../resources/views/monitorings/_form.blade.php)
-- Status-page incident workbench: [`resources/views/status-pages/show.blade.php`](../resources/views/status-pages/show.blade.php)
-- Navigation coverage: [`tests/Feature/AuthenticatedNavigationTest.php`](../tests/Feature/AuthenticatedNavigationTest.php)
-- Dashboard coverage: [`tests/Feature/DashboardOverviewTest.php`](../tests/Feature/DashboardOverviewTest.php)
-- Incident workflow coverage: [`tests/Feature/IncidentWorkflowTest.php`](../tests/Feature/IncidentWorkflowTest.php)
-- Maintenance coverage: [`tests/Feature/MaintenanceManagementTest.php`](../tests/Feature/MaintenanceManagementTest.php)
-- Status-page coverage: [`tests/Feature/StatusPageManagementTest.php`](../tests/Feature/StatusPageManagementTest.php)
+- Dashboard: [`frontend/src/routes/(app)/dashboard`](../frontend/src/routes/(app)/dashboard)
+- Shared navigation: [`frontend/src/lib/components/AppSidebar.svelte`](../frontend/src/lib/components/AppSidebar.svelte)
+- Monitoring list and filters: [`frontend/src/routes/(app)/monitorings`](../frontend/src/routes/(app)/monitorings)
+- Status pages: [`frontend/src/routes/(app)/status-pages`](../frontend/src/routes/(app)/status-pages)

@@ -1,39 +1,15 @@
 {
+    "overrides": {
+        "picomatch": "^4.0.4"
+    },
     "private": true,
+    "scripts": {
+        "frontend:build": "bun run --cwd frontend build",
+        "frontend:check": "bun run --cwd frontend check",
+        "frontend:dev": "bun run --cwd frontend dev"
+    },
     "type": "module",
     "workspaces": [
         "frontend"
-    ],
-    "scripts": {
-        "build": "vite build",
-        "dev": "vite",
-        "frontend:build": "bun run --cwd frontend build",
-        "frontend:check": "bun run --cwd frontend check"
-    },
-    "devDependencies": {
-        "@tailwindcss/forms": "^0.5.11",
-        "@tailwindcss/postcss": "^4.3.3",
-        "@types/alpinejs": "^3.13.11",
-        "@types/node": "^26.4.0",
-        "alpinejs": "^3.16.3",
-        "axios": "^1.20.0",
-        "concurrently": "^10.0.5",
-        "laravel-vite-plugin": "^3.2.0",
-        "postcss": "^8.5.26",
-        "prettier": "^3.9.6",
-        "prettier-plugin-blade": "^3.3.0",
-        "prettier-plugin-tailwindcss": "^0.8.1",
-        "tailwindcss": "^4.3.3",
-        "typescript": "^6.0.3",
-        "vite": "^8.2.2"
-    },
-    "dependencies": {
-        "@tailwindcss/vite": "^4.3.3",
-        "chart.js": "^4.5.1",
-        "dayjs": "^1.11.23",
-        "playwright": "^1.62.1"
-    },
-    "overrides": {
-        "picomatch": "^4.0.4"
-    }
+    ]
 }

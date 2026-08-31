@@ -41,21 +41,13 @@ Use this setup when you prefer running services directly on your host machine.
    php artisan migrate
    ```
 
-5. Build frontend assets.
+5. Build the SvelteKit frontend.
 
    ```bash
-   bun run build
+   bun run frontend:build
    ```
 
-6. Run development processes.
-
-   ```bash
-   composer dev
-   ```
-
-   The development command starts the Laravel development server, the default queue worker, the dedicated Redis-backed `heartbeat` queue worker, the Pail log viewer, and the Vite development server.
-
-7. Run the test suite.
+6. Run the test suite.
 
    ```bash
    php artisan test
@@ -288,9 +280,6 @@ MAIL_PASSWORD=null
 MAIL_FROM_ADDRESS=noreply@webguard.test
 MAIL_FROM_NAME=WebGuard
 
-VITE_HMR_HOST=webguard.test
-DOCKER_VITE_HMR_CLIENT_PORT=80
-
 DOCKER_APP_HOST=webguard.test
 DOCKER_MAILPIT_HOST=mailpit.webguard.test
 DOCKER_HTTP_PORT=80
@@ -320,19 +309,17 @@ Run one queue job:
 docker compose -f docker-compose.yml -f docker-compose.override.yml exec queue-default php artisan queue:work redis --once
 ```
 
-Build frontend assets:
+Build the SvelteKit frontend image:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm frontend bun run --cwd frontend build
+docker build --target sveltekit_build .
 ```
 
 Install frontend dependencies:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm frontend bun run --cwd frontend install
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/app" -w /app oven/bun:1 bun install --cwd frontend
 ```
-
-The former Laravel Vite process is only retained for legacy Blade work. It is excluded from normal local starts; explicitly enable the `legacy-vite` profile only when that workflow is required.
 
 ## webguard-instance Integration With Local Docker
 

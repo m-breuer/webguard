@@ -11,7 +11,7 @@
     <p>{{ __('mail.unread_notifications_reminder.action_text') }}</p>
 
     <p>
-        <a href="{{ route('notifications.index') }}" class="mail-button">{{ __('mail.unread_notifications_reminder.button_text') }}</a>
+        <a href="{{ rtrim((string) config('app.url'), '/') }}/notifications" class="mail-button">{{ __('mail.unread_notifications_reminder.button_text') }}</a>
     </p>
 
     <p>{{ __('mail.unread_notifications_reminder.salutation') }}<br>

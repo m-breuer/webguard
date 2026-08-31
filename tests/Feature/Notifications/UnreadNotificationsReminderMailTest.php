@@ -32,7 +32,7 @@ class UnreadNotificationsReminderMailTest extends TestCase
         $this->assertStringNotContainsString('class="mail-card-value">7</p>', $html);
         $this->assertStringNotContainsString('Unread notifications</p>', $html);
         $this->assertStringContainsString('class="mail-button"', $html);
-        $this->assertStringContainsString(route('notifications.index'), $html);
+        $this->assertStringContainsString(mb_rtrim((string) config('app.url'), '/') . '/notifications', $html);
         $this->assertStringNotContainsString('monitoring-locations', $html);
         $this->assertStringContainsString('http://localhost:4321/terms-of-use', $html);
         $this->assertStringContainsString('Mara Monitor', $html);

@@ -281,24 +281,6 @@ class MonitoringRequest extends FormRequest
         return $rules;
     }
 
-    protected function getRedirectUrl(): string
-    {
-        if ($this->input('modal_form') === 'monitoring-create') {
-            return route('monitorings.index', ['modal' => 'monitoring-create']);
-        }
-
-        if ($this->input('modal_form') === 'monitoring-edit') {
-            $monitoring = $this->route('monitoring');
-
-            return route('monitorings.index', [
-                'modal' => 'monitoring-edit',
-                'monitoring' => is_object($monitoring) ? $monitoring->getRouteKey() : $monitoring,
-            ]);
-        }
-
-        return parent::getRedirectUrl();
-    }
-
     protected function notificationChannelUser(): ?User
     {
         return $this->user();

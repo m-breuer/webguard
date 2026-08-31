@@ -160,7 +160,7 @@ The exact gateway configuration and service names are implementation details of
    and correlation-safe observability in CI.
 6. **Cutover and retirement (#744).** Roll out with a canary, validate all
    browser and public integration paths, rehearse rollback, then remove Blade,
-   Alpine, and legacy Vite code only after no supported caller remains.
+   Alpine, and the legacy Laravel Vite runtime after no supported caller remains.
 
 A rollback restores the prior gateway route switch and the previously deployed
 PHP frontend image. Laravel database migrations and public contracts must remain
@@ -180,7 +180,6 @@ backwards compatible until the rollback window has expired.
 ## References
 
 - [Laravel 13 Svelte starter kit](https://laravel.com/framework/docs/13.x/starter-kits)
-- [Laravel 13 Vite integration for Svelte](https://laravel.com/framework/docs/13.x/vite)
 - [SvelteKit Node adapter](https://svelte.dev/docs/kit/adapter-node)
 - [SvelteKit static adapter trade-offs](https://svelte.dev/docs/kit/adapter-static)
 - [WebGuard API boundaries](api-boundaries.md)
