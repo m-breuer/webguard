@@ -1,6 +1,7 @@
 <script lang="ts">
     import { invalidateAll } from "$app/navigation";
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import { formatDateTime } from "$lib/i18n/format";
     import type { StatusPage, StatusPageIncident } from "$lib/api/status-pages";
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
@@ -21,7 +22,7 @@
     let message = $state("");
 
     function dateTime(value: string | null): string {
-        return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Not recorded";
+        return formatDateTime(value, "Not recorded");
     }
 
     async function updatePublication(): Promise<void> {

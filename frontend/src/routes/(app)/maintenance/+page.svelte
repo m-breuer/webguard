@@ -1,6 +1,7 @@
 <script lang="ts">
     import { invalidateAll } from "$app/navigation";
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import Field from "$lib/components/Field.svelte";
@@ -20,7 +21,7 @@
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     function timestamp(value: string | null): string {
-        return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Open-ended";
+        return formatDateTime(value, "Open-ended");
     }
 
     function tone(state: MaintenanceWindow["state"]): "healthy" | "degraded" | "danger" | "neutral" | "paused" {

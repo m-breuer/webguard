@@ -1,5 +1,6 @@
 <script lang="ts">
     import Button from "$lib/components/Button.svelte";
+    import { formatDateTime } from "$lib/i18n/format";
     import Card from "$lib/components/Card.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
     import Input from "$lib/components/Input.svelte";
@@ -23,7 +24,7 @@
     }
 
     function dateTime(value: string | null): string {
-        return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Ongoing";
+        return formatDateTime(value, "Ongoing");
     }
 
     function duration(incident: IncidentAnalyticsItem): string {

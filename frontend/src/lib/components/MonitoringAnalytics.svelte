@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import { formatDateTime, formatMonthYear } from "$lib/i18n/format";
     import type { MonitoringDetailData, MonitoringDetailMeta } from "$lib/api/monitoring";
     import Button from "$lib/components/Button.svelte";
     import Select from "$lib/components/Select.svelte";
@@ -48,12 +49,10 @@
     });
 
     function timestamp(value: string | null): string {
-        return value
-            ? new Intl.DateTimeFormat("en-US", {
-                month: "2-digit", day: "2-digit", year: "numeric",
-                hour: "2-digit", minute: "2-digit", second: "2-digit",
-            }).format(new Date(value))
-            : "—";
+        return formatDateTime(value, "—", {
+            month: "2-digit", day: "2-digit", year: "numeric",
+            hour: "2-digit", minute: "2-digit", second: "2-digit",
+        });
     }
 
     function duration(incident: { down_at: string; up_at: string | null }): string {
@@ -211,7 +210,7 @@
         <article class="w-full max-w-72 rounded-[1.125rem] border border-wg-border bg-wg-surface p-6 shadow-sm">
             {#if calendarMonths.length > 0}
                 {#each calendarMonths as [month, value]}
-                    <div class="flex items-baseline gap-2"><h3 class="text-lg font-extrabold">{new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(`${month}-01T00:00:00`))}</h3><span class="text-xs font-bold text-wg-text-muted">({value.monthly_average_uptime?.toFixed(2) ?? "—"}%)</span></div>
+                    <div class="flex items-baseline gap-2"><h3 class="text-lg font-extrabold">{formatMonthYear(new Date(`${month}-01T00:00:00`))}</h3><span class="text-xs font-bold text-wg-text-muted">({value.monthly_average_uptime?.toFixed(2) ?? "—"}%)</span></div>
                     <div class="mt-4 grid grid-cols-7 gap-1.5 text-center text-[0.625rem] text-wg-text-muted" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
                     <div class="mt-2 grid grid-cols-7 gap-1.5" aria-label={`Availability for ${month}`}>{#each calendarOffset(value.days[0]?.date ?? "") as _}<span class="aspect-square"></span>{/each}{#each value.days as day}<span class={`aspect-square rounded-[0.2rem] ${uptimeTone(day.uptime_percentage)}`} title={`${timestamp(day.date)}: ${day.uptime_percentage === null ? "No data" : `${day.uptime_percentage.toFixed(2)}% uptime`}`}></span>{/each}</div>
                 {/each}

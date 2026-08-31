@@ -7,6 +7,7 @@
     import Input from "$lib/components/Input.svelte";
     import MutationForm from "$lib/components/MutationForm.svelte";
     import { appRoutes } from "$lib/routes";
+    import { formatDateTime } from "$lib/i18n/format";
     import type { FirstPartySession } from "$lib/api/models";
 
     interface ApiKeySummary { id: number; name: string; abilities: string[]; last_used_at: string | null; revoked_at: string | null; }
@@ -28,7 +29,7 @@
     function revealCreatedApiKey(created: CreatedApiKey): void { apiKeys = [created.api_key, ...apiKeys]; revealedToken = created.token; createOpen = false; }
     function markApiKeyRevoked(apiKey: ApiKeySummary): void { apiKeys = apiKeys.map((candidate) => candidate.id === apiKey.id ? apiKey : candidate); revokeTarget = null; }
     function finishDeletion(): void { window.location.assign("/"); }
-    function dateTime(value: string | null): string { return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Never used"; }
+    function dateTime(value: string | null): string { return formatDateTime(value, "Never used"); }
 </script>
 
 <svelte:head><title>Profile | WebGuard</title></svelte:head>

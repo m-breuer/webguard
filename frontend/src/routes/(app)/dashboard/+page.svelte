@@ -1,5 +1,6 @@
 <script lang="ts">
     import { appRoutes } from "$lib/routes";
+    import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
@@ -72,7 +73,7 @@
     function dateTime(value: string | null): string {
         if (value === null) return "No result yet";
 
-        return new Intl.DateTimeFormat(data.session.user.locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+        return formatDateTime(value, "—");
     }
 
     function paginationHref(page: number): string {

@@ -73,6 +73,52 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('aria-label={searchPlaceholder}', $select);
     }
 
+    public function test_sveltekit_german_locale_covers_shared_interface_text_and_uses_locale_aware_dates(): void
+    {
+        $localize = file_get_contents(base_path('frontend/src/lib/i18n/localize.ts'));
+        $format = file_get_contents(base_path('frontend/src/lib/i18n/format.ts'));
+
+        $this->assertIsString($localize);
+        $this->assertIsString($format);
+
+        foreach ([
+            '"Application navigation": "Anwendungsnavigation"',
+            '"Create monitoring": "Überwachung erstellen"',
+            '"Search by name, target, port or keyword": "Nach Name, Ziel, Port oder Schlüsselwort suchen"',
+            '"Response-time data will appear after the monitoring collects results.": "Antwortzeitdaten werden angezeigt, sobald die Überwachung Ergebnisse erfasst."',
+            '"Subscribe to updates": "Updates abonnieren"',
+            '"Users could not be loaded.": "Benutzer konnten nicht geladen werden."',
+            '"Your session has expired. Sign in again to continue.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren."',
+        ] as $translation) {
+            $this->assertStringContainsString($translation, $localize);
+        }
+
+        $this->assertStringContainsString('page.data.locale === "de" ? "de-DE" : "en-US"', $format);
+        $this->assertStringContainsString('new Intl.DateTimeFormat(interfaceLocale(), options)', $format);
+
+        foreach ([
+            'frontend/src/lib/components/MonitoringAnalytics.svelte',
+            'frontend/src/routes/(app)/admin/activity-logs/+page.svelte',
+            'frontend/src/routes/(app)/admin/api/+page.svelte',
+            'frontend/src/routes/(app)/dashboard/+page.svelte',
+            'frontend/src/routes/(app)/incidents/analytics/+page.svelte',
+            'frontend/src/routes/(app)/maintenance/+page.svelte',
+            'frontend/src/routes/(app)/monitorings/+page.svelte',
+            'frontend/src/routes/(app)/monitorings/[id]/+page.svelte',
+            'frontend/src/routes/(app)/notifications/+page.svelte',
+            'frontend/src/routes/(app)/profile/+page.svelte',
+            'frontend/src/routes/(app)/status-pages/[id]/+page.svelte',
+            'frontend/src/routes/status/[id]/+page.svelte',
+        ] as $dateTimeView) {
+            $contents = file_get_contents(base_path($dateTimeView));
+
+            $this->assertIsString($contents);
+            $this->assertStringContainsString('formatDateTime', $contents, $dateTimeView);
+            $this->assertStringNotContainsString('new Intl.DateTimeFormat(undefined', $contents, $dateTimeView);
+            $this->assertStringNotContainsString('new Intl.DateTimeFormat("en-US"', $contents, $dateTimeView);
+        }
+    }
+
     public function test_shared_sveltekit_components_preserve_mobile_navigation_and_content_space(): void
     {
         $appShell = file_get_contents(base_path('frontend/src/lib/components/AppShell.svelte'));
