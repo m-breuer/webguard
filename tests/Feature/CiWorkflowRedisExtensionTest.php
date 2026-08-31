@@ -23,18 +23,18 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertStringContainsString('redis', $installLine);
     }
 
-    public function test_ci_job_caches_composer_downloads_instead_of_vendor_directory(): void
+    public function test_quality_job_caches_composer_downloads_instead_of_vendor_directory(): void
     {
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $cacheStep = collect($workflowConfig['jobs']['ci']['steps'] ?? [])
+        $cacheStep = collect($workflowConfig['jobs']['quality']['steps'] ?? [])
             ->firstWhere('name', 'Cache Composer dependencies');
 
-        $this->assertIsArray($cacheStep, 'Missing Composer cache step for ci job.');
+        $this->assertIsArray($cacheStep, 'Missing Composer cache step for quality job.');
         $this->assertSame('~/.cache/composer/files', $cacheStep['with']['path'] ?? null);
         $this->assertNotSame('vendor', $cacheStep['with']['path'] ?? null);
     }
 
-    public function test_ci_runs_phpstan_and_pest_coverage(): void
+    public function test_ci_separates_quality_tests_and_coverage_workflows(): void
     {
         $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);
 
@@ -44,13 +44,21 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertSame(['./vendor/bin/pest --coverage --min=0'], $composerConfig['scripts']['test:coverage'] ?? null);
         $this->assertFileExists(base_path('phpstan.neon'));
 
-        $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $ciJobSteps = collect($workflowConfig['jobs']['ci']['steps'] ?? []);
-        $phpstanStep = $ciJobSteps->firstWhere('name', 'Run PHPStan');
-        $coverageStep = $ciJobSteps->firstWhere('name', 'Run tests with coverage');
+        $ciConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
+        $coverageConfig = Yaml::parseFile(base_path('.github/workflows/coverage.yml'));
+        $qualitySteps = collect($ciConfig['jobs']['quality']['steps'] ?? []);
+        $testSteps = collect($ciConfig['jobs']['tests']['steps'] ?? []);
+        $coverageSteps = collect($coverageConfig['jobs']['coverage']['steps'] ?? []);
+        $phpstanStep = $qualitySteps->firstWhere('name', 'Run PHPStan');
+        $testStep = $testSteps->firstWhere('name', 'Run full Pest suite');
+        $coverageStep = $coverageSteps->firstWhere('name', 'Run full Pest suite with coverage');
 
         $this->assertIsArray($phpstanStep);
         $this->assertStringContainsString('composer analyse', $phpstanStep['run'] ?? '');
+
+        $this->assertIsArray($testStep);
+        $this->assertStringContainsString('composer test -- --parallel', $testStep['run'] ?? '');
+        $this->assertSame('off', $testStep['env']['XDEBUG_MODE'] ?? null);
 
         $this->assertIsArray($coverageStep);
         $this->assertStringContainsString('composer test:coverage', $coverageStep['run'] ?? '');
@@ -63,8 +71,8 @@ class CiWorkflowRedisExtensionTest extends TestCase
     public function test_ci_verifies_the_generated_external_openapi_contract(): void
     {
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $ciJobSteps = collect($workflowConfig['jobs']['ci']['steps'] ?? []);
-        $openApiStep = $ciJobSteps->firstWhere('name', 'Verify external OpenAPI contract is current');
+        $qualitySteps = collect($workflowConfig['jobs']['quality']['steps'] ?? []);
+        $openApiStep = $qualitySteps->firstWhere('name', 'Verify external OpenAPI contract is current');
 
         $this->assertIsArray($openApiStep);
         $this->assertStringContainsString('php artisan scribe:generate --no-interaction', $openApiStep['run'] ?? '');
@@ -76,30 +84,42 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertSame(':memory:', $openApiStep['env']['DB_DATABASE'] ?? null);
     }
 
-    public function test_ci_builds_docker_image_before_rector_pint_and_test_steps(): void
+    public function test_quality_job_builds_docker_image_before_its_php_quality_steps(): void
     {
         $workflowConfig = Yaml::parseFile(base_path('.github/workflows/ci.yml'));
-        $stepNames = collect($workflowConfig['jobs']['ci']['steps'] ?? [])->pluck('name')->filter()->values();
+        $stepNames = collect($workflowConfig['jobs']['quality']['steps'] ?? [])->pluck('name')->filter()->values();
 
         $buildIndex = $stepNames->search('Build CI image');
-        $rectorIndex = $stepNames->search('Run Rector');
-        $pintIndex = $stepNames->search('Run Pint');
+        $rectorIndex = $stepNames->search('Check Rector formatting');
+        $pintIndex = $stepNames->search('Check Pint formatting');
         $phpstanIndex = $stepNames->search('Run PHPStan');
-        $coverageIndex = $stepNames->search('Run tests with coverage');
         $openApiIndex = $stepNames->search('Verify external OpenAPI contract is current');
 
         $this->assertNotFalse($buildIndex);
         $this->assertNotFalse($rectorIndex);
         $this->assertNotFalse($pintIndex);
         $this->assertNotFalse($phpstanIndex);
-        $this->assertNotFalse($coverageIndex);
         $this->assertNotFalse($openApiIndex);
 
         $this->assertTrue($buildIndex < $rectorIndex);
         $this->assertTrue($rectorIndex < $pintIndex);
         $this->assertTrue($pintIndex < $phpstanIndex);
-        $this->assertTrue($phpstanIndex < $coverageIndex);
-        $this->assertTrue($coverageIndex < $openApiIndex);
+        $this->assertTrue($phpstanIndex < $openApiIndex);
+    }
+
+    public function test_topology_scope_is_conservative_and_ci_never_commits_formatting_changes(): void
+    {
+        $workflow = (string) file_get_contents(base_path('.github/workflows/ci.yml'));
+        $scopeScript = (string) file_get_contents(base_path('.github/scripts/should-run-topology-smoke.sh'));
+
+        $this->assertStringContainsString('needs: changes', $workflow);
+        $this->assertStringContainsString('should-run-topology-smoke.sh', $workflow);
+        $this->assertStringNotContainsString('git-auto-commit-action', $workflow);
+        $this->assertStringContainsString('--dry-run --ansi', $workflow);
+        $this->assertStringContainsString('--test --parallel', $workflow);
+        $this->assertStringContainsString('routes/*', $scopeScript);
+        $this->assertStringContainsString('app/Http/*', $scopeScript);
+        $this->assertStringContainsString('frontend/src/*', $scopeScript);
     }
 
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
