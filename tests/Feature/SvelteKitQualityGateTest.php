@@ -334,4 +334,21 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringNotContainsString('SERVICE_FQDN_GATEWAY', $composeConfiguration);
         $this->assertStringNotContainsString('SERVICE_URL_PHP', $composeConfiguration);
     }
+
+    public function test_only_the_gateway_declares_a_publicly_routable_compose_port(): void
+    {
+        $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+
+        $this->assertIsString($composeConfiguration);
+
+        preg_match('/^  php:\R(?<service>.*?)(?=^  frontend:)/ms', $composeConfiguration, $phpMatches);
+        preg_match('/^  frontend:\R(?<service>.*?)(?=^  gateway:)/ms', $composeConfiguration, $frontendMatches);
+
+        $this->assertArrayHasKey('service', $phpMatches);
+        $this->assertArrayHasKey('service', $frontendMatches);
+
+        $this->assertStringNotContainsString("\n    expose:", $phpMatches['service']);
+        $this->assertStringNotContainsString("\n    expose:", $frontendMatches['service']);
+        $this->assertStringContainsString("\n    expose:\n      - \"8080\"", $composeConfiguration);
+    }
 }
