@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   CI_IMAGE: webguard-ci:${{ github.run_id }}
@@ -21,9 +21,46 @@ env:
   PHP_MAX_EXECUTION_TIME: "300"
 
 jobs:
-  ci:
+  changes:
+    name: Topology scope
+    runs-on: ubuntu-latest
+    outputs:
+      topology: ${{ steps.scope.outputs.topology }}
+      reason: ${{ steps.scope.outputs.reason }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Determine topology smoke scope
+      id: scope
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        if [ "${{ github.event_name }}" != "pull_request" ]; then
+          echo "topology=true" >> "$GITHUB_OUTPUT"
+          echo "reason=non-pull-request-run" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        topology="$(.github/scripts/should-run-topology-smoke.sh "$BASE_SHA" "$HEAD_SHA")"
+        echo "topology=$topology" >> "$GITHUB_OUTPUT"
+
+        if [ "$topology" = "true" ]; then
+          echo "reason=runtime-or-infrastructure-change" >> "$GITHUB_OUTPUT"
+        else
+          echo "reason=docs-tests-or-isolated-domain-change" >> "$GITHUB_OUTPUT"
+        fi
+
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
     steps:
+    - name: Record job start
+      run: echo "JOB_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
     - name: Checkout code
       uses: actions/checkout@v6
       with:
@@ -40,8 +77,8 @@ jobs:
         target: ci
         tags: ${{ env.CI_IMAGE }}
         load: true
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=gha,scope=quality
+        cache-to: type=gha,mode=max,scope=quality
 
     - name: Cache Composer dependencies
       uses: actions/cache@v5
@@ -72,6 +109,7 @@ jobs:
         path: |
           ~/.bun/install/cache
           node_modules
+          frontend/node_modules
         key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
         restore-keys: |
           ${{ runner.os }}-bun-
@@ -79,50 +117,21 @@ jobs:
     - name: Install frontend dependencies
       run: bun install --frozen-lockfile --cwd frontend
 
-    - name: Run Rector
+    - name: Check Rector formatting
       run: |
         docker run --rm --user "$(id -u):$(id -g)" \
           -e PHP_OPCACHE_ENABLE -e PHP_MEMORY_LIMIT -e PHP_MAX_EXECUTION_TIME \
           -v "${{ github.workspace }}:/var/www/html" \
           -w /var/www/html "${{ env.CI_IMAGE }}" \
-          ./vendor/bin/rector process --ansi
+          ./vendor/bin/rector process --dry-run --ansi
 
-    - name: Run Pint
+    - name: Check Pint formatting
       run: |
         docker run --rm --user "$(id -u):$(id -g)" \
           -e PHP_OPCACHE_ENABLE -e PHP_MEMORY_LIMIT -e PHP_MAX_EXECUTION_TIME \
           -v "${{ github.workspace }}:/var/www/html" \
           -w /var/www/html "${{ env.CI_IMAGE }}" \
-          ./vendor/bin/pint --parallel
-
-    - name: Ensure writable branch exists
-      if: >
-        github.event_name == 'push' ||
-        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-      env:
-        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-      run: git checkout -B "$BRANCH_NAME"
-
-    - name: Commit auto-fixes (internal branches only)
-      if: >
-        (github.event_name == 'push' && github.ref != 'refs/heads/main') ||
-        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-      uses: stefanzweifel/git-auto-commit-action@v7
-      with:
-        commit_message: 'ci: auto-fixes from pint and rector'
-        commit_options: '--no-verify'
-        branch: ${{ github.head_ref || github.ref_name }}
-
-    - name: Fail if Rector or Pint would change files
-      if: >
-        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-        (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-      run: |
-        if ! git diff --quiet; then
-          echo "::error::Rector and/or Pint changed tracked files. The branch must be optimized before it can pass CI."
-          git diff
-          exit 1
-        fi
+          ./vendor/bin/pint --test --parallel
 
     - name: Build frontend assets
       run: |
@@ -138,34 +147,127 @@ jobs:
           -w /var/www/html "${{ env.CI_IMAGE }}" \
           composer analyse
 
-    - name: Run tests with coverage
-      env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: ':memory:'
-        XDEBUG_MODE: coverage
-      run: |
-        docker run --rm --user "$(id -u):$(id -g)" \
-          -e DB_CONNECTION \
-          -e DB_DATABASE \
-          -e XDEBUG_MODE \
-          -e PHP_OPCACHE_ENABLE -e PHP_MEMORY_LIMIT -e PHP_MAX_EXECUTION_TIME \
-          -v "${{ github.workspace }}:/var/www/html" \
-          -w /var/www/html "${{ env.CI_IMAGE }}" \
-          composer test:coverage -- --parallel
-
     - name: Verify external OpenAPI contract is current
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: ':memory:'
       run: |
         docker run --rm --user "$(id -u):$(id -g)" \
-          -e DB_CONNECTION \
-          -e DB_DATABASE \
+          -e DB_CONNECTION -e DB_DATABASE \
           -e PHP_OPCACHE_ENABLE -e PHP_MEMORY_LIMIT -e PHP_MAX_EXECUTION_TIME \
           -v "${{ github.workspace }}:/var/www/html" \
           -w /var/www/html "${{ env.CI_IMAGE }}" \
           php artisan scribe:generate --no-interaction
         git diff --exit-code -- storage/app/private/scribe/openapi.yaml
 
+    - name: Summarize job duration
+      if: always()
+      run: |
+        duration="$(( $(date +%s) - JOB_STARTED_AT ))"
+        {
+          echo "## Quality"
+          echo
+          echo "Completed in ${duration}s. Rector and Pint ran in check-only mode."
+        } >> "$GITHUB_STEP_SUMMARY"
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Record job start
+      run: echo "JOB_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+    - name: Checkout code
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build CI image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        target: ci
+        tags: ${{ env.CI_IMAGE }}
+        load: true
+        cache-from: type=gha,scope=tests
+        cache-to: type=gha,mode=max,scope=tests
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/composer/files
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    - name: Install PHP dependencies
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
+          -e PHP_OPCACHE_ENABLE -e PHP_MEMORY_LIMIT -e PHP_MAX_EXECUTION_TIME \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -v "$HOME/.cache/composer/files:/tmp/composer-cache" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+
+    - name: Run full Pest suite
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: ':memory:'
+        XDEBUG_MODE: off
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          -e DB_CONNECTION -e DB_DATABASE -e XDEBUG_MODE \
+          -e PHP_OPCACHE_ENABLE -e PHP_MEMORY_LIMIT -e PHP_MAX_EXECUTION_TIME \
+          -v "${{ github.workspace }}:/var/www/html" \
+          -w /var/www/html "${{ env.CI_IMAGE }}" \
+          composer test -- --parallel
+
+    - name: Summarize job duration
+      if: always()
+      run: |
+        duration="$(( $(date +%s) - JOB_STARTED_AT ))"
+        {
+          echo "## Tests"
+          echo
+          echo "Completed in ${duration}s without Xdebug coverage instrumentation."
+        } >> "$GITHUB_STEP_SUMMARY"
+
+  topology:
+    name: Topology
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+    - name: Record job start
+      run: echo "JOB_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+    - name: Checkout code
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
     - name: Run SvelteKit container topology smoke test
+      if: needs.changes.outputs.topology == 'true'
       run: .github/scripts/smoke-sveltekit-topology.sh
+
+    - name: Record conservative topology skip
+      if: needs.changes.outputs.topology != 'true'
+      run: |
+        {
+          echo "## Topology"
+          echo
+          echo "Smoke test skipped after conservative changed-path analysis: ${{ needs.changes.outputs.reason }}."
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Summarize job duration
+      if: always()
+      run: |
+        duration="$(( $(date +%s) - JOB_STARTED_AT ))"
+        {
+          echo "## Topology duration"
+          echo
+          echo "Completed in ${duration}s. Scope: ${{ needs.changes.outputs.reason }}."
+        } >> "$GITHUB_STEP_SUMMARY"

@@ -19,6 +19,24 @@ Contributions are welcome. Please keep changes focused, tested, and easy to revi
    php artisan test
    ```
 
+   Pull requests run three independent required gates: quality checks, the full
+   Pest suite without coverage instrumentation, and a conservative Docker
+   topology smoke check. Coverage runs after merges to `main`, on the daily
+   schedule, and on demand; its report is retained as a workflow artifact.
+
+   Rector and Pint are check-only in CI. Apply their corrections locally before
+   pushing:
+
+   ```bash
+   ./vendor/bin/rector process
+   ./vendor/bin/pint --parallel
+   ```
+
+   After CI pipeline changes, review the latest 20 successful pull-request
+   runs in GitHub Actions. The target is a median duration of at most four
+   minutes and a P95 of at most six minutes; record any deviation, its cause,
+   and a follow-up issue in the related pull request.
+
 5. Commit with a descriptive Conventional Commits message.
 6. Push the branch to your fork.
 7. Open a pull request against the original repository's `main` branch. Reference the issue in the pull request description and use a closing keyword such as `Closes #123` when the pull request fully resolves it.
