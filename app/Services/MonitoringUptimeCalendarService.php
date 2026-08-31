@@ -21,8 +21,7 @@ class MonitoringUptimeCalendarService
         Carbon $startDate,
         Carbon $endDate,
         bool $includeMonthsBeforeMonitoringCreation = false,
-    ): MonitoringUptimeCalendarPayload
-    {
+    ): MonitoringUptimeCalendarPayload {
         $startDate = $startDate->copy();
         $endDate = $endDate->copy();
 

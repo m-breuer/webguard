@@ -32,8 +32,7 @@ final class MobileMonitoringDetailPayloadService
         int $incidentLimit,
         int $incidentOffset,
         bool $includeCurrentYearCalendar = false,
-    ): array
-    {
+    ): array {
         $generatedAt = Date::now();
         $monitoringDateRange = MonitoringDateRange::pastDays($days);
         $currentCheck = $this->monitoringStatusPayloadService->getPayload($monitoring, false)->toArray();
