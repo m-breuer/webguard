@@ -7,11 +7,17 @@ function interfaceLocale(): string {
 }
 
 export function formatDateTime(
-    value: string | null,
+    value: string | null | undefined,
     fallback: string,
     options: DateTimeFormatOptions = { dateStyle: "medium", timeStyle: "short" },
 ): string {
-    return value ? new Intl.DateTimeFormat(interfaceLocale(), options).format(new Date(value)) : fallback;
+    if (!value) {
+        return fallback;
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime()) ? fallback : new Intl.DateTimeFormat(interfaceLocale(), options).format(date);
 }
 
 export function formatMonthYear(value: Date): string {
