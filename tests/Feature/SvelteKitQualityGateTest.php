@@ -233,5 +233,9 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertIsString($composeConfiguration);
         $this->assertStringContainsString('export MAIL_MAILER="${MAIL_MAILER:-log}"', $smokeScript);
         $this->assertStringContainsString('MAIL_MAILER: "${MAIL_MAILER:-smtp}"', $composeConfiguration);
+        $this->assertStringContainsString('export APP_URL="${APP_URL:-http://gateway:8080}"', $smokeScript);
+        $this->assertStringContainsString('APP_URL: "${APP_URL:?APP_URL must be set to the canonical application URL}"', $composeConfiguration);
+        $this->assertStringContainsString('ORIGIN: "${APP_URL:?APP_URL must be set to the canonical application URL}"', $composeConfiguration);
+        $this->assertStringNotContainsString('SERVICE_URL_PHP', $composeConfiguration);
     }
 }
