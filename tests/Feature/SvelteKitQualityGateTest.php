@@ -160,6 +160,18 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('<span>Uptime</span>', $monitoringAnalytics);
     }
 
+    public function test_response_time_chart_uses_the_computed_application_font_stack(): void
+    {
+        $monitoringAnalytics = file_get_contents(base_path('frontend/src/lib/components/MonitoringAnalytics.svelte'));
+
+        $this->assertIsString($monitoringAnalytics);
+        $this->assertStringContainsString('function chartFontFamily', $monitoringAnalytics);
+        $this->assertStringContainsString('getComputedStyle(document.body).fontFamily', $monitoringAnalytics);
+        $this->assertStringContainsString('const fontFamily = chartFontFamily();', $monitoringAnalytics);
+        $this->assertStringContainsString('family: fontFamily', $monitoringAnalytics);
+        $this->assertStringNotContainsString('family: "Sen"', $monitoringAnalytics);
+    }
+
     public function test_ci_runs_sveltekit_checks_budgets_and_container_smoke_test(): void
     {
         $workflow = file_get_contents(base_path('.github/workflows/ci.yml'));
