@@ -102,7 +102,7 @@ class PublicMonitoringBadgeApiTest extends TestCase
         $testResponse->assertJsonPath('status_label', 'UP');
         $testResponse->assertJsonPath('status_code', 200);
         $testResponse->assertJsonPath('status_identifier', 'status.success');
-        $testResponse->assertJsonPath('public_url', route('public-label', $monitoring));
+        $testResponse->assertJsonPath('public_url', route('public-status-pages.show', $monitoring));
         $testResponse->assertJsonPath('incidents.30_days', 1);
         $testResponse->assertJsonPath('incidents.90_days', 2);
         $testResponse->assertJsonPath('incidents.365_days', 2);

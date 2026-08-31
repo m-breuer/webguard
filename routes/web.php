@@ -2,56 +2,25 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\ActivityLogController;
-use App\Http\Controllers\Admin\ApiController as AdminApiController;
-use App\Http\Controllers\Admin\PackageController;
-use App\Http\Controllers\Admin\ServerInstanceController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HeartbeatPingController;
-use App\Http\Controllers\IncidentAnalyticsController;
 use App\Http\Controllers\LegacyPublicStatusPageController;
-use App\Http\Controllers\LocaleController;
-use App\Http\Controllers\MaintenanceController;
-use App\Http\Controllers\MonitoringController;
-use App\Http\Controllers\MonitoringGroupController;
-use App\Http\Controllers\MonitoringNotificationPreferenceController;
-use App\Http\Controllers\MonitoringOwnershipController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ProfileApiKeyController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PublicLabelController;
-use App\Http\Controllers\PublicStatusController;
 use App\Http\Controllers\PublicStatusSubscriptionController;
-use App\Http\Controllers\StatusPageController;
-use App\Http\Controllers\StatusPageIncidentFollowUpController;
-use App\Http\Controllers\StatusPageIncidentMetadataController;
-use App\Http\Controllers\StatusPageIncidentReviewController;
-use App\Http\Controllers\StatusPageIncidentTimelineController;
-use App\Http\Controllers\StatusPageIncidentUpdateController;
-use App\Http\Controllers\StatusPageSubscriberController;
-use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamInvitationAcceptController;
-use App\Http\Controllers\TeamInvitationController;
-use App\Http\Controllers\TeamMemberController;
 use App\Models\Monitoring;
-use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
-use Illuminate\Session\Middleware\StartSession;
+use App\Support\PublicStatusResourceResolver;
 use Illuminate\Support\Facades\Route;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
-
-$sessionlessPublicRoutes = [
-    PreventRequestForgery::class,
-    ShareErrorsFromSession::class,
-    StartSession::class,
-];
 
 Route::redirect('/', '/login')->name('home');
-Route::match(['get', 'post'], '/locale', [LocaleController::class, 'update'])->name('locale.switch');
 Route::match(['get', 'post'], '/heartbeat/{token}', HeartbeatPingController::class)->name('monitorings.heartbeat.ping');
 Route::permanentRedirect('/api/docs', '/api/reference')->name('api.docs.redirect');
 Route::get('/team-invitations/{token}/accept', TeamInvitationAcceptController::class)
     ->name('team-invitations.accept');
+
+$publicStatusTarget = static function (string $identifier): string {
+    $resource = resolve(PublicStatusResourceResolver::class)->resolve($identifier);
+
+    return mb_rtrim((string) config('app.url'), '/') . '/status/' . rawurlencode((string) $resource->getRouteKey());
+};
 
 Route::get('/label/{monitoring}', static fn (Monitoring $monitoring) => to_route('public-status-pages.show', $monitoring, 301))
     ->name('legacy-public-label')
@@ -69,56 +38,52 @@ Route::get('/label/{monitoring}/subscribers/unsubscribe/{token}', static fn (Mon
 Route::delete('/label/{monitoring}/subscribers/unsubscribe/{token}', static fn (Monitoring $monitoring, string $token) => to_route('public-status-pages.subscribers.destroy', [$monitoring, 'token' => $token], 307))
     ->name('legacy-public-label.subscribers.destroy')
     ->scopeBindings();
+Route::match(['get', 'post', 'put', 'patch', 'delete'], '/label/{monitoring}/{path?}', static fn (Monitoring $monitoring) => to_route('public-status-pages.show', $monitoring, 307))
+    ->where('path', '.*')
+    ->name('legacy-public-label.forward')
+    ->scopeBindings();
+
 $statusPageUlidPattern = '(?i:[0-9A-HJKMNP-TV-Z]{26})';
 $legacyStatusPageSlugPattern = '(?!(?i:[0-9A-HJKMNP-TV-Z]{26}))[A-Za-z0-9_-]+';
 
 Route::post('/status/{statusPage}/subscribers', [PublicStatusSubscriptionController::class, 'store'])
     ->middleware('throttle:6,1')
     ->name('public-status-pages.subscribers.store')
-    ->where('statusPage', $statusPageUlidPattern);
+    ->where('statusPage', $statusPageUlidPattern)
+    ->scopeBindings();
 Route::get('/status/{statusPage}/subscribers/confirm/{token}', [PublicStatusSubscriptionController::class, 'confirm'])
     ->name('public-status-pages.subscribers.confirm')
-    ->where('statusPage', $statusPageUlidPattern);
+    ->where('statusPage', $statusPageUlidPattern)
+    ->scopeBindings();
 Route::get('/status/{statusPage}/subscribers/unsubscribe/{token}', [PublicStatusSubscriptionController::class, 'unsubscribe'])
     ->name('public-status-pages.subscribers.unsubscribe')
-    ->where('statusPage', $statusPageUlidPattern);
+    ->where('statusPage', $statusPageUlidPattern)
+    ->scopeBindings();
 Route::delete('/status/{statusPage}/subscribers/unsubscribe/{token}', [PublicStatusSubscriptionController::class, 'destroy'])
     ->name('public-status-pages.subscribers.destroy')
-    ->where('statusPage', $statusPageUlidPattern);
-Route::get('/status/{statusPage}', PublicStatusController::class)
+    ->where('statusPage', $statusPageUlidPattern)
+    ->scopeBindings();
+Route::get('/status/{statusPage}', static fn (string $statusPage) => redirect()->away($publicStatusTarget($statusPage)))
     ->name('public-status-pages.show')
     ->where('statusPage', $statusPageUlidPattern);
-
-Route::post('/status/{monitoring}/subscribers', [StatusPageSubscriberController::class, 'store'])
-    ->middleware('throttle:6,1')
-    ->name('public-label.subscribers.store')
-    ->where('monitoring', $statusPageUlidPattern);
-Route::get('/status/{monitoring}/subscribers/confirm/{token}', [StatusPageSubscriberController::class, 'confirm'])
-    ->name('public-label.subscribers.confirm')
-    ->where('monitoring', $statusPageUlidPattern);
-Route::get('/status/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'unsubscribe'])
-    ->name('public-label.subscribers.unsubscribe')
-    ->where('monitoring', $statusPageUlidPattern);
-Route::delete('/status/{monitoring}/subscribers/unsubscribe/{token}', [StatusPageSubscriberController::class, 'destroy'])
-    ->name('public-label.subscribers.destroy')
-    ->where('monitoring', $statusPageUlidPattern);
-Route::get('/status/{monitoring}', PublicLabelController::class)
-    ->name('public-label')
-    ->where('monitoring', $statusPageUlidPattern);
 
 Route::post('/status/{statusPageSlug}/subscribers', [LegacyPublicStatusPageController::class, 'store'])
     ->middleware('throttle:6,1')
     ->name('legacy-public-status-pages.subscribers.store')
-    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern)
+    ->scopeBindings();
 Route::get('/status/{statusPageSlug}/subscribers/confirm/{token}', [LegacyPublicStatusPageController::class, 'confirm'])
     ->name('legacy-public-status-pages.subscribers.confirm')
-    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern)
+    ->scopeBindings();
 Route::get('/status/{statusPageSlug}/subscribers/unsubscribe/{token}', [LegacyPublicStatusPageController::class, 'unsubscribe'])
     ->name('legacy-public-status-pages.subscribers.unsubscribe')
-    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern)
+    ->scopeBindings();
 Route::delete('/status/{statusPageSlug}/subscribers/unsubscribe/{token}', [LegacyPublicStatusPageController::class, 'destroy'])
     ->name('legacy-public-status-pages.subscribers.destroy')
-    ->where('statusPageSlug', $legacyStatusPageSlugPattern);
+    ->where('statusPageSlug', $legacyStatusPageSlugPattern)
+    ->scopeBindings();
 Route::get('/status/{statusPageSlug}', [LegacyPublicStatusPageController::class, 'show'])
     ->name('legacy-public-status-pages.show')
     ->where('statusPageSlug', $legacyStatusPageSlugPattern);
@@ -131,107 +96,9 @@ Route::get('/badge.js', function () {
         ->header('X-Content-Type-Options', 'nosniff');
 })->name('badge.js');
 
-Route::middleware(['auth', 'role:member,admin'])
-    ->prefix('profile')
-    ->as('profile.')
-    ->group(function (): void {
-        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('update');
-        Route::patch('/theme', [ProfileController::class, 'updateTheme'])->name('theme.update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-    });
-
-Route::middleware(['auth', 'verified'])->group(function (): void {
-
-    Route::get('/dashboard', DashboardController::class)->name('dashboard');
-
-    Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => 'role:member,admin'], function (): void {
-        Route::post('/api-keys', [ProfileApiKeyController::class, 'store'])->name('api-keys.store');
-        Route::delete('/api-keys/{apiKey}', [ProfileApiKeyController::class, 'destroy'])
-            ->whereNumber('apiKey')
-            ->name('api-keys.destroy');
-        Route::post('/notification-channels/{channel}/test', [ProfileController::class, 'sendNotificationChannelTest'])
-            ->name('notification-channels.test');
-    });
-
-    Route::resource('monitorings', MonitoringController::class)->names('monitorings');
-    Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
-    Route::post('/maintenance', [MaintenanceController::class, 'store'])->name('maintenance.store');
-    Route::patch('/maintenance', [MaintenanceController::class, 'update'])->name('maintenance.update');
-    Route::delete('/maintenance', [MaintenanceController::class, 'destroy'])->name('maintenance.destroy');
-    Route::post('/monitorings/{monitoring}/team-ownership', [MonitoringOwnershipController::class, 'moveToTeam'])
-        ->name('monitorings.team-ownership.store');
-    Route::delete('/monitorings/{monitoring}/team-ownership', [MonitoringOwnershipController::class, 'moveToPrivate'])
-        ->name('monitorings.team-ownership.destroy');
-    Route::patch('/monitorings/{monitoring}/notification-preferences', [MonitoringNotificationPreferenceController::class, 'update'])
-        ->name('monitorings.notification-preferences.update');
-    Route::resource('teams', TeamController::class)->names('teams');
-    Route::post('/teams/{team}/invitations', [TeamInvitationController::class, 'store'])
-        ->name('teams.invitations.store');
-    Route::delete('/teams/{team}/invitations/{teamInvitation}', [TeamInvitationController::class, 'destroy'])
-        ->name('teams.invitations.destroy');
-    Route::patch('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'update'])
-        ->name('teams.members.update');
-    Route::delete('/teams/{team}/members/{teamMembership}', [TeamMemberController::class, 'destroy'])
-        ->name('teams.members.destroy');
-    Route::delete('/teams/{team}/leave', [TeamMemberController::class, 'leave'])
-        ->name('teams.leave');
-    Route::resource('monitoring-groups', MonitoringGroupController::class)
-        ->except(['show'])
-        ->parameters(['monitoring-groups' => 'monitoringGroup'])
-        ->names('monitoring-groups');
-    Route::post('/monitoring-groups/{monitoringGroup}/publish-status-page', [MonitoringGroupController::class, 'publishStatusPage'])
-        ->name('monitoring-groups.publish-status-page');
-    Route::resource('status-pages', StatusPageController::class)
-        ->parameters(['status-pages' => 'statusPage'])
-        ->names('status-pages');
-    Route::post('/status-pages/{statusPage}/incidents/{incident}/updates', [StatusPageIncidentUpdateController::class, 'store'])
-        ->name('status-pages.incident-updates.store');
-    Route::patch('/status-pages/{statusPage}/incidents/{incident}/review', [StatusPageIncidentReviewController::class, 'update'])
-        ->name('status-pages.incident-review.update');
-    Route::patch('/status-pages/{statusPage}/incidents/{incident}/metadata', [StatusPageIncidentMetadataController::class, 'update'])
-        ->name('status-pages.incident-metadata.update');
-    Route::post('/status-pages/{statusPage}/incidents/{incident}/follow-ups', [StatusPageIncidentFollowUpController::class, 'store'])
-        ->name('status-pages.incident-follow-ups.store');
-    Route::patch('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [StatusPageIncidentFollowUpController::class, 'update'])
-        ->name('status-pages.incident-follow-ups.update');
-    Route::delete('/status-pages/{statusPage}/incidents/{incident}/follow-ups/{incidentFollowUp}', [StatusPageIncidentFollowUpController::class, 'destroy'])
-        ->name('status-pages.incident-follow-ups.destroy');
-    Route::post('/status-pages/{statusPage}/incidents/{incident}/timeline', [StatusPageIncidentTimelineController::class, 'store'])
-        ->name('status-pages.incident-timeline.store');
-    Route::patch('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [StatusPageIncidentTimelineController::class, 'update'])
-        ->name('status-pages.incident-timeline.update');
-    Route::delete('/status-pages/{statusPage}/incidents/{incident}/timeline/{incidentTimelineEvent}', [StatusPageIncidentTimelineController::class, 'destroy'])
-        ->name('status-pages.incident-timeline.destroy');
-    Route::get('/incidents/analytics', [IncidentAnalyticsController::class, 'index'])
-        ->name('incidents.analytics');
-
-    Route::delete('/monitorings/{monitoring}/reset', [MonitoringController::class, 'destroyResults'])
-        ->name('monitorings.destroyResults');
-    Route::post('/monitorings/{monitoring}/server-health-token/rotate', [MonitoringController::class, 'rotateServerHealthToken'])
-        ->name('monitorings.server-health-token.rotate');
-
-    Route::group(['prefix' => 'notifications', 'as' => 'notifications.'], function (): void {
-        Route::get('/', [NotificationController::class, 'index'])->name('index');
-        Route::post('/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('markAsRead');
-        Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
-        Route::post('/load-more', [NotificationController::class, 'loadMore'])->name('loadMore');
-    });
-
-    Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'role:admin'], function (): void {
-        Route::get('/', fn () => view('admin.dashboard'))->name('dashboard');
-        Route::resource('/users', UserController::class)->except(['show'])->names('users');
-        Route::post('/users/{user}/verify', [UserController::class, 'verify'])->name('users.verify');
-        Route::resource('/packages', PackageController::class)->except(['show'])->names('packages');
-        Route::resource('/server-instances', ServerInstanceController::class)->except(['show'])->names('server-instances');
-        Route::resource('/apis', AdminApiController::class)->only(['index'])->names('apis');
-        Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
-    });
-});
-
 Route::group(
     ['prefix' => 'api', 'as' => 'api.', 'middleware' => 'auth'],
-    function () {
+    function (): void {
         require __DIR__ . '/api/internal.php';
     }
 );

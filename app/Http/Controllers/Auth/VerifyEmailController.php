@@ -24,14 +24,16 @@ class VerifyEmailController extends Controller
      */
     public function __invoke(EmailVerificationRequest $emailVerificationRequest): RedirectResponse
     {
+        $dashboardUrl = mb_rtrim((string) config('app.url'), '/') . '/dashboard?verified=1';
+
         if ($emailVerificationRequest->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false) . '?verified=1');
+            return redirect()->intended($dashboardUrl);
         }
 
         if ($emailVerificationRequest->user()->markEmailAsVerified()) {
             event(new Verified($emailVerificationRequest->user()));
         }
 
-        return redirect()->intended(route('dashboard', absolute: false) . '?verified=1');
+        return redirect()->intended($dashboardUrl);
     }
 }

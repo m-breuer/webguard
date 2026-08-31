@@ -82,7 +82,7 @@ Use the local compose stack from `docker-compose.yml` plus `docker-compose.overr
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.override.yml exec php composer test
 docker compose -f docker-compose.yml -f docker-compose.override.yml exec php composer analyse
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
+docker build --target sveltekit_build .
 ```
 
 For targeted backend tests:
@@ -95,10 +95,10 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml exec php ./v
 For frontend dependency or build checks:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun install
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run frontend:check
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run --cwd frontend budget
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/app" -w /app oven/bun:1 bun install --cwd frontend
+docker build --target sveltekit_build .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/app" -w /app oven/bun:1 bun run frontend:check
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/app" -w /app oven/bun:1 bun run --cwd frontend budget
 ```
 
 SvelteKit route-family releases also follow the measurable thresholds and
@@ -113,7 +113,7 @@ handoff or pull request.
 Every change should include the narrowest useful validation:
 
 - Service or support logic: unit tests for normal, boundary, and empty-state cases.
-- HTTP routes and Blade output: feature tests for status code, authorization,
+- HTTP routes and SvelteKit/API contracts: feature tests for status code, authorization,
   visible text, redirects, validation, and persisted state.
 - API changes: feature tests for authentication, authorization, request validation,
   response schema, pagination, and backward compatibility.
@@ -146,7 +146,7 @@ Prioritize tests around these project-specific risks:
 - Admin table filtering, user deletion, package administration, and audit logging.
 - Locale, theme, and public legal page rendering.
 - Docker deployment settings, Redis extension availability, MySQL compatibility,
-  and generated Vite manifest assumptions.
+  and SvelteKit container topology.
 
 ## Test Data Guidelines
 
@@ -170,7 +170,7 @@ Use this matrix to decide the minimum validation before a change is ready:
 | API contract change | Targeted API feature tests plus backward compatibility checks |
 | Job, command, scheduler, queue, or notification change | Targeted feature tests for side effects and scheduling |
 | Migration, index, or database behavior change | Migration or compatibility test; use MySQL when SQLite cannot model the risk |
-| Frontend asset or TypeScript change | `bun run build`; browser test for interaction or responsive behavior |
+| Frontend asset or TypeScript change | `bun run frontend:build`; browser test for interaction or responsive behavior |
 | Cross-cutting behavior | Targeted tests plus full Pest suite, PHPStan, and frontend build |
 
 ## Release Validation
@@ -180,7 +180,7 @@ Before a release or broad deployment change, run:
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.override.yml exec php composer test
 docker compose -f docker-compose.yml -f docker-compose.override.yml exec php composer analyse
-docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build
+docker build --target sveltekit_build .
 ```
 
 Also verify:

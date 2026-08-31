@@ -34,7 +34,7 @@ WebGuard Core is the Laravel Management Core & API for WebGuard. It owns the das
 Primary stack:
 
 - Backend: PHP 8.5+, Laravel 13, Laravel Sanctum, Socialite, Scribe, and Spatie activity log.
-- Frontend: Blade, Vite, Tailwind CSS, Alpine.js, TypeScript, Chart.js, Axios.
+- Frontend: SvelteKit, Tailwind CSS, TypeScript, and Chart.js.
 - Runtime services: MySQL-compatible database, Redis cache and queues, SMTP mail.
 - Tests: Pest, PHPUnit config, Pest Browser Plugin, SQLite in-memory defaults.
 - Tooling: Composer, Bun, Larastan/PHPStan, Laravel Pint, Docker Compose.
@@ -43,7 +43,8 @@ Important areas:
 
 - `app/`: Laravel controllers, requests, models, services, jobs, mail, observers, support classes, DTO-style data classes, enums, and console commands.
 - `routes/`: web, auth, console, and API route definitions, including internal and external API segments.
-- `resources/`: Blade views, translations, TypeScript, CSS, images, and frontend components.
+- `frontend/`: SvelteKit routes, shared UI components, Tailwind CSS, and browser assets.
+- `resources/`: Laravel translations and server-rendered mail templates.
 - `database/`: migrations, factories, and seeders.
 - `tests/`: unit, feature, and browser tests.
 - `docker/`, `Dockerfile`, `docker-compose.yml`, `docker-compose.override.yml`, `start-dev.sh`: container build and runtime configuration.
@@ -58,7 +59,7 @@ Use this technical priority:
 2. Project configuration.
 3. Tests.
 4. Repository documentation.
-5. Official Laravel, PHP, Pest, Tailwind, Vite, TypeScript, and related package documentation.
+5. Official Laravel, PHP, Pest, SvelteKit, Tailwind, TypeScript, and related package documentation.
 6. Established standards.
 
 Agents MUST NOT replace existing conventions with personal preferences without a concrete technical reason.
@@ -93,8 +94,8 @@ Final output SHOULD normally contain only what changed, changed files, validatio
 - Use Eloquent models, relationships, casts, scopes, factories, and migrations consistently with existing code.
 - Prefer named routes over hard-coded application URLs.
 - Use Laravel fakes for mail, notifications, queues, events, cache, and HTTP boundaries in tests.
-- Keep TypeScript strict and small. Put reusable frontend behavior in `resources/js/components` or `resources/js/utils`.
-- Keep Blade accessible, localized where existing pages use translations, and consistent with components in `resources/views/components`.
+- Keep TypeScript strict and small. Put reusable frontend behavior in `frontend/src/lib`.
+- Keep SvelteKit routes accessible, localized, and consistent with shared components in `frontend/src/lib/components`.
 - Do not add external network calls in tests.
 - Log operationally useful context without secrets, tokens, credentials, or personal data.
 
@@ -102,7 +103,7 @@ Final output SHOULD normally contain only what changed, changed files, validatio
 
 - The core owns management UI, API contracts, orchestration, notifications, aggregation, user/team/package administration, legal pages, and public status output.
 - Distributed probe/scanner behavior belongs in `webguard-instance`; this repository may expose or adapt core API contracts for instances.
-- Business logic SHOULD live in services, jobs, commands, requests, support classes, enums, or data classes instead of Blade views or controllers.
+- Business logic SHOULD live in services, jobs, commands, requests, support classes, enums, or data classes instead of Svelte components or controllers.
 - API controllers MUST validate request input, authorize access, and return stable response shapes.
 - External providers such as SMTP, Slack, Discord, Teams, Telegram, FCM, APNS, Socialite, and webhooks MUST stay behind existing Laravel configuration or service boundaries.
 - Queue and scheduler changes MUST account for the default and `heartbeat` queues.
@@ -127,7 +128,7 @@ Final output SHOULD normally contain only what changed, changed files, validatio
 - Enums, DTO-style data classes, services, jobs, and commands MUST have domain-specific names.
 - Test names and filenames SHOULD describe observable behavior.
 - API endpoint names, route names, and translation keys MUST be stable, descriptive, and consistent with surrounding files.
-- Frontend component and utility filenames SHOULD follow the existing kebab-case or descriptive TypeScript naming in `resources/js`.
+- Frontend component and utility filenames SHOULD follow the existing descriptive TypeScript naming in `frontend/src`.
 
 ## Testing Rules
 
@@ -170,7 +171,7 @@ Validation matrix:
 | --- | --- |
 | Documentation | Relevant docs review; run documentation structure tests when links or required topics change |
 | Backend service/support logic | Targeted unit tests; PHPStan when type or shared logic risk exists |
-| Route/controller/request/Blade | Targeted feature tests |
+| Route/controller/request/SvelteKit gateway contract | Targeted feature tests |
 | API contract | Targeted API feature tests and compatibility review |
 | Job/command/scheduler/notification | Targeted feature tests for scheduling and side effects |
 | Database/migration | Migration or compatibility test; use MySQL when SQLite cannot model the risk |
@@ -224,11 +225,11 @@ If a command cannot be executed, agents MUST state why.
 
 ## Frontend Rules
 
-- Reuse Blade components in `resources/views/components` and existing TypeScript components before adding new structures.
+- Reuse shared Svelte components in `frontend/src/lib/components` before adding new structures.
 - Keep UI text localized where surrounding views use `resources/lang`.
 - Preserve accessible labels, focus states, form errors, responsive behavior, and dark/theme behavior where present.
-- Use Tailwind classes consistently with existing Blade markup.
-- Keep Alpine and TypeScript behavior small, typed, and bound to clear DOM ownership.
+- Use Tailwind classes consistently with existing Svelte markup.
+- Keep Svelte and TypeScript behavior small, typed, and bound to clear component ownership.
 - Include loading, empty, validation, and error states for changed user workflows when relevant.
 - Do not introduce unnecessary bundle weight.
 

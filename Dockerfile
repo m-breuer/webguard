@@ -80,24 +80,14 @@ COPY --link --chown=33:33 . .
 RUN rm -f bootstrap/cache/*.php && \
     composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
 
-FROM oven/bun:1 AS frontend_build
-WORKDIR /app
-ENV BUN_INSTALL_CACHE_DIR=/tmp/bun-cache
-COPY --link package.json bun.lock ./
-RUN --mount=type=cache,target=/tmp/bun-cache,sharing=locked \
-    bun install --frozen-lockfile
-COPY --link resources resources
-COPY --link public public
-COPY --link postcss.config.js tailwind.config.js tsconfig.json vite.config.js ./
-RUN bun run build
-
 FROM oven/bun:1 AS sveltekit_build
 WORKDIR /app
-ENV BUN_INSTALL_CACHE_DIR=/tmp/bun-cache
+ENV BUN_INSTALL_CACHE_DIR=/tmp/bun-cache \
+    PATH=/app/node_modules/.bin:${PATH}
 COPY --link package.json bun.lock ./
 COPY --link frontend/package.json frontend/package.json
 RUN --mount=type=cache,target=/tmp/bun-cache,sharing=locked \
-    bun install --frozen-lockfile
+    bun install --frozen-lockfile --cwd frontend
 COPY --link frontend frontend
 RUN bun run frontend:build
 
@@ -111,13 +101,6 @@ COPY --link --from=sveltekit_build /app/frontend/package.json ./package.json
 HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=6 CMD bun -e 'const response = await fetch("http://127.0.0.1:3000/_health/frontend"); process.exit(response.ok ? 0 : 1)'
 CMD ["bun", "build/index.js"]
 
-FROM oven/bun:1 AS sveltekit_development
-WORKDIR /var/www/html
-COPY docker/node/entrypoint.sh /usr/local/bin/webguard-node-entrypoint
-RUN chmod +x /usr/local/bin/webguard-node-entrypoint
-ENTRYPOINT ["webguard-node-entrypoint"]
-CMD ["bun", "run", "--cwd", "frontend", "dev"]
-
 FROM serversideup/php:8.5-cli AS worker
 # Copy application code from the build stage
 COPY --link --from=app_build --chown=33:33 /app /var/www/html
@@ -129,7 +112,6 @@ WORKDIR /var/www/html
 ############################################
 FROM base AS production
 COPY --link --from=app_build --chown=33:33 /app /var/www/html
-COPY --link --from=frontend_build --chown=33:33 /app/public/build /var/www/html/public/build
 COPY --link docker/php/entrypoint.d/ /etc/entrypoint.d/
 RUN chmod +x /etc/entrypoint.d/*.sh
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 CMD ["webguard-healthcheck"]

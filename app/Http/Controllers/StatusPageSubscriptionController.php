@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\View\View;
 
 class StatusPageSubscriptionController extends Controller
 {
@@ -66,17 +65,13 @@ class StatusPageSubscriptionController extends Controller
         ]);
     }
 
-    public function unsubscribe(StatusPage $statusPage, string $token): View
+    public function unsubscribe(StatusPage $statusPage, string $token): RedirectResponse
     {
-        $statusPageSubscription = $statusPage->subscriptions()
+        $statusPage->subscriptions()
             ->where('unsubscribe_token', $token)
             ->firstOrFail();
 
-        return view('status-pages.unsubscribe', [
-            'statusPage' => $statusPage,
-            'token' => $token,
-            'subscription' => $statusPageSubscription,
-        ]);
+        return redirect()->away($this->subscriptionUrl($statusPage, $token));
     }
 
     public function destroy(StatusPage $statusPage, string $token, Request $request): RedirectResponse
@@ -107,5 +102,12 @@ class StatusPageSubscriptionController extends Controller
                 'subscription' => 'unsubscribed',
             ])
             : redirect('/');
+    }
+
+    private function subscriptionUrl(StatusPage $statusPage, string $token): string
+    {
+        return mb_rtrim((string) config('app.url'), '/')
+            . '/status/' . rawurlencode((string) $statusPage->getRouteKey())
+            . '/subscribers/unsubscribe/' . rawurlencode($token);
     }
 }

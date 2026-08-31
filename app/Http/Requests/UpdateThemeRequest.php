@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class UpdateThemeRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class UpdateThemeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'theme' => ProfileRequest::themeRules(),
+            'theme' => ['required', 'string', Rule::in(['light', 'dark', 'system'])],
         ];
     }
 }

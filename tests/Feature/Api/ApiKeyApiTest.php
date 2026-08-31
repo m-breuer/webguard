@@ -75,24 +75,6 @@ class ApiKeyApiTest extends TestCase
             ->assertJsonValidationErrors(['abilities.0']);
     }
 
-    public function test_profile_surface_flashes_the_plaintext_key_once_after_creation(): void
-    {
-        $user = User::factory()->create();
-
-        $testResponse = $this->actingAs($user)->post(route('profile.api-keys.store'), [
-            'name' => 'Profile key',
-            'abilities' => [ApiKeyAbility::ANALYTICS_READ->value],
-        ]);
-
-        $testResponse->assertRedirect(route('profile.edit', ['#api-keys']))
-            ->assertSessionHas('api_key_plaintext', fn (string $token): bool => str_contains($token, '|'));
-
-        $this->actingAs($user)->get(route('profile.edit'))
-            ->assertOk()
-            ->assertSee('Profile key')
-            ->assertSee('Analytics read');
-    }
-
     public function test_key_metadata_is_scoped_to_its_owner_and_revocation_is_idempotent(): void
     {
         $owner = User::factory()->create();

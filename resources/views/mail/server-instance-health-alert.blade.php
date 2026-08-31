@@ -39,7 +39,7 @@
     <p>{{ __('mail.server_instance_health_alert.action_text') }}</p>
 
     <p>
-        <a href="{{ route('admin.server-instances.index') }}" class="mail-button">{{ __('mail.server_instance_health_alert.button_text') }}</a>
+        <a href="{{ rtrim((string) config('app.url'), '/') }}/admin/server-instances" class="mail-button">{{ __('mail.server_instance_health_alert.button_text') }}</a>
     </p>
 
     <p>{{ __('mail.server_instance_health_alert.salutation') }}<br>

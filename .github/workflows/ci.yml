@@ -77,7 +77,7 @@ jobs:
           ${{ runner.os }}-bun-
 
     - name: Install frontend dependencies
-      run: bun install --frozen-lockfile
+      run: bun install --frozen-lockfile --cwd frontend
 
     - name: Run Rector
       run: |
@@ -126,7 +126,6 @@ jobs:
 
     - name: Build frontend assets
       run: |
-        bun run build
         bun run frontend:check
         bun run frontend:build
         bun run --cwd frontend budget

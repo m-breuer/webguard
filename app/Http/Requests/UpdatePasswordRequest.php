@@ -26,13 +26,4 @@ class UpdatePasswordRequest extends FormRequest
             'password' => ['required', Password::defaults(), 'confirmed'],
         ];
     }
-
-    protected function getRedirectUrl(): string
-    {
-        if ($this->input('modal_form') === 'profile-password') {
-            return route('profile.edit', ['modal' => 'profile-password']);
-        }
-
-        return parent::getRedirectUrl();
-    }
 }

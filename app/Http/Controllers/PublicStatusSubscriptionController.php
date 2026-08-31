@@ -8,7 +8,6 @@ use App\Models\StatusPage;
 use App\Support\PublicStatusResourceResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class PublicStatusSubscriptionController extends Controller
 {
@@ -40,7 +39,7 @@ class PublicStatusSubscriptionController extends Controller
         return $this->statusPageSubscriberController->confirm($publicStatusResource, $token);
     }
 
-    public function unsubscribe(string $statusPage, string $token): View
+    public function unsubscribe(string $statusPage, string $token): RedirectResponse
     {
         $publicStatusResource = $this->publicStatusResourceResolver->resolve($statusPage);
 

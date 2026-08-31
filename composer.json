@@ -23,12 +23,10 @@
         "driftingly/rector-laravel": "^2.1",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.9",
-        "laravel/breeze": "^2.2",
         "laravel/pail": "^1.2",
         "laravel/pint": "^1.24",
         "mockery/mockery": "^1.6",
         "pestphp/pest": "^4.1",
-        "pestphp/pest-plugin-browser": "^4.1",
         "pestphp/pest-plugin-laravel": "^4.0",
         "phpstan/phpstan": "^2.2"
     },
@@ -59,10 +57,6 @@
             "@php artisan key:generate --ansi",
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
-        ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "bunx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#facc15\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan queue:listen redis --queue=heartbeat --tries=1\" \"php artisan pail --timeout=0\" \"bun run dev\" --names=server,queue,heartbeat,logs,vite"
         ],
         "analyse": [
             "./vendor/bin/phpstan analyse --ansi --memory-limit=1G"

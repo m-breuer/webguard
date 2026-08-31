@@ -95,7 +95,7 @@ class MonitoringBadgePayloadServiceTest extends TestCase
         $this->assertSame(200, $payload['status_code']);
         $this->assertSame('status.success', $payload['status_identifier']);
         $this->assertSame(Date::now()->subMinutes(5)->locale(app()->getLocale())->isoFormat('L LT'), $payload['checked_at_human']);
-        $this->assertSame(route('public-label', $monitoring), $payload['public_url']);
+        $this->assertSame(route('public-status-pages.show', $monitoring), $payload['public_url']);
         $this->assertEquals(100.0, $payload['uptime']['7_days']);
         $this->assertEquals(100.0, $payload['uptime']['30_days']);
         $this->assertEquals(100.0, $payload['uptime']['90_days']);

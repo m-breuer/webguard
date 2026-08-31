@@ -151,9 +151,6 @@ class MobileStatusPageWorkspaceApiTest extends TestCase
             'event' => 'incident_update_published',
             'causer_id' => $user->id,
         ]);
-        $this->get(route('public-status-pages.show', $statusPage))
-            ->assertOk()
-            ->assertSeeText('The upstream dependency is being restored.');
     }
 
     public function test_incident_communication_requires_status_page_ownership_and_monitoring_management(): void

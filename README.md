@@ -21,19 +21,16 @@ Requirements: PHP 8.5+, Composer, Bun, a supported database, and Redis.
 
 ```bash
 composer install
-bun install
+bun install --cwd frontend
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
-bun run build
-composer dev
+bun run frontend:build
 ```
 
-Run tests with:
+For the supported local environment, start the Docker stack with `./start-dev.sh`.
 
-```bash
-php artisan test
-```
+Run tests with `php artisan test`.
 
 ## Documentation
 

@@ -12,22 +12,15 @@ use App\Models\User;
 use App\Services\PlannedMaintenanceNotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
-use Illuminate\View\View;
 
 class MaintenanceController extends Controller
 {
-    public function index(): View
-    {
-        return view('maintenance.index');
-    }
-
     public function store(
         MaintenanceRequest $maintenanceRequest,
         PlannedMaintenanceNotificationService $plannedMaintenanceNotificationService,
-    ): RedirectResponse|JsonResponse {
+    ): JsonResponse {
         abort_if($maintenanceRequest->user()?->isDemo(), 403);
 
         $validated = $maintenanceRequest->validated();
@@ -51,11 +44,7 @@ class MaintenanceController extends Controller
 
             $message = __('maintenance.messages.recurring_scheduled');
 
-            if ($maintenanceRequest->expectsJson()) {
-                return response()->json(['message' => $message, 'updated_count' => 0]);
-            }
-
-            return to_route('maintenance.index')->with('success', $message);
+            return response()->json(['message' => $message, 'updated_count' => 0]);
         }
 
         $monitorings = $this->targetMonitorings($maintenanceRequest)->get();
@@ -75,17 +64,13 @@ class MaintenanceController extends Controller
 
         $message = trans_choice('maintenance.messages.scheduled', $updatedCount, ['count' => $updatedCount]);
 
-        if ($maintenanceRequest->expectsJson()) {
-            return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
-        }
-
-        return to_route('maintenance.index')->with('success', $message);
+        return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
     }
 
     public function update(
         UpdateMaintenanceRequest $updateMaintenanceRequest,
         PlannedMaintenanceNotificationService $plannedMaintenanceNotificationService,
-    ): RedirectResponse|JsonResponse {
+    ): JsonResponse {
         abort_if($updateMaintenanceRequest->user()?->isDemo(), 403);
 
         $validated = $updateMaintenanceRequest->validated();
@@ -111,11 +96,7 @@ class MaintenanceController extends Controller
 
             $message = __('maintenance.messages.recurring_updated');
 
-            if ($updateMaintenanceRequest->expectsJson()) {
-                return response()->json(['message' => $message, 'updated_count' => 0]);
-            }
-
-            return to_route('maintenance.index')->with('success', $message);
+            return response()->json(['message' => $message, 'updated_count' => 0]);
         }
 
         $monitorings = $this->targetMonitorings($updateMaintenanceRequest)->get();
@@ -135,14 +116,10 @@ class MaintenanceController extends Controller
 
         $message = trans_choice('maintenance.messages.updated', $updatedCount, ['count' => $updatedCount]);
 
-        if ($updateMaintenanceRequest->expectsJson()) {
-            return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
-        }
-
-        return to_route('maintenance.index')->with('success', $message);
+        return response()->json(['message' => $message, 'updated_count' => $updatedCount]);
     }
 
-    public function destroy(Request $request): RedirectResponse|JsonResponse
+    public function destroy(Request $request): JsonResponse
     {
         abort_if($request->user()?->isDemo(), 403);
         /** @var User $user */
@@ -178,11 +155,7 @@ class MaintenanceController extends Controller
 
             $message = __('maintenance.messages.recurring_cleared');
 
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $message]);
-            }
-
-            return to_route('maintenance.index')->with('success', $message);
+            return response()->json(['message' => $message]);
         }
 
         Monitoring::query()
@@ -195,11 +168,7 @@ class MaintenanceController extends Controller
 
         $message = __('maintenance.messages.cleared');
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => $message]);
-        }
-
-        return to_route('maintenance.index')->with('success', $message);
+        return response()->json(['message' => $message]);
     }
 
     private function targetMonitorings(MaintenanceRequest $maintenanceRequest): Builder
@@ -227,58 +196,5 @@ class MaintenanceController extends Controller
         }
 
         return ['monitoring_id' => $maintenanceRequest->string('monitoring_id')->toString()];
-    }
-
-    private function applyMaintenanceStatusFilter(Builder $builder, string $maintenanceStatus): void
-    {
-        if ($maintenanceStatus === '') {
-            return;
-        }
-
-        $now = Date::now();
-
-        match ($maintenanceStatus) {
-            'active' => $builder
-                ->whereNotNull('maintenance_from')
-                ->where('maintenance_from', '<=', $now)
-                ->where(function (Builder $builder) use ($now): void {
-                    $builder->whereNull('maintenance_until')
-                        ->orWhere('maintenance_until', '>=', $now);
-                }),
-            'upcoming' => $builder
-                ->whereNotNull('maintenance_from')
-                ->where('maintenance_from', '>', $now),
-            'expired' => $builder
-                ->whereNotNull('maintenance_from')
-                ->whereNotNull('maintenance_until')
-                ->where('maintenance_until', '<', $now),
-            'none' => $builder->whereNull('maintenance_from'),
-            default => null,
-        };
-    }
-
-    private function applyMaintenanceSort(Builder $builder, string $sort, string $direction): void
-    {
-        if ($sort === 'maintenance_status') {
-            $now = Date::now();
-            $builder
-                ->orderByRaw(
-                    "case
-                        when maintenance_from is not null and maintenance_from <= ? and (maintenance_until is null or maintenance_until >= ?) then 0
-                        when maintenance_from is not null and maintenance_from > ? then 1
-                        when maintenance_from is not null then 2
-                        else 3
-                    end {$direction}",
-                    [$now, $now, $now]
-                )
-                ->orderBy('name');
-
-            return;
-        }
-
-        $builder
-            ->orderBy($sort, $direction)
-            ->orderBy('name')
-            ->orderBy('id');
     }
 }
