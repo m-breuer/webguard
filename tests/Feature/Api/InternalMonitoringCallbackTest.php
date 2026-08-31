@@ -8,6 +8,7 @@ use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\ServerInstance;
 use App\Models\User;
@@ -110,6 +111,35 @@ class InternalMonitoringCallbackTest extends TestCase
 
         $this->assertDatabaseHas('monitoring_ssl_results', ['monitoring_id' => $httpMonitoring->id, 'issuer' => 'Example CA']);
         $this->assertDatabaseHas('monitoring_domain_results', ['monitoring_id' => $domainMonitoring->id, 'registrar' => 'Example Registrar']);
+    }
+
+    public function test_ssl_results_allow_only_one_current_result_per_monitoring(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = $this->serverInstance('internal-callback-ssl-unique');
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code],
+        ]);
+
+        $payload = [
+            'monitoring_id' => $monitoring->id,
+            'is_valid' => true,
+            'expires_at' => '2026-12-01 00:00:00',
+            'issuer' => 'Example CA',
+            'issued_at' => '2026-01-01 00:00:00',
+        ];
+
+        $this->withHeaders($this->instanceHeaders($serverInstance))
+            ->postJson(route('v1.internal.ssl-results.store'), $payload)
+            ->assertOk();
+        $this->withHeaders($this->instanceHeaders($serverInstance))
+            ->postJson(route('v1.internal.ssl-results.store'), $payload)
+            ->assertOk();
+
+        $this->assertDatabaseCount('monitoring_ssl_results', 1);
+        $this->assertSame(1, MonitoringSslResult::query()->where('monitoring_id', $monitoring->id)->count());
     }
 
     public function test_unassigned_instance_cannot_store_callback_payloads(): void
