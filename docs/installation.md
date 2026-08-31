@@ -88,7 +88,7 @@ Use `.env.example` as the starting point for `.env`.
 Minimum `.env` fields for production:
 
 ```env
-SERVICE_URL_GATEWAY_8080=https://webguard.example.com
+SERVICE_URL_GATEWAY=https://webguard.example.com
 APP_KEY=base64:...
 WEBGUARD_NETWORK=coolify
 DOCKER_SSL_MODE=off
@@ -113,7 +113,7 @@ MAIL_FROM_ADDRESS=noreply@example.com
 MAIL_FROM_NAME=WebGuard
 ```
 
-For a non-Coolify Docker deployment, set `SERVICE_URL_GATEWAY_8080` to the canonical public URL. The Compose file passes it to Laravel as `APP_URL` and SvelteKit as `ORIGIN`. Set concrete values for SMTP as well, for example `SMTP_USERNAME=noreply@example.com` and `MAIL_FROM_NAME=WebGuard`. Do not use values such as `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
+For a non-Coolify Docker deployment, set `SERVICE_URL_GATEWAY` to the canonical public URL. The Compose file passes it to Laravel as `APP_URL` and SvelteKit as `ORIGIN`. Set concrete values for SMTP as well, for example `SMTP_USERNAME=noreply@example.com` and `MAIL_FROM_NAME=WebGuard`. Do not use values such as `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` because Docker Compose evaluates the env file during build and can warn or substitute empty strings before the container starts.
 
 For Docker deployments, use `SMTP_USERNAME` as the input variable. The Compose file passes it into the container as Laravel's `MAIL_USERNAME`. This avoids Docker Compose expanding old values such as `MAIL_USERNAME=${MAIL_FROM_ADDRESS}` during Coolify builds.
 
@@ -163,7 +163,7 @@ The bundled `mysql` and `redis` services are behind the `internal-services` Comp
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
-For Coolify routing, the Compose file declares `SERVICE_URL_GATEWAY_8080` on the `gateway` service. Coolify manages this value and routes the public domain to internal port `8080`; assign your custom domain, such as `app.webguard.dev`, only to the `gateway` service. Coolify then supplies the generated canonical URL to Laravel as `APP_URL` and SvelteKit as `ORIGIN`. Do not manually create `APP_URL`, `SERVICE_URL_PHP`, or `SERVICE_URL_GATEWAY_8080` in Coolify, and do not assign a public domain to `php` or `frontend`.
+For Coolify routing, the Compose file declares `SERVICE_URL_GATEWAY` on the `gateway` service. Coolify manages this value from the custom domain assigned to that service; assign `app.webguard.dev` only to the `gateway` service, which exposes port `8080`. Coolify then supplies the generated canonical URL to Laravel as `APP_URL` and SvelteKit as `ORIGIN`. Do not manually create `APP_URL`, `SERVICE_URL_PHP`, `SERVICE_URL_GATEWAY`, or `SERVICE_URL_GATEWAY_8080` in Coolify, and do not assign a public domain to `php` or `frontend`.
 
 Do not add custom Traefik labels that reference `SERVICE_FQDN_PHP` or Docker Compose defaults such as `${SERVICE_FQDN_PHP:-webguard.example.com}` in Coolify. Coolify generates the proxy routing and Let's Encrypt labels from the assigned domain; shipping custom labels can leave unresolved placeholders in Traefik and cause invalid `HostSNI` or ACME identifiers.
 

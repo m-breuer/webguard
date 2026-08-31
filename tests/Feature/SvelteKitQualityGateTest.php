@@ -233,10 +233,10 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertIsString($composeConfiguration);
         $this->assertStringContainsString('export MAIL_MAILER="${MAIL_MAILER:-log}"', $smokeScript);
         $this->assertStringContainsString('MAIL_MAILER: "${MAIL_MAILER:-smtp}"', $composeConfiguration);
-        $this->assertStringContainsString('export SERVICE_URL_GATEWAY_8080="${SERVICE_URL_GATEWAY_8080:-http://gateway:8080}"', $smokeScript);
-        $this->assertStringContainsString('APP_URL: "${SERVICE_URL_GATEWAY_8080:?SERVICE_URL_GATEWAY_8080 must be set to the public gateway URL}"', $composeConfiguration);
-        $this->assertStringContainsString('ORIGIN: "${SERVICE_URL_GATEWAY_8080:?SERVICE_URL_GATEWAY_8080 must be set to the public gateway URL}"', $composeConfiguration);
-        $this->assertStringContainsString('SERVICE_URL_GATEWAY_8080: "/"', $composeConfiguration);
+        $this->assertStringContainsString('export SERVICE_URL_GATEWAY="${SERVICE_URL_GATEWAY:-http://gateway:8080}"', $smokeScript);
+        $this->assertStringContainsString('APP_URL: "${SERVICE_URL_GATEWAY:?SERVICE_URL_GATEWAY must be set to the public gateway URL}"', $composeConfiguration);
+        $this->assertStringContainsString('ORIGIN: "${SERVICE_URL_GATEWAY:?SERVICE_URL_GATEWAY must be set to the public gateway URL}"', $composeConfiguration);
+        $this->assertStringContainsString('SERVICE_URL_GATEWAY: "/"', $composeConfiguration);
         $this->assertStringNotContainsString('SERVICE_URL_PHP', $composeConfiguration);
     }
 }
