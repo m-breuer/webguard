@@ -70,9 +70,6 @@ services:
       AUTORUN_LARAVEL_OPTIMIZE: "true"
       AUTORUN_LARAVEL_STORAGE_LINK: "true"
       AUTORUN_LARAVEL_SCRIBE_GENERATE: "${AUTORUN_LARAVEL_SCRIBE_GENERATE:-false}"
-    expose:
-      - "8080"
-      - "8443"
     healthcheck:
       test: ["CMD", "webguard-healthcheck"]
       interval: 10s
@@ -108,8 +105,6 @@ services:
       PORT: "3000"
       ORIGIN: "${APP_URL:?APP_URL must be set to the canonical application URL}"
       BODY_SIZE_LIMIT: "100M"
-    expose:
-      - "3000"
     depends_on:
       php:
         condition: service_healthy
