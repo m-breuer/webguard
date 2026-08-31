@@ -1,5 +1,6 @@
 <script lang="ts">
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
@@ -38,7 +39,7 @@
     ] as const;
 
     function formatDate(value: string | null): string {
-        return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Unknown time";
+        return formatDateTime(value, "Unknown time");
     }
 
     function eventLabel(entry: NotificationEntry): string {

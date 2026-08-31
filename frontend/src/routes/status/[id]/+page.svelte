@@ -1,5 +1,6 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
+    import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import Input from "$lib/components/Input.svelte";
     import type { PublicStatusPayload } from "$lib/api/public-status";
@@ -26,7 +27,7 @@
     const statusDot = $derived(data.status === "up" ? "bg-emerald-500" : data.status === "down" ? "bg-red-500" : "bg-amber-500");
     const calendarDays = $derived(Object.values(data.uptime_calendar ?? {}).flatMap((month) => month.days));
     function dateTime(value: string | null): string {
-        return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "Not recorded";
+        return formatDateTime(value, "Not recorded");
     }
 
     function percentage(value: number | null): string {

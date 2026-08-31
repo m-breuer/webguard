@@ -2,6 +2,7 @@
     import { invalidateAll } from "$app/navigation";
     import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
     import { appRoutes } from "$lib/routes";
+    import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import DataTable from "$lib/components/DataTable.svelte";
     import Dialog from "$lib/components/Dialog.svelte";
@@ -72,7 +73,7 @@
     }
     function checkedAt(monitoring: MonitoringSummary): string {
         if (monitoring.latest_check?.checked_at === null || monitoring.latest_check === null) return "No result yet";
-        return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(monitoring.latest_check.checked_at));
+        return formatDateTime(monitoring.latest_check.checked_at, "No result yet");
     }
     function matchesQuickView(monitoring: MonitoringSummary, view: QuickView): boolean {
         if (view === "attention") return ["down", "unknown"].includes(monitoringStatus(monitoring) ?? "unknown");

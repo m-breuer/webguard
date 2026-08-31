@@ -1,5 +1,6 @@
 <script lang="ts">
     import { appRoutes } from "$lib/routes";
+    import { formatDateTime } from "$lib/i18n/format";
     import DataTable from "$lib/components/DataTable.svelte";
     import Input from "$lib/components/Input.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
@@ -13,7 +14,7 @@
     const logs = $derived(data.logs.data);
     const filters = $derived(data.filters);
 
-    function date(value: string | null): string { return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—"; }
+    function date(value: string | null): string { return formatDateTime(value, "—"); }
     function changes(log: AdminActivityLog): string { return JSON.stringify(log.changes, null, 2); }
     function href(overrides: Partial<{ direction: Direction; event: string; page: number; perPage: number; search: string; sort: SortKey }> = {}): string {
         const values = { direction: filters.direction, event: filters.event, page: filters.page, perPage: filters.perPage, search: filters.search, sort: filters.sort, ...overrides };
