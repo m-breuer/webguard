@@ -19,7 +19,7 @@ docker network create "$network_name"
 export WEBGUARD_NETWORK="$network_name"
 export APP_KEY="${APP_KEY:-base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10=}"
 export MARKETING_URL="${MARKETING_URL:-https://marketing.webguard.test}"
-export SERVICE_URL_GATEWAY_8080="${SERVICE_URL_GATEWAY_8080:-http://gateway:8080}"
+export SERVICE_URL_GATEWAY="${SERVICE_URL_GATEWAY:-http://gateway:8080}"
 export MAIL_MAILER="${MAIL_MAILER:-log}"
 
 $compose build php frontend gateway queue-default
