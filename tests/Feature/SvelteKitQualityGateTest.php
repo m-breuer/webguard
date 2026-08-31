@@ -306,9 +306,11 @@ class SvelteKitQualityGateTest extends TestCase
     {
         $smokeScript = file_get_contents(base_path('.github/scripts/smoke-sveltekit-topology.sh'));
         $composeConfiguration = file_get_contents(base_path('docker-compose.yml'));
+        $installationGuide = file_get_contents(base_path('docs/installation.md'));
 
         $this->assertIsString($smokeScript);
         $this->assertIsString($composeConfiguration);
+        $this->assertIsString($installationGuide);
         $this->assertStringContainsString('export MAIL_MAILER="${MAIL_MAILER:-log}"', $smokeScript);
         $this->assertStringContainsString('MAIL_MAILER: "${MAIL_MAILER:-smtp}"', $composeConfiguration);
         $this->assertStringContainsString('export APP_URL="${APP_URL:-http://gateway:8080}"', $smokeScript);
@@ -317,5 +319,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringNotContainsString('SERVICE_URL_GATEWAY', $composeConfiguration);
         $this->assertStringNotContainsString('SERVICE_FQDN_GATEWAY', $composeConfiguration);
         $this->assertStringNotContainsString('SERVICE_URL_PHP', $composeConfiguration);
+        $this->assertStringContainsString('Do not set a `SERVICE_FQDN_GATEWAY*` variable to `${APP_URL}`.', $installationGuide);
+        $this->assertStringContainsString('set **only** the gateway domain to `https://app.webguard.dev:8080`', $installationGuide);
     }
 }
