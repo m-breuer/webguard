@@ -122,6 +122,18 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertStringContainsString('frontend/src/*', $scopeScript);
     }
 
+    public function test_quality_job_installs_pint_formatter_dependencies_from_the_locked_workspace(): void
+    {
+        $workflow = (string) file_get_contents(base_path('.github/workflows/ci.yml'));
+        $packageConfig = json_decode((string) file_get_contents(base_path('package.json')), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertStringContainsString('Install Bun workspace dependencies', $workflow);
+        $this->assertStringContainsString('bun install --frozen-lockfile', $workflow);
+        $this->assertArrayHasKey('prettier', $packageConfig['devDependencies'] ?? []);
+        $this->assertArrayHasKey('prettier-plugin-blade', $packageConfig['devDependencies'] ?? []);
+        $this->assertArrayHasKey('prettier-plugin-tailwindcss', $packageConfig['devDependencies'] ?? []);
+    }
+
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
     {
         $composerConfig = json_decode((string) file_get_contents(base_path('composer.json')), true, 512, JSON_THROW_ON_ERROR);

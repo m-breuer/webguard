@@ -240,7 +240,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('SMOKE_UNSUBSCRIBE_TOKEN', $script);
         $this->assertStringContainsString('SMOKE_CONFIRMATION_TOKEN', $script);
         $this->assertStringContainsString('mcr.microsoft.com/playwright:v1.62.1-noble', $script);
-        $this->assertStringContainsString('node_modules:/ms-playwright/node_modules:ro', $script);
+        $this->assertStringNotContainsString('node_modules:/ms-playwright/node_modules:ro', $script);
         $this->assertStringContainsString('/ms-playwright/smoke/smoke-public-status.mjs', $script);
         $this->assertStringContainsString('smoke-public-status.mjs', $script);
         $this->assertStringContainsString('down --volumes --remove-orphans', $script);
