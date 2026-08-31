@@ -95,6 +95,10 @@
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
     }
 
+    function chartFontFamily(): string {
+        return getComputedStyle(document.body).fontFamily || "ui-sans-serif, system-ui, sans-serif";
+    }
+
     async function renderResponseTimeChart(): Promise<void> {
         const canvas = responseTimeCanvas;
         if (!canvas || points.length === 0) return;
@@ -105,6 +109,7 @@
         const accent = chartColor("--wg-accent", "#7e22ce");
         const muted = chartColor("--wg-text-muted", "#64748b");
         const border = chartColor("--wg-border", "#d9e0ea");
+        const fontFamily = chartFontFamily();
 
         responseTimeChart = new Chart(canvas, {
             type: "line",
@@ -121,12 +126,12 @@
                 maintainAspectRatio: false,
                 interaction: { mode: "index", intersect: false },
                 plugins: {
-                    legend: { position: "top", labels: { color: muted, usePointStyle: true, pointStyle: "circle", boxWidth: 7, boxHeight: 7, padding: 20, font: { family: "Sen", size: 12, weight: 600 } } },
+                    legend: { position: "top", labels: { color: muted, usePointStyle: true, pointStyle: "circle", boxWidth: 7, boxHeight: 7, padding: 20, font: { family: fontFamily, size: 12, weight: 600 } } },
                     tooltip: { backgroundColor: chartColor("--wg-text", "#172033"), titleColor: "#ffffff", bodyColor: "#ffffff", padding: 12, displayColors: true, callbacks: { label: (context) => `${context.dataset.label}: ${Math.round(Number(context.parsed.y))} ms` } },
                 },
                 scales: {
-                    x: { grid: { display: false }, border: { display: false }, ticks: { color: muted, maxTicksLimit: 6, font: { family: "Sen", size: 11, weight: 600 } } },
-                    y: { title: { display: true, text: "ms", color: muted, font: { family: "Sen", size: 11, weight: 600 } }, grid: { color: border }, border: { display: false }, ticks: { color: muted, font: { family: "Sen", size: 11, weight: 600 } } },
+                    x: { grid: { display: false }, border: { display: false }, ticks: { color: muted, maxTicksLimit: 6, font: { family: fontFamily, size: 11, weight: 600 } } },
+                    y: { title: { display: true, text: "ms", color: muted, font: { family: fontFamily, size: 11, weight: 600 } }, grid: { color: border }, border: { display: false }, ticks: { color: muted, font: { family: fontFamily, size: 11, weight: 600 } } },
                 },
             },
         });
