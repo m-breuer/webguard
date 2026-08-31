@@ -1,6 +1,7 @@
 <script lang="ts">
     import { appRoutes } from "$lib/routes";
     import { formatDateTime } from "$lib/i18n/format";
+    import Button from "$lib/components/Button.svelte";
     import DataTable from "$lib/components/DataTable.svelte";
     import Input from "$lib/components/Input.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
@@ -77,7 +78,7 @@
         <label class="grid gap-2 text-sm font-bold"><span>Search</span><Input name="search" type="search" value={filters.search} placeholder="Search route or user email" /></label>
         <label class="grid gap-2 text-sm font-bold"><span>User</span><Select name="user_id" value={filters.userId}><option value="">All users</option>{#each data.logs.options.users as user}<option value={user.id}>{user.email}</option>{/each}</Select></label>
         <label class="grid gap-2 text-sm font-bold"><span>Rows</span><Select name="per_page" value={String(filters.perPage)}><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></Select></label>
-        <div class="flex gap-3"><button class="inline-flex min-h-11 items-center justify-center rounded-md border border-transparent bg-wg-accent px-4 py-2.5 text-sm font-semibold tracking-[0.035em] text-wg-accent-contrast transition hover:bg-wg-accent-strong" type="submit">Apply</button><a class="inline-flex min-h-11 items-center justify-center rounded-md border border-wg-border px-4 py-2.5 text-sm font-semibold tracking-[0.035em] text-wg-text no-underline transition hover:border-wg-focus hover:bg-wg-surface-muted" href={appRoutes.adminApi}>Reset</a></div>
+        <div class="flex gap-3"><Button type="submit">Apply</Button><a class="inline-flex min-h-11 items-center justify-center rounded-md border border-wg-accent bg-transparent px-4 py-2.5 text-sm font-semibold tracking-[0.035em] text-wg-accent no-underline transition-[background-color,border-color,box-shadow,color,transform] duration-150 ease-out hover:bg-violet-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus dark:hover:bg-violet-950/40" href={appRoutes.adminApi}>Reset</a></div>
         <input name="sort" type="hidden" value={filters.sort} /><input name="direction" type="hidden" value={filters.direction} />
     </form>
 
