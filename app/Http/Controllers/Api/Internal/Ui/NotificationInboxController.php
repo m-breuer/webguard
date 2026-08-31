@@ -55,12 +55,19 @@ final class NotificationInboxController extends Controller
     ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
-        $notificationBoardService->markRead(
+        $readNotificationIds = $notificationBoardService->markRead(
             $user,
             MonitoringNotification::query()->withoutGlobalScopes()->with('monitoring')->findOrFail($notification),
         );
 
-        return response()->json(['data' => ['id' => $notification, 'read' => true]]);
+        return response()->json([
+            'data' => [
+                'id' => $notification,
+                'read' => true,
+                'read_notification_ids' => $readNotificationIds,
+            ],
+            'meta' => ['unread_count' => $notificationBoardService->getUnreadNotificationCount()],
+        ]);
     }
 
     public function markAllRead(Request $request, NotificationBoardService $notificationBoardService): JsonResponse

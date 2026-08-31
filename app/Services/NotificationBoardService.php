@@ -93,7 +93,10 @@ class NotificationBoardService
         });
     }
 
-    public function markRead(User $user, MonitoringNotification $monitoringNotification): void
+    /**
+     * @return list<string>
+     */
+    public function markRead(User $user, MonitoringNotification $monitoringNotification): array
     {
         $monitoring = Monitoring::query()->withoutGlobalScopes()->find($monitoringNotification->monitoring_id);
         abort_unless($monitoring instanceof Monitoring && $monitoring->isVisibleTo($user), 404);
@@ -103,8 +106,12 @@ class NotificationBoardService
                     ->orWhere(fn (Builder $query) => $builder->where('created_at', $monitoringNotification->created_at)->where('id', '<=', $monitoringNotification->id)))->pluck('id')
             : collect([$monitoringNotification->id]);
 
+        $notificationIds = $notificationIds->map(static fn (mixed $id): string => (string) $id)->values()->all();
+
         MonitoringNotificationState::query()->where('user_id', $user->id)->whereIn('monitoring_notification_id', $notificationIds)
             ->update(['read_at' => Date::now()]);
+
+        return $notificationIds;
     }
 
     public function markAllRead(User $user): void

@@ -184,6 +184,17 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('oldest_available_month', $monitoringAnalytics);
     }
 
+    public function test_notification_inbox_updates_read_state_from_successful_mutation_responses(): void
+    {
+        $notificationInbox = file_get_contents(base_path('frontend/src/routes/(app)/notifications/+page.svelte'));
+
+        $this->assertIsString($notificationInbox);
+        $this->assertStringContainsString('read_notification_ids', $notificationInbox);
+        $this->assertStringContainsString('entries.filter', $notificationInbox);
+        $this->assertStringContainsString('entries.map((entry) => ({ ...entry, read: true }))', $notificationInbox);
+        $this->assertStringContainsString('unread_count: payload.meta?.unread_count', $notificationInbox);
+    }
+
     public function test_response_time_chart_uses_the_computed_application_font_stack(): void
     {
         $monitoringAnalytics = file_get_contents(base_path('frontend/src/lib/components/MonitoringAnalytics.svelte'));
