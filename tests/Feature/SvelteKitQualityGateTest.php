@@ -179,6 +179,9 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('group-focus-visible:opacity-100', $monitoringAnalytics);
         $this->assertStringContainsString('focus-visible:outline-wg-focus', $monitoringAnalytics);
         $this->assertStringContainsString('<span>Uptime</span>', $monitoringAnalytics);
+        $this->assertStringContainsString('loadPreviousCalendarMonth', $monitoringAnalytics);
+        $this->assertStringContainsString('Load previous month', $monitoringAnalytics);
+        $this->assertStringContainsString('oldest_available_month', $monitoringAnalytics);
     }
 
     public function test_response_time_chart_uses_the_computed_application_font_stack(): void

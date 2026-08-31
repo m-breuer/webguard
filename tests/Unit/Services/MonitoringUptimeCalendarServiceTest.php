@@ -72,6 +72,27 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
         $this->assertEqualsWithDelta(75.0, (float) $calendar['2026-04']['monthly_average_uptime'], 0.0001);
     }
 
+    public function test_calendar_can_include_empty_months_before_monitoring_creation(): void
+    {
+        Date::setTestNow('2026-04-20 12:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-01 00:00:00'),
+        ]);
+
+        $calendar = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
+            $monitoring,
+            Date::parse('2026-01-01')->startOfDay(),
+            Date::parse('2026-04-30')->endOfDay(),
+            includeMonthsBeforeMonitoringCreation: true,
+        )->toArray();
+
+        $this->assertSame(['2026-01', '2026-02', '2026-03', '2026-04'], array_keys($calendar));
+        $this->assertNull($calendar['2026-01']['days'][0]['uptime_percentage']);
+    }
+
     private function createDailyResult(
         Monitoring $monitoring,
         string $date,

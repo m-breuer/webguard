@@ -16,7 +16,12 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringUptimeCalendarService
 {
-    public function getGroupedByDateAndMonth(Monitoring $monitoring, Carbon $startDate, Carbon $endDate): MonitoringUptimeCalendarPayload
+    public function getGroupedByDateAndMonth(
+        Monitoring $monitoring,
+        Carbon $startDate,
+        Carbon $endDate,
+        bool $includeMonthsBeforeMonitoringCreation = false,
+    ): MonitoringUptimeCalendarPayload
     {
         $startDate = $startDate->copy();
         $endDate = $endDate->copy();
@@ -30,7 +35,7 @@ class MonitoringUptimeCalendarService
         }
 
         $monitoringStartDate = $monitoring->created_at->copy()->startOfDay();
-        if ($startDate->isBefore($monitoringStartDate)) {
+        if (! $includeMonthsBeforeMonitoringCreation && $startDate->isBefore($monitoringStartDate)) {
             $startDate = $monitoringStartDate;
         }
 

@@ -23,5 +23,6 @@ export async function load({ fetch, params }) {
         detail: detailPayload.data,
         incidentsMeta: detailPayload.meta.incidents,
         recentChecksMeta: detailPayload.meta.recent_checks,
+        uptimeCalendarMeta: detailPayload.meta.uptime_calendar,
     };
 }
