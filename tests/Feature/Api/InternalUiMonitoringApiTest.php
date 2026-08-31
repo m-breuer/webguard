@@ -174,6 +174,16 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonPath('meta.incidents.limit', 5)
             ->assertJsonPath('meta.recent_checks.limit', 5)
             ->assertJsonPath('meta.response_times.days', 1)
+            ->assertJsonCount(8, 'data.uptime_calendar')
+            ->assertJsonPath('meta.uptime_calendar.oldest_available_month', '2026-08')
+            ->assertJsonStructure([
+                'data' => [
+                    'uptime_calendar' => [
+                        '2026-01' => ['days', 'monthly_average_uptime'],
+                        '2026-08' => ['days', 'monthly_average_uptime'],
+                    ],
+                ],
+            ])
             ->assertJsonMissing(['server_health_token' => 'private-token'])
             ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
 

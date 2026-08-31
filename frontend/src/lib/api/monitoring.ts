@@ -267,4 +267,7 @@ export interface MonitoringDetailMeta {
     response_times: {
         days: 1 | 7 | 30;
     };
+    uptime_calendar: {
+        oldest_available_month: string;
+    };
 }

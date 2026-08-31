@@ -25,7 +25,14 @@ final class MobileMonitoringDetailPayloadService
     /**
      * @return array<string, mixed>
      */
-    public function for(Monitoring $monitoring, User $user, int $days, int $incidentLimit, int $incidentOffset): array
+    public function for(
+        Monitoring $monitoring,
+        User $user,
+        int $days,
+        int $incidentLimit,
+        int $incidentOffset,
+        bool $includeCurrentYearCalendar = false,
+    ): array
     {
         $generatedAt = Date::now();
         $monitoringDateRange = MonitoringDateRange::pastDays($days);
@@ -61,7 +68,12 @@ final class MobileMonitoringDetailPayloadService
             ->values()
             ->all();
         $calendar = $this->monitoringUptimeCalendarService
-            ->getGroupedByDateAndMonth($monitoring, $monitoringDateRange->startDate, $monitoringDateRange->endDate)
+            ->getGroupedByDateAndMonth(
+                $monitoring,
+                $includeCurrentYearCalendar ? $generatedAt->copy()->startOfYear() : $monitoringDateRange->startDate,
+                $generatedAt,
+                includeMonthsBeforeMonitoringCreation: $includeCurrentYearCalendar,
+            )
             ->toArray();
         $ssl = $this->monitoringDashboardPayloadService->getSslPayload($monitoring)->toArray();
         $domain = $this->domainPayload($monitoring);

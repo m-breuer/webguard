@@ -59,7 +59,11 @@ final class MonitoringDetailDataController extends Controller
             self::DAYS,
             self::INCIDENT_LIMIT,
             $incidentOffset,
+            includeCurrentYearCalendar: true,
         );
+        $payload['meta']['uptime_calendar'] = [
+            'oldest_available_month' => $monitoring->created_at->copy()->startOfMonth()->format('Y-m'),
+        ];
         $recentChecks = $monitoringCheckHistoryService->getHistory(
             $monitoring,
             $monitoringDateRange->startDate,

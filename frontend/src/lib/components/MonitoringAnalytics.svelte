@@ -15,9 +15,10 @@
         monitoringId: string;
         incidentsMeta: MonitoringDetailMeta["incidents"];
         recentChecksMeta: MonitoringDetailMeta["recent_checks"];
+        uptimeCalendarMeta: MonitoringDetailMeta["uptime_calendar"];
     }
 
-    let { detail, monitoringId, incidentsMeta, recentChecksMeta }: Props = $props();
+    let { detail, monitoringId, incidentsMeta, recentChecksMeta, uptimeCalendarMeta }: Props = $props();
     let incidents = $state<Incident[]>([]);
     let currentIncidentsMeta = $state<MonitoringDetailMeta["incidents"]>({ limit: 5, offset: 0, has_more: false, next_offset: null });
     let loadingIncidents = $state(false);
@@ -37,7 +38,14 @@
     let responseTimeChart: { destroy: () => void } | null = null;
 
     const points = $derived(responseTimes.data.filter((point) => point.avg !== null));
-    const calendarMonths = $derived(Object.entries(detail.uptime_calendar).slice(-1));
+    let uptimeCalendar = $state<MonitoringDetailData["uptime_calendar"]>({});
+    let loadingPreviousCalendarMonth = $state(false);
+    let uptimeCalendarError = $state("");
+    const calendarMonths = $derived(Object.entries(uptimeCalendar).sort(([left], [right]) => left.localeCompare(right)));
+    const oldestLoadedCalendarMonth = $derived(calendarMonths[0]?.[0] ?? null);
+    const canLoadPreviousCalendarMonth = $derived(
+        oldestLoadedCalendarMonth !== null && oldestLoadedCalendarMonth > uptimeCalendarMeta.oldest_available_month,
+    );
 
     $effect(() => {
         incidents = detail.incidents;
@@ -46,6 +54,7 @@
         checksMeta = recentChecksMeta;
         responseTimes = detail.response_times;
         responseTimeDays = 1;
+        uptimeCalendar = detail.uptime_calendar;
     });
 
     function timestamp(value: string | null): string {
@@ -89,6 +98,50 @@
 
     function uptimePercentage(uptime: number | null): string {
         return uptime === null ? "No data" : `${uptime.toFixed(2)}%`;
+    }
+
+    function previousMonthRange(month: string): { startDate: string; endDate: string } {
+        const year = Number(month.slice(0, 4));
+        const monthNumber = Number(month.slice(5, 7));
+        const previousMonthEnd = new Date(Date.UTC(year, monthNumber - 1, 0));
+        const previousMonth = String(previousMonthEnd.getUTCMonth() + 1).padStart(2, "0");
+        const previousYear = previousMonthEnd.getUTCFullYear();
+
+        return {
+            startDate: `${previousYear}-${previousMonth}-01`,
+            endDate: previousMonthEnd.toISOString().slice(0, 10),
+        };
+    }
+
+    async function loadPreviousCalendarMonth(): Promise<void> {
+        if (loadingPreviousCalendarMonth || !canLoadPreviousCalendarMonth || oldestLoadedCalendarMonth === null) return;
+
+        loadingPreviousCalendarMonth = true;
+        uptimeCalendarError = "";
+        const range = previousMonthRange(oldestLoadedCalendarMonth);
+
+        try {
+            const response = await fetch(
+                `/api/v1/internal/monitorings/${encodeURIComponent(monitoringId)}/uptime-calendar?${new URLSearchParams({
+                    start_date: range.startDate,
+                    end_date: range.endDate,
+                })}`,
+                {
+                    credentials: "same-origin",
+                    headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+                },
+            );
+
+            if (!response.ok) {
+                throw new FirstPartyApiError(response.status, await response.json().catch(() => ({})));
+            }
+
+            uptimeCalendar = { ...(await response.json() as MonitoringDetailData["uptime_calendar"]), ...uptimeCalendar };
+        } catch (error) {
+            uptimeCalendarError = error instanceof FirstPartyApiError ? error.message : "Previous uptime data could not be loaded.";
+        } finally {
+            loadingPreviousCalendarMonth = false;
+        }
     }
 
     function chartColor(name: string, fallback: string): string {
@@ -221,10 +274,10 @@
 
 <section class="mt-7" aria-labelledby="uptime-calendar-heading">
     <h2 id="uptime-calendar-heading" class="text-2xl font-extrabold">Uptime Calendar</h2>
-    <div class="mt-3">
-        <article class="w-full max-w-72 rounded-[1.125rem] border border-wg-border bg-wg-surface p-6 shadow-sm">
-            {#if calendarMonths.length > 0}
-                {#each calendarMonths as [month, value]}
+    {#if calendarMonths.length > 0}
+        <div class="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {#each calendarMonths as [month, value]}
+                <article class="w-full rounded-[1.125rem] border border-wg-border bg-wg-surface p-6 shadow-sm">
                     <div class="flex items-baseline gap-2"><h3 class="text-lg font-extrabold">{formatMonthYear(new Date(`${month}-01T00:00:00`))}</h3><span class="text-xs font-bold text-wg-text-muted">({value.monthly_average_uptime?.toFixed(2) ?? "—"}%)</span></div>
                     <div class="mt-4 grid grid-cols-7 gap-1.5 text-center text-[0.625rem] text-wg-text-muted" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
                     <div class="mt-2 grid grid-cols-7 gap-1.5" aria-label={`Availability for ${month}`}>
@@ -247,10 +300,14 @@
                             </button>
                         {/each}
                     </div>
-                {/each}
-            {:else}<p class="text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
-        </article>
-    </div>
+                </article>
+            {/each}
+        </div>
+        {#if canLoadPreviousCalendarMonth}
+            <div class="mt-5 flex justify-center"><Button variant="secondary" loading={loadingPreviousCalendarMonth} onclick={loadPreviousCalendarMonth}>Load previous month</Button></div>
+        {/if}
+        {#if uptimeCalendarError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{uptimeCalendarError}</p>{/if}
+    {:else}<p class="mt-3 text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
     <article class="mt-4 rounded-[0.8rem] border border-wg-border bg-wg-surface px-4 py-4 shadow-sm sm:px-6"><div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-wg-text-muted"><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-emerald-500"></span>≥ 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-amber-400"></span>≥ 90 % and &lt; 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-red-500"></span>&lt; 90 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-wg-surface-muted"></span>N/A</span></div></article>
 </section>
 

@@ -17,6 +17,7 @@
             detail: MonitoringDetailData;
             incidentsMeta: { limit: number; offset: number; has_more: boolean; next_offset: number | null };
             recentChecksMeta: { limit: number; has_more: boolean; next_offset: number | null };
+            uptimeCalendarMeta: { oldest_available_month: string };
         };
     }
     let { data }: Props = $props();
@@ -167,7 +168,7 @@
                     {/each}
                 </section>
 
-    <MonitoringAnalytics detail={data.detail} monitoringId={data.monitoring.id} incidentsMeta={data.incidentsMeta} recentChecksMeta={data.recentChecksMeta} />
+    <MonitoringAnalytics detail={data.detail} monitoringId={data.monitoring.id} incidentsMeta={data.incidentsMeta} recentChecksMeta={data.recentChecksMeta} uptimeCalendarMeta={data.uptimeCalendarMeta} />
                 <MonitoringTypeDiagnostics detail={data.detail} />
                 {#if error}<p class="text-sm font-bold text-wg-danger" role="alert">{error}</p>{/if}
             </div>
