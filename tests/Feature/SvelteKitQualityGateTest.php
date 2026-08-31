@@ -65,6 +65,9 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('Skip to main content', $appShell);
         $this->assertStringContainsString('id="main-content"', $appShell);
         $this->assertStringContainsString('aria-current={isActive', $appShell);
+        $this->assertStringContainsString('collapsed ? "justify-center px-0" : "gap-3 px-3"', $appShell);
+        $this->assertStringContainsString('<span class={collapsed ? "sr-only" : ""}>{item.label}</span>', $appShell);
+        $this->assertStringContainsString('aria-label={item.label} title={item.label}', $appShell);
         $this->assertStringContainsString('lockBackgroundScroll', $dialog);
         $this->assertStringContainsString('focusableElements', $dialog);
         $this->assertStringContainsString('event.key !== "Tab"', $dialog);

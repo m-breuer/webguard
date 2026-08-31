@@ -104,10 +104,10 @@
 
 <div class={`min-h-screen transition-[padding] duration-150 ${collapsed ? "pl-[5.5rem] max-[54rem]:pl-0" : "pl-68 max-[54rem]:pl-0"}`}>
     <aside id="app-navigation" inert={isMobileViewport && !mobileOpen} aria-hidden={isMobileViewport && !mobileOpen ? "true" : undefined} class={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-purple-900 bg-purple-950 text-purple-100 transition-[width,transform] duration-150 max-[54rem]:w-[min(18rem,calc(100vw_-_3.5rem))] max-[54rem]:-translate-x-full max-[54rem]:shadow-wg-surface ${collapsed ? "w-[5.5rem]" : "w-68"} ${mobileOpen ? "max-[54rem]:translate-x-0" : ""}`} aria-label="Application navigation">
-        <div class="flex min-h-18 items-center justify-between gap-2 px-3.5">
+        <div class={collapsed ? "flex min-h-18 items-center justify-center gap-1 px-1.5" : "flex min-h-18 items-center justify-between gap-2 px-3.5"}>
             <a class="flex min-w-0 items-center gap-3 font-extrabold tracking-tight no-underline" href={appRoutes.dashboard} aria-label="WebGuard dashboard">
                 <img class="size-9 shrink-0 rounded-[0.65rem] bg-white object-contain p-0.5" src="/brand/webguard-logo.png" alt="" />
-                <span class:sr-only={collapsed} class="transition-opacity duration-100 max-[54rem]:not-sr-only">WebGuard</span>
+                <span class={collapsed ? "sr-only" : "transition-opacity duration-100 max-[54rem]:not-sr-only"}>WebGuard</span>
             </a>
             <button class="grid size-9 shrink-0 place-items-center rounded-[0.65rem] border border-purple-700 bg-transparent text-xl text-purple-100 max-[54rem]:hidden" type="button" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"} onclick={toggleCollapsed}>
                 <span aria-hidden="true">{collapsed ? "›" : "‹"}</span>
@@ -116,11 +116,11 @@
         </div>
 
         <nav class="flex-1 overflow-y-auto px-3 py-4">
-            <a class={`mt-1 flex min-h-11 items-center gap-3 rounded-[0.65rem] border px-3 text-sm font-semibold no-underline ${isActive(appRoutes.dashboard) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={appRoutes.dashboard} aria-current={isActive(appRoutes.dashboard) ? "page" : undefined} onclick={closeMobileNavigation}>
-                <NavIcon name="home" /> <span>Dashboard</span>
+            <a class={`mt-1 flex min-h-11 items-center rounded-[0.65rem] border text-sm font-semibold no-underline ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${isActive(appRoutes.dashboard) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={appRoutes.dashboard} aria-current={isActive(appRoutes.dashboard) ? "page" : undefined} aria-label="Dashboard" title="Dashboard" onclick={closeMobileNavigation}>
+                <NavIcon name="home" /> <span class={collapsed ? "sr-only" : ""}>Dashboard</span>
             </a>
-            <a class={`mt-1 flex min-h-11 items-center gap-3 rounded-[0.65rem] border px-3 text-sm font-semibold no-underline ${isActive(appRoutes.notifications) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={appRoutes.notifications} aria-current={isActive(appRoutes.notifications) ? "page" : undefined} aria-label="Notifications" title="Notifications" onclick={closeMobileNavigation}>
-                <NavIcon name="bell" /> <span>Notifications</span>
+            <a class={`mt-1 flex min-h-11 items-center rounded-[0.65rem] border text-sm font-semibold no-underline ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${isActive(appRoutes.notifications) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={appRoutes.notifications} aria-current={isActive(appRoutes.notifications) ? "page" : undefined} aria-label="Notifications" title="Notifications" onclick={closeMobileNavigation}>
+                <NavIcon name="bell" /> <span class={collapsed ? "sr-only" : ""}>Notifications</span>
             </a>
 
             {@render NavSection("Operations", operations)}
@@ -134,11 +134,11 @@
                 <LocaleSelector initialLocale={session.user.locale} bind:open={localeOpen} onOpen={() => (appearanceOpen = false)} />
             </div>
             <div class="grid gap-2">
-                <a href={appRoutes.profile} class="flex min-h-11 items-center gap-3 rounded-md px-1 text-sm font-bold no-underline">
+                <a href={appRoutes.profile} class={collapsed ? "flex min-h-11 items-center justify-center rounded-md px-0 text-sm font-bold no-underline" : "flex min-h-11 items-center gap-3 rounded-md px-1 text-sm font-bold no-underline"} aria-label="Profile" title="Profile">
                     <span class="grid size-8 shrink-0 place-items-center rounded-full bg-purple-700 text-white">{session.user.name.slice(0, 1).toUpperCase()}</span>
-                    <span class:sr-only={collapsed} class="max-[54rem]:not-sr-only">{session.user.name}</span>
+                    <span class={collapsed ? "sr-only" : "max-[54rem]:not-sr-only"}>{session.user.name}</span>
                 </a>
-                <button type="button" class:sr-only={collapsed} class="min-h-11 rounded-md border-0 bg-transparent px-1 text-left text-[0.8125rem] text-purple-200 max-[54rem]:not-sr-only" onclick={() => onSignOut?.()}>Sign out</button>
+                <button type="button" class={collapsed ? "sr-only" : "min-h-11 rounded-md border-0 bg-transparent px-1 text-left text-[0.8125rem] text-purple-200 max-[54rem]:not-sr-only"} onclick={() => onSignOut?.()}>Sign out</button>
             </div>
         </div>
     </aside>
@@ -157,10 +157,10 @@
 
 {#snippet NavSection(label: string, items: NavigationItem[])}
     <section class="mt-7" aria-label={label}>
-        <h2 class:sr-only={collapsed} class="mb-2 px-3 text-[0.6875rem] tracking-[0.12em] text-purple-300 uppercase max-[54rem]:not-sr-only">{label}</h2>
+        <h2 class={collapsed ? "sr-only" : "mb-2 px-3 text-[0.6875rem] tracking-[0.12em] text-purple-300 uppercase max-[54rem]:not-sr-only"}>{label}</h2>
         {#each items as item}
-            <a class={`mt-1 flex min-h-11 items-center gap-3 rounded-[0.65rem] border px-3 text-sm font-semibold no-underline ${isActive(item.href) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={item.href} aria-current={isActive(item.href) ? "page" : undefined} onclick={closeMobileNavigation}>
-                <NavIcon name={item.icon} /> <span>{item.label}</span>
+            <a class={`mt-1 flex min-h-11 items-center rounded-[0.65rem] border text-sm font-semibold no-underline ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${isActive(item.href) ? "border-purple-400 bg-purple-800 text-white" : "border-transparent text-purple-200 hover:border-purple-700 hover:bg-purple-900 hover:text-white"}`} href={item.href} aria-current={isActive(item.href) ? "page" : undefined} aria-label={item.label} title={item.label} onclick={closeMobileNavigation}>
+                <NavIcon name={item.icon} /> <span class={collapsed ? "sr-only" : ""}>{item.label}</span>
             </a>
         {/each}
     </section>
