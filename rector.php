@@ -6,12 +6,10 @@ use Rector\Config\RectorConfig;
 use Rector\Transform\Rector\String_\StringToClassConstantRector;
 use RectorLaravel\Set\LaravelLevelSetList;
 use RectorLaravel\Set\LaravelSetList;
-use RectorLaravel\Set\LaravelSetProvider;
 
 return RectorConfig::configure()
     ->withoutParallel()
     ->withCache(__DIR__ . '/storage/framework/cache/rector')
-    ->withSetProviders(LaravelSetProvider::class)
     ->withComposerBased(laravel: true)
     ->withPaths([
         __DIR__ . '/app',
