@@ -119,7 +119,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $regularUser = User::factory()->create(['name' => 'Alpha member', 'role' => UserRole::REGULAR]);
         $hiddenPackage = Package::factory()->create(['monitoring_limit' => 10, 'price' => 9.99, 'is_selectable' => false]);
         $selectablePackage = Package::factory()->create(['monitoring_limit' => 50, 'price' => 29.99, 'is_selectable' => true]);
-        $inactiveInstance = ServerInstance::query()->create([
+        $serverInstance = ServerInstance::query()->create([
             'code' => 'de-inactive-1',
             'display_name' => 'Inactive Germany',
             'country_code' => 'DE',
@@ -164,7 +164,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
             'active' => 'no', 'sort' => 'display_name', 'direction' => 'asc', 'per_page' => 10,
         ]))
             ->assertOk()
-            ->assertJsonPath('data.items.0.id', $inactiveInstance->id)
+            ->assertJsonPath('data.items.0.id', $serverInstance->id)
             ->assertJsonPath('data.pagination.total', 1);
 
         $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.activity-logs.index', [

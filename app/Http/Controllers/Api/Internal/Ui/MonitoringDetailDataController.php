@@ -102,14 +102,14 @@ final class MonitoringDetailDataController extends Controller
                     return [(string) $days => $payload['data']['availability']];
                 }
 
-                $range = MonitoringDateRange::pastDays($days);
+                $monitoringDateRange = MonitoringDateRange::pastDays($days);
 
                 return [(string) $days => $monitoringAvailabilityService->getUptimeDowntime(
                     $monitoring,
-                    $range->startDate,
-                    $range->endDate,
-                    $range->shouldUseUptimeAggregates($monitoring),
-                    $range->shouldIncludeIntradayRawData(),
+                    $monitoringDateRange->startDate,
+                    $monitoringDateRange->endDate,
+                    $monitoringDateRange->shouldUseUptimeAggregates($monitoring),
+                    $monitoringDateRange->shouldIncludeIntradayRawData(),
                 )->toArray()];
             }
         )->all();

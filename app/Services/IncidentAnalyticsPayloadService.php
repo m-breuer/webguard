@@ -206,7 +206,7 @@ final class IncidentAnalyticsPayloadService
             ->with('monitoring')
             ->whereBetween('down_at', [Date::now()->subDays($days)->startOfDay(), Date::now()->endOfDay()])
             ->orderBy($sortColumn, $direction)
-            ->orderByDesc('down_at');
+            ->latest('down_at');
 
         foreach (['incident_type', 'severity', 'customer_impact'] as $filter) {
             if (! empty($filters[$filter])) {

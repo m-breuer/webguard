@@ -102,12 +102,10 @@ class PublicLabelPageTest extends TestCase
             'public_label_enabled' => true,
         ]);
 
-        $this->get(route('legacy-public-label', $monitoring))
-            ->assertStatus(301)
+        $this->get(route('legacy-public-label', $monitoring))->assertMovedPermanently()
             ->assertRedirect(route('public-status-pages.show', $monitoring));
 
-        $this->post(route('legacy-public-label.subscribers.store', $monitoring))
-            ->assertStatus(307)
+        $this->post(route('legacy-public-label.subscribers.store', $monitoring))->assertTemporaryRedirect()
             ->assertRedirect(route('public-status-pages.subscribers.store', $monitoring));
     }
 }

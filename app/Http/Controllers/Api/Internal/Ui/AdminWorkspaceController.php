@@ -52,8 +52,7 @@ class AdminWorkspaceController extends Controller
         $lengthAwarePaginator = User::query()->with('package')
             ->when($validated['search'] ?? null, fn (Builder $query, string $search): Builder => $query->where(fn (Builder $builder): Builder => $builder->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
             ->when($validated['role'] ?? null, fn (Builder $builder, string $role): Builder => $builder->where('role', $role))
-            ->orderBy($sort, $direction)
-            ->orderByDesc('created_at')
+            ->orderBy($sort, $direction)->latest()
             ->paginate((int) ($validated['per_page'] ?? 20));
 
         return response()->json(['data' => $this->paginated($lengthAwarePaginator, fn (User $user): array => $this->user($user)), 'options' => [
@@ -243,10 +242,10 @@ class AdminWorkspaceController extends Controller
         $lengthAwarePaginator = ApiLog::query()->withoutGlobalScope('api_logs')->with('user')
             ->leftJoin('users as api_log_users', 'api_log_users.id', '=', 'api_logs.user_id')
             ->select('api_logs.*')
-            ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where(fn (Builder $query): Builder => $query->where('api_logs.route', 'like', "%{$search}%")->orWhere('api_log_users.email', 'like', "%{$search}%")))
+            ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where(fn (Builder $builder): Builder => $builder->where('api_logs.route', 'like', "%{$search}%")->orWhere('api_log_users.email', 'like', "%{$search}%")))
             ->when($validated['user_id'] ?? null, fn (Builder $builder, string $userId): Builder => $builder->where('api_logs.user_id', $userId))
             ->orderBy($sort === 'user_email' ? 'api_log_users.email' : "api_logs.{$sort}", $direction)
-            ->orderByDesc('api_logs.created_at')
+            ->latest('api_logs.created_at')
             ->paginate((int) ($validated['per_page'] ?? 25));
 
         return response()->json([
@@ -270,8 +269,7 @@ class AdminWorkspaceController extends Controller
         $lengthAwarePaginator = Activity::query()->with('causer')
             ->when($validated['search'] ?? null, fn (Builder $builder, string $search): Builder => $builder->where('description', 'like', "%{$search}%")->orWhere('log_name', 'like', "%{$search}%")->orWhere('event', 'like', "%{$search}%"))
             ->when($validated['event'] ?? null, fn (Builder $builder, string $event): Builder => $builder->where('event', $event))
-            ->orderBy($sort, $direction)
-            ->orderByDesc('created_at')
+            ->orderBy($sort, $direction)->latest()
             ->paginate((int) ($validated['per_page'] ?? 25));
 
         return response()->json([
