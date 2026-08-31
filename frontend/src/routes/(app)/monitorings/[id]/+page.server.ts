@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import type { MonitoringDetailData, MonitoringSummary } from "$lib/api/monitoring";
+import type { MonitoringDetailData, MonitoringDetailMeta, MonitoringSummary } from "$lib/api/monitoring";
 
 export async function load({ fetch, params }) {
     const monitoringId = encodeURIComponent(params.id);
@@ -16,8 +16,12 @@ export async function load({ fetch, params }) {
         error(response.status, "Monitoring could not be loaded.");
     }
 
+    const detailPayload = await detailResponse.json() as { data: MonitoringDetailData; meta: MonitoringDetailMeta };
+
     return {
         monitoring: (await response.json() as { data: MonitoringSummary }).data,
-        detail: (await detailResponse.json() as { data: MonitoringDetailData }).data,
+        detail: detailPayload.data,
+        incidentsMeta: detailPayload.meta.incidents,
+        recentChecksMeta: detailPayload.meta.recent_checks,
     };
 }

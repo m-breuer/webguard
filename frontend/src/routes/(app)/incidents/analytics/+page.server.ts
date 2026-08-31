@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 import type { IncidentAnalyticsResponse } from "$lib/api/incidents";
 
-const permittedFilters = ["days", "incident_type", "severity", "customer_impact", "affected_service", "page"] as const;
+const permittedFilters = ["days", "incident_type", "severity", "customer_impact", "affected_service", "sort", "direction", "page"] as const;
 
 export async function load({ fetch, url }) {
     const params = new URLSearchParams();

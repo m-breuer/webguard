@@ -1,87 +1,254 @@
 <script lang="ts">
-    import type { MonitoringDetailData } from "$lib/api/monitoring";
-    import Card from "$lib/components/Card.svelte";
-    import DataTable from "$lib/components/DataTable.svelte";
-    import StatusBadge from "$lib/components/StatusBadge.svelte";
+    import { onMount, tick } from "svelte";
+    import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
+    import type { MonitoringDetailData, MonitoringDetailMeta } from "$lib/api/monitoring";
+    import Button from "$lib/components/Button.svelte";
+    import Select from "$lib/components/Select.svelte";
 
-    interface Props { detail: MonitoringDetailData; }
-    let { detail }: Props = $props();
+    type Incident = MonitoringDetailData["incidents"][number];
+    type RecentCheck = MonitoringDetailData["recent_checks"][number];
+    type ResponseTimePeriod = 1 | 7 | 30;
 
-    const points = $derived(detail.response_times.data.filter((point) => point.avg !== null));
-    const chartMaximum = $derived(Math.max(...points.map((point) => point.avg ?? 0), 1));
-    const calendarDays = $derived(
-        Object.values(detail.uptime_calendar)
-            .flatMap((month) => month.days)
-            .filter((day) => new Date(day.date) <= new Date())
-            .slice(-28),
-    );
-
-    function chartPoints(): string {
-        if (points.length === 0) return "";
-
-        return points.map((point, index) => {
-            const x = points.length === 1 ? 50 : (index / (points.length - 1)) * 100;
-            const y = 100 - ((point.avg ?? 0) / chartMaximum) * 92 - 4;
-
-            return `${x},${y}`;
-        }).join(" ");
+    interface Props {
+        detail: MonitoringDetailData;
+        monitoringId: string;
+        incidentsMeta: MonitoringDetailMeta["incidents"];
+        recentChecksMeta: MonitoringDetailMeta["recent_checks"];
     }
 
+    let { detail, monitoringId, incidentsMeta, recentChecksMeta }: Props = $props();
+    let incidents = $state<Incident[]>([]);
+    let currentIncidentsMeta = $state<MonitoringDetailMeta["incidents"]>({ limit: 5, offset: 0, has_more: false, next_offset: null });
+    let loadingIncidents = $state(false);
+    let incidentsError = $state("");
+    let checks = $state<RecentCheck[]>([]);
+    let checksMeta = $state<MonitoringDetailMeta["recent_checks"]>({ limit: 5, has_more: false, next_offset: null });
+    let loadingChecks = $state(false);
+    let checksError = $state("");
+    let responseTimes = $state<MonitoringDetailData["response_times"]>({
+        data: [],
+        aggregated: { avg: null, min: null, max: null },
+    });
+    let responseTimeDays = $state<ResponseTimePeriod>(1);
+    let loadingResponseTimes = $state(false);
+    let responseTimesError = $state("");
+    let responseTimeCanvas = $state<HTMLCanvasElement | null>(null);
+    let responseTimeChart: { destroy: () => void } | null = null;
+
+    const points = $derived(responseTimes.data.filter((point) => point.avg !== null));
+    const calendarMonths = $derived(Object.entries(detail.uptime_calendar).slice(-1));
+
+    $effect(() => {
+        incidents = detail.incidents;
+        currentIncidentsMeta = incidentsMeta;
+        checks = detail.recent_checks;
+        checksMeta = recentChecksMeta;
+        responseTimes = detail.response_times;
+        responseTimeDays = 1;
+    });
+
     function timestamp(value: string | null): string {
-        return value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—";
+        return value
+            ? new Intl.DateTimeFormat("en-US", {
+                month: "2-digit", day: "2-digit", year: "numeric",
+                hour: "2-digit", minute: "2-digit", second: "2-digit",
+            }).format(new Date(value))
+            : "—";
     }
 
     function duration(incident: { down_at: string; up_at: string | null }): string {
         const end = incident.up_at ? new Date(incident.up_at) : new Date();
         const minutes = Math.max(0, Math.round((end.getTime() - new Date(incident.down_at).getTime()) / 60_000));
-
         return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
     }
 
-    function checkTone(status: "up" | "down" | "unknown"): "healthy" | "danger" | "degraded" {
-        return status === "up" ? "healthy" : status === "down" ? "danger" : "degraded";
+    function statusTone(status: RecentCheck["status"]): string {
+        return status === "up" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" : status === "down" ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300" : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200";
+    }
+
+    function timelineDotTone(status: RecentCheck["status"]): string {
+        return status === "up" ? "border-emerald-300 bg-emerald-50 text-emerald-600" : status === "down" ? "border-red-300 bg-red-50 text-red-600" : "border-amber-300 bg-amber-50 text-amber-600";
     }
 
     function uptimeTone(uptime: number | null): string {
         if (uptime === null) return "bg-wg-surface-muted";
-        if (uptime >= 99.9) return "bg-green-500";
-        if (uptime >= 95) return "bg-amber-400";
-
+        if (uptime >= 97.5) return "bg-emerald-500";
+        if (uptime >= 90) return "bg-amber-400";
         return "bg-red-500";
+    }
+
+    function calendarOffset(value: string): number[] {
+        const day = new Date(value).getDay();
+        return Array.from({ length: (day + 6) % 7 });
+    }
+
+    function chartColor(name: string, fallback: string): string {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+    }
+
+    async function renderResponseTimeChart(): Promise<void> {
+        const canvas = responseTimeCanvas;
+        if (!canvas || points.length === 0) return;
+
+        const { default: Chart } = await import("chart.js/auto");
+        responseTimeChart?.destroy();
+
+        const accent = chartColor("--wg-accent", "#7e22ce");
+        const muted = chartColor("--wg-text-muted", "#64748b");
+        const border = chartColor("--wg-border", "#d9e0ea");
+
+        responseTimeChart = new Chart(canvas, {
+            type: "line",
+            data: {
+                labels: points.map((point) => timestamp(point.date)),
+                datasets: [
+                    { label: "Min. Response Time", data: points.map((point) => point.min ?? point.avg), borderColor: "#c4b5fd", borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, pointHoverRadius: 4, tension: 0.35 },
+                    { label: "Avg. Response Time", data: points.map((point) => point.avg), borderColor: accent, backgroundColor: accent, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.35 },
+                    { label: "Max. Response Time", data: points.map((point) => point.max ?? point.avg), borderColor: "#d8b4fe", borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, pointHoverRadius: 4, tension: 0.35 },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: { position: "top", labels: { color: muted, usePointStyle: true, pointStyle: "circle", boxWidth: 7, boxHeight: 7, padding: 20, font: { family: "Sen", size: 12, weight: 600 } } },
+                    tooltip: { backgroundColor: chartColor("--wg-text", "#172033"), titleColor: "#ffffff", bodyColor: "#ffffff", padding: 12, displayColors: true, callbacks: { label: (context) => `${context.dataset.label}: ${Math.round(Number(context.parsed.y))} ms` } },
+                },
+                scales: {
+                    x: { grid: { display: false }, border: { display: false }, ticks: { color: muted, maxTicksLimit: 6, font: { family: "Sen", size: 11, weight: 600 } } },
+                    y: { title: { display: true, text: "ms", color: muted, font: { family: "Sen", size: 11, weight: 600 } }, grid: { color: border }, border: { display: false }, ticks: { color: muted, font: { family: "Sen", size: 11, weight: 600 } } },
+                },
+            },
+        });
+    }
+
+    $effect(() => {
+        if (!responseTimeCanvas || points.length === 0) {
+            responseTimeChart?.destroy();
+            responseTimeChart = null;
+
+            return;
+        }
+
+        void renderResponseTimeChart();
+    });
+
+    onMount(() => {
+        const observer = new MutationObserver(() => void renderResponseTimeChart());
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+        return () => {
+            observer.disconnect();
+            responseTimeChart?.destroy();
+        };
+    });
+
+    async function loadMoreChecks(): Promise<void> {
+        if (loadingChecks || checksMeta.next_offset === null) return;
+
+        loadingChecks = true;
+        checksError = "";
+
+        try {
+            const payload = await requestFirstPartyApi<MonitoringDetailData, MonitoringDetailMeta>(
+                `/api/v1/internal/ui/monitorings/${encodeURIComponent(monitoringId)}/detail-data?checks_offset=${checksMeta.next_offset}`,
+            );
+            checks = [...checks, ...payload.data.recent_checks];
+            checksMeta = payload.meta?.recent_checks ?? { ...checksMeta, has_more: false, next_offset: null };
+        } catch (error) {
+            checksError = error instanceof FirstPartyApiError ? error.message : "Additional checks could not be loaded.";
+        } finally {
+            loadingChecks = false;
+        }
+    }
+
+    async function changeResponseTimePeriod(event: Event): Promise<void> {
+        const requestedDays = Number((event.currentTarget as HTMLSelectElement).value) as ResponseTimePeriod;
+        if (loadingResponseTimes || requestedDays === responseTimeDays) return;
+
+        loadingResponseTimes = true;
+        responseTimesError = "";
+
+        try {
+            const payload = await requestFirstPartyApi<MonitoringDetailData, MonitoringDetailMeta>(
+                `/api/v1/internal/ui/monitorings/${encodeURIComponent(monitoringId)}/detail-data?response_time_days=${requestedDays}`,
+            );
+            responseTimes = payload.data.response_times;
+            responseTimeDays = payload.meta?.response_times?.days ?? requestedDays;
+            await tick();
+            await renderResponseTimeChart();
+        } catch (error) {
+            responseTimesError = error instanceof FirstPartyApiError ? error.message : "Response-time data could not be loaded.";
+        } finally {
+            loadingResponseTimes = false;
+        }
+    }
+
+    async function loadMoreIncidents(): Promise<void> {
+        if (loadingIncidents || currentIncidentsMeta.next_offset === null) return;
+
+        loadingIncidents = true;
+        incidentsError = "";
+
+        try {
+            const payload = await requestFirstPartyApi<MonitoringDetailData, MonitoringDetailMeta>(
+                `/api/v1/internal/ui/monitorings/${encodeURIComponent(monitoringId)}/detail-data?incident_offset=${currentIncidentsMeta.next_offset}`,
+            );
+            incidents = [...incidents, ...payload.data.incidents];
+            currentIncidentsMeta = payload.meta?.incidents ?? { ...currentIncidentsMeta, has_more: false, next_offset: null };
+        } catch (error) {
+            incidentsError = error instanceof FirstPartyApiError ? error.message : "Additional incidents could not be loaded.";
+        } finally {
+            loadingIncidents = false;
+        }
     }
 </script>
 
-<section class="mt-6 grid gap-6 xl:grid-cols-2">
-    <Card title="Response time" description="Average response time across the last 30 days.">
-        {#if points.length > 0}
-            <div class="flex items-end justify-between gap-4"><div><p class="text-sm text-wg-text-muted">Average</p><p class="mt-1 text-3xl font-extrabold">{Math.round(detail.response_times.aggregated.avg ?? 0)} ms</p></div><dl class="grid grid-cols-2 gap-4 text-right text-sm"><div><dt class="text-wg-text-muted">Fastest</dt><dd class="mt-1 font-bold">{Math.round(detail.response_times.aggregated.min ?? 0)} ms</dd></div><div><dt class="text-wg-text-muted">Slowest</dt><dd class="mt-1 font-bold">{Math.round(detail.response_times.aggregated.max ?? 0)} ms</dd></div></dl></div>
-            <svg class="mt-6 h-44 w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Response time trend"><line x1="0" y1="96" x2="100" y2="96" class="stroke-wg-border" stroke-width="1" vector-effect="non-scaling-stroke"></line><polyline points={chartPoints()} fill="none" class="stroke-wg-accent" stroke-width="2" vector-effect="non-scaling-stroke"></polyline></svg>
-        {:else}
-            <p class="text-sm leading-6 text-wg-text-muted">Response-time data will appear after the monitoring collects results.</p>
-        {/if}
-    </Card>
-
-    <Card title="Uptime calendar" description="Daily availability across the last 30 days.">
-        <div class="grid grid-cols-7 gap-2" aria-label="Uptime calendar">
-            {#each calendarDays as day}
-                <div class={`aspect-square rounded-md ${uptimeTone(day.uptime_percentage)}`} title={`${timestamp(day.date)}: ${day.uptime_percentage === null ? "No data" : `${day.uptime_percentage.toFixed(2)}% uptime`}`}></div>
-            {/each}
-            {#if calendarDays.length === 0}<p class="col-span-7 text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
-        </div>
-        {#if detail.availability.has_data}<dl class="mt-6 grid grid-cols-3 gap-3 text-sm"><div><dt class="text-wg-text-muted">Uptime</dt><dd class="mt-1 font-bold">{detail.availability.uptime.percentage?.toFixed(2) ?? "—"}%</dd></div><div><dt class="text-wg-text-muted">Downtime</dt><dd class="mt-1 font-bold">{detail.availability.downtime.percentage?.toFixed(2) ?? "—"}%</dd></div><div><dt class="text-wg-text-muted">Unknown</dt><dd class="mt-1 font-bold">{detail.availability.unknown.percentage?.toFixed(2) ?? "—"}%</dd></div></dl>{/if}
-    </Card>
+<section class="mt-7" aria-labelledby="uptime-calendar-heading">
+    <h2 id="uptime-calendar-heading" class="text-2xl font-extrabold">Uptime Calendar</h2>
+    <div class="mt-3">
+        <article class="w-full max-w-72 rounded-[1.125rem] border border-wg-border bg-wg-surface p-6 shadow-sm">
+            {#if calendarMonths.length > 0}
+                {#each calendarMonths as [month, value]}
+                    <div class="flex items-baseline gap-2"><h3 class="text-lg font-extrabold">{new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(`${month}-01T00:00:00`))}</h3><span class="text-xs font-bold text-wg-text-muted">({value.monthly_average_uptime?.toFixed(2) ?? "—"}%)</span></div>
+                    <div class="mt-4 grid grid-cols-7 gap-1.5 text-center text-[0.625rem] text-wg-text-muted" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                    <div class="mt-2 grid grid-cols-7 gap-1.5" aria-label={`Availability for ${month}`}>{#each calendarOffset(value.days[0]?.date ?? "") as _}<span class="aspect-square"></span>{/each}{#each value.days as day}<span class={`aspect-square rounded-[0.2rem] ${uptimeTone(day.uptime_percentage)}`} title={`${timestamp(day.date)}: ${day.uptime_percentage === null ? "No data" : `${day.uptime_percentage.toFixed(2)}% uptime`}`}></span>{/each}</div>
+                {/each}
+            {:else}<p class="text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
+        </article>
+    </div>
+    <article class="mt-4 rounded-[0.8rem] border border-wg-border bg-wg-surface px-4 py-4 shadow-sm sm:px-6"><div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-wg-text-muted"><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-emerald-500"></span>≥ 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-amber-400"></span>≥ 90 % and &lt; 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-red-500"></span>&lt; 90 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-wg-surface-muted"></span>N/A</span></div></article>
 </section>
 
-<section class="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-    <Card title="Recent checks" description="The most recent ten monitoring results.">
-        {#if detail.recent_checks.length > 0}
-            <DataTable caption="Recent monitoring checks"><thead><tr><th scope="col">Status</th><th scope="col">Checked at</th><th scope="col">HTTP</th><th scope="col">Response time</th></tr></thead><tbody>{#each detail.recent_checks as check}<tr><td><StatusBadge tone={checkTone(check.status)} label={check.status} /></td><td class="text-sm">{timestamp(check.checked_at)}</td><td>{check.http_status_code ?? "—"}</td><td>{check.response_time === null ? "—" : `${Math.round(check.response_time)} ms`}</td></tr>{/each}</tbody></DataTable>
-        {:else}
-            <p class="text-sm leading-6 text-wg-text-muted">No checks have been recorded yet.</p>
-        {/if}
-    </Card>
+<section class="mt-7" aria-labelledby="response-time-heading">
+    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 id="response-time-heading" class="shrink-0 text-2xl font-extrabold">Response Time</h2><Select width="compact" density="compact" value={String(responseTimeDays)} onchange={changeResponseTimePeriod} disabled={loadingResponseTimes} class="font-semibold text-wg-text-muted" aria-label="Response time period"><option value="1">Daily</option><option value="7">Weekly</option><option value="30">Monthly</option></Select></div>
+    <article class="mt-3 rounded-[0.8rem] border border-wg-border bg-wg-surface p-4 shadow-sm sm:p-6">
+        {#if points.length > 0}
+            <div class="h-64 sm:h-96" role="img" aria-label="Response time line chart in milliseconds"><canvas bind:this={responseTimeCanvas}></canvas></div>
+        {:else}<p class="text-sm leading-6 text-wg-text-muted">{loadingResponseTimes ? "Loading response-time data…" : "Response-time data will appear after the monitoring collects results."}</p>{/if}
+    </article>
+    {#if responseTimesError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{responseTimesError}</p>{/if}
+    {#if points.length > 0}<dl class="mt-4 grid gap-4 text-center sm:grid-cols-3"><div class="rounded-[0.8rem] border border-wg-border bg-wg-surface p-5 shadow-sm"><dt class="text-sm text-wg-text-muted">Minimum</dt><dd class="mt-1 text-lg font-extrabold">{Math.round(responseTimes.aggregated.min ?? 0)} ms</dd></div><div class="rounded-[0.8rem] border border-wg-border bg-wg-surface p-5 shadow-sm"><dt class="text-sm text-wg-text-muted">Average</dt><dd class="mt-1 text-lg font-extrabold">{Math.round(responseTimes.aggregated.avg ?? 0)} ms</dd></div><div class="rounded-[0.8rem] border border-wg-border bg-wg-surface p-5 shadow-sm"><dt class="text-sm text-wg-text-muted">Maximum</dt><dd class="mt-1 text-lg font-extrabold">{Math.round(responseTimes.aggregated.max ?? 0)} ms</dd></div></dl>{/if}
+</section>
 
-    <Card title="Incidents" description="Recent interruptions in this monitoring.">
-        {#if detail.incidents.length > 0}<ul class="grid gap-4 p-0">{#each detail.incidents as incident}<li class="list-none border-b border-wg-border py-3 first:pt-0 last:border-b-0 last:pb-0"><p class="font-bold">{incident.up_at ? "Resolved incident" : "Open incident"}</p><p class="mt-1 text-sm leading-6 text-wg-text-muted">{timestamp(incident.down_at)} · {duration(incident)}</p></li>{/each}</ul>{:else}<p class="text-sm leading-6 text-wg-text-muted">No incidents in the selected period.</p>{/if}
-    </Card>
+<section class="mt-7" aria-labelledby="incidents-heading"><h2 id="incidents-heading" class="text-2xl font-extrabold">Incidents</h2>{#if incidents.length > 0}<ul class="mt-3 grid gap-3 p-0">{#each incidents as incident}<li class="list-none rounded-[0.8rem] border border-wg-border bg-wg-surface p-4 shadow-sm"><p class="font-bold">{incident.up_at ? "Resolved incident" : "Open incident"}</p><p class="mt-1 text-sm text-wg-text-muted">{timestamp(incident.down_at)} · {duration(incident)}</p></li>{/each}</ul>{:else}<p class="mt-3 text-sm text-wg-text-muted">No incidents recorded in this period.</p>{/if}{#if incidentsError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{incidentsError}</p>{/if}{#if currentIncidentsMeta.has_more}<div class="mt-5 flex justify-center"><Button variant="secondary" loading={loadingIncidents} onclick={loadMoreIncidents}>Load more</Button></div>{/if}</section>
+
+<section class="mt-7" aria-labelledby="recent-checks-heading">
+    <div><h2 id="recent-checks-heading" class="text-2xl font-extrabold">Recent Checks</h2><p class="mt-1 text-sm text-wg-text-muted">{checks.length} loaded checks · Live and archived data</p></div>
+    {#if checks.length > 0}
+        <div class="relative mt-3 overflow-hidden rounded-[0.8rem] border border-wg-border bg-wg-surface shadow-sm">
+            <span class="pointer-events-none absolute top-9 bottom-9 left-8 w-px bg-emerald-200 dark:bg-emerald-900" aria-hidden="true"></span>
+            {#each checks as check (check.id)}
+                <article class="relative z-10 grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3 px-4 py-4 transition-colors hover:bg-wg-surface-muted/50 sm:grid-cols-[1.5rem_minmax(11rem,0.9fr)_minmax(0,1.6fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-5">
+                    <div class="flex justify-center"><span class={`grid size-5 shrink-0 place-items-center rounded-full border ${timelineDotTone(check.status)}`} aria-label={check.status}><svg class="size-3" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M6.35 11.15 2.9 7.7l1.05-1.05 2.4 2.4 5.7-5.7L13.1 4.4z" /></svg></span></div>
+                    <div class="min-w-0"><p class="text-sm font-extrabold">{timestamp(check.checked_at)}</p><p class="mt-1 text-xs text-wg-text-muted">{check.source === "live" ? "Live" : "Archived"}</p></div>
+                    <dl class="mt-3 grid grid-cols-2 gap-x-5 gap-y-3 text-sm sm:mt-0 sm:grid-cols-3"><div><dt class="text-[0.625rem] font-extrabold tracking-[0.1em] text-wg-text-muted uppercase">Status code</dt><dd class="mt-1 font-extrabold">{check.http_status_code ?? "—"}</dd></div><div><dt class="text-[0.625rem] font-extrabold tracking-[0.1em] text-wg-text-muted uppercase">Response time</dt><dd class="mt-1 font-extrabold text-sky-700 dark:text-sky-300">{check.response_time === null ? "—" : `${Math.round(check.response_time)} ms`}</dd></div><div><dt class="text-[0.625rem] font-extrabold tracking-[0.1em] text-wg-text-muted uppercase">Raw status</dt><dd class="mt-1 font-extrabold uppercase">{check.status}</dd></div></dl>
+                    <span class={`mt-3 inline-flex w-fit items-center rounded-full px-3 py-1 text-[0.625rem] font-extrabold tracking-[0.08em] uppercase sm:mt-0 sm:justify-self-end ${statusTone(check.status)}`}>{check.status === "up" ? "Successful" : check.status}</span>
+                </article>
+            {/each}
+        </div>
+        {#if checksError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{checksError}</p>{/if}
+        {#if checksMeta.has_more}<div class="mt-5 flex justify-center"><Button variant="secondary" loading={loadingChecks} onclick={loadMoreChecks}>Load more</Button></div>{/if}
+    {:else}<p class="mt-3 text-sm text-wg-text-muted">No checks have been recorded yet.</p>{/if}
 </section>

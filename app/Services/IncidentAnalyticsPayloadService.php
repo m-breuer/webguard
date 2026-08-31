@@ -62,6 +62,8 @@ final class IncidentAnalyticsPayloadService
                     'severity' => $filters['severity'] ?? null,
                     'customer_impact' => $filters['customer_impact'] ?? null,
                     'affected_service' => $filters['affected_service'] ?? null,
+                    'sort' => $filters['sort'] ?? 'down_at',
+                    'direction' => $filters['direction'] ?? 'desc',
                 ],
                 'filter_options' => [
                     'incident_types' => $this->enumOptions(IncidentType::cases(), 'incidents.types.'),
@@ -195,11 +197,16 @@ final class IncidentAnalyticsPayloadService
      */
     private function incidentQuery(User $user, array $filters, int $days): Builder
     {
+        $sort = $filters['sort'] ?? 'down_at';
+        $direction = $filters['direction'] ?? 'desc';
+        $sortColumn = $sort === 'status' ? 'up_at' : $sort;
+
         $builder = Incident::query()
             ->whereHas('monitoring', fn (Builder $builder): Builder => $builder->visibleTo($user))
             ->with('monitoring')
             ->whereBetween('down_at', [Date::now()->subDays($days)->startOfDay(), Date::now()->endOfDay()])
-            ->latest('down_at');
+            ->orderBy($sortColumn, $direction)
+            ->orderByDesc('down_at');
 
         foreach (['incident_type', 'severity', 'customer_impact'] as $filter) {
             if (! empty($filters[$filter])) {

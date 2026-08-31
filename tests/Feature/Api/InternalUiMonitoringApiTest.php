@@ -159,14 +159,109 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $testResponse->assertOk()
             ->assertJsonPath('data.recent_checks.0.response_time', 123.4)
-            ->assertJsonPath('data.response_times.aggregated.avg', 120)
+            ->assertJsonPath('data.response_times.aggregated.avg', 123.4)
             ->assertJsonPath('data.incidents.0.down_at', now()->subHours(2)->toIso8601String())
+            ->assertJsonStructure([
+                'data' => [
+                    'availability_periods' => [
+                        '7' => ['has_data', 'uptime', 'downtime', 'unknown'],
+                        '30' => ['has_data', 'uptime', 'downtime', 'unknown'],
+                        '90' => ['has_data', 'uptime', 'downtime', 'unknown'],
+                    ],
+                ],
+            ])
             ->assertJsonPath('meta.range.days', 30)
-            ->assertJsonPath('meta.recent_checks.limit', 10)
+            ->assertJsonPath('meta.incidents.limit', 5)
+            ->assertJsonPath('meta.recent_checks.limit', 5)
+            ->assertJsonPath('meta.response_times.days', 1)
             ->assertJsonMissing(['server_health_token' => 'private-token'])
             ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
 
-        $this->assertInternalUiTelemetry($testResponse, 20, 262144);
+        $this->assertInternalUiTelemetry($testResponse, 21, 262144);
+    }
+
+    public function test_internal_ui_monitoring_detail_data_pages_recent_checks_with_a_bounded_offset(): void
+    {
+        Date::setTestNow('2026-08-22 12:00:00');
+
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(0, 11) as $index) {
+            $checkedAt = now()->subMinutes($index);
+            MonitoringResponse::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'status' => MonitoringStatus::UP,
+                'http_status_code' => 200,
+                'response_time' => 100 + $index,
+                'created_at' => $checkedAt,
+                'updated_at' => $checkedAt,
+            ]);
+        }
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring))
+            ->assertOk()
+            ->assertJsonCount(5, 'data.recent_checks')
+            ->assertJsonPath('meta.recent_checks.has_more', true)
+            ->assertJsonPath('meta.recent_checks.next_offset', 5);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+            'monitoring' => $monitoring,
+            'checks_offset' => 5,
+        ]))
+            ->assertOk()
+            ->assertJsonCount(5, 'data.recent_checks')
+            ->assertJsonPath('meta.recent_checks.has_more', true)
+            ->assertJsonPath('meta.recent_checks.next_offset', 10);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+            'monitoring' => $monitoring,
+            'checks_offset' => -1,
+        ]))->assertUnprocessable();
+    }
+
+    public function test_internal_ui_monitoring_detail_data_pages_incidents_and_switches_response_time_period(): void
+    {
+        Date::setTestNow('2026-08-22 12:00:00');
+
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(0, 5) as $index) {
+            Incident::query()->create([
+                'monitoring_id' => $monitoring->id,
+                'down_at' => now()->subDays($index + 1),
+                'up_at' => now()->subDays($index + 1)->addMinutes(10),
+            ]);
+        }
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring))
+            ->assertOk()
+            ->assertJsonCount(5, 'data.incidents')
+            ->assertJsonPath('meta.incidents.limit', 5)
+            ->assertJsonPath('meta.incidents.has_more', true)
+            ->assertJsonPath('meta.incidents.next_offset', 5);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+            'monitoring' => $monitoring,
+            'incident_offset' => 5,
+            'response_time_days' => 7,
+        ]))
+            ->assertOk()
+            ->assertJsonCount(1, 'data.incidents')
+            ->assertJsonPath('meta.incidents.has_more', false)
+            ->assertJsonPath('meta.incidents.next_offset', null)
+            ->assertJsonPath('meta.response_times.days', 7);
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+            'monitoring' => $monitoring,
+            'incident_offset' => -1,
+        ]))->assertUnprocessable();
+
+        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+            'monitoring' => $monitoring,
+            'response_time_days' => 2,
+        ]))->assertUnprocessable();
     }
 
     public function test_internal_ui_monitoring_operations_manage_private_groups_preferences_and_maintenance(): void

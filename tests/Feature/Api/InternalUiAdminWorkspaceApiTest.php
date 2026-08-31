@@ -11,6 +11,7 @@ use App\Models\ServerInstance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Activitylog\Models\Activity;
 use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
@@ -82,6 +83,99 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.activity-logs.index'))->assertOk();
 
         $this->assertDatabaseHas('users', ['id' => $assignedUser->id]);
+    }
+
+    public function test_admin_can_search_filter_sort_and_paginate_api_logs(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $firstUser = User::factory()->create(['email' => 'alpha@example.test']);
+        $secondUser = User::factory()->create(['email' => 'zeta@example.test']);
+
+        ApiLog::query()->create(['user_id' => $firstUser->id, 'route' => '/api/v1/monitorings']);
+        ApiLog::query()->create(['user_id' => $secondUser->id, 'route' => '/api/v1/status-pages']);
+
+        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.api-logs.index', [
+            'search' => 'api/v1',
+            'sort' => 'user_email',
+            'direction' => 'asc',
+            'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.user_email', 'alpha@example.test')
+            ->assertJsonPath('data.pagination.total', 2)
+            ->assertJsonFragment(['email' => 'zeta@example.test']);
+
+        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.api-logs.index', ['user_id' => $secondUser->id]))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.user_email', 'zeta@example.test')
+            ->assertJsonPath('data.pagination.total', 1);
+    }
+
+    public function test_admin_can_search_filter_sort_and_paginate_every_admin_table(): void
+    {
+        Package::factory()->create();
+        $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+        $regularUser = User::factory()->create(['name' => 'Alpha member', 'role' => UserRole::REGULAR]);
+        $hiddenPackage = Package::factory()->create(['monitoring_limit' => 10, 'price' => 9.99, 'is_selectable' => false]);
+        $selectablePackage = Package::factory()->create(['monitoring_limit' => 50, 'price' => 29.99, 'is_selectable' => true]);
+        $inactiveInstance = ServerInstance::query()->create([
+            'code' => 'de-inactive-1',
+            'display_name' => 'Inactive Germany',
+            'country_code' => 'DE',
+            'ip_address' => '192.0.2.50',
+            'api_key_hash' => 'a-secure-instance-key',
+            'is_active' => false,
+        ]);
+        ServerInstance::query()->create([
+            'code' => 'de-active-1',
+            'display_name' => 'Active Germany',
+            'country_code' => 'DE',
+            'ip_address' => '192.0.2.51',
+            'api_key_hash' => 'a-secure-instance-key',
+            'is_active' => true,
+        ]);
+        Activity::query()->create([
+            'log_name' => 'user',
+            'description' => 'alpha_member_updated',
+            'event' => 'updated',
+            'causer_type' => User::class,
+            'causer_id' => $admin->id,
+            'attribute_changes' => ['attributes' => ['name' => 'Alpha member', 'password' => '[redacted]']],
+            'properties' => ['source' => 'admin'],
+        ]);
+        activity('monitoring')->event('created')->log('monitoring_created');
+
+        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.users.index', [
+            'search' => 'Alpha', 'role' => UserRole::REGULAR->value, 'sort' => 'name', 'direction' => 'asc', 'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.id', $regularUser->id)
+            ->assertJsonPath('data.pagination.total', 1);
+
+        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.packages.index', [
+            'search' => '50', 'selectable' => 'yes', 'sort' => 'price', 'direction' => 'desc', 'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.id', $selectablePackage->id)
+            ->assertJsonMissing(['id' => $hiddenPackage->id]);
+
+        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.server-instances.index', [
+            'active' => 'no', 'sort' => 'display_name', 'direction' => 'asc', 'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.id', $inactiveInstance->id)
+            ->assertJsonPath('data.pagination.total', 1);
+
+        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.activity-logs.index', [
+            'search' => 'alpha_member', 'event' => 'updated', 'sort' => 'description', 'direction' => 'asc', 'per_page' => 10,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.items.0.description', 'alpha_member_updated')
+            ->assertJsonPath('data.items.0.changes.attributes.attributes.name', 'Alpha member')
+            ->assertJsonPath('data.items.0.changes.attributes.attributes.password', '[redacted]')
+            ->assertJsonPath('data.pagination.total', 1)
+            ->assertJsonFragment(['events' => ['created', 'updated']]);
     }
 
     public function test_admin_can_update_users_and_verify_an_email_address(): void
