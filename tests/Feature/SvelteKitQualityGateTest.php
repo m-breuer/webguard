@@ -98,6 +98,7 @@ class SvelteKitQualityGateTest extends TestCase
 
         $this->assertStringContainsString('page.data.locale === "de" ? "de-DE" : "en-US"', $format);
         $this->assertStringContainsString('new Intl.DateTimeFormat(interfaceLocale(), options)', $format);
+        $this->assertStringContainsString('Number.isNaN(date.getTime()) ? fallback', $format);
 
         foreach ([
             'frontend/src/lib/components/MonitoringAnalytics.svelte',
