@@ -151,6 +151,22 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('sm:-mx-6 sm:-mb-6 sm:px-6', $monitoringForm);
     }
 
+    public function test_shared_button_variants_define_a_clear_action_hierarchy(): void
+    {
+        $button = file_get_contents(base_path('frontend/src/lib/components/Button.svelte'));
+        $adminCrudTable = file_get_contents(base_path('frontend/src/lib/components/AdminCrudTable.svelte'));
+        $adminApiPage = file_get_contents(base_path('frontend/src/routes/(app)/admin/api/+page.svelte'));
+
+        $this->assertIsString($button);
+        $this->assertIsString($adminCrudTable);
+        $this->assertIsString($adminApiPage);
+        $this->assertStringContainsString('primary: "border-wg-accent bg-wg-accent', $button);
+        $this->assertStringContainsString('secondary: "border-wg-accent bg-transparent text-wg-accent', $button);
+        $this->assertStringContainsString('focus-visible:outline-wg-focus', $button);
+        $this->assertStringContainsString('<Button type="submit">Apply</Button>', $adminCrudTable);
+        $this->assertStringContainsString('<Button type="submit">Apply</Button>', $adminApiPage);
+    }
+
     public function test_uptime_calendar_exposes_daily_percentages_on_hover_and_keyboard_focus(): void
     {
         $monitoringAnalytics = file_get_contents(base_path('frontend/src/lib/components/MonitoringAnalytics.svelte'));
