@@ -297,10 +297,10 @@ class MonitoringOverviewService
     }
 
     /**
-     * @param  EloquentCollection<int, Monitoring>  $monitorings
+     * @param  EloquentCollection<int, Monitoring>  $eloquentCollection
      * @return array{uptime_minutes:int,downtime_minutes:int,unknown_minutes:int}
      */
-    private function liveTodayTrend(EloquentCollection $monitorings, Carbon $today, Carbon $now): array
+    private function liveTodayTrend(EloquentCollection $eloquentCollection, Carbon $today, Carbon $now): array
     {
         $totals = [
             'uptime_minutes' => 0,
@@ -308,13 +308,13 @@ class MonitoringOverviewService
             'unknown_minutes' => 0,
         ];
 
-        if ($monitorings->isEmpty() || $now->lte($today)) {
+        if ($eloquentCollection->isEmpty() || $now->lte($today)) {
             return $totals;
         }
 
-        $monitoringsById = $monitorings->keyBy('id');
+        $monitoringsById = $eloquentCollection->keyBy('id');
         $responsesByMonitoring = MonitoringResponse::query()
-            ->whereIn('monitoring_id', $monitorings->modelKeys())
+            ->whereIn('monitoring_id', $eloquentCollection->modelKeys())
             ->whereBetween('created_at', [$today, $now])
             ->oldest('created_at')
             ->orderBy('id')

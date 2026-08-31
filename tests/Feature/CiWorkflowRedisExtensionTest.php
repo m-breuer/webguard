@@ -132,6 +132,15 @@ class CiWorkflowRedisExtensionTest extends TestCase
         $this->assertArrayHasKey('prettier', $packageConfig['devDependencies'] ?? []);
         $this->assertArrayHasKey('prettier-plugin-blade', $packageConfig['devDependencies'] ?? []);
         $this->assertArrayHasKey('prettier-plugin-tailwindcss', $packageConfig['devDependencies'] ?? []);
+        $this->assertSame('1.62.1', $packageConfig['devDependencies']['playwright'] ?? null);
+    }
+
+    public function test_topology_job_installs_its_locked_playwright_dependency(): void
+    {
+        $workflow = (string) file_get_contents(base_path('.github/workflows/ci.yml'));
+
+        $this->assertStringContainsString('Install topology smoke dependencies', $workflow);
+        $this->assertStringContainsString('bun install --frozen-lockfile', $workflow);
     }
 
     public function test_captcha_uses_intervention_image_three_until_package_supports_v4(): void
