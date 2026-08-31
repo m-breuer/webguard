@@ -144,6 +144,10 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('overscroll-x-contain', $dataTable);
         $this->assertStringContainsString('[&_table]:min-w-[42rem]', $dataTable);
         $this->assertStringContainsString('h-64 sm:h-96', $monitoringAnalytics);
+        $this->assertStringContainsString('grid-cols-[1.25rem_minmax(0,1fr)]', $monitoringAnalytics);
+        $this->assertStringContainsString('row-span-3 flex justify-center pt-0.5', $monitoringAnalytics);
+        $this->assertStringContainsString('col-start-2 mt-0 grid min-w-0 grid-cols-2', $monitoringAnalytics);
+        $this->assertStringContainsString('px-2.5 py-0.5 text-[0.5625rem] leading-none', $monitoringAnalytics);
         $this->assertStringContainsString('sm:-mx-6 sm:-mb-6 sm:px-6', $monitoringForm);
     }
 
