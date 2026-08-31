@@ -121,7 +121,9 @@ final class InternalUiNotificationWorkspaceApiTest extends TestCase
 
         $this->actingAs($user)->patchJson(route('api.v1.internal.ui.notifications.read', ['notification' => $second->id]))
             ->assertOk()
-            ->assertJsonPath('data.read', true);
+            ->assertJsonPath('data.read', true)
+            ->assertJsonPath('data.read_notification_ids.0', $second->id)
+            ->assertJsonPath('meta.unread_count', 1);
 
         $this->actingAs($user)->patchJson(route('api.v1.internal.ui.notifications.read', ['notification' => $hidden->id]))
             ->assertNotFound();

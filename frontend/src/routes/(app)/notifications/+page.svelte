@@ -78,8 +78,16 @@
         errorMessage = "";
 
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/notifications/${entry.id}/read`, { method: "PATCH" });
-            await load(true);
+            const payload = await requestFirstPartyApi<{ read_notification_ids: string[] }, { unread_count: number }>(
+                `/api/v1/internal/ui/notifications/${entry.id}/read`,
+                { method: "PATCH" },
+            );
+            entries = showRead
+                ? entries.map((currentEntry) => payload.data.read_notification_ids.includes(currentEntry.id)
+                    ? { ...currentEntry, read: true }
+                    : currentEntry)
+                : entries.filter((currentEntry) => !payload.data.read_notification_ids.includes(currentEntry.id));
+            meta = { ...meta, unread_count: payload.meta?.unread_count ?? meta.unread_count };
         } catch (error) {
             errorMessage = error instanceof FirstPartyApiError ? error.message : "The notification could not be marked as read.";
         } finally {
@@ -92,9 +100,17 @@
         errorMessage = "";
 
         try {
-            await requestFirstPartyApi("/api/v1/internal/ui/notifications/read-all", { method: "PATCH" });
-            meta = { ...meta, unread_count: 0 };
-            await load(true);
+            const payload = await requestFirstPartyApi<{ read: boolean }, { unread_count: number }>(
+                "/api/v1/internal/ui/notifications/read-all",
+                { method: "PATCH" },
+            );
+            entries = showRead ? entries.map((entry) => ({ ...entry, read: true })) : [];
+            meta = {
+                ...meta,
+                has_more: showRead ? meta.has_more : false,
+                next_cursor: showRead ? meta.next_cursor : null,
+                unread_count: payload.meta?.unread_count ?? meta.unread_count,
+            };
         } catch (error) {
             errorMessage = error instanceof FirstPartyApiError ? error.message : "Notifications could not be marked as read.";
         } finally {
