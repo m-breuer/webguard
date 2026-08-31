@@ -45,11 +45,35 @@
         if (filters.severity) params.set("severity", filters.severity);
         if (filters.customer_impact) params.set("customer_impact", filters.customer_impact);
         if (filters.affected_service) params.set("affected_service", filters.affected_service);
+        if (filters.sort !== "down_at") params.set("sort", filters.sort);
+        if (filters.direction !== "desc") params.set("direction", filters.direction);
         if (page > 1) params.set("page", String(page));
 
         const query = params.toString();
 
         return query ? `/incidents/analytics?${query}` : "/incidents/analytics";
+    }
+
+    function sortHref(sort: "status" | "affected_service" | "down_at" | "up_at"): string {
+        const params = new URLSearchParams();
+        const filters = analytics.filters;
+        const direction = filters.sort === sort && filters.direction === "asc" ? "desc" : "asc";
+
+        if (filters.days !== 90) params.set("days", String(filters.days));
+        if (filters.incident_type) params.set("incident_type", filters.incident_type);
+        if (filters.severity) params.set("severity", filters.severity);
+        if (filters.customer_impact) params.set("customer_impact", filters.customer_impact);
+        if (filters.affected_service) params.set("affected_service", filters.affected_service);
+        if (sort !== "down_at") params.set("sort", sort);
+        if (direction !== "desc") params.set("direction", direction);
+
+        return params.size > 0 ? `/incidents/analytics?${params}` : "/incidents/analytics";
+    }
+
+    function sortLabel(sort: "status" | "affected_service" | "down_at" | "up_at"): string {
+        if (analytics.filters.sort !== sort) return "";
+
+        return analytics.filters.direction === "asc" ? " ↑" : " ↓";
     }
 </script>
 
@@ -92,6 +116,7 @@
                 <label class="grid gap-2 text-sm font-bold"><span>Customer impact</span><Select name="customer_impact"><option value="">All</option>{#each analytics.filter_options.customer_impacts as option}<option value={option.value} selected={analytics.filters.customer_impact === option.value}>{option.label}</option>{/each}</Select></label>
                 <label class="grid gap-2 text-sm font-bold sm:col-span-2 lg:col-span-3"><span>Affected service</span><Input name="affected_service" value={analytics.filters.affected_service ?? ""} type="search" /></label>
                 <div class="flex items-end"><Button class="w-full" type="submit">Apply filters</Button></div>
+                <input name="sort" type="hidden" value={analytics.filters.sort} /><input name="direction" type="hidden" value={analytics.filters.direction} />
             </form>
         </Card>
 
@@ -104,7 +129,7 @@
         <div class="mt-6 grid gap-4 md:grid-cols-3">{@render DistributionCard("By type", analytics.distributions.by_type)}{@render DistributionCard("By severity", analytics.distributions.by_severity)}{@render DistributionCard("By customer impact", analytics.distributions.by_impact)}</div>
 
         <section class="mt-6"><Card title="Incidents in selected period" description={pagination.total === 0 ? "No incidents match the selected filters." : `${pagination.from}–${pagination.to} of ${pagination.total} incidents`}>
-            {#if analytics.incidents.length === 0}<EmptyState title="No incidents match the selected filters" description="Try a broader period or remove one of the filters." />{:else}<div class="overflow-x-auto"><table class="w-full min-w-190 border-collapse text-left text-sm"><thead class="border-b border-wg-border text-wg-text-muted"><tr><th class="px-3 py-3 font-bold">Status</th><th class="px-3 py-3 font-bold">Monitoring</th><th class="px-3 py-3 font-bold">Affected service</th><th class="px-3 py-3 font-bold">Started</th><th class="px-3 py-3 font-bold">Resolved</th><th class="px-3 py-3 font-bold">Duration</th></tr></thead><tbody class="divide-y divide-wg-border">{#each analytics.incidents as incident (incident.id)}<tr><td class="px-3 py-4"><StatusBadge tone={incident.status === "open" ? "danger" : "healthy"} label={incident.status === "open" ? "Open" : "Resolved"} /></td><td class="px-3 py-4"><a class="font-bold text-wg-text no-underline hover:text-wg-accent" href={`/monitorings/${incident.monitoring_id}`}>{incident.monitoring_name}</a></td><td class="px-3 py-4 text-wg-text-muted">{incident.affected_service}</td><td class="px-3 py-4 text-wg-text-muted">{dateTime(incident.down_at)}</td><td class="px-3 py-4 text-wg-text-muted">{dateTime(incident.up_at)}</td><td class="px-3 py-4 font-bold">{duration(incident)}</td></tr>{/each}</tbody></table></div><div class="mt-5"><Pagination page={pagination.current_page} pages={pagination.last_page} href={paginationHref} /></div>{/if}
+            {#if analytics.incidents.length === 0}<EmptyState title="No incidents match the selected filters" description="Try a broader period or remove one of the filters." />{:else}<div class="overflow-x-auto"><table class="w-full min-w-190 border-collapse text-left text-sm"><thead class="border-b border-wg-border text-wg-text-muted"><tr><th class="px-3 py-3 font-bold"><a class="text-wg-text-muted no-underline hover:text-wg-accent" href={sortHref("status")}>Status{sortLabel("status")}</a></th><th class="px-3 py-3 font-bold">Monitoring</th><th class="px-3 py-3 font-bold"><a class="text-wg-text-muted no-underline hover:text-wg-accent" href={sortHref("affected_service")}>Affected service{sortLabel("affected_service")}</a></th><th class="px-3 py-3 font-bold"><a class="text-wg-text-muted no-underline hover:text-wg-accent" href={sortHref("down_at")}>Started{sortLabel("down_at")}</a></th><th class="px-3 py-3 font-bold"><a class="text-wg-text-muted no-underline hover:text-wg-accent" href={sortHref("up_at")}>Resolved{sortLabel("up_at")}</a></th><th class="px-3 py-3 font-bold">Duration</th></tr></thead><tbody class="divide-y divide-wg-border">{#each analytics.incidents as incident (incident.id)}<tr><td class="px-3 py-4"><StatusBadge tone={incident.status === "open" ? "danger" : "healthy"} label={incident.status === "open" ? "Open" : "Resolved"} /></td><td class="px-3 py-4"><a class="font-bold text-wg-text no-underline hover:text-wg-accent" href={`/monitorings/${incident.monitoring_id}`}>{incident.monitoring_name}</a></td><td class="px-3 py-4 text-wg-text-muted">{incident.affected_service}</td><td class="px-3 py-4 text-wg-text-muted">{dateTime(incident.down_at)}</td><td class="px-3 py-4 text-wg-text-muted">{dateTime(incident.up_at)}</td><td class="px-3 py-4 font-bold">{duration(incident)}</td></tr>{/each}</tbody></table></div><div class="mt-5"><Pagination page={pagination.current_page} pages={pagination.last_page} href={paginationHref} /></div>{/if}
         </Card></section>
     </section>
 </main>
@@ -112,4 +137,3 @@
 {#snippet DistributionCard(title: string, items: AnalyticsDistribution[])}
     <Card {title}>{#if items.length === 0}<p class="text-sm text-wg-text-muted">No incidents match the selected filters.</p>{:else}<dl class="divide-y divide-wg-border">{#each items as item}<div class="flex items-center justify-between gap-3 py-2 text-sm"><dt class="text-wg-text-muted">{item.label}</dt><dd class="font-extrabold">{item.count}</dd></div>{/each}</dl>{/if}</Card>
 {/snippet}
-    import Button from "$lib/components/Button.svelte";

@@ -33,6 +33,8 @@ export interface IncidentAnalyticsFilters {
     severity: string | null;
     customer_impact: string | null;
     affected_service: string | null;
+    sort: "status" | "affected_service" | "down_at" | "up_at";
+    direction: "asc" | "desc";
 }
 
 export interface AnalyticsOption { value: string; label: string; }

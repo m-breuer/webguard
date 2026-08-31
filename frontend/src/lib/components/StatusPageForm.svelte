@@ -5,7 +5,7 @@
     import Checkbox from "$lib/components/Checkbox.svelte";
     import Field from "$lib/components/Field.svelte";
     import Input from "$lib/components/Input.svelte";
-    import Select from "$lib/components/Select.svelte";
+    import Select, { type SelectOption } from "$lib/components/Select.svelte";
     import Textarea from "$lib/components/Textarea.svelte";
 
     interface FormComponent {
@@ -29,6 +29,11 @@
     let submitting = $state(false);
     let error = $state("");
     let errors = $state<Record<string, string[]>>({});
+
+    const monitoringOptions = $derived<SelectOption[]>(monitorings.map((monitoring) => ({
+        value: monitoring.id,
+        label: `${monitoring.name} · ${monitoring.target}`,
+    })));
 
     $effect(() => {
         components = statusPage?.components.map((component) => ({
@@ -93,7 +98,7 @@
                 <Input name={`components[${index}][source_type]`} type="hidden" value={component.sourceType} />
                 {#if component.sourceType === "monitoring_group" && component.monitoringGroup}<Input name={`components[${index}][monitoring_group_id]`} type="hidden" value={component.monitoringGroup.id} />{/if}
                 <div class="flex items-center justify-between gap-3"><h3 class="font-bold">Component {index + 1}</h3><Button class="min-h-10 px-3 py-1.5" variant="danger" type="button" aria-label={`Remove component ${index + 1}`} onclick={() => (components = components.filter((_, componentIndex) => componentIndex !== index))}>Remove</Button></div>
-                <div class="grid gap-4 sm:grid-cols-2"><Field label="Component name" error={errorFor(`components.${index}.name`)} required><Input name={`components[${index}][name]`} bind:value={component.name} required /></Field>{#if component.sourceType === "monitoring_group" && component.monitoringGroup}<Field label="Monitoring group"><div class="min-h-11 rounded-md border border-wg-border bg-wg-surface-muted px-3 py-2 text-sm font-bold">{component.monitoringGroup.name} · {component.monitoringGroup.monitoring_count} monitorings</div></Field>{:else}<Field label="Monitorings" error={errorFor(`components.${index}.monitoring_ids`)} required><Select class="min-h-28" name={`components[${index}][monitoring_ids][]`} multiple bind:value={component.monitoringIds} required>{#each monitorings as monitoring}<option value={monitoring.id}>{monitoring.name} · {monitoring.target}</option>{/each}</Select></Field>{/if}</div>
+                <div class="grid gap-4 sm:grid-cols-2"><Field label="Component name" error={errorFor(`components.${index}.name`)} required><Input name={`components[${index}][name]`} bind:value={component.name} required /></Field>{#if component.sourceType === "monitoring_group" && component.monitoringGroup}<Field label="Monitoring group"><div class="min-h-11 rounded-md border border-wg-border bg-wg-surface-muted px-3 py-2 text-sm font-bold">{component.monitoringGroup.name} · {component.monitoringGroup.monitoring_count} monitorings</div></Field>{:else}<Field label="Monitorings" error={errorFor(`components.${index}.monitoring_ids`)} required><Select id={`component-${index}-monitorings`} options={monitoringOptions} name={`components[${index}][monitoring_ids][]`} multiple searchable placeholder="Select monitorings" searchPlaceholder="Search monitorings" bind:value={component.monitoringIds} required /></Field>{/if}</div>
                 <Field label="Component description" error={errorFor(`components.${index}.description`)}><Textarea class="min-h-20" name={`components[${index}][description]`} bind:value={component.description} /></Field>
             </section>
         {/each}

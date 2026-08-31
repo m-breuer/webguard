@@ -30,7 +30,7 @@
     --wg-accent-strong: #6b21a8;
     --wg-accent-contrast: #ffffff;
     --wg-danger: #dc2626;
-    --wg-focus: #c084fc;
+    --wg-focus: #7e22ce;
     --wg-shadow: 0 14px 34px rgb(15 23 42 / 12%);
 }
 
@@ -52,6 +52,19 @@
 
 html {
     background: var(--wg-canvas);
+    scrollbar-gutter: stable;
+}
+
+html[data-dialog-open],
+html[data-dialog-open] body {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+html[data-mobile-navigation-open],
+html[data-mobile-navigation-open] body {
+    overflow: hidden;
+    overscroll-behavior: none;
 }
 
 body {

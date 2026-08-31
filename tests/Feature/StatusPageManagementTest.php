@@ -74,8 +74,7 @@ class StatusPageManagementTest extends TestCase
         $this->get($canonicalUrl)->assertOk();
         $this->get($sameNameCanonicalUrl)->assertOk();
         $this->get(route('legacy-public-status-pages.show', 'acme-status'))
-            ->assertRedirect($canonicalUrl)
-            ->assertStatus(301);
+            ->assertRedirect($canonicalUrl)->assertMovedPermanently();
 
         $statusPage->update(['name' => 'Renamed Status']);
 
@@ -115,8 +114,7 @@ class StatusPageManagementTest extends TestCase
         ]);
 
         $this->post(route('legacy-public-status-pages.subscribers.store', $statusPage->slug))
-            ->assertRedirect(route('public-status-pages.subscribers.store', $statusPage))
-            ->assertStatus(307);
+            ->assertRedirect(route('public-status-pages.subscribers.store', $statusPage))->assertTemporaryRedirect();
         $this->get(route('legacy-public-status-pages.subscribers.confirm', [
             'statusPageSlug' => $statusPage->slug,
             'token' => 'confirm-token',
@@ -137,7 +135,7 @@ class StatusPageManagementTest extends TestCase
         ]))->assertRedirect(route('public-status-pages.subscribers.destroy', [
             'statusPage' => $statusPage,
             'token' => 'unsubscribe-token',
-        ]))->assertStatus(307);
+        ]))->assertTemporaryRedirect();
     }
 
     public function test_user_can_create_component_based_status_page(): void

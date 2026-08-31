@@ -81,18 +81,9 @@ services:
     container_name: webguard-frontend
     build:
       context: .
-      target: sveltekit_development
-    command: ["bun", "run", "--cwd", "frontend", "dev"]
+      target: sveltekit_production
     environment:
-      VITE_HMR_HOST: "${DOCKER_APP_HOST:-webguard.test}"
-      VITE_HMR_PROTOCOL: "${DOCKER_VITE_HMR_PROTOCOL:-ws}"
-      VITE_HMR_CLIENT_PORT: "${DOCKER_VITE_HMR_CLIENT_PORT:-80}"
-      VITE_USE_POLLING: "true"
-      VITE_POLLING_INTERVAL: "300"
-    volumes:
-      - ./:/var/www/html
-      - webguard_node_modules:/var/www/html/node_modules
-      - webguard_bun_cache:/tmp/.bun/install/cache
+      ORIGIN: "http://${DOCKER_APP_HOST:-webguard.test}"
 
   gateway:
     labels:
@@ -118,6 +109,8 @@ services:
 
   node:
     container_name: webguard-node
+    profiles:
+      - legacy-vite
     build:
       context: .
       dockerfile: docker/node/Dockerfile

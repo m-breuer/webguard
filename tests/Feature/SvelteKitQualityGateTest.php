@@ -49,6 +49,55 @@ class SvelteKitQualityGateTest extends TestCase
         }
     }
 
+    public function test_shared_sveltekit_controls_provide_keyboard_and_focus_accessibility(): void
+    {
+        $appStyles = file_get_contents(base_path('frontend/src/app.css'));
+        $appShell = file_get_contents(base_path('frontend/src/lib/components/AppShell.svelte'));
+        $dialog = file_get_contents(base_path('frontend/src/lib/components/Dialog.svelte'));
+        $select = file_get_contents(base_path('frontend/src/lib/components/Select.svelte'));
+
+        $this->assertIsString($appStyles);
+        $this->assertIsString($appShell);
+        $this->assertIsString($dialog);
+        $this->assertIsString($select);
+        $this->assertStringContainsString(':focus-visible', $appStyles);
+        $this->assertStringContainsString('html[data-dialog-open]', $appStyles);
+        $this->assertStringContainsString('Skip to main content', $appShell);
+        $this->assertStringContainsString('id="main-content"', $appShell);
+        $this->assertStringContainsString('aria-current={isActive', $appShell);
+        $this->assertStringContainsString('lockBackgroundScroll', $dialog);
+        $this->assertStringContainsString('focusableElements', $dialog);
+        $this->assertStringContainsString('event.key !== "Tab"', $dialog);
+        $this->assertStringContainsString('handleTriggerKeydown', $select);
+        $this->assertStringContainsString('handleOptionKeydown', $select);
+        $this->assertStringContainsString('aria-label={searchPlaceholder}', $select);
+    }
+
+    public function test_shared_sveltekit_components_preserve_mobile_navigation_and_content_space(): void
+    {
+        $appShell = file_get_contents(base_path('frontend/src/lib/components/AppShell.svelte'));
+        $dialog = file_get_contents(base_path('frontend/src/lib/components/Dialog.svelte'));
+        $dataTable = file_get_contents(base_path('frontend/src/lib/components/DataTable.svelte'));
+        $monitoringAnalytics = file_get_contents(base_path('frontend/src/lib/components/MonitoringAnalytics.svelte'));
+        $monitoringForm = file_get_contents(base_path('frontend/src/lib/components/MonitoringForm.svelte'));
+
+        $this->assertIsString($appShell);
+        $this->assertIsString($dialog);
+        $this->assertIsString($dataTable);
+        $this->assertIsString($monitoringAnalytics);
+        $this->assertIsString($monitoringForm);
+        $this->assertStringContainsString('matchMedia("(max-width: 54rem)")', $appShell);
+        $this->assertStringContainsString('mobileNavigationOpen', $appShell);
+        $this->assertStringContainsString('inert={isMobileViewport && !mobileOpen}', $appShell);
+        $this->assertStringContainsString('aria-controls="app-navigation"', $appShell);
+        $this->assertStringContainsString('p-2 sm:p-4', $dialog);
+        $this->assertStringContainsString('p-4 sm:p-6', $dialog);
+        $this->assertStringContainsString('overscroll-x-contain', $dataTable);
+        $this->assertStringContainsString('[&_table]:min-w-[42rem]', $dataTable);
+        $this->assertStringContainsString('h-64 sm:h-96', $monitoringAnalytics);
+        $this->assertStringContainsString('sm:-mx-6 sm:-mb-6 sm:px-6', $monitoringForm);
+    }
+
     public function test_ci_runs_sveltekit_checks_budgets_and_container_smoke_test(): void
     {
         $workflow = file_get_contents(base_path('.github/workflows/ci.yml'));
