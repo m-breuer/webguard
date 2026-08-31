@@ -12,6 +12,7 @@ use App\Enums\StatusPageComponentSource;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
+use App\Models\MonitoringResponse;
 use App\Models\NotificationChannelDelivery;
 use App\Models\StatusPage;
 use App\Models\User;
@@ -26,6 +27,7 @@ class MonitoringOverviewService
     public function __construct(
         private readonly MonitoringOverviewQuery $monitoringOverviewQuery,
         private readonly MonitoringStateResolver $monitoringStateResolver,
+        private readonly MonitoringHealthEvaluator $monitoringHealthEvaluator,
     ) {}
 
     /**
@@ -268,12 +270,21 @@ class MonitoringOverviewService
                 ->whereBetween('date', [$dates->last()->toDateString(), $dates->first()->toDateString()])
                 ->get(['date', 'uptime_minutes', 'downtime_minutes', 'unknown_minutes'])
                 ->groupBy(fn (MonitoringDailyResult $monitoringDailyResult): string => $monitoringDailyResult->date->toDateString());
+        $today = Date::today();
+        $liveToday = $this->liveTodayTrend($eloquentCollection, $today, Date::now());
 
-        return $dates->map(function (Carbon $date) use ($dailyResults): array {
+        return $dates->map(function (Carbon $date) use ($dailyResults, $liveToday, $today): array {
             $rows = $dailyResults->get($date->toDateString(), collect());
             $uptimeMinutes = (int) $rows->sum('uptime_minutes');
             $downtimeMinutes = (int) $rows->sum('downtime_minutes');
             $unknownMinutes = (int) $rows->sum('unknown_minutes');
+
+            if ($date->isSameDay($today) && ($uptimeMinutes + $downtimeMinutes + $unknownMinutes) === 0) {
+                $uptimeMinutes = $liveToday['uptime_minutes'];
+                $downtimeMinutes = $liveToday['downtime_minutes'];
+                $unknownMinutes = $liveToday['unknown_minutes'];
+            }
+
             $trackedMinutes = $uptimeMinutes + $downtimeMinutes + $unknownMinutes;
 
             return [
@@ -283,5 +294,87 @@ class MonitoringOverviewService
                 'has_data' => $trackedMinutes > 0,
             ];
         })->all();
+    }
+
+    /**
+     * @param  EloquentCollection<int, Monitoring>  $monitorings
+     * @return array{uptime_minutes:int,downtime_minutes:int,unknown_minutes:int}
+     */
+    private function liveTodayTrend(EloquentCollection $monitorings, Carbon $today, Carbon $now): array
+    {
+        $totals = [
+            'uptime_minutes' => 0,
+            'downtime_minutes' => 0,
+            'unknown_minutes' => 0,
+        ];
+
+        if ($monitorings->isEmpty() || $now->lte($today)) {
+            return $totals;
+        }
+
+        $monitoringsById = $monitorings->keyBy('id');
+        $responsesByMonitoring = MonitoringResponse::query()
+            ->whereIn('monitoring_id', $monitorings->modelKeys())
+            ->whereBetween('created_at', [$today, $now])
+            ->oldest('created_at')
+            ->orderBy('id')
+            ->get([
+                'id',
+                'monitoring_id',
+                'status',
+                'http_status_code',
+                'server_health_metrics',
+                'vital_values',
+                'created_at',
+            ])
+            ->groupBy('monitoring_id');
+
+        foreach ($responsesByMonitoring as $monitoringId => $responses) {
+            $monitoring = $monitoringsById->get($monitoringId);
+
+            if (! $monitoring instanceof Monitoring) {
+                continue;
+            }
+
+            $cursor = null;
+            $status = null;
+
+            foreach ($responses as $response) {
+                $responseAt = Date::parse($response->created_at);
+
+                if ($cursor instanceof Carbon && $responseAt->gt($cursor)) {
+                    $this->addTrendMinutes(
+                        $status,
+                        (int) $cursor->diffInMinutes($responseAt),
+                        $totals,
+                    );
+                }
+
+                $cursor = $responseAt;
+                $status = $this->monitoringHealthEvaluator->availabilityFor($monitoring, $response)->value;
+            }
+
+            if ($cursor instanceof Carbon && $cursor->lt($now)) {
+                $this->addTrendMinutes($status, (int) $cursor->diffInMinutes($now), $totals);
+            }
+        }
+
+        return $totals;
+    }
+
+    /**
+     * @param  array{uptime_minutes:int,downtime_minutes:int,unknown_minutes:int}  $totals
+     */
+    private function addTrendMinutes(?string $status, int $minutes, array &$totals): void
+    {
+        if ($minutes <= 0) {
+            return;
+        }
+
+        match ($status) {
+            MonitoringStatus::UP->value => $totals['uptime_minutes'] += $minutes,
+            MonitoringStatus::DOWN->value => $totals['downtime_minutes'] += $minutes,
+            default => $totals['unknown_minutes'] += $minutes,
+        };
     }
 }
