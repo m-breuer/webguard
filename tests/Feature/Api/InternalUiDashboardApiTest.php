@@ -9,6 +9,7 @@ use App\Models\Monitoring;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
+use Illuminate\Support\Facades\Date;
 use Tests\Concerns\AssertsApiContracts;
 use Tests\TestCase;
 
@@ -129,5 +130,30 @@ class InternalUiDashboardApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.services.0.status', 'up');
         $this->assertNotSame($firstEtag, (string) $secondResponse->headers->get('ETag'));
+    }
+
+    public function test_dashboard_projection_includes_live_uptime_for_today_before_daily_aggregation(): void
+    {
+        Date::setTestNow('2026-08-31 12:00:00');
+
+        Package::factory()->create(['monitoring_limit' => 10]);
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Live uptime API']);
+        $responseAt = Date::now()->subHours(2);
+
+        MonitoringResponse::query()->forceCreate([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'response_time' => 120,
+            'created_at' => $responseAt,
+            'updated_at' => $responseAt,
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->assertOk()
+            ->assertJsonPath('data.trend.6.date', '2026-08-31')
+            ->assertJsonPath('data.trend.6.has_data', true)
+            ->assertJsonPath('data.trend.6.uptime_percentage', 100);
     }
 }
