@@ -81,6 +81,16 @@
         return Array.from({ length: (day + 6) % 7 });
     }
 
+    function calendarDayLabel(value: string): string {
+        return formatDateTime(`${value}T12:00:00`, "—", {
+            month: "short", day: "numeric", year: "numeric",
+        });
+    }
+
+    function uptimePercentage(uptime: number | null): string {
+        return uptime === null ? "No data" : `${uptime.toFixed(2)}%`;
+    }
+
     function chartColor(name: string, fallback: string): string {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
     }
@@ -212,7 +222,26 @@
                 {#each calendarMonths as [month, value]}
                     <div class="flex items-baseline gap-2"><h3 class="text-lg font-extrabold">{formatMonthYear(new Date(`${month}-01T00:00:00`))}</h3><span class="text-xs font-bold text-wg-text-muted">({value.monthly_average_uptime?.toFixed(2) ?? "—"}%)</span></div>
                     <div class="mt-4 grid grid-cols-7 gap-1.5 text-center text-[0.625rem] text-wg-text-muted" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
-                    <div class="mt-2 grid grid-cols-7 gap-1.5" aria-label={`Availability for ${month}`}>{#each calendarOffset(value.days[0]?.date ?? "") as _}<span class="aspect-square"></span>{/each}{#each value.days as day}<span class={`aspect-square rounded-[0.2rem] ${uptimeTone(day.uptime_percentage)}`} title={`${timestamp(day.date)}: ${day.uptime_percentage === null ? "No data" : `${day.uptime_percentage.toFixed(2)}% uptime`}`}></span>{/each}</div>
+                    <div class="mt-2 grid grid-cols-7 gap-1.5" aria-label={`Availability for ${month}`}>
+                        {#each calendarOffset(value.days[0]?.date ?? "") as _}
+                            <span class="aspect-square"></span>
+                        {/each}
+                        {#each value.days as day}
+                            <button
+                                class={`group relative aspect-square rounded-[0.2rem] ${uptimeTone(day.uptime_percentage)} focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus`}
+                                type="button"
+                            >
+                                <span class="sr-only">{calendarDayLabel(day.date)} · {uptimePercentage(day.uptime_percentage)} <span>Uptime</span></span>
+                                <span
+                                    class="pointer-events-none invisible absolute bottom-[calc(100%+0.5rem)] left-1/2 z-20 w-max max-w-48 -translate-x-1/2 rounded-md bg-wg-text px-2.5 py-2 text-center text-xs font-bold leading-5 text-wg-surface opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100 group-focus-visible:visible group-focus-visible:opacity-100"
+                                    role="tooltip"
+                                >
+                                    <span class="block text-wg-surface/75">{calendarDayLabel(day.date)}</span>
+                                    <span class="mt-0.5 block text-sm">{uptimePercentage(day.uptime_percentage)} <span>Uptime</span></span>
+                                </span>
+                            </button>
+                        {/each}
+                    </div>
                 {/each}
             {:else}<p class="text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
         </article>

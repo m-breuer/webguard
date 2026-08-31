@@ -147,6 +147,19 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('sm:-mx-6 sm:-mb-6 sm:px-6', $monitoringForm);
     }
 
+    public function test_uptime_calendar_exposes_daily_percentages_on_hover_and_keyboard_focus(): void
+    {
+        $monitoringAnalytics = file_get_contents(base_path('frontend/src/lib/components/MonitoringAnalytics.svelte'));
+
+        $this->assertIsString($monitoringAnalytics);
+        $this->assertStringContainsString('function uptimePercentage', $monitoringAnalytics);
+        $this->assertStringContainsString('role="tooltip"', $monitoringAnalytics);
+        $this->assertStringContainsString('group-hover:opacity-100', $monitoringAnalytics);
+        $this->assertStringContainsString('group-focus-visible:opacity-100', $monitoringAnalytics);
+        $this->assertStringContainsString('focus-visible:outline-wg-focus', $monitoringAnalytics);
+        $this->assertStringContainsString('<span>Uptime</span>', $monitoringAnalytics);
+    }
+
     public function test_ci_runs_sveltekit_checks_budgets_and_container_smoke_test(): void
     {
         $workflow = file_get_contents(base_path('.github/workflows/ci.yml'));
