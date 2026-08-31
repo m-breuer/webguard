@@ -3,7 +3,7 @@ x-app-environment: &app-environment
   APP_ENV: "production"
   APP_DEBUG: "false"
   APP_KEY: "${APP_KEY:?APP_KEY must be set to a persistent Laravel application key}"
-  APP_URL: "${APP_URL:?APP_URL must be set to the canonical application URL}"
+  APP_URL: "${SERVICE_URL_GATEWAY_8080:?SERVICE_URL_GATEWAY_8080 must be set to the public gateway URL}"
   MARKETING_URL: "${MARKETING_URL:?MARKETING_URL must be set for canonical legal links}"
   APP_TIMEZONE: "Europe/Berlin"
   APP_LOCALE: "en"
@@ -106,7 +106,7 @@ services:
     environment:
       HOST: "0.0.0.0"
       PORT: "3000"
-      ORIGIN: "${APP_URL:?APP_URL must be set to the canonical application URL}"
+      ORIGIN: "${SERVICE_URL_GATEWAY_8080:?SERVICE_URL_GATEWAY_8080 must be set to the public gateway URL}"
       BODY_SIZE_LIMIT: "100M"
     expose:
       - "3000"
@@ -124,6 +124,8 @@ services:
     image: webguard-gateway:latest
     restart: unless-stopped
     stop_signal: SIGQUIT
+    environment:
+      SERVICE_URL_GATEWAY_8080: "/"
     expose:
       - "8080"
     depends_on:
