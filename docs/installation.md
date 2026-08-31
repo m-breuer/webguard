@@ -163,7 +163,7 @@ The bundled `mysql` and `redis` services are behind the `internal-services` Comp
 
 Coolify detects variables that are referenced in `docker-compose.yml` and exposes them in its UI. Keep production secrets as runtime variables in Coolify and override `DB_HOST`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PASSWORD`, and mail credentials there.
 
-For Coolify routing, set `APP_URL=https://app.webguard.dev` explicitly. In **Domains for gateway**, set `https://app.webguard.dev:8080`; the `:8080` identifies the gateway's internal container port, while visitors still use normal HTTPS on port 443. Leave the domain fields for `php` and `frontend` empty.
+For Coolify routing, set `APP_URL=https://app.webguard.dev` explicitly. In **Domains for gateway**, set `https://app.webguard.dev:8080`; the `:8080` identifies the gateway's internal container port, while visitors still use normal HTTPS on port 443. This is the only domain to configure: `php` and `frontend` do not declare public Compose ports and are reached only through the gateway's internal Docker-network forwarding.
 
 Do not add `SERVICE_URL_GATEWAY`, `SERVICE_URL_GATEWAY_8080`, `SERVICE_FQDN_GATEWAY`, or `SERVICE_FQDN_GATEWAY_8080` to this deployment. Those are Coolify-managed magic variables; referencing one makes Coolify generate and manage a service URL. The Compose stack deliberately uses the explicit `APP_URL` for both Laravel and SvelteKit so it remains the single canonical origin across deploys.
 
