@@ -13,6 +13,7 @@ use App\Models\MonitoringDomainResult;
 use App\Models\MonitoringResponse;
 use App\Models\MonitoringSslResult;
 use App\Services\MonitoringCheckIntervalService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -116,7 +117,11 @@ class MonitoringController extends Controller
             return response()->json(['message' => 'Unauthorized monitoring'], 403);
         }
 
-        MonitoringSslResult::query()->updateOrCreate(['monitoring_id' => $validated['monitoring_id']], $validated);
+        try {
+            MonitoringSslResult::query()->updateOrCreate(['monitoring_id' => $validated['monitoring_id']], $validated);
+        } catch (UniqueConstraintViolationException) {
+            MonitoringSslResult::query()->updateOrCreate(['monitoring_id' => $validated['monitoring_id']], $validated);
+        }
 
         return response()->json(['message' => 'SSL result stored successfully.']);
     }
