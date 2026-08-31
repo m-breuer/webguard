@@ -114,8 +114,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-bun-
 
-    - name: Install frontend dependencies
-      run: bun install --frozen-lockfile --cwd frontend
+    - name: Install Bun workspace dependencies
+      run: bun install --frozen-lockfile
 
     - name: Check Rector formatting
       run: |

@@ -11,5 +11,10 @@
     "type": "module",
     "workspaces": [
         "frontend"
-    ]
+    ],
+    "devDependencies": {
+        "prettier": "^3.9.6",
+        "prettier-plugin-blade": "^3.3.0",
+        "prettier-plugin-tailwindcss": "^0.8.1"
+    }
 }
