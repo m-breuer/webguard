@@ -42,9 +42,11 @@
     let loadingPreviousCalendarMonth = $state(false);
     let uptimeCalendarError = $state("");
     const calendarMonths = $derived(Object.entries(uptimeCalendar).sort(([left], [right]) => left.localeCompare(right)));
-    const oldestLoadedCalendarMonth = $derived(calendarMonths[0]?.[0] ?? null);
+    let calendarCursor = $state<string | null>(null);
     const canLoadPreviousCalendarMonth = $derived(
-        oldestLoadedCalendarMonth !== null && oldestLoadedCalendarMonth > uptimeCalendarMeta.oldest_available_month,
+        calendarCursor !== null
+        && uptimeCalendarMeta.oldest_available_month !== null
+        && calendarCursor > uptimeCalendarMeta.oldest_available_month,
     );
 
     $effect(() => {
@@ -55,6 +57,7 @@
         responseTimes = detail.response_times;
         responseTimeDays = 1;
         uptimeCalendar = detail.uptime_calendar;
+        calendarCursor = Object.keys(detail.uptime_calendar).sort()[0] ?? new Date().toISOString().slice(0, 7);
     });
 
     function timestamp(value: string | null): string {
@@ -114,11 +117,11 @@
     }
 
     async function loadPreviousCalendarMonth(): Promise<void> {
-        if (loadingPreviousCalendarMonth || !canLoadPreviousCalendarMonth || oldestLoadedCalendarMonth === null) return;
+        if (loadingPreviousCalendarMonth || !canLoadPreviousCalendarMonth || calendarCursor === null) return;
 
         loadingPreviousCalendarMonth = true;
         uptimeCalendarError = "";
-        const range = previousMonthRange(oldestLoadedCalendarMonth);
+        const range = previousMonthRange(calendarCursor);
 
         try {
             const response = await fetch(
@@ -137,6 +140,7 @@
             }
 
             uptimeCalendar = { ...(await response.json() as MonitoringDetailData["uptime_calendar"]), ...uptimeCalendar };
+            calendarCursor = range.startDate.slice(0, 7);
         } catch (error) {
             uptimeCalendarError = error instanceof FirstPartyApiError ? error.message : "Previous uptime data could not be loaded.";
         } finally {
@@ -303,11 +307,11 @@
                 </article>
             {/each}
         </div>
-        {#if canLoadPreviousCalendarMonth}
-            <div class="mt-5 flex justify-center"><Button variant="secondary" loading={loadingPreviousCalendarMonth} onclick={loadPreviousCalendarMonth}>Load previous month</Button></div>
-        {/if}
-        {#if uptimeCalendarError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{uptimeCalendarError}</p>{/if}
     {:else}<p class="mt-3 text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
+    {#if canLoadPreviousCalendarMonth}
+        <div class="mt-5 flex justify-center"><Button variant="secondary" loading={loadingPreviousCalendarMonth} onclick={loadPreviousCalendarMonth}>Load previous month</Button></div>
+    {/if}
+    {#if uptimeCalendarError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{uptimeCalendarError}</p>{/if}
     <article class="mt-4 rounded-[0.8rem] border border-wg-border bg-wg-surface px-4 py-4 shadow-sm sm:px-6"><div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-wg-text-muted"><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-emerald-500"></span>≥ 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-amber-400"></span>≥ 90 % and &lt; 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-red-500"></span>&lt; 90 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-wg-surface-muted"></span>N/A</span></div></article>
 </section>
 

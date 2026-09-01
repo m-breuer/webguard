@@ -174,12 +174,11 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonPath('meta.incidents.limit', 5)
             ->assertJsonPath('meta.recent_checks.limit', 5)
             ->assertJsonPath('meta.response_times.days', 1)
-            ->assertJsonCount(8, 'data.uptime_calendar')
+            ->assertJsonCount(1, 'data.uptime_calendar')
             ->assertJsonPath('meta.uptime_calendar.oldest_available_month', '2026-08')
             ->assertJsonStructure([
                 'data' => [
                     'uptime_calendar' => [
-                        '2026-01' => ['days', 'monthly_average_uptime'],
                         '2026-08' => ['days', 'monthly_average_uptime'],
                     ],
                 ],
@@ -187,7 +186,7 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonMissing(['server_health_token' => 'private-token'])
             ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
 
-        $this->assertInternalUiTelemetry($testResponse, 21, 262144);
+        $this->assertInternalUiTelemetry($testResponse, 22, 262144);
     }
 
     public function test_internal_ui_monitoring_detail_data_pages_recent_checks_with_a_bounded_offset(): void

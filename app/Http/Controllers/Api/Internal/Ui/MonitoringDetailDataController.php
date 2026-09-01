@@ -12,6 +12,7 @@ use App\Services\MonitoringAvailabilityService;
 use App\Services\MonitoringCheckHistoryService;
 use App\Services\MonitoringResponseTimeService;
 use App\Services\MonitoringServerHealthTelemetryService;
+use App\Services\MonitoringUptimeCalendarService;
 use App\Support\MonitoringDateRange;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ final class MonitoringDetailDataController extends Controller
         MonitoringCheckHistoryService $monitoringCheckHistoryService,
         MonitoringResponseTimeService $monitoringResponseTimeService,
         MonitoringServerHealthTelemetryService $monitoringServerHealthTelemetryService,
+        MonitoringUptimeCalendarService $monitoringUptimeCalendarService,
     ): JsonResponse {
         $validated = $request->validate([
             'checks_offset' => ['nullable', 'integer', 'min:0', 'max:' . self::MAX_RECENT_CHECKS_OFFSET],
@@ -62,7 +64,7 @@ final class MonitoringDetailDataController extends Controller
             includeCurrentYearCalendar: true,
         );
         $payload['meta']['uptime_calendar'] = [
-            'oldest_available_month' => $monitoring->created_at->copy()->startOfMonth()->format('Y-m'),
+            'oldest_available_month' => $monitoringUptimeCalendarService->oldestRecordedMonth($monitoring),
         ];
         $recentChecks = $monitoringCheckHistoryService->getHistory(
             $monitoring,

@@ -268,6 +268,6 @@ export interface MonitoringDetailMeta {
         days: 1 | 7 | 30;
     };
     uptime_calendar: {
-        oldest_available_month: string;
+        oldest_available_month: string | null;
     };
 }
