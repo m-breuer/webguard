@@ -5,8 +5,8 @@ export async function load({ fetch, params }) {
     const monitoringId = encodeURIComponent(params.id);
     const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
     const [response, preferencesResponse] = await Promise.all([
-        fetch(`/api/v1/internal/ui/monitorings/${monitoringId}/form-options`, { headers }),
-        fetch(`/api/v1/internal/ui/monitorings/${monitoringId}/notification-preferences`, { headers }),
+        fetch(`/api/monitorings/${monitoringId}/form-options`, { headers }),
+        fetch(`/api/monitorings/${monitoringId}/notification-preferences`, { headers }),
     ]);
 
     if (!response.ok || !preferencesResponse.ok) {

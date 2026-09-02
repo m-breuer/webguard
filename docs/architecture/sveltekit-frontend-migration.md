@@ -95,7 +95,7 @@ Laravel presentation concerns. Error views remain Laravel fallbacks until the
 gateway/SvelteKit error policy is implemented.
 
 Existing UI JSON projections are deliberately narrow: the authenticated,
-verified `/api/v1/internal/ui/*` family currently exposes dashboard,
+verified `/api/*` family currently exposes dashboard,
 monitoring-list, monitoring-card, and monitoring-detail reads. The new
 first-party browser contract expands this boundary without changing the
 external v1, mobile, or instance contracts; see [API boundaries](api-boundaries.md).
@@ -113,7 +113,7 @@ external v1, mobile, or instance contracts; see [API boundaries](api-boundaries.
 3. SvelteKit server loads call Laravel using an internal service URL where
    possible. Browser mutations go through the canonical host so cookies, rate
    limits, audit context, and CSRF behavior remain consistent.
-4. External `/api/v1/*`, mobile, scanner-instance, webhook, subscriber, and
+4. External `/api/*`, mobile, scanner-instance, webhook, subscriber, and
    badge contracts stay on their existing Laravel route families. New UI needs
    receive a versioned first-party contract instead of overloading them.
 5. The gateway accepts forwarded origin and address headers only from configured

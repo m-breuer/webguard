@@ -125,7 +125,7 @@
 
         try {
             const response = await fetch(
-                `/api/v1/internal/monitorings/${encodeURIComponent(monitoringId)}/uptime-calendar?${new URLSearchParams({
+                `/api/monitorings/${encodeURIComponent(monitoringId)}/uptime-calendar?${new URLSearchParams({
                     start_date: range.startDate,
                     end_date: range.endDate,
                 })}`,
@@ -223,7 +223,7 @@
 
         try {
             const payload = await requestFirstPartyApi<MonitoringDetailData, MonitoringDetailMeta>(
-                `/api/v1/internal/ui/monitorings/${encodeURIComponent(monitoringId)}/detail-data?checks_offset=${checksMeta.next_offset}`,
+                `/api/monitorings/${encodeURIComponent(monitoringId)}/detail-data?checks_offset=${checksMeta.next_offset}`,
             );
             checks = [...checks, ...payload.data.recent_checks];
             checksMeta = payload.meta?.recent_checks ?? { ...checksMeta, has_more: false, next_offset: null };
@@ -243,7 +243,7 @@
 
         try {
             const payload = await requestFirstPartyApi<MonitoringDetailData, MonitoringDetailMeta>(
-                `/api/v1/internal/ui/monitorings/${encodeURIComponent(monitoringId)}/detail-data?response_time_days=${requestedDays}`,
+                `/api/monitorings/${encodeURIComponent(monitoringId)}/detail-data?response_time_days=${requestedDays}`,
             );
             responseTimes = payload.data.response_times;
             responseTimeDays = payload.meta?.response_times?.days ?? requestedDays;
@@ -264,7 +264,7 @@
 
         try {
             const payload = await requestFirstPartyApi<MonitoringDetailData, MonitoringDetailMeta>(
-                `/api/v1/internal/ui/monitorings/${encodeURIComponent(monitoringId)}/detail-data?incident_offset=${currentIncidentsMeta.next_offset}`,
+                `/api/monitorings/${encodeURIComponent(monitoringId)}/detail-data?incident_offset=${currentIncidentsMeta.next_offset}`,
             );
             incidents = [...incidents, ...payload.data.incidents];
             currentIncidentsMeta = payload.meta?.incidents ?? { ...currentIncidentsMeta, has_more: false, next_offset: null };

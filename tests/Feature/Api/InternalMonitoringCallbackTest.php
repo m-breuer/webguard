@@ -36,7 +36,7 @@ class InternalMonitoringCallbackTest extends TestCase
         ]);
 
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->postJson(route('v1.internal.incidents.store'), [
+            ->postJson(route('instances.incidents.store'), [
                 'monitoring_id' => $monitoring->id,
                 'down_at' => Date::now()->subMinutes(10)->toDateTimeString(),
             ])->assertOk()
@@ -48,7 +48,7 @@ class InternalMonitoringCallbackTest extends TestCase
         ]);
 
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->putJson(route('v1.internal.incidents.update', $monitoring), [
+            ->putJson(route('instances.incidents.update', $monitoring), [
                 'up_at' => Date::now()->toDateTimeString(),
             ])->assertOk()
             ->assertJsonPath('message', 'Incident updated successfully.');
@@ -67,7 +67,7 @@ class InternalMonitoringCallbackTest extends TestCase
         ]);
 
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->putJson(route('v1.internal.incidents.update', $monitoring), [
+            ->putJson(route('instances.incidents.update', $monitoring), [
                 'up_at' => now()->toDateTimeString(),
             ])->assertNotFound()
             ->assertJsonPath('message', 'No open incident found for this monitoring.');
@@ -90,7 +90,7 @@ class InternalMonitoringCallbackTest extends TestCase
         ]);
 
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->postJson(route('v1.internal.ssl-results.store'), [
+            ->postJson(route('instances.ssl-results.store'), [
                 'monitoring_id' => $httpMonitoring->id,
                 'is_valid' => true,
                 'expires_at' => '2026-12-01 00:00:00',
@@ -100,7 +100,7 @@ class InternalMonitoringCallbackTest extends TestCase
             ->assertJsonPath('message', 'SSL result stored successfully.');
 
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->postJson(route('v1.internal.domain-results.store'), [
+            ->postJson(route('instances.domain-results.store'), [
                 'monitoring_id' => $domainMonitoring->id,
                 'is_valid' => true,
                 'expires_at' => '2027-01-01 00:00:00',
@@ -132,10 +132,10 @@ class InternalMonitoringCallbackTest extends TestCase
         ];
 
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->postJson(route('v1.internal.ssl-results.store'), $payload)
+            ->postJson(route('instances.ssl-results.store'), $payload)
             ->assertOk();
         $this->withHeaders($this->instanceHeaders($serverInstance))
-            ->postJson(route('v1.internal.ssl-results.store'), $payload)
+            ->postJson(route('instances.ssl-results.store'), $payload)
             ->assertOk();
 
         $this->assertDatabaseCount('monitoring_ssl_results', 1);
@@ -154,7 +154,7 @@ class InternalMonitoringCallbackTest extends TestCase
         ]);
 
         $this->withHeaders($this->instanceHeaders($otherInstance))
-            ->postJson(route('v1.internal.monitoring-responses.store'), [
+            ->postJson(route('instances.monitoring-responses.store'), [
                 'monitoring_id' => $monitoring->id,
                 'status' => MonitoringStatus::UP->value,
                 'response_time' => 100,

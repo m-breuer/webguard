@@ -29,7 +29,7 @@ class ApiKeyApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $testResponse = $this->actingAs($user)->postJson(route('v1.api-keys.store'), [
+        $testResponse = $this->actingAs($user)->postJson(route('api-keys.store'), [
             'name' => 'Server agent',
             'abilities' => [ApiKeyAbility::SERVER_HEALTH_WRITE->value],
         ]);
@@ -46,7 +46,7 @@ class ApiKeyApiTest extends TestCase
         $this->assertNotSame($plainTextToken, $personalAccessToken->token);
         $this->assertSame(ApiKeyService::storedName('Server agent'), $personalAccessToken->name);
 
-        $this->actingAs($user)->getJson(route('v1.api-keys.index'))
+        $this->actingAs($user)->getJson(route('api-keys.index'))
             ->assertOk()
             ->assertJsonPath('data.0.id', $personalAccessToken->id)
             ->assertJsonPath('data.0.name', 'Server agent')
@@ -60,14 +60,14 @@ class ApiKeyApiTest extends TestCase
         $user = User::factory()->create();
         $user->createToken(ApiKeyService::storedName('Analytics'), [ApiKeyAbility::ANALYTICS_READ->value]);
 
-        $this->actingAs($user)->postJson(route('v1.api-keys.store'), [
+        $this->actingAs($user)->postJson(route('api-keys.store'), [
             'name' => 'Analytics',
             'abilities' => [],
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name', 'abilities']);
 
-        $this->actingAs($user)->postJson(route('v1.api-keys.store'), [
+        $this->actingAs($user)->postJson(route('api-keys.store'), [
             'name' => 'Other key',
             'abilities' => ['external:write'],
         ])
@@ -81,14 +81,14 @@ class ApiKeyApiTest extends TestCase
         $otherUser = User::factory()->create();
         $token = $owner->createToken(ApiKeyService::storedName('Analytics'), [ApiKeyAbility::ANALYTICS_READ->value])->accessToken;
 
-        $this->actingAs($otherUser)->getJson(route('v1.api-keys.show', $token))
+        $this->actingAs($otherUser)->getJson(route('api-keys.show', $token))
             ->assertNotFound();
 
-        $this->actingAs($owner)->deleteJson(route('v1.api-keys.destroy', $token))
+        $this->actingAs($owner)->deleteJson(route('api-keys.destroy', $token))
             ->assertOk()
             ->assertJsonPath('data.revoked', true);
 
-        $this->actingAs($owner)->deleteJson(route('v1.api-keys.destroy', $token))
+        $this->actingAs($owner)->deleteJson(route('api-keys.destroy', $token))
             ->assertOk()
             ->assertJsonPath('data.revoked', true);
 
@@ -105,11 +105,11 @@ class ApiKeyApiTest extends TestCase
         )->plainTextToken;
 
         $this->withToken($plainTextToken)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertOk();
 
         $this->withToken($plainTextToken)
-            ->deleteJson('/api/v1/monitorings/' . $monitoring->id)
+            ->deleteJson('/api/monitorings/' . $monitoring->id)
             ->assertForbidden();
 
         $personalAccessToken = PersonalAccessToken::query()->where('name', ApiKeyService::storedName('Analytics'))->sole();
@@ -132,15 +132,15 @@ class ApiKeyApiTest extends TestCase
         )->plainTextToken;
 
         $this->withToken($plainTextToken)
-            ->postJson(route('v1.server-health.bearer.store', $monitoring), ['cpu_usage_percent' => 42.5])
+            ->postJson(route('server-health.bearer.store', $monitoring), ['cpu_usage_percent' => 42.5])
             ->assertOk();
 
         $this->withToken($plainTextToken)
-            ->postJson(route('v1.server-health.bearer.store', $otherMonitoring), ['cpu_usage_percent' => 42.5])
+            ->postJson(route('server-health.bearer.store', $otherMonitoring), ['cpu_usage_percent' => 42.5])
             ->assertNotFound();
 
         $this->withToken($plainTextToken)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertForbidden();
     }
 
@@ -157,11 +157,11 @@ class ApiKeyApiTest extends TestCase
         resolve(ApiKeyService::class)->revoke($newToken->accessToken);
 
         $this->withToken($newToken->plainTextToken)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertUnauthorized();
 
         $this->withToken($legacyToken)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertOk();
     }
 }

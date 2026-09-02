@@ -22,7 +22,7 @@ export async function load({ fetch, url }) {
     if (directionOptions.has(direction) && direction !== "asc") params.set("direction", direction);
     if (Number.isInteger(page) && page > 1) params.set("page", String(page));
 
-    const response = await fetch(`/api/v1/internal/ui/admin/packages${params.size > 0 ? `?${params}` : ""}`, { headers: { Accept: "application/json" } });
+    const response = await fetch(`/api/admin/packages${params.size > 0 ? `?${params}` : ""}`, { headers: { Accept: "application/json" } });
     if (!response.ok) error(response.status, "Packages could not be loaded.");
 
     return {

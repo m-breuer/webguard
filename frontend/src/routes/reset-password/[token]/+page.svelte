@@ -11,7 +11,7 @@
 
 <svelte:head><title>Choose a new password | WebGuard</title></svelte:head>
 <GuestAuthLayout title="Choose a new password" description="Use a unique password that you do not use on any other service.">
-    <MutationForm action="/api/v1/internal/ui/auth/reset-password" submitLabel="Reset password" successMessage="Password updated. Redirecting to sign in…" onSuccess={() => window.location.assign("/login?reset=1")}>
+    <MutationForm action="/api/auth/reset-password" submitLabel="Reset password" successMessage="Password updated. Redirecting to sign in…" onSuccess={() => window.location.assign("/login?reset=1")}>
         <Input name="token" type="hidden" value={data.token} />
         <Field label="Email" required><Input name="email" type="email" autocomplete="username" value={data.email} required /></Field>
         <Field label="New password" required><Input name="password" type="password" autocomplete="new-password" required /></Field>

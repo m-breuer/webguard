@@ -43,7 +43,7 @@ class MobileOverviewApiTest extends TestCase
         ]);
         Sanctum::actingAs($user);
 
-        $testResponse = $this->getJson('/api/v1/mobile/overview');
+        $testResponse = $this->getJson('/api/mobile/overview');
 
         $testResponse
             ->assertOk()
@@ -68,7 +68,7 @@ class MobileOverviewApiTest extends TestCase
         Monitoring::factory()->create(['name' => 'Hidden API']);
         Sanctum::actingAs($user);
 
-        $testResponse = $this->getJson('/api/v1/mobile/overview');
+        $testResponse = $this->getJson('/api/mobile/overview');
 
         $testResponse->assertOk()
             ->assertJsonPath('data.summary.total', 1)
@@ -87,7 +87,7 @@ class MobileOverviewApiTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/v1/mobile/overview?service_page=2')
+        $this->getJson('/api/mobile/overview?service_page=2')
             ->assertOk()
             ->assertJsonPath('data.summary.total', 12)
             ->assertJsonPath('meta.service_pagination.current_page', 2)

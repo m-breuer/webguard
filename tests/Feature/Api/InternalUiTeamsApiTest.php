@@ -26,7 +26,7 @@ final class InternalUiTeamsApiTest extends TestCase
         $hiddenTeam = Team::factory()->create(['name' => 'Hidden team']);
         TeamMembership::factory()->for($hiddenTeam)->for(User::factory())->create();
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.teams.index'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.teams.index'));
 
         $testResponse
             ->assertOk()

@@ -41,7 +41,7 @@
         error = "";
         message = "";
         try {
-            const response = await requestFirstPartyApi<{ kind: string; updated_count?: number }>("/api/v1/internal/ui/maintenance", {
+            const response = await requestFirstPartyApi<{ kind: string; updated_count?: number }>("/api/maintenance", {
                 body: new FormData(event.currentTarget as HTMLFormElement),
                 headers: { "Idempotency-Key": crypto.randomUUID() },
                 method: "POST",
@@ -63,7 +63,7 @@
         pendingWindowAction = `one-off:${window.id}`;
         error = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/maintenance/one-off/${window.id}`, { method: "DELETE" });
+            await requestFirstPartyApi(`/api/maintenance/one-off/${window.id}`, { method: "DELETE" });
             await invalidateAll();
         } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "Maintenance could not be cleared."; } finally { pendingWindowAction = null; }
     }
@@ -76,7 +76,7 @@
         pendingWindowAction = `recurring:${window.id}`;
         error = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/maintenance/recurring/${window.id}`, { body: JSON.stringify({ enabled: !window.enabled }), method: "PATCH" });
+            await requestFirstPartyApi(`/api/maintenance/recurring/${window.id}`, { body: JSON.stringify({ enabled: !window.enabled }), method: "PATCH" });
             await invalidateAll();
         } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "Recurring maintenance could not be updated."; } finally { pendingWindowAction = null; }
     }

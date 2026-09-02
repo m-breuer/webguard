@@ -27,7 +27,7 @@
         testError = "";
 
         try {
-            const result = await requestFirstPartyApi<TestResult>(`/api/v1/internal/ui/profile/notification-settings/${channel}/test`, { method: "POST" });
+            const result = await requestFirstPartyApi<TestResult>(`/api/profile/notification-settings/${channel}/test`, { method: "POST" });
             testMessage = `${channelLabels[result.data.channel]} test notification sent.`;
         } catch (error) {
             testError = error instanceof FirstPartyApiError ? error.message : "The test notification could not be sent.";
@@ -55,7 +55,7 @@
         <p class="mt-3 max-w-2xl leading-6 text-wg-text-muted">Choose where WebGuard should send alerts. Monitor-specific channel selection remains available on each monitoring.</p>
     </header>
 
-    <MutationForm action="/api/v1/internal/ui/profile/notification-settings" method="PATCH" submitLabel="Save notification settings" successMessage="Notification settings saved. Refreshing…" onSuccess={refreshSettings}>
+    <MutationForm action="/api/profile/notification-settings" method="PATCH" submitLabel="Save notification settings" successMessage="Notification settings saved. Refreshing…" onSuccess={refreshSettings}>
         <div class="grid gap-6">
             <Card title="Alert channels" description="Enable a channel and add its delivery details. You can send a test without enabling it.">
                 <div class="grid gap-4">

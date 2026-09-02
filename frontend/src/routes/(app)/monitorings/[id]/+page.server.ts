@@ -4,10 +4,10 @@ import type { MonitoringDetailData, MonitoringDetailMeta, MonitoringSummary } fr
 export async function load({ fetch, params }) {
     const monitoringId = encodeURIComponent(params.id);
     const [response, detailResponse] = await Promise.all([
-        fetch(`/api/v1/internal/ui/monitorings/${monitoringId}`, {
+        fetch(`/api/monitorings/${monitoringId}`, {
             headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
         }),
-        fetch(`/api/v1/internal/ui/monitorings/${monitoringId}/detail-data`, {
+        fetch(`/api/monitorings/${monitoringId}/detail-data`, {
             headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
         }),
     ]);

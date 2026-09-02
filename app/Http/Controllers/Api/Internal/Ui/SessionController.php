@@ -48,7 +48,8 @@ final class SessionController extends Controller
 
     public function destroy(Request $request): JsonResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
+        Auth::forgetGuards();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

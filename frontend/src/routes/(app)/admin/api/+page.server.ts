@@ -19,7 +19,7 @@ export async function load({ fetch, url }) {
     if (direction !== defaults.direction) params.set("direction", direction);
     if (page > 1) params.set("page", String(page));
 
-    const response = await fetch(`/api/v1/internal/ui/admin/api-logs${params.size > 0 ? `?${params}` : ""}`, { headers: { Accept: "application/json" } });
+    const response = await fetch(`/api/admin/api-logs${params.size > 0 ? `?${params}` : ""}`, { headers: { Accept: "application/json" } });
 
     if (!response.ok) error(response.status, "API usage could not be loaded.");
 

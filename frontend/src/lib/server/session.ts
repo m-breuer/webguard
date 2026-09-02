@@ -2,7 +2,7 @@ import { error, redirect } from "@sveltejs/kit";
 import type { FirstPartySession } from "$lib/api/models";
 
 export async function loadFirstPartySession(fetcher: typeof fetch): Promise<FirstPartySession> {
-    const response = await fetcher("/api/v1/internal/ui/session", {
+    const response = await fetcher("/api/session", {
         headers: {
             Accept: "application/json",
             "X-Requested-With": "XMLHttpRequest",

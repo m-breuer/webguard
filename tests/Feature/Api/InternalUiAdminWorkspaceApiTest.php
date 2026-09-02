@@ -26,7 +26,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $member = User::factory()->create();
 
         foreach (['dashboard', 'users.index', 'packages.index', 'server-instances.index', 'api-logs.index', 'activity-logs.index'] as $route) {
-            $this->actingAs($member)->getJson(route("api.v1.internal.ui.admin.{$route}"))->assertForbidden();
+            $this->actingAs($member)->getJson(route("app.admin.{$route}"))->assertForbidden();
         }
     }
 
@@ -35,27 +35,27 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $package = Package::factory()->create(['monitoring_limit' => 25, 'is_selectable' => true]);
         $admin = User::factory()->create(['role' => UserRole::ADMIN]);
 
-        $this->actingAs($admin)->postJson(route('api.v1.internal.ui.admin.users.store'), [
+        $this->actingAs($admin)->postJson(route('app.admin.users.store'), [
             'name' => 'Managed user', 'email' => 'managed@example.test', 'password' => 'new-password', 'role' => UserRole::REGULAR->value, 'package_id' => $package->id,
         ])->assertCreated()->assertJsonPath('data.email', 'managed@example.test');
 
-        $createdPackage = $this->actingAs($admin)->postJson(route('api.v1.internal.ui.admin.packages.store'), [
+        $createdPackage = $this->actingAs($admin)->postJson(route('app.admin.packages.store'), [
             'monitoring_limit' => 50, 'price' => 19.99, 'is_selectable' => true,
         ])->assertCreated()->json('data');
 
-        $this->actingAs($admin)->postJson(route('api.v1.internal.ui.admin.server-instances.store'), [
+        $this->actingAs($admin)->postJson(route('app.admin.server-instances.store'), [
             'code' => 'de-admin-1', 'display_name' => 'Admin Germany', 'country_code' => 'DE', 'region' => 'Frankfurt', 'ip_address' => '192.0.2.42', 'api_key' => 'a-secure-instance-key', 'is_active' => true,
         ])->assertCreated()->assertJsonPath('data.health', 'never_seen');
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.users.index'))
+        $this->actingAs($admin)->getJson(route('app.admin.users.index'))
             ->assertOk()->assertJsonFragment(['email' => 'managed@example.test']);
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.packages.index'))
+        $this->actingAs($admin)->getJson(route('app.admin.packages.index'))
             ->assertOk()->assertJsonFragment(['id' => $createdPackage['id']]);
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.server-instances.index'))
+        $this->actingAs($admin)->getJson(route('app.admin.server-instances.index'))
             ->assertOk()->assertJsonFragment(['code' => 'de-admin-1']);
 
         $this->assertDatabaseHas('server_instances', ['code' => 'de-admin-1']);
-        $this->assertInternalUiTelemetry($this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.dashboard')), 6, 131072);
+        $this->assertInternalUiTelemetry($this->actingAs($admin)->getJson(route('app.admin.dashboard')), 6, 131072);
     }
 
     public function test_admin_contract_validates_destructive_and_log_workflows(): void
@@ -70,17 +70,17 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
             'ip_address' => '192.0.2.41',
             'api_key_hash' => 'a-secure-instance-key',
         ]);
-        ApiLog::query()->create(['user_id' => $admin->id, 'route' => '/api/v1/monitorings']);
+        ApiLog::query()->create(['user_id' => $admin->id, 'route' => '/api/monitorings']);
 
-        $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.admin.packages.destroy', $assignedPackage))
+        $this->actingAs($admin)->deleteJson(route('app.admin.packages.destroy', $assignedPackage))
             ->assertUnprocessable()->assertJsonValidationErrors('package');
-        $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.admin.users.destroy', $admin))
+        $this->actingAs($admin)->deleteJson(route('app.admin.users.destroy', $admin))
             ->assertUnprocessable()->assertJsonValidationErrors('user');
-        $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.admin.server-instances.destroy', $serverInstance))
+        $this->actingAs($admin)->deleteJson(route('app.admin.server-instances.destroy', $serverInstance))
             ->assertNoContent();
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.api-logs.index'))
+        $this->actingAs($admin)->getJson(route('app.admin.api-logs.index'))
             ->assertOk()->assertJsonPath('data.items.0.user_email', $admin->email);
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.activity-logs.index'))->assertOk();
+        $this->actingAs($admin)->getJson(route('app.admin.activity-logs.index'))->assertOk();
 
         $this->assertDatabaseHas('users', ['id' => $assignedUser->id]);
     }
@@ -92,11 +92,11 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $firstUser = User::factory()->create(['email' => 'alpha@example.test']);
         $secondUser = User::factory()->create(['email' => 'zeta@example.test']);
 
-        ApiLog::query()->create(['user_id' => $firstUser->id, 'route' => '/api/v1/monitorings']);
-        ApiLog::query()->create(['user_id' => $secondUser->id, 'route' => '/api/v1/status-pages']);
+        ApiLog::query()->create(['user_id' => $firstUser->id, 'route' => '/api/monitorings']);
+        ApiLog::query()->create(['user_id' => $secondUser->id, 'route' => '/api/status-pages']);
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.api-logs.index', [
-            'search' => 'api/v1',
+        $this->actingAs($admin)->getJson(route('app.admin.api-logs.index', [
+            'search' => '/api/',
             'sort' => 'user_email',
             'direction' => 'asc',
             'per_page' => 10,
@@ -106,7 +106,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
             ->assertJsonPath('data.pagination.total', 2)
             ->assertJsonFragment(['email' => 'zeta@example.test']);
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.api-logs.index', ['user_id' => $secondUser->id]))
+        $this->actingAs($admin)->getJson(route('app.admin.api-logs.index', ['user_id' => $secondUser->id]))
             ->assertOk()
             ->assertJsonPath('data.items.0.user_email', 'zeta@example.test')
             ->assertJsonPath('data.pagination.total', 1);
@@ -146,28 +146,28 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         ]);
         activity('monitoring')->event('created')->log('monitoring_created');
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.users.index', [
+        $this->actingAs($admin)->getJson(route('app.admin.users.index', [
             'search' => 'Alpha', 'role' => UserRole::REGULAR->value, 'sort' => 'name', 'direction' => 'asc', 'per_page' => 10,
         ]))
             ->assertOk()
             ->assertJsonPath('data.items.0.id', $regularUser->id)
             ->assertJsonPath('data.pagination.total', 1);
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.packages.index', [
+        $this->actingAs($admin)->getJson(route('app.admin.packages.index', [
             'search' => '50', 'selectable' => 'yes', 'sort' => 'price', 'direction' => 'desc', 'per_page' => 10,
         ]))
             ->assertOk()
             ->assertJsonPath('data.items.0.id', $selectablePackage->id)
             ->assertJsonMissing(['id' => $hiddenPackage->id]);
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.server-instances.index', [
+        $this->actingAs($admin)->getJson(route('app.admin.server-instances.index', [
             'active' => 'no', 'sort' => 'display_name', 'direction' => 'asc', 'per_page' => 10,
         ]))
             ->assertOk()
             ->assertJsonPath('data.items.0.id', $serverInstance->id)
             ->assertJsonPath('data.pagination.total', 1);
 
-        $this->actingAs($admin)->getJson(route('api.v1.internal.ui.admin.activity-logs.index', [
+        $this->actingAs($admin)->getJson(route('app.admin.activity-logs.index', [
             'search' => 'alpha_member', 'event' => 'updated', 'sort' => 'description', 'direction' => 'asc', 'per_page' => 10,
         ]))
             ->assertOk()
@@ -184,7 +184,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::ADMIN]);
         $user = User::factory()->unverified()->create(['email' => 'original@example.test']);
 
-        $this->actingAs($admin)->patchJson(route('api.v1.internal.ui.admin.users.update', $user), [
+        $this->actingAs($admin)->patchJson(route('app.admin.users.update', $user), [
             'name' => 'Updated user',
             'email' => 'updated@example.test',
             'password' => 'updated-password',
@@ -197,7 +197,7 @@ class InternalUiAdminWorkspaceApiTest extends TestCase
 
         $this->assertTrue(Hash::check('updated-password', $user->refresh()->password));
 
-        $this->actingAs($admin)->postJson(route('api.v1.internal.ui.admin.users.verify', $user))
+        $this->actingAs($admin)->postJson(route('app.admin.users.verify', $user))
             ->assertOk()
             ->assertJsonPath('data.email_verified_at', $user->refresh()->email_verified_at?->toIso8601String());
     }

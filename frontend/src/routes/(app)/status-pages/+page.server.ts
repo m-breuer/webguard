@@ -4,8 +4,8 @@ import type { StatusPage, StatusPageMonitoring } from "$lib/api/status-pages";
 export async function load({ fetch }) {
     const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
     const [statusPagesResponse, optionsResponse] = await Promise.all([
-        fetch("/api/v1/internal/ui/status-pages?per_page=100", { headers }),
-        fetch("/api/v1/internal/ui/status-pages/options", { headers }),
+        fetch("/api/status-pages?per_page=100", { headers }),
+        fetch("/api/status-pages/options", { headers }),
     ]);
 
     if (!statusPagesResponse.ok || !optionsResponse.ok) {

@@ -35,7 +35,7 @@ class MonitoringDerivedHealthTest extends TestCase
         $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->postJson(route('v1.internal.monitoring-responses.store'), [
+        ])->postJson(route('instances.monitoring-responses.store'), [
             'monitoring_id' => $monitoring->id,
             'http_status_code' => 204,
             'response_time' => 120.5,

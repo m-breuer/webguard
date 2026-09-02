@@ -17,21 +17,19 @@ class InternalInstanceRouteCompatibilityTest extends TestCase
 {
     use AssertsApiContracts;
 
-    public function test_legacy_and_target_instance_routes_use_the_same_actions(): void
+    public function test_instance_routes_use_the_dedicated_instances_namespace(): void
     {
-        foreach ($this->routeNames() as $legacyName => $targetName) {
-            $legacyRoute = Route::getRoutes()->getByName($legacyName);
-            $targetRoute = Route::getRoutes()->getByName($targetName);
+        foreach ($this->routeNames() as $routeName) {
+            $route = Route::getRoutes()->getByName($routeName);
 
-            $this->assertNotNull($legacyRoute);
-            $this->assertNotNull($targetRoute);
-            $this->assertSame($legacyRoute->methods(), $targetRoute->methods());
-            $this->assertSame($legacyRoute->getActionName(), $targetRoute->getActionName());
-            $this->assertStringStartsWith('api/v1/internal/instances/', $targetRoute->uri());
+            $this->assertNotNull($route);
+            $this->assertStringStartsWith('api/instances/', $route->uri());
+            $this->assertStringNotContainsString('/v1/', $route->uri());
+            $this->assertStringNotContainsString('/internal/', $route->uri());
         }
     }
 
-    public function test_target_monitoring_list_enforces_the_existing_instance_contract(): void
+    public function test_instance_monitoring_list_enforces_the_existing_contract(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -51,22 +49,17 @@ class InternalInstanceRouteCompatibilityTest extends TestCase
             'preferred_locations' => ['another-instance'],
         ]);
 
-        foreach ([
-            'v1.internal.monitorings.list',
-            'v1.internal.instances.monitorings.list',
-        ] as $routeName) {
-            $this->withHeaders([
-                'X-INSTANCE-CODE' => $serverInstance->code,
-                'X-API-KEY' => 'test-token-1234567890',
-            ])->getJson(route($routeName, ['location' => $serverInstance->code]))
-                ->assertOk()
-                ->assertJsonPath('0.id', $assignedMonitoring->id)
-                ->assertJsonPath('0.check_interval_seconds', 900)
-                ->assertJsonCount(1);
-        }
+        $this->withHeaders([
+            'X-INSTANCE-CODE' => $serverInstance->code,
+            'X-API-KEY' => 'test-token-1234567890',
+        ])->getJson(route('instances.monitorings.list', ['location' => $serverInstance->code]))
+            ->assertOk()
+            ->assertJsonPath('0.id', $assignedMonitoring->id)
+            ->assertJsonPath('0.check_interval_seconds', 900)
+            ->assertJsonCount(1);
     }
 
-    public function test_legacy_and_target_instance_routes_keep_the_same_authentication_and_location_contract(): void
+    public function test_instance_routes_enforce_the_authentication_and_location_contract(): void
     {
         Package::factory()->create();
         $user = User::factory()->create();
@@ -81,35 +74,28 @@ class InternalInstanceRouteCompatibilityTest extends TestCase
             'preferred_locations' => [$serverInstance->code],
         ]);
 
-        foreach ([
-            'v1.internal.monitorings.list',
-            'v1.internal.instances.monitorings.list',
-        ] as $routeName) {
-            $this->flushHeaders();
+        $this->getJson(route('instances.monitorings.list', ['location' => $serverInstance->code]))
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthorized');
 
-            $this->getJson(route($routeName, ['location' => $serverInstance->code]))
-                ->assertUnauthorized()
-                ->assertJsonPath('message', 'Unauthorized');
-
-            $this->withHeaders($this->instanceHeaders($serverInstance))
-                ->getJson(route($routeName, ['location' => 'different-instance']))
-                ->assertForbidden()
-                ->assertJsonPath('message', 'Unauthorized location');
-        }
+        $this->withHeaders($this->instanceHeaders($serverInstance))
+            ->getJson(route('instances.monitorings.list', ['location' => 'different-instance']))
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Unauthorized location');
     }
 
     /**
-     * @return array<string, string>
+     * @return list<string>
      */
     private function routeNames(): array
     {
         return [
-            'v1.internal.monitorings.list' => 'v1.internal.instances.monitorings.list',
-            'v1.internal.monitoring-responses.store' => 'v1.internal.instances.monitoring-responses.store',
-            'v1.internal.incidents.store' => 'v1.internal.instances.incidents.store',
-            'v1.internal.incidents.update' => 'v1.internal.instances.incidents.update',
-            'v1.internal.ssl-results.store' => 'v1.internal.instances.ssl-results.store',
-            'v1.internal.domain-results.store' => 'v1.internal.instances.domain-results.store',
+            'instances.monitorings.list',
+            'instances.monitoring-responses.store',
+            'instances.incidents.store',
+            'instances.incidents.update',
+            'instances.ssl-results.store',
+            'instances.domain-results.store',
         ];
     }
 }

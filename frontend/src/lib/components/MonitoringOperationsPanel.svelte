@@ -38,7 +38,7 @@
         message = "";
         error = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/monitorings/${monitoring.id}/notification-preferences`, { body: new FormData(event.currentTarget as HTMLFormElement), method: "PATCH" });
+            await requestFirstPartyApi(`/api/monitorings/${monitoring.id}/notification-preferences`, { body: new FormData(event.currentTarget as HTMLFormElement), method: "PATCH" });
             message = "Notification preferences saved.";
         } catch (exception) {
             error = exception instanceof FirstPartyApiError ? exception.message : "Notification preferences could not be saved.";
@@ -59,7 +59,7 @@
         const teamId = new FormData(form).get("team_id");
         const path = teamId ? "ownership/team" : "ownership/private";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/monitorings/${monitoring.id}/${path}`, { body: new FormData(form), method: "POST" });
+            await requestFirstPartyApi(`/api/monitorings/${monitoring.id}/${path}`, { body: new FormData(form), method: "POST" });
             await invalidateAll();
         } catch (exception) {
             error = exception instanceof FirstPartyApiError ? exception.message : "Monitoring ownership could not be updated.";

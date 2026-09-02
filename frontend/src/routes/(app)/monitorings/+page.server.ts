@@ -30,8 +30,8 @@ export async function load({ fetch, url }) {
     const query = params.size > 0 ? `?${params}` : "";
     const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
     const [response, dashboardResponse] = await Promise.all([
-        fetch(`/api/v1/internal/ui/monitorings${query}`, { headers }),
-        fetch("/api/v1/internal/ui/dashboard", { headers }),
+        fetch(`/api/monitorings${query}`, { headers }),
+        fetch("/api/dashboard", { headers }),
     ]);
 
     if (!response.ok) {
@@ -52,7 +52,7 @@ export async function load({ fetch, url }) {
 
     const cardsResponse = monitoringIds.length === 0
         ? null
-        : await fetch(`/api/v1/internal/ui/monitorings/cards?${cardParams}`, { headers });
+        : await fetch(`/api/monitorings/cards?${cardParams}`, { headers });
 
     return {
         filters: {

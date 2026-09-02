@@ -6,6 +6,8 @@ use App\Http\Controllers\HeartbeatPingController;
 use App\Http\Controllers\LegacyPublicStatusPageController;
 use App\Http\Controllers\PublicStatusSubscriptionController;
 use App\Http\Controllers\TeamInvitationAcceptController;
+use App\Http\Middleware\RequireExternalApiAbility;
+use App\Http\Middleware\TrackApiUsage;
 use App\Models\Monitoring;
 use App\Support\PublicStatusResourceResolver;
 use Illuminate\Support\Facades\Route;
@@ -97,23 +99,17 @@ Route::get('/badge.js', function () {
 })->name('badge.js');
 
 Route::group(
-    ['prefix' => 'api', 'as' => 'api.', 'middleware' => 'auth'],
-    function (): void {
-        require __DIR__ . '/api/internal.php';
-    }
-);
-
-Route::group(
-    ['prefix' => 'api/v1/internal/ui/auth', 'as' => 'api.v1.internal.ui.auth.'],
+    ['prefix' => 'api/auth', 'as' => 'auth.'],
     function (): void {
         require __DIR__ . '/api/auth-ui.php';
     }
 );
 
 Route::group(
-    ['prefix' => 'api/v1/internal/ui', 'as' => 'api.v1.internal.ui.', 'middleware' => 'auth'],
+    ['prefix' => 'api', 'as' => 'app.', 'middleware' => ['auth:sanctum', TrackApiUsage::class, RequireExternalApiAbility::class]],
     function (): void {
         require __DIR__ . '/api/ui.php';
+        require __DIR__ . '/api/internal.php';
     }
 );
 

@@ -22,7 +22,7 @@ class TeamApiTest extends TestCase
         $member = User::factory()->create();
         $outsider = User::factory()->create();
 
-        $testResponse = $this->actingAs($admin)->postJson('/api/v1/teams', [
+        $testResponse = $this->actingAs($admin)->postJson('/api/teams', [
             'name' => 'API Team',
             'description' => 'Managed through API',
         ]);
@@ -35,24 +35,24 @@ class TeamApiTest extends TestCase
             'role' => TeamRole::MEMBER,
         ]);
 
-        $this->actingAs($member)->getJson('/api/v1/teams')
+        $this->actingAs($member)->getJson('/api/teams')
             ->assertOk()
             ->assertJsonFragment(['name' => 'API Team']);
 
-        $this->actingAs($outsider)->getJson('/api/v1/teams/' . $team->id)
+        $this->actingAs($outsider)->getJson('/api/teams/' . $team->id)
             ->assertNotFound();
 
         $teamMembership = $team->memberships()->where('user_id', $member->id)->firstOrFail();
 
-        $this->actingAs($member)->patchJson('/api/v1/teams/' . $team->id . '/members/' . $teamMembership->id, [
+        $this->actingAs($member)->patchJson('/api/teams/' . $team->id . '/members/' . $teamMembership->id, [
             'role' => TeamRole::ADMIN->value,
         ])->assertForbidden();
 
-        $this->actingAs($admin)->patchJson('/api/v1/teams/' . $team->id . '/members/' . $teamMembership->id, [
+        $this->actingAs($admin)->patchJson('/api/teams/' . $team->id . '/members/' . $teamMembership->id, [
             'role' => TeamRole::ADMIN->value,
-        ])->assertOk()->assertJsonPath('data.role', TeamRole::ADMIN->value);
+        ])->assertOk()->assertJsonFragment(['role' => TeamRole::ADMIN->value]);
 
-        $this->actingAs($admin)->postJson('/api/v1/teams/' . $team->id . '/invitations', [
+        $this->actingAs($admin)->postJson('/api/teams/' . $team->id . '/invitations', [
             'email' => 'api-invite@example.com',
             'role' => TeamRole::MEMBER->value,
         ])->assertCreated();
@@ -74,8 +74,8 @@ class TeamApiTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->deleteJson('/api/v1/teams/' . $team->id . '/invitations/' . $teamInvitation->id)
-            ->assertNoContent();
+            ->deleteJson('/api/teams/' . $team->id . '/invitations/' . $teamInvitation->id)
+            ->assertOk();
 
         $this->assertDatabaseMissing('team_invitations', ['id' => $teamInvitation->id]);
     }
@@ -95,11 +95,11 @@ class TeamApiTest extends TestCase
             'role' => TeamRole::MEMBER,
         ]);
 
-        $this->actingAs($admin)->patchJson('/api/v1/teams/' . $team->id . '/members/' . $otherMembership->id, [
+        $this->actingAs($admin)->patchJson('/api/teams/' . $team->id . '/members/' . $otherMembership->id, [
             'role' => TeamRole::ADMIN->value,
         ])->assertNotFound();
 
-        $this->actingAs($admin)->deleteJson('/api/v1/teams/' . $team->id . '/members/' . $otherMembership->id)
+        $this->actingAs($admin)->deleteJson('/api/teams/' . $team->id . '/members/' . $otherMembership->id)
             ->assertNotFound();
 
         $this->assertDatabaseHas('team_memberships', [

@@ -1,12 +1,13 @@
-# External API v1 compatibility
+# Shared API contract
 
-`/api/v1/*` is the supported REST API for platform users and integrations. It
-uses a Sanctum personal-access token and is deliberately separate from browser
-UI routes and scanner-instance routes.
+`/api/*` is the supported REST API for platform users and integrations. It
+uses a Sanctum personal-access token. Browser sessions and personal-access
+tokens use the same standard resource routes; mobile, scanner-instance, public,
+and authentication flows have explicit sub-namespaces.
 
 ## Public monitoring locations
 
-`GET /api/v1/public/monitoring-locations` is an unauthenticated, read-only
+`GET /api/public/monitoring-locations` is an unauthenticated, read-only
 allowlisting contract for public WebGuard monitoring locations. It returns a
 deterministically ordered `data` array of active locations with `code`, `name`,
 `country_code`, `region`, `allowlist_ips`, and `active`, plus `meta.version`
@@ -19,12 +20,11 @@ response changes only additively; rate-limit errors use Laravel's standard
 ## Compatibility policy
 
 - Existing JSON bodies, status codes, validation errors, and authorization
-  behavior are stable v1 contract. Additive fields are allowed; removals and
-  shape changes require a new major version.
-- The external route file resolves only controllers in
-  `App\\Http\\Controllers\\Api\\External`. Monitoring data remains an intentional
-  adapter to the shared read-model implementation; model-backed responses use
-  explicit external resources to preserve their current v1 representation.
+  behavior are stable contract. Additive fields are allowed; removals and
+  shape changes require a coordinated major-version migration.
+- Standard resources resolve through the shared application route family. The
+  caller identity and token abilities determine visibility and write access;
+  browser and token callers do not receive separate URL contracts.
 - Monitoring lists use the existing Laravel paginator with `per_page` from 1
   through 100 (default 25), ordered by `name` and then `id`. Check history uses
   the existing offset pagination with `limit` from 1 through 1,000 (default 100),
@@ -45,7 +45,7 @@ headers. Mobile app tokens retain their existing separate behavior.
 
 ## Errors, retries, and lifecycle
 
-- Existing v1 validation errors keep Laravel's `{ "message", "errors" }`
+- Existing validation errors keep Laravel's `{ "message", "errors" }`
   shape. Authorization and missing resources keep their existing HTTP status
   and body. Problem-detail envelopes are reserved for a compatible future API
   version.
@@ -58,7 +58,7 @@ headers. Mobile app tokens retain their existing separate behavior.
   define their required `Idempotency-Key` behavior below. Other creation
   endpoints do not currently accept `Idempotency-Key`, so clients must avoid
   blind retries after an unknown write outcome.
-- API changes are additive within v1. A deprecated v1 endpoint will announce a
+- API changes are additive within the supported contract. A deprecated endpoint will announce a
   successor through `Deprecation`, `Sunset`, and `Link` headers before removal;
   a response-shape change requires v2.
 - Least-privilege token enforcement is available behind
@@ -70,17 +70,17 @@ headers. Mobile app tokens retain their existing separate behavior.
 ## Named scoped API keys
 
 Authenticated browser sessions can create, list, inspect, and revoke keys at
-`/api/v1/api-keys`. The endpoints use the same authenticated session and CSRF
+`/api/api-keys`. The endpoints use the same authenticated session and CSRF
 protection as the profile screen; newly created scoped bearer keys cannot manage
 keys themselves. This prevents a telemetry or analytics integration from
 creating another key or escalating its permissions.
 
 | Method | Path | Result |
 | --- | --- | --- |
-| `GET` | `/api/v1/api-keys?state=active|revoked&per_page=25` | Paginated non-secret key metadata. |
-| `POST` | `/api/v1/api-keys` | Creates a named key; returns its plaintext value exactly once. |
-| `GET` | `/api/v1/api-keys/{id}` | Returns metadata for one key owned by the authenticated user. |
-| `DELETE` | `/api/v1/api-keys/{id}` | Immediately and idempotently revokes one owned key. |
+| `GET` | `/api/api-keys?state=active|revoked&per_page=25` | Paginated non-secret key metadata. |
+| `POST` | `/api/api-keys` | Creates a named key; returns its plaintext value exactly once. |
+| `GET` | `/api/api-keys/{id}` | Returns metadata for one key owned by the authenticated user. |
+| `DELETE` | `/api/api-keys/{id}` | Immediately and idempotently revokes one owned key. |
 
 Creation requires a non-empty, unique-per-user `name` and a non-empty
 `abilities` array. The only new key abilities are:
@@ -95,29 +95,29 @@ prefix, creation time, last-use time, and revocation state. It never includes a
 plaintext token, token hash, or authorization header. Deleted key records are
 retained as revoked metadata for auditability and cannot authenticate again.
 
-The analytics routes are `GET /api/v1/monitorings/{monitoring}` and its
+The analytics routes are `GET /api/monitorings/{monitoring}` and its
 `status`, `uptime-downtime`, `uptime-downtime-summary`, `response-times`,
 `checks`, `incidents`, `heatmap`, `ssl`, and `uptime-calendar` subresources.
 All retain their existing ownership checks and response contracts.
 
-Existing pre-scoped external tokens remain compatible. They are not converted
+Existing pre-scoped tokens remain compatible. They are not converted
 to new keys automatically; rotate them from the profile when practical.
 
 ## Mobile monitoring management
 
-Native clients manage monitorings through the external `/api/v1/monitorings`
-family, not browser controllers or authenticated browser sessions. Every route
-uses bearer authentication and applies the same private/team visibility and
-management policy as Core.
+Native clients manage monitorings through `/api/mobile/monitorings`. These
+routes use mobile-token authentication and keep their mobile-specific payloads;
+the shared `/api/monitorings` family is reserved for browser sessions and
+standard personal-access tokens.
 
 | Method | Path | Result |
 | --- | --- | --- |
-| `GET` | `/monitorings?per_page=25` | Paginated monitoring configuration visible to the token owner. |
-| `POST` | `/monitorings` | Creates one private or team-owned monitoring. |
-| `PATCH` | `/monitorings/{monitoring}` | Updates one manageable monitoring, including its lifecycle state. |
-| `DELETE` | `/monitorings/{monitoring}` | Soft-deletes one manageable monitoring. |
-| `POST` | `/monitorings/{monitoring}/team-ownership` | Moves a private monitoring to a team administered by the caller. |
-| `DELETE` | `/monitorings/{monitoring}/team-ownership` | Returns one manageable team monitoring to private ownership. |
+| `GET` | `/api/mobile/monitorings?per_page=25` | Paginated monitoring configuration visible to the token owner. |
+| `POST` | `/api/mobile/monitorings` | Creates one private or team-owned monitoring. |
+| `PATCH` | `/api/mobile/monitorings/{monitoring}` | Updates one manageable monitoring, including its lifecycle state. |
+| `DELETE` | `/api/mobile/monitorings/{monitoring}` | Soft-deletes one manageable monitoring. |
+| `POST` | `/api/mobile/monitorings/{monitoring}/ownership/team` | Moves a private monitoring to a team administered by the caller. |
+| `DELETE` | `/api/mobile/monitorings/{monitoring}/ownership/team` | Returns one manageable team monitoring to private ownership. |
 
 The validated `type` values are `http`, `ping`, `keyword`, `port`,
 `heartbeat`, `server_health`, `domain_expiration`, and `dns_record`.
@@ -139,7 +139,7 @@ presentation.
 
 ## Mobile monitoring detail
 
-`GET /api/v1/mobile/monitorings/{monitoring}` is the authenticated native-app
+`GET /api/mobile/monitorings/{monitoring}` is the authenticated native-app
 detail contract. It is separate from browser UI and scanner-instance routes and
 only resolves monitorings visible to the current token owner. Unauthenticated
 requests return `401`; a missing or inaccessible monitoring returns `404`.
@@ -164,7 +164,7 @@ result as a failed monitoring check.
 
 ## Mobile monitoring groups and ownership
 
-Native clients manage personal monitoring groups through `/api/v1/mobile/monitoring-groups`.
+Native clients manage personal monitoring groups through `/api/mobile/monitoring-groups`.
 The list and assignment-options endpoints use the standard Laravel paginator
 (`per_page` 1 through 100, default 25) and order by name and ID. Group payloads
 contain private ownership metadata, the number of safely assignable monitorings,
@@ -194,7 +194,7 @@ after an unknown deletion outcome.
 
 ## Mobile status-page incident workspace
 
-Native clients use `/api/v1/mobile/status-pages` for a private workspace that
+Native clients use `/api/mobile/status-pages` for a private workspace that
 is deliberately separate from public status-page output and browser management
 routes. A status page is visible only to its owner. Incidents are included only
 when their monitoring is manageable by that user; team-owned monitorings
@@ -231,7 +231,7 @@ not expose this private workspace payload.
 
 ## Mobile notification board and preferences
 
-Native clients use `/api/v1/mobile/notification-board` for a token-scoped
+Native clients use `/api/mobile/notification-board` for a token-scoped
 notification history. Entries include a monitoring summary, event type,
 severity, occurrence time, and the authenticated user's read state. The
 default response excludes read entries; `show_read=true` includes them.
@@ -259,7 +259,7 @@ validation response.
 
 ## Mobile maintenance operations
 
-Native clients use the dedicated \`/api/v1/mobile/maintenance\` family rather
+Native clients use the dedicated \`/api/mobile/maintenance\` family rather
 than browser maintenance routes. It returns only windows visible to the token
 owner; an item separately reports \`can_manage\`. Private monitorings are
 manageable by their owner, while team-owned monitorings require the existing

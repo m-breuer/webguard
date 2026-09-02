@@ -12,7 +12,7 @@
         onOpen?: () => void;
     }
 
-    let { initialTheme, endpoint = "/api/v1/internal/ui/appearance", open = $bindable(false), onOpen }: Props = $props();
+    let { initialTheme, endpoint = "/api/appearance", open = $bindable(false), onOpen }: Props = $props();
     let theme = $state<AppearanceTheme>("system");
     let saving = $state(false);
     let error = $state("");

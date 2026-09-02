@@ -30,11 +30,11 @@ final class InternalUiProfileSecurityApiTest extends TestCase
         $otherUser = User::factory()->create();
         $otherUser->createToken(ApiKeyService::storedName('Other key'), [ApiKeyAbility::ANALYTICS_READ->value]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.profile.api-keys.index'))
+        $this->actingAs($user)->getJson(route('app.profile.api-keys.index'))
             ->assertOk()
             ->assertExactJson(['data' => []]);
 
-        $testResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.profile.api-keys.store'), [
+        $testResponse = $this->actingAs($user)->postJson(route('app.profile.api-keys.store'), [
             'name' => 'Analytics key',
             'abilities' => [ApiKeyAbility::ANALYTICS_READ->value],
         ]);
@@ -50,20 +50,20 @@ final class InternalUiProfileSecurityApiTest extends TestCase
         $this->assertStringContainsString('|', $plainTextToken);
         $this->assertNotSame($plainTextToken, $token->token);
 
-        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.profile.api-keys.destroy', $token))
+        $this->actingAs($user)->deleteJson(route('app.profile.api-keys.destroy', $token))
             ->assertOk()
             ->assertJsonPath('data.id', $token->id)
             ->assertJsonPath('data.revoked_at', fn (?string $value): bool => $value !== null);
 
-        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.profile.api-keys.destroy', $token))
+        $this->actingAs($user)->deleteJson(route('app.profile.api-keys.destroy', $token))
             ->assertOk();
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.profile.api-keys.index'))
+        $this->actingAs($user)->getJson(route('app.profile.api-keys.index'))
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonMissing(['name' => 'Other key']);
 
-        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.profile.api-keys.destroy', $otherUser->tokens()->sole()))
+        $this->actingAs($user)->deleteJson(route('app.profile.api-keys.destroy', $otherUser->tokens()->sole()))
             ->assertNotFound();
     }
 
@@ -72,11 +72,11 @@ final class InternalUiProfileSecurityApiTest extends TestCase
         Queue::fake();
         $user = User::factory()->create();
 
-        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.profile.destroy'), [
+        $this->actingAs($user)->deleteJson(route('app.profile.destroy'), [
             'password' => 'incorrect-password',
         ])->assertUnprocessable()->assertJsonValidationErrors(['password']);
 
-        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.profile.destroy'), [
+        $this->actingAs($user)->deleteJson(route('app.profile.destroy'), [
             'password' => 'password',
         ])->assertOk()->assertJsonPath('data.deletion_scheduled', true);
 

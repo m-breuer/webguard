@@ -14,7 +14,7 @@ so shared tokens stay in the Tailwind layer rather than drifting into routes.
 The tokens mirror the established WebGuard purple navigation and light/dark
 surface contrast without depending on the Laravel Vite pipeline. Appearance is
 applied in `app.html` before SvelteKit hydrates, then persisted by
-`AppearanceSelector.svelte` through `PATCH /api/v1/internal/ui/appearance`.
+`AppearanceSelector.svelte` through `PATCH /api/appearance`.
 
 ## Primitive contracts
 

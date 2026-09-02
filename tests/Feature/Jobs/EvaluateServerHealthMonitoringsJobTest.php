@@ -86,7 +86,7 @@ class EvaluateServerHealthMonitoringsJobTest extends TestCase
             'preferred_location' => $serverInstance->code,
             'status' => MonitoringLifecycleStatus::ACTIVE,
             'server_health_token' => $token,
-            'target' => route('v1.server-health.store', ['token' => $token]),
+            'target' => route('server-health.store', ['token' => $token]),
             'server_health_report_interval_minutes' => 1,
             'server_health_grace_minutes' => 5,
         ], $overrides));

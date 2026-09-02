@@ -39,19 +39,19 @@ class MobileStatusPageWorkspaceApiTest extends TestCase
         ]);
         $this->actingAsMobile($user);
 
-        $this->getJson('/api/v1/mobile/status-pages')
+        $this->getJson('/api/mobile/status-pages')
             ->assertOk()
             ->assertJsonPath('data.0.id', $statusPage->id)
             ->assertJsonPath('data.0.publication.is_public', true)
             ->assertJsonPath('data.0.verified_subscriber_count', 1)
             ->assertJsonPath('data.0.open_incident_count', 1);
 
-        $this->getJson('/api/v1/mobile/status-pages/' . $statusPage->id)
+        $this->getJson('/api/mobile/status-pages/' . $statusPage->id)
             ->assertOk()
             ->assertJsonPath('data.components.0.monitoring_group.id', $monitoringGroup->id)
             ->assertJsonPath('data.components.0.monitorings.0.id', $statusPage->components->first()->monitorings->first()->id);
 
-        $this->patchJson('/api/v1/mobile/status-pages/' . $statusPage->id . '/publication', ['is_public' => false])
+        $this->patchJson('/api/mobile/status-pages/' . $statusPage->id . '/publication', ['is_public' => false])
             ->assertOk()
             ->assertJsonPath('data.publication.is_public', false);
 
@@ -65,7 +65,7 @@ class MobileStatusPageWorkspaceApiTest extends TestCase
     {
         ['user' => $user, 'statusPage' => $statusPage, 'incident' => $incident] = $this->workspace();
         $this->actingAsMobile($user);
-        $base = '/api/v1/mobile/status-pages/' . $statusPage->id . '/incidents/' . $incident->id;
+        $base = '/api/mobile/status-pages/' . $statusPage->id . '/incidents/' . $incident->id;
 
         $this->getJson($base)
             ->assertOk()
@@ -159,7 +159,7 @@ class MobileStatusPageWorkspaceApiTest extends TestCase
         $otherUser = User::factory()->create();
         $this->actingAsMobile($otherUser);
 
-        $this->getJson('/api/v1/mobile/status-pages/' . $statusPage->id)->assertNotFound();
+        $this->getJson('/api/mobile/status-pages/' . $statusPage->id)->assertNotFound();
 
         $team = Team::factory()->create(['created_by_user_id' => $user->id]);
         TeamMembership::factory()->for($team)->for($user)->create(['role' => TeamRole::MEMBER]);
@@ -177,14 +177,14 @@ class MobileStatusPageWorkspaceApiTest extends TestCase
             'down_at' => Date::now()->subMinutes(10),
         ]);
         Sanctum::actingAs($user);
-        $this->getJson('/api/v1/mobile/status-pages/' . $teamStatusPage->id)
+        $this->getJson('/api/mobile/status-pages/' . $teamStatusPage->id)
             ->assertOk();
-        $this->getJson('/api/v1/mobile/status-pages/' . $teamStatusPage->id . '/incidents')
+        $this->getJson('/api/mobile/status-pages/' . $teamStatusPage->id . '/incidents')
             ->assertOk()
             ->assertJsonCount(0, 'data');
-        $this->getJson('/api/v1/mobile/status-pages/' . $teamStatusPage->id . '/incidents/' . $teamIncident->id)
+        $this->getJson('/api/mobile/status-pages/' . $teamStatusPage->id . '/incidents/' . $teamIncident->id)
             ->assertNotFound();
-        $this->postJson('/api/v1/mobile/status-pages/' . $statusPage->id . '/incidents/' . $incident->id . '/updates', [
+        $this->postJson('/api/mobile/status-pages/' . $statusPage->id . '/incidents/' . $incident->id . '/updates', [
             'status' => IncidentUpdateStatus::INVESTIGATING->value,
             'message' => 'Missing idempotency key.',
         ])

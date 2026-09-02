@@ -62,7 +62,7 @@
 
         loadingDemo = true;
         try {
-            const response = await requestFirstPartyApi<{ email: string }>("/api/v1/internal/ui/auth/demo-credentials");
+            const response = await requestFirstPartyApi<{ email: string }>("/api/auth/demo-credentials");
             email = response.data.email;
             password = "password";
         } catch (exception) {
@@ -85,7 +85,7 @@
 
         try {
             const form = event.currentTarget as HTMLFormElement;
-            const endpoint = mode === "register" ? "/api/v1/internal/ui/auth/register" : "/api/v1/internal/ui/auth/login";
+            const endpoint = mode === "register" ? "/api/auth/register" : "/api/auth/login";
             const response = await requestFirstPartyApi<AuthNavigation>(endpoint, {
                 body: new FormData(form),
                 method: "POST",

@@ -36,7 +36,7 @@ final class MonitoringPayload
             $serverHealthToken = (string) Str::ulid();
 
             $validated['server_health_token'] = $serverHealthToken;
-            $validated['target'] = route('v1.server-health.store', ['token' => $serverHealthToken]);
+            $validated['target'] = route('server-health.store', ['token' => $serverHealthToken]);
 
             return self::applyServerHealthDefaults($validated);
         }

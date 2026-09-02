@@ -38,14 +38,14 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
             'email' => 'demo@example.test',
         ]);
 
-        $this->getJson(route('api.v1.internal.ui.auth.options'))
+        $this->getJson(route('auth.options'))
             ->assertOk()
             ->assertJsonPath('data.captcha_url', url('captcha/register'))
             ->assertJsonPath('data.terms_url', config('app.marketing_url') . '/terms-of-use');
-        $this->getJson(route('api.v1.internal.ui.auth.demo-credentials'))
+        $this->getJson(route('auth.demo-credentials'))
             ->assertOk()
             ->assertJsonPath('data.email', $demo->email);
-        $this->postJson(route('api.v1.internal.ui.auth.login'), [
+        $this->postJson(route('auth.login'), [
             'email' => $member->email,
             'password' => 'correct-password',
         ])->assertOk()->assertJsonPath('data.next_url', '/dashboard');
@@ -53,7 +53,7 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
         $this->assertAuthenticatedAs($member);
         auth()->logout();
 
-        $this->postJson(route('api.v1.internal.ui.auth.register'), [
+        $this->postJson(route('auth.register'), [
             'name' => 'New member',
             'email' => 'new-member@example.test',
             'password' => 'new-password-123',
@@ -72,13 +72,13 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
         Notification::fake();
         $user = User::factory()->create(['password' => Hash::make('old-password')]);
 
-        $this->postJson(route('api.v1.internal.ui.auth.password.email'), ['email' => $user->email])
+        $this->postJson(route('auth.password.email'), ['email' => $user->email])
             ->assertOk()
             ->assertJsonPath('data.message', __(Password::RESET_LINK_SENT));
         Notification::assertSentTo($user, ResetPassword::class);
 
         $token = Password::broker()->createToken($user);
-        $this->postJson(route('api.v1.internal.ui.auth.password.reset'), [
+        $this->postJson(route('auth.password.reset'), [
             'token' => $token,
             'email' => $user->email,
             'password' => 'new-password-123',
@@ -94,16 +94,16 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
         $user = User::factory()->unverified()->create(['password' => Hash::make('correct-password')]);
 
         $this->actingAs($user)
-            ->postJson(route('api.v1.internal.ui.auth.verification.send'))
+            ->postJson(route('auth.verification.send'))
             ->assertOk()
             ->assertJsonPath('data.verification_required', true);
         Notification::assertSentTo($user, VerifyEmail::class);
         $this->actingAs($user)
-            ->postJson(route('api.v1.internal.ui.auth.password.confirm'), ['password' => 'wrong-password'])
+            ->postJson(route('auth.password.confirm'), ['password' => 'wrong-password'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['password']);
         $this->actingAs($user)
-            ->postJson(route('api.v1.internal.ui.auth.password.confirm'), ['password' => 'correct-password'])
+            ->postJson(route('auth.password.confirm'), ['password' => 'correct-password'])
             ->assertOk()
             ->assertJsonPath('data.next_url', '/dashboard');
 

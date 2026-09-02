@@ -9,7 +9,7 @@ Distributed scanning nodes and workers are maintained separately in the [WebGuar
 The API boundary decision and migration rules are documented in the
 [API boundaries ADR](architecture/api-boundaries.md). Scanner-instance consumers
 must follow the separate [WebGuard Instance API contract](integrations/webguard-instance-api.md).
-The stable external contract is documented in [External API v1 compatibility](api/external-v1.md).
+The stable shared API contract is documented in [Shared API contract](api/external-v1.md).
 The SvelteKit browser contract is catalogued in the
 [first-party UI API contract](architecture/first-party-ui-contract.md).
 The staged migration from stored check statuses to health derived from raw

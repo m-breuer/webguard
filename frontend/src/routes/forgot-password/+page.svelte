@@ -8,7 +8,7 @@
 
 <svelte:head><title>Reset password | WebGuard</title></svelte:head>
 <GuestAuthLayout title="Reset your password" description="Enter your email address and we will send you a password reset link.">
-    <MutationForm action="/api/v1/internal/ui/auth/forgot-password" submitLabel="Email reset link" successMessage="If the account exists, a reset link has been sent.">
+    <MutationForm action="/api/auth/forgot-password" submitLabel="Email reset link" successMessage="If the account exists, a reset link has been sent.">
         <Field label="Email" required><Input name="email" type="email" autocomplete="email" required /></Field>
     </MutationForm>
     <a class="mt-6 inline-flex text-sm font-bold text-wg-accent no-underline hover:underline" href="/login">Back to sign in</a>

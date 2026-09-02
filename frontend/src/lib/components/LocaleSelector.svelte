@@ -31,7 +31,7 @@
         error = "";
 
         try {
-            await requestFirstPartyApi<{ locale: string }>("/api/v1/internal/ui/locale", {
+            await requestFirstPartyApi<{ locale: string }>("/api/locale", {
                 body: JSON.stringify({ locale: nextLocale }),
                 method: "PATCH",
             });

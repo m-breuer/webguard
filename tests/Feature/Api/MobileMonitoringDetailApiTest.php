@@ -45,7 +45,7 @@ class MobileMonitoringDetailApiTest extends TestCase
         ]);
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id)
+        $this->getJson('/api/mobile/monitorings/' . $monitoring->id)
             ->assertOk()
             ->assertJsonPath('data.summary.id', $monitoring->id)
             ->assertJsonPath('data.summary.name', 'Primary API')
@@ -70,7 +70,7 @@ class MobileMonitoringDetailApiTest extends TestCase
         Incident::query()->create(['monitoring_id' => $monitoring->id, 'down_at' => now()->subHour()]);
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id . '?incident_limit=1&incident_offset=1')
+        $this->getJson('/api/mobile/monitorings/' . $monitoring->id . '?incident_limit=1&incident_offset=1')
             ->assertOk()
             ->assertJsonPath('data.incidents.0.down_at', $incident->down_at->toIso8601String())
             ->assertJsonPath('meta.incidents.offset', 1)
@@ -85,14 +85,14 @@ class MobileMonitoringDetailApiTest extends TestCase
         $otherUser = User::factory()->create();
         $monitoring = Monitoring::factory()->for($owner)->create();
 
-        $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id)->assertUnauthorized();
+        $this->getJson('/api/mobile/monitorings/' . $monitoring->id)->assertUnauthorized();
 
         Sanctum::actingAs($otherUser);
 
-        $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id)->assertNotFound();
+        $this->getJson('/api/mobile/monitorings/' . $monitoring->id)->assertNotFound();
 
         Sanctum::actingAs($owner);
-        $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id . '?days=0')
+        $this->getJson('/api/mobile/monitorings/' . $monitoring->id . '?days=0')
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['days']);
     }

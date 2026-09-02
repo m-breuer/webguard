@@ -32,7 +32,8 @@ class ApiControllerTest extends TestCase
             'type' => MonitoringType::HTTP,
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
+        $token = $user->createToken('status-rate-limit')->plainTextToken;
+        $testResponse = $this->withToken($token)->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertOk();
         $testResponse->assertJson(['interval' => 900]);
@@ -58,7 +59,7 @@ class ApiControllerTest extends TestCase
             'response_time' => 220.0,
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('status_code', 503);
@@ -74,11 +75,13 @@ class ApiControllerTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
+        $token = $user->createToken('rate-limited-api')->plainTextToken;
+
         foreach (range(1, 5) as $_) {
-            $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')->assertOk();
+            $this->withToken($token)->getJson('/api/monitorings/' . $monitoring->id . '/status')->assertOk();
         }
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/status');
+        $testResponse = $this->withToken($token)->getJson('/api/monitorings/' . $monitoring->id . '/status');
 
         $testResponse->assertTooManyRequests();
 
@@ -103,12 +106,12 @@ class ApiControllerTest extends TestCase
 
         foreach (range(1, 5) as $_) {
             $this->withToken($token)
-                ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+                ->getJson('/api/monitorings/' . $monitoring->id . '/status')
                 ->assertOk();
         }
 
         $this->withToken($token)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertTooManyRequests();
 
         $this->assertDatabaseCount('api_logs', 5);
@@ -123,7 +126,7 @@ class ApiControllerTest extends TestCase
 
         foreach (range(1, 6) as $_) {
             $this->withToken($token)
-                ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+                ->getJson('/api/monitorings/' . $monitoring->id . '/status')
                 ->assertOk();
         }
 
@@ -141,15 +144,15 @@ class ApiControllerTest extends TestCase
         $legacyToken = $user->createToken('legacy')->plainTextToken;
 
         $this->withToken($readToken)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertOk();
 
         $this->withToken($readToken)
-            ->deleteJson('/api/v1/monitorings/' . $monitoring->id)
+            ->deleteJson('/api/monitorings/' . $monitoring->id)
             ->assertForbidden();
 
         $this->withToken($legacyToken)
-            ->getJson('/api/v1/monitorings/' . $monitoring->id . '/status')
+            ->getJson('/api/monitorings/' . $monitoring->id . '/status')
             ->assertOk();
     }
 
@@ -172,7 +175,7 @@ class ApiControllerTest extends TestCase
             'updated_at' => Date::parse('2026-04-12 11:00:00'),
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '?' . http_build_query([
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/analytics?' . http_build_query([
             'days' => 1,
             'start_date' => '2026-04-10',
             'end_date' => '2026-04-12',
@@ -201,7 +204,7 @@ class ApiControllerTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id);
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/analytics');
 
         $testResponse->assertUnprocessable();
         $testResponse->assertJsonValidationErrors(['start_date', 'end_date']);
@@ -235,7 +238,7 @@ class ApiControllerTest extends TestCase
             'incidents_count' => 0,
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-calendar?' . http_build_query([
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-calendar?' . http_build_query([
             'start_date' => '2026-04-01',
             'end_date' => '2026-04-30',
         ]));
@@ -272,7 +275,7 @@ class ApiControllerTest extends TestCase
             'updated_at' => Date::now()->subHour(),
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/response-times?days=1');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/response-times?days=1');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('aggregated.avg', 123.4);
@@ -292,7 +295,7 @@ class ApiControllerTest extends TestCase
             'up_at' => Date::now()->subHour(),
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/incidents?days=1');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/incidents?days=1');
 
         $testResponse->assertOk();
         $this->assertNotNull($testResponse->json('0.down_at'));
@@ -312,7 +315,7 @@ class ApiControllerTest extends TestCase
             'issued_at' => '2026-01-01 00:00:00',
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/ssl');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/ssl');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('valid', true);
@@ -390,7 +393,7 @@ class ApiControllerTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?limit=10');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?limit=10');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('meta.count', 10);
@@ -436,7 +439,7 @@ class ApiControllerTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=2&limit=10');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?days=2&limit=10');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('meta.count', 1);
@@ -470,7 +473,7 @@ class ApiControllerTest extends TestCase
             ]);
         }
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?days=1&limit=5');
 
         $testResponse->assertOk();
         $testResponse->assertJsonCount(5, 'data');
@@ -480,7 +483,7 @@ class ApiControllerTest extends TestCase
         $testResponse->assertJsonPath('meta.next_offset', 5);
         $this->assertSame(101.0, (float) $testResponse->json('data.0.response_time'));
 
-        $secondPageResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?days=1&limit=5&offset=5');
+        $secondPageResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?days=1&limit=5&offset=5');
 
         $secondPageResponse->assertOk();
         $secondPageResponse->assertJsonCount(3, 'data');
@@ -497,7 +500,7 @@ class ApiControllerTest extends TestCase
         $user = User::factory()->create();
         $monitoring = Monitoring::factory()->for($user)->create();
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/checks?limit=1001&offset=-1');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/checks?limit=1001&offset=-1');
 
         $testResponse->assertUnprocessable();
         $testResponse->assertJsonValidationErrors(['limit', 'offset']);

@@ -28,7 +28,8 @@ final class ProfileDeletionController extends Controller
             ->withProperties(['action' => 'account_deletion_requested'])
             ->log('user_delete_requested');
 
-        Auth::logout();
+        Auth::guard('web')->logout();
+        Auth::forgetGuards();
         $userDeletionPreparationService->disableLoginUntilDeletion($user);
         dispatch(new DeleteUser($user));
 

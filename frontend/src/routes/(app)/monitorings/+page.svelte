@@ -111,7 +111,7 @@
         createError = "";
 
         try {
-            createForm = (await requestFirstPartyApi<MonitoringFormOptions>("/api/v1/internal/ui/monitorings/form-options")).data;
+            createForm = (await requestFirstPartyApi<MonitoringFormOptions>("/api/monitorings/form-options")).data;
             createOpen = true;
         } catch (exception) {
             createError = exception instanceof FirstPartyApiError ? exception.message : "The monitoring form could not be loaded.";
@@ -185,4 +185,4 @@
     {/if}
 </main>
 
-<Dialog bind:open={createOpen} title="Create monitoring" description="Configure a monitoring and start collecting results.">{#if createForm}<MonitoringForm options={createForm} action="/api/v1/internal/ui/monitorings" method="POST" onSuccess={handleCreateSuccess} onCancel={() => (createOpen = false)} />{/if}</Dialog>
+<Dialog bind:open={createOpen} title="Create monitoring" description="Configure a monitoring and start collecting results.">{#if createForm}<MonitoringForm options={createForm} action="/api/monitorings" method="POST" onSuccess={handleCreateSuccess} onCancel={() => (createOpen = false)} />{/if}</Dialog>

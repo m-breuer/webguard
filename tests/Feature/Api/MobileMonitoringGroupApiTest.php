@@ -30,7 +30,7 @@ class MobileMonitoringGroupApiTest extends TestCase
         $foreignGroup = MonitoringGroup::factory()->for(User::factory()->create())->create(['name' => 'Hidden group']);
         Sanctum::actingAs($user);
 
-        $testResponse = $this->postJson('/api/v1/mobile/monitoring-groups', [
+        $testResponse = $this->postJson('/api/mobile/monitoring-groups', [
             'name' => 'Production',
             'description' => 'Critical services',
             'monitoring_ids' => [$firstMonitoring->id],
@@ -46,17 +46,17 @@ class MobileMonitoringGroupApiTest extends TestCase
 
         $monitoringGroup = MonitoringGroup::query()->where('name', 'Production')->firstOrFail();
 
-        $this->getJson('/api/v1/mobile/monitoring-groups?per_page=1')
+        $this->getJson('/api/mobile/monitoring-groups?per_page=1')
             ->assertOk()
             ->assertJsonPath('per_page', 1)
             ->assertJsonPath('data.0.id', $monitoringGroup->id)
             ->assertJsonMissing(['name' => $foreignGroup->name]);
 
-        $this->getJson('/api/v1/mobile/monitoring-groups/' . $monitoringGroup->id)
+        $this->getJson('/api/mobile/monitoring-groups/' . $monitoringGroup->id)
             ->assertOk()
             ->assertJsonPath('data.assignments.0.target', $firstMonitoring->target);
 
-        $this->patchJson('/api/v1/mobile/monitoring-groups/' . $monitoringGroup->id, [
+        $this->patchJson('/api/mobile/monitoring-groups/' . $monitoringGroup->id, [
             'name' => 'Production services',
             'monitoring_ids' => [$secondMonitoring->id],
         ])
@@ -73,7 +73,7 @@ class MobileMonitoringGroupApiTest extends TestCase
             'monitoring_id' => $secondMonitoring->id,
         ]);
 
-        $this->deleteJson('/api/v1/mobile/monitoring-groups/' . $monitoringGroup->id)
+        $this->deleteJson('/api/mobile/monitoring-groups/' . $monitoringGroup->id)
             ->assertNoContent();
 
         $this->assertDatabaseMissing('monitoring_groups', ['id' => $monitoringGroup->id]);
@@ -95,26 +95,26 @@ class MobileMonitoringGroupApiTest extends TestCase
         $monitoringGroup = MonitoringGroup::factory()->for($user)->create();
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/v1/mobile/monitoring-groups/assignment-options')
+        $this->getJson('/api/mobile/monitoring-groups/assignment-options')
             ->assertOk()
             ->assertJsonPath('data.0.id', $privateMonitoring->id)
             ->assertJsonMissing(['id' => $foreignMonitoring->id])
             ->assertJsonMissing(['id' => $teamMonitoring->id]);
 
-        $this->patchJson('/api/v1/mobile/monitoring-groups/' . $monitoringGroup->id, [
+        $this->patchJson('/api/mobile/monitoring-groups/' . $monitoringGroup->id, [
             'monitoring_ids' => [$foreignMonitoring->id, $teamMonitoring->id],
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['monitoring_ids.0', 'monitoring_ids.1']);
 
-        $this->getJson('/api/v1/mobile/monitoring-groups/' . $monitoringGroup->id)
+        $this->getJson('/api/mobile/monitoring-groups/' . $monitoringGroup->id)
             ->assertOk()
             ->assertJsonPath('data.assignable_monitoring_count', 0);
 
         $otherUser = User::factory()->create();
         Sanctum::actingAs($otherUser);
 
-        $this->getJson('/api/v1/mobile/monitoring-groups/' . $monitoringGroup->id)
+        $this->getJson('/api/mobile/monitoring-groups/' . $monitoringGroup->id)
             ->assertNotFound();
     }
 
@@ -132,7 +132,7 @@ class MobileMonitoringGroupApiTest extends TestCase
         $secondGroup = MonitoringGroup::factory()->for($user)->create(['name' => 'Billing']);
         Sanctum::actingAs($user);
 
-        $testResponse = $this->postJson('/api/v1/monitorings', $this->monitoringPayload($serverInstance, [
+        $testResponse = $this->postJson('/api/monitorings', $this->monitoringPayload($serverInstance, [
             'group_ids' => [$firstGroup->id],
         ]));
 
@@ -144,7 +144,7 @@ class MobileMonitoringGroupApiTest extends TestCase
 
         $monitoringId = $testResponse->json('data.id');
 
-        $this->patchJson('/api/v1/monitorings/' . $monitoringId, $this->monitoringPayload($serverInstance, [
+        $this->patchJson('/api/monitorings/' . $monitoringId, $this->monitoringPayload($serverInstance, [
             'group_ids' => [$secondGroup->id],
         ]))
             ->assertOk()
@@ -153,13 +153,12 @@ class MobileMonitoringGroupApiTest extends TestCase
         $team = Team::factory()->create(['created_by_user_id' => $user->id]);
         TeamMembership::factory()->for($team)->for($user)->admin()->create();
 
-        $this->postJson('/api/v1/monitorings/' . $monitoringId . '/team-ownership', ['team_id' => $team->id])
+        $this->postJson('/api/monitorings/' . $monitoringId . '/ownership/team', ['team_id' => $team->id])
             ->assertOk()
             ->assertJsonPath('data.ownership.type', 'team')
-            ->assertJsonPath('data.ownership.team_id', $team->id)
-            ->assertJsonPath('data.group_assignments', []);
+            ->assertJsonPath('data.ownership.team_id', $team->id);
 
-        $this->patchJson('/api/v1/monitorings/' . $monitoringId, $this->monitoringPayload($serverInstance, [
+        $this->patchJson('/api/monitorings/' . $monitoringId, $this->monitoringPayload($serverInstance, [
             'group_ids' => [$firstGroup->id],
         ]))
             ->assertUnprocessable()

@@ -13,7 +13,7 @@ export async function load({ fetch, url }) {
     }
 
     const query = params.size > 0 ? `?${params}` : "";
-    const response = await fetch(`/api/v1/internal/ui/incidents/analytics${query}`, {
+    const response = await fetch(`/api/incidents/analytics${query}`, {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
     });
 

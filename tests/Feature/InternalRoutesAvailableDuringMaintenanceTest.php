@@ -86,7 +86,7 @@ class InternalRoutesAvailableDuringMaintenanceTest extends TestCase
             $internalV1Response = $this->withHeaders([
                 'X-INSTANCE-CODE' => $serverInstance->code,
                 'X-API-KEY' => 'test-token-1234567890',
-            ])->getJson(route('v1.internal.monitorings.list', ['location' => $serverInstance->code]));
+            ])->getJson(route('instances.monitorings.list', ['location' => $serverInstance->code]));
 
             $internalV1Response->assertOk();
 

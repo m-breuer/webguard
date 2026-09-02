@@ -20,7 +20,7 @@ export interface NotificationInboxMeta {
 }
 
 export async function load({ fetch }) {
-    const response = await fetch("/api/v1/internal/ui/notifications?limit=25", {
+    const response = await fetch("/api/notifications?limit=25", {
         headers: { Accept: "application/json" },
     });
 

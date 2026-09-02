@@ -88,7 +88,7 @@
         error = "";
 
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/monitorings/${data.monitoring.id}`, { method: "DELETE" });
+            await requestFirstPartyApi(`/api/monitorings/${data.monitoring.id}`, { method: "DELETE" });
             await goto(appRoutes.monitorings);
         } catch (exception) {
             error = exception instanceof FirstPartyApiError ? exception.message : "The monitoring could not be deleted.";
@@ -104,7 +104,7 @@
         error = "";
 
         try {
-            editForm = (await requestFirstPartyApi<MonitoringFormOptions>(`/api/v1/internal/ui/monitorings/${data.monitoring.id}/form-options`)).data;
+            editForm = (await requestFirstPartyApi<MonitoringFormOptions>(`/api/monitorings/${data.monitoring.id}/form-options`)).data;
             editOpen = true;
         } catch (exception) {
             error = exception instanceof FirstPartyApiError ? exception.message : "The monitoring editor could not be loaded.";
@@ -189,7 +189,7 @@
     <Dialog bind:open={editOpen} title="Monitoring" description="Basics" size="wide" onclose={closeEdit}>
         <MonitoringForm
             options={editForm}
-            action={`/api/v1/internal/ui/monitorings/${editForm.monitoring?.id}`}
+            action={`/api/monitorings/${editForm.monitoring?.id}`}
             method="PATCH"
             presentation="edit-modal"
             onSuccess={handleEditSuccess}

@@ -19,7 +19,7 @@ class InternalUiDashboardApiTest extends TestCase
 
     public function test_guest_cannot_read_the_internal_ui_dashboard(): void
     {
-        $this->getJson(route('api.v1.internal.ui.dashboard'))
+        $this->getJson(route('app.dashboard'))
             ->assertUnauthorized();
     }
 
@@ -30,7 +30,7 @@ class InternalUiDashboardApiTest extends TestCase
         $visibleMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Visible API']);
         Monitoring::factory()->create(['name' => 'Hidden API']);
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.dashboard'));
 
         $testResponse
             ->assertOk()
@@ -55,7 +55,7 @@ class InternalUiDashboardApiTest extends TestCase
         $user = User::factory()->create();
         Monitoring::factory()->count(3)->for($user)->create();
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.dashboard'));
 
         $testResponse->assertOk();
         $this->assertInternalUiTelemetry($testResponse, 30, 131072);
@@ -69,7 +69,7 @@ class InternalUiDashboardApiTest extends TestCase
 
         $this->actingAs($user)
             ->withHeader('X-Request-Id', $requestId)
-            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->getJson(route('app.dashboard'))
             ->assertOk()
             ->assertHeader('X-Request-Id', $requestId);
     }
@@ -79,7 +79,7 @@ class InternalUiDashboardApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->unverified()->create();
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'))
+        $this->actingAs($user)->getJson(route('app.dashboard'))
             ->assertForbidden();
     }
 
@@ -89,7 +89,7 @@ class InternalUiDashboardApiTest extends TestCase
         $user = User::factory()->create();
         Monitoring::factory()->for($user)->create(['name' => 'Visible API']);
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.dashboard'));
         $etag = (string) $testResponse->headers->get('ETag');
 
         $testResponse
@@ -99,7 +99,7 @@ class InternalUiDashboardApiTest extends TestCase
 
         $this->actingAs($user)
             ->withHeader('If-None-Match', $etag)
-            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->getJson(route('app.dashboard'))
             ->assertNotModified()
             ->assertHeader('ETag', $etag);
     }
@@ -111,11 +111,11 @@ class InternalUiDashboardApiTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Cache contract API']);
 
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.dashboard', ['service_page' => 0]))
+            ->getJson(route('app.dashboard', ['service_page' => 0]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('service_page');
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.dashboard'));
         $firstEtag = (string) $testResponse->headers->get('ETag');
 
         MonitoringResponse::query()->create([
@@ -124,7 +124,7 @@ class InternalUiDashboardApiTest extends TestCase
             'response_time' => 120,
         ]);
 
-        $secondResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.dashboard'));
+        $secondResponse = $this->actingAs($user)->getJson(route('app.dashboard'));
 
         $secondResponse
             ->assertOk()
@@ -150,7 +150,7 @@ class InternalUiDashboardApiTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->getJson(route('app.dashboard'))
             ->assertOk()
             ->assertJsonPath('data.trend.6.date', '2026-08-31')
             ->assertJsonPath('data.trend.6.has_data', true)
