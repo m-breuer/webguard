@@ -629,6 +629,51 @@ const german: Record<string, string> = {
     "The status page could not be saved.": "Die Statusseite konnte nicht gespeichert werden.",
     "The test notification could not be sent.": "Die Testbenachrichtigung konnte nicht gesendet werden.",
     "Waiting for the first result": "Warte auf das erste Ergebnis",
+    "Active, upcoming, and past maintenance applied to monitorings.": "Aktive, bevorstehende und vergangene Wartungen für Überwachungen.",
+    "Adjust your filters or create a monitoring to start collecting availability data.": "Passen Sie Ihre Filter an oder erstellen Sie eine Überwachung, um Verfügbarkeitsdaten zu erfassen.",
+    "Assign private monitorings now or update the group later.": "Weisen Sie private Überwachungen jetzt zu oder aktualisieren Sie die Gruppe später.",
+    "Attention required": "Aufmerksamkeit erforderlich",
+    "Availability across all visible monitorings.": "Verfügbarkeit über alle sichtbaren Überwachungen.",
+    "Choose whether this monitoring is private or administered by a team.": "Wählen Sie, ob diese Überwachung privat ist oder von einem Team verwaltet wird.",
+    "Create a monitoring to see service health, incidents, and operational insights here.": "Erstellen Sie eine Überwachung, um hier Dienststatus, Vorfälle und betriebliche Einblicke zu sehen.",
+    "Create package": "Paket erstellen",
+    "Create server instance": "Serverinstanz erstellen",
+    "Create user": "Benutzer erstellen",
+    "Duration (minutes)": "Dauer (Minuten)",
+    "Edit package": "Paket bearbeiten",
+    "Edit server instance": "Serverinstanz bearbeiten",
+    "Edit user": "Benutzer bearbeiten",
+    "Enable or pause recurring maintenance windows.": "Aktivieren oder pausieren Sie wiederkehrende Wartungsfenster.",
+    "Ends at": "Endet am",
+    "In maintenance": "In Wartung",
+    "Invitation links remain valid for seven days.": "Einladungslinks bleiben sieben Tage gültig.",
+    "Items that need operational follow-up.": "Elemente, die eine operative Nachverfolgung erfordern.",
+    "Latest incidents for monitorings you can access.": "Neueste Vorfälle für Überwachungen, auf die Sie Zugriff haben.",
+    "Maintain the regional instances that perform monitoring work.": "Verwalten Sie die regionalen Instanzen, die Überwachungsaufgaben ausführen.",
+    "Make admin": "Zum Administrator machen",
+    "Make member": "Zum Mitglied machen",
+    "Monitoring overview": "Überwachungsübersicht",
+    "No maintenance windows": "Keine Wartungsfenster",
+    "No package": "Kein Paket",
+    "One-off changes are protected against duplicate submissions.": "Einmalige Änderungen sind vor doppelten Übermittlungen geschützt.",
+    "Operational": "Betriebsbereit",
+    "Publication and component health at a glance.": "Veröffentlichungs- und Komponentenstatus auf einen Blick.",
+    "Publish clear updates as incidents are investigated and resolved.": "Veröffentlichen Sie klare Aktualisierungen, während Vorfälle untersucht und gelöst werden.",
+    "Published pages are available at their public status URL.": "Veröffentlichte Seiten sind unter ihrer öffentlichen Status-URL verfügbar.",
+    "Recent monitorings": "Aktuelle Überwachungen",
+    "Review failed delivery configuration.": "Überprüfen Sie die fehlgeschlagene Zustellkonfiguration.",
+    "Roles determine who can manage this team.": "Rollen bestimmen, wer dieses Team verwalten kann.",
+    "Save status page": "Statusseite speichern",
+    "Save team": "Team speichern",
+    "Scheduled and active maintenance windows.": "Geplante und aktive Wartungsfenster.",
+    "Target URL": "Ziel-URL",
+    "Unpublish": "Veröffentlichung aufheben",
+    "Update the group and its private monitoring assignments.": "Aktualisieren Sie die Gruppe und ihre privaten Überwachungszuweisungen.",
+    "Update the information shown to all team members.": "Aktualisieren Sie die Informationen, die allen Teammitgliedern angezeigt werden.",
+    "Update status-page details and components in one request.": "Aktualisieren Sie Statusseitendetails und Komponenten in einer Anfrage.",
+    "You can leave unless you are the last administrator.": "Sie können das Team verlassen, sofern Sie nicht der letzte Administrator sind.",
+    "You will become this team's first administrator.": "Sie werden der erste Administrator dieses Teams.",
+    "You will lose access to team monitorings.": "Sie verlieren den Zugriff auf Team-Überwachungen.",
 };
 
 function translate(value: string, locale: string): string {
@@ -650,7 +695,11 @@ const sourceAttributes = new WeakMap<Element, Map<string, string>>();
 let sourceTitle: string | null = null;
 
 function localizeTextNode(node: Node, locale: string): void {
-    const value = sourceText.get(node) ?? node.nodeValue ?? "";
+    const currentValue = node.nodeValue ?? "";
+    const sourceValue = sourceText.get(node);
+    const value = sourceValue === undefined || (currentValue !== sourceValue && currentValue !== translate(sourceValue, "de"))
+        ? currentValue
+        : sourceValue;
 
     sourceText.set(node, value);
 
@@ -668,7 +717,10 @@ function localizeElement(element: Element, locale: string): void {
         if (currentValue === null) continue;
 
         const attributes = sourceAttributes.get(element) ?? new Map<string, string>();
-        const value = attributes.get(attribute) ?? currentValue;
+        const sourceValue = attributes.get(attribute);
+        const value = sourceValue === undefined || (currentValue !== sourceValue && currentValue !== translate(sourceValue, "de"))
+            ? currentValue
+            : sourceValue;
 
         attributes.set(attribute, value);
         sourceAttributes.set(element, attributes);
@@ -690,6 +742,28 @@ function localizeElement(element: Element, locale: string): void {
 export function localize(node: HTMLElement, locale: string): { update(nextLocale: string): void; destroy(): void } {
     let activeLocale = locale === "de" ? "de" : "en";
 
+    const observer = new MutationObserver((records) => {
+        for (const record of records) {
+            if (record.type === "characterData") {
+                localizeTextNode(record.target, activeLocale);
+                continue;
+            }
+
+            if (record.type === "attributes") {
+                localizeElement(record.target as Element, activeLocale);
+                continue;
+            }
+
+            for (const addedNode of record.addedNodes) {
+                if (addedNode.nodeType === Node.TEXT_NODE) {
+                    localizeTextNode(addedNode, activeLocale);
+                } else if (addedNode.nodeType === Node.ELEMENT_NODE) {
+                    localizeElement(addedNode as Element, activeLocale);
+                }
+            }
+        }
+    });
+
     const apply = (): void => {
         document.documentElement.lang = activeLocale;
 
@@ -701,12 +775,21 @@ export function localize(node: HTMLElement, locale: string): { update(nextLocale
     };
 
     apply();
+    observer.observe(node, {
+        attributeFilter: ["aria-label", "placeholder", "title"],
+        attributes: true,
+        characterData: true,
+        childList: true,
+        subtree: true,
+    });
 
     return {
         update(nextLocale: string): void {
             activeLocale = nextLocale === "de" ? "de" : "en";
             apply();
         },
-        destroy(): void {},
+        destroy(): void {
+            observer.disconnect();
+        },
     };
 }
