@@ -20,14 +20,14 @@ class InternalUiStatusPageApiTest extends TestCase
 
     public function test_internal_ui_status_page_workspace_requires_an_authenticated_owner(): void
     {
-        $this->getJson(route('api.v1.internal.ui.status-pages.index'))->assertUnauthorized();
+        $this->getJson(route('app.status-pages.index'))->assertUnauthorized();
 
         $user = $this->user();
         $statusPage = StatusPage::query()->create(['user_id' => $user->id, 'name' => 'Owner page', 'is_public' => true]);
         $otherUser = $this->user();
 
         $this->actingAs($otherUser)
-            ->getJson(route('api.v1.internal.ui.status-pages.show', $statusPage))
+            ->getJson(route('app.status-pages.show', $statusPage))
             ->assertNotFound();
     }
 
@@ -38,12 +38,12 @@ class InternalUiStatusPageApiTest extends TestCase
         $otherMonitoring = Monitoring::factory()->for($this->user())->create();
 
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.status-pages.options'))
+            ->getJson(route('app.status-pages.options'))
             ->assertOk()
             ->assertJsonPath('data.monitorings.0.id', $monitoring->id);
 
         $testResponse = $this->actingAs($user)
-            ->postJson(route('api.v1.internal.ui.status-pages.store'), [
+            ->postJson(route('app.status-pages.store'), [
                 'name' => 'Acme Status',
                 'description' => 'Current service availability.',
                 'is_public' => true,
@@ -62,7 +62,7 @@ class InternalUiStatusPageApiTest extends TestCase
         $this->assertDatabaseHas('status_pages', ['id' => $statusPageId, 'user_id' => $user->id]);
 
         $this->actingAs($user)
-            ->patchJson(route('api.v1.internal.ui.status-pages.update', $statusPageId), [
+            ->patchJson(route('app.status-pages.update', $statusPageId), [
                 'name' => 'Acme Service Status',
                 'description' => null,
                 'is_public' => false,
@@ -77,7 +77,7 @@ class InternalUiStatusPageApiTest extends TestCase
             ->assertJsonPath('data.publication.is_public', false);
 
         $this->actingAs($user)
-            ->postJson(route('api.v1.internal.ui.status-pages.store'), [
+            ->postJson(route('app.status-pages.store'), [
                 'name' => 'Invalid page',
                 'is_public' => true,
                 'components' => [[
@@ -90,7 +90,7 @@ class InternalUiStatusPageApiTest extends TestCase
             ->assertJsonValidationErrors('components.0.monitoring_ids.0');
 
         $this->actingAs($user)
-            ->deleteJson(route('api.v1.internal.ui.status-pages.destroy', $statusPageId))
+            ->deleteJson(route('app.status-pages.destroy', $statusPageId))
             ->assertNoContent();
         $this->assertDatabaseMissing('status_pages', ['id' => $statusPageId]);
     }
@@ -104,7 +104,7 @@ class InternalUiStatusPageApiTest extends TestCase
         $statusPage->components()->create(['name' => 'Checkout', 'position' => 0])->monitorings()->attach($monitoring->id, ['position' => 0]);
         $incident = Incident::query()->create(['monitoring_id' => $monitoring->id, 'down_at' => Date::now()->subMinutes(15)]);
 
-        $base = '/api/v1/internal/ui/status-pages/' . $statusPage->id . '/incidents/' . $incident->id;
+        $base = '/api/status-pages/' . $statusPage->id . '/incidents/' . $incident->id;
         $this->actingAs($user)
             ->withHeaders(['Idempotency-Key' => 'status-page-update-001'])
             ->postJson($base . '/updates', [

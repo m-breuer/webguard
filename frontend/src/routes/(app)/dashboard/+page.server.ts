@@ -10,7 +10,7 @@ export async function load({ fetch, url }) {
     }
 
     const query = params.size > 0 ? `?${params}` : "";
-    const response = await fetch(`/api/v1/internal/ui/dashboard${query}`, {
+    const response = await fetch(`/api/dashboard${query}`, {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
     });
 

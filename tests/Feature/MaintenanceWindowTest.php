@@ -82,7 +82,7 @@ class MaintenanceWindowTest extends TestCase
             'X-INSTANCE-CODE' => $this->serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
         ])
-            ->getJson(route('v1.internal.monitorings.list', ['location' => $this->serverInstance->code]));
+            ->getJson(route('instances.monitorings.list', ['location' => $this->serverInstance->code]));
 
         $this->maintenanceMode->deactivate();
 
@@ -97,7 +97,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-INSTANCE-CODE' => $this->serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location]));
+        ])->getJson(route('instances.monitorings.list', ['location' => $this->monitoring->preferred_location]));
         $response->assertJsonFragment(['maintenance_active' => false]);
 
         // Future maintenance window
@@ -108,7 +108,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-INSTANCE-CODE' => $this->serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location]));
+        ])->getJson(route('instances.monitorings.list', ['location' => $this->monitoring->preferred_location]));
         $response->assertJsonFragment(['maintenance_active' => false]);
 
         // Active maintenance window
@@ -119,7 +119,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-INSTANCE-CODE' => $this->serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location]));
+        ])->getJson(route('instances.monitorings.list', ['location' => $this->monitoring->preferred_location]));
         $response->assertJsonFragment(['maintenance_active' => true]);
 
         // Open-ended maintenance window
@@ -130,7 +130,7 @@ class MaintenanceWindowTest extends TestCase
         $response = $this->withHeaders([
             'X-INSTANCE-CODE' => $this->serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', ['location' => $this->monitoring->preferred_location]));
+        ])->getJson(route('instances.monitorings.list', ['location' => $this->monitoring->preferred_location]));
         $response->assertJsonFragment(['maintenance_active' => true]);
     }
 

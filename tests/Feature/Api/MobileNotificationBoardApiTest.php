@@ -39,7 +39,7 @@ class MobileNotificationBoardApiTest extends TestCase
         $hiddenNotification = $this->notification($hidden, NotificationType::DOMAIN_EXPIRY, 'DOMAIN_EXPIRED', Date::now());
         $this->actingAsMobile($user);
 
-        $testResponse = $this->getJson('/api/v1/mobile/notification-board?limit=1')
+        $testResponse = $this->getJson('/api/mobile/notification-board?limit=1')
             ->assertOk()
             ->assertJsonPath('data.0.id', $second->id)
             ->assertJsonPath('data.0.event_type', 'ssl_expiring')
@@ -48,17 +48,17 @@ class MobileNotificationBoardApiTest extends TestCase
             ->assertJsonPath('meta.unread_count', 2)
             ->assertJsonMissing(['id' => $hiddenNotification->id]);
 
-        $this->getJson('/api/v1/mobile/notification-board?limit=1&cursor=' . urlencode($testResponse->json('meta.next_cursor')))
+        $this->getJson('/api/mobile/notification-board?limit=1&cursor=' . urlencode($testResponse->json('meta.next_cursor')))
             ->assertOk()
             ->assertJsonPath('data.0.id', $monitoringNotification->id);
-        $this->getJson('/api/v1/mobile/notification-board?event_type=delivery_failure')
+        $this->getJson('/api/mobile/notification-board?event_type=delivery_failure')
             ->assertOk()
             ->assertJsonPath('data.0.id', $second->id);
-        $this->patchJson('/api/v1/mobile/notification-board/' . $second->id . '/read')
+        $this->patchJson('/api/mobile/notification-board/' . $second->id . '/read')
             ->assertOk()
             ->assertJsonPath('data.read', true);
-        $this->patchJson('/api/v1/mobile/notification-board/' . $second->id . '/read')->assertOk();
-        $this->patchJson('/api/v1/mobile/notification-board/read-all')
+        $this->patchJson('/api/mobile/notification-board/' . $second->id . '/read')->assertOk();
+        $this->patchJson('/api/mobile/notification-board/read-all')
             ->assertOk()
             ->assertJsonPath('meta.unread_count', 0);
     }
@@ -69,11 +69,11 @@ class MobileNotificationBoardApiTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
         $this->actingAsMobile($user);
 
-        $this->getJson('/api/v1/mobile/monitorings/' . $monitoring->id . '/notification-preferences')
+        $this->getJson('/api/mobile/monitorings/' . $monitoring->id . '/notification-preferences')
             ->assertOk()
             ->assertJsonPath('data.source', 'private_default')
             ->assertJsonPath('data.can_update', true);
-        $this->patchJson('/api/v1/mobile/monitorings/' . $monitoring->id . '/notification-preferences', [
+        $this->patchJson('/api/mobile/monitorings/' . $monitoring->id . '/notification-preferences', [
             'notification_on_failure' => false,
             'notification_channels' => ['slack'],
             'ssl_expiry_warning_days' => 14,
@@ -98,7 +98,7 @@ class MobileNotificationBoardApiTest extends TestCase
         ]);
         $this->actingAsMobile($member);
 
-        $this->patchJson('/api/v1/mobile/monitorings/' . $monitoring->id . '/notification-preferences', [
+        $this->patchJson('/api/mobile/monitorings/' . $monitoring->id . '/notification-preferences', [
             'notification_on_failure' => false,
             'notification_channels' => ['mail'],
             'ssl_expiry_warning_days' => 7,

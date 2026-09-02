@@ -20,7 +20,7 @@ class PublicMonitoringLocationApiTest extends TestCase
         $this->serverInstance('private-1', 'Private network', 'DE', 'Europe', '10.0.0.1');
         $this->serverInstance('inactive-1', 'Inactive', 'NL', 'Europe', '9.9.9.9', false);
 
-        $this->getJson(route('v1.public.monitoring-locations.index'))
+        $this->getJson(route('public.monitoring-locations.index'))
             ->assertOk()
             ->assertHeader('Cache-Control', 'max-age=300, public, stale-while-revalidate=60')
             ->assertJsonPath('meta.version', '1')
@@ -42,7 +42,7 @@ class PublicMonitoringLocationApiTest extends TestCase
     {
         $serverInstance = $this->serverInstance('nl-1', 'Amsterdam', 'NL', 'Europe', '1.0.0.1');
 
-        $this->getJson(route('v1.public.monitoring-locations.index'))
+        $this->getJson(route('public.monitoring-locations.index'))
             ->assertJsonPath('data.0.name', 'Amsterdam');
 
         $serverInstance->update([
@@ -50,7 +50,7 @@ class PublicMonitoringLocationApiTest extends TestCase
             'ip_address' => '1.0.0.2',
         ]);
 
-        $this->getJson(route('v1.public.monitoring-locations.index'))
+        $this->getJson(route('public.monitoring-locations.index'))
             ->assertJsonPath('data.0.name', 'Amsterdam West')
             ->assertJsonPath('data.0.allowlist_ips', ['1.0.0.2']);
     }

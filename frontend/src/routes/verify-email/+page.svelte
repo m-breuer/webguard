@@ -9,13 +9,13 @@
     let { data }: Props = $props();
 
     async function signOut(): Promise<void> {
-        await requestFirstPartyApi("/api/v1/internal/ui/session/logout", { method: "POST" });
+        await requestFirstPartyApi("/api/session/logout", { method: "POST" });
         window.location.assign("/login");
     }
 </script>
 
 <svelte:head><title>Verify your email | WebGuard</title></svelte:head>
 <GuestAuthLayout title="Verify your email" description={`We sent a verification link to ${data.session.user.email}. Open it to activate your workspace.`}>
-    <MutationForm action="/api/v1/internal/ui/auth/email/verification-notification" submitLabel="Resend verification link" successMessage="A new verification link has been sent." />
+    <MutationForm action="/api/auth/email/verification-notification" submitLabel="Resend verification link" successMessage="A new verification link has been sent." />
     <div class="mt-4"><Button variant="quiet" onclick={signOut}>Sign out</Button></div>
 </GuestAuthLayout>

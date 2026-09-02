@@ -22,7 +22,7 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
 
     public function test_guest_cannot_read_incident_analytics(): void
     {
-        $this->getJson(route('api.v1.internal.ui.incidents.analytics'))
+        $this->getJson(route('app.incidents.analytics'))
             ->assertUnauthorized();
     }
 
@@ -52,7 +52,7 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
         ]);
         $this->incidentFor($otherMonitoring, ['affected_service' => 'Internal API']);
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.incidents.analytics'));
 
         $testResponse
             ->assertOk()
@@ -94,7 +94,7 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
             ]);
         }
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics', [
+        $this->actingAs($user)->getJson(route('app.incidents.analytics', [
             'incident_type' => IncidentType::AVAILABILITY->value,
             'affected_service' => 'Checkout',
             'page' => 2,
@@ -115,7 +115,7 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
         $this->incidentFor($monitoring, ['affected_service' => 'Zulu service', 'down_at' => now()->subMinutes(10)]);
         $this->incidentFor($monitoring, ['affected_service' => 'Alpha service', 'down_at' => now()->subMinutes(20)]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics', [
+        $this->actingAs($user)->getJson(route('app.incidents.analytics', [
             'sort' => 'affected_service',
             'direction' => 'asc',
         ]))
@@ -132,11 +132,11 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
         $this->incidentFor($monitoring);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics', ['days' => 7, 'page' => 0]))
+        $this->actingAs($user)->getJson(route('app.incidents.analytics', ['days' => 7, 'page' => 0]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['days', 'page']);
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.incidents.analytics'));
         $etag = (string) $testResponse->headers->get('ETag');
 
         $this->assertStringContainsString('private', (string) $testResponse->headers->get('Cache-Control'));
@@ -144,7 +144,7 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
 
         $this->actingAs($user)
             ->withHeader('If-None-Match', $etag)
-            ->getJson(route('api.v1.internal.ui.incidents.analytics'))
+            ->getJson(route('app.incidents.analytics'))
             ->assertNotModified()
             ->assertHeader('ETag', $etag);
     }
@@ -154,7 +154,7 @@ class InternalUiIncidentAnalyticsApiTest extends TestCase
         $package = Package::factory()->create();
         $user = User::factory()->unverified()->create(['package_id' => $package->id]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.incidents.analytics'))
+        $this->actingAs($user)->getJson(route('app.incidents.analytics'))
             ->assertForbidden();
     }
 

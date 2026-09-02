@@ -16,9 +16,13 @@ class RequireExternalApiAbility
     {
         $token = $request->user()?->currentAccessToken();
 
-        if ($token instanceof PersonalAccessToken && ApiKeyService::isManagedKey($token)) {
+        if (! $token instanceof PersonalAccessToken) {
+            return $next($request);
+        }
+
+        if (ApiKeyService::isManagedKey($token)) {
             abort_unless(
-                $token->can('analytics:read') && $request->routeIs('v1.*.analytics.*'),
+                $token->can('analytics:read') && $request->routeIs('app.monitorings.analytics.*'),
                 403
             );
 

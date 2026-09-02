@@ -40,11 +40,11 @@ class ApiAndDeletionJobsTest extends TestCase
     {
         $user = User::factory()->create();
 
-        (new LogApiUsage($user->id, 'api.v1.monitorings.index'))->handle();
+        (new LogApiUsage($user->id, 'app.monitorings.index'))->handle();
 
         $this->assertDatabaseHas('api_logs', [
             'user_id' => $user->id,
-            'route' => 'api.v1.monitorings.index',
+            'route' => 'app.monitorings.index',
         ]);
     }
 
@@ -52,7 +52,7 @@ class ApiAndDeletionJobsTest extends TestCase
     {
         Log::spy();
 
-        (new LogApiUsage('missing-user', 'api.v1.monitorings.index'))->handle();
+        (new LogApiUsage('missing-user', 'app.monitorings.index'))->handle();
 
         $this->assertSame(0, ApiLog::query()->count());
         Log::shouldHaveReceived('error')->once();

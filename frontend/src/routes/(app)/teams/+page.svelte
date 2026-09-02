@@ -52,7 +52,7 @@
     {/if}
 </main>
 <Dialog bind:open={createOpen} title="Create team" description="You will become this team's first administrator.">
-    <MutationForm action="/api/v1/internal/ui/teams" submitLabel="Create team" successMessage="Team created. Refreshing…" onSuccess={refreshTeams}>
+    <MutationForm action="/api/teams" submitLabel="Create team" successMessage="Team created. Refreshing…" onSuccess={refreshTeams}>
         <Field label="Name" required><Input name="name" autocomplete="organization" /></Field>
         <Field label="Description"><Textarea name="description" rows={3} /></Field>
     </MutationForm>

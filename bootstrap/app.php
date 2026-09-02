@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(PreventCrawling::class);
         $middleware->web(SetLocaleMiddleware::class);
         $middleware->preventRequestsDuringMaintenance([
-            'api/v1/internal/*',
+            'api/instances/*',
             'api/monitorings/*',
             'gdpr',
         ]);

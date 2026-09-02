@@ -20,10 +20,10 @@ class InternalUiSessionApiTest extends TestCase
 
     public function test_guest_cannot_access_the_first_party_session_contract(): void
     {
-        $this->getJson(route('api.v1.internal.ui.session.show'))->assertUnauthorized();
-        $this->postJson(route('api.v1.internal.ui.session.destroy'))->assertUnauthorized();
-        $this->patchJson(route('api.v1.internal.ui.appearance.update'), ['theme' => 'dark'])->assertUnauthorized();
-        $this->patchJson(route('api.v1.internal.ui.locale.update'), ['locale' => 'de'])->assertUnauthorized();
+        $this->getJson(route('app.session.show'))->assertUnauthorized();
+        $this->postJson(route('app.session.destroy'))->assertUnauthorized();
+        $this->patchJson(route('app.appearance.update'), ['theme' => 'dark'])->assertUnauthorized();
+        $this->patchJson(route('app.locale.update'), ['locale' => 'de'])->assertUnauthorized();
     }
 
     public function test_authenticated_user_can_bootstrap_their_own_session_context(): void
@@ -39,7 +39,7 @@ class InternalUiSessionApiTest extends TestCase
         $otherTeam = Team::factory()->create();
         TeamMembership::factory()->for($otherTeam)->for(User::factory())->create();
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.session.show'));
+        $testResponse = $this->actingAs($user)->getJson(route('app.session.show'));
 
         $testResponse
             ->assertOk()
@@ -64,17 +64,17 @@ class InternalUiSessionApiTest extends TestCase
         $user = User::factory()->unverified()->create(['theme' => 'light']);
 
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.session.show'))
+            ->getJson(route('app.session.show'))
             ->assertOk()
             ->assertJsonPath('data.user.is_verified', false)
             ->assertJsonPath('data.user.email_verified_at', null);
 
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.dashboard'))
+            ->getJson(route('app.dashboard'))
             ->assertForbidden();
 
         $testResponse = $this->actingAs($user)
-            ->patchJson(route('api.v1.internal.ui.appearance.update'), ['theme' => 'system']);
+            ->patchJson(route('app.appearance.update'), ['theme' => 'system']);
 
         $testResponse
             ->assertOk()
@@ -94,12 +94,12 @@ class InternalUiSessionApiTest extends TestCase
         $demoUser = User::factory()->create(['role' => UserRole::DEMO]);
 
         $this->actingAs($member)
-            ->patchJson(route('api.v1.internal.ui.appearance.update'), ['theme' => 'neon'])
+            ->patchJson(route('app.appearance.update'), ['theme' => 'neon'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('theme');
 
         $this->actingAs($demoUser)
-            ->patchJson(route('api.v1.internal.ui.appearance.update'), ['theme' => 'dark'])
+            ->patchJson(route('app.appearance.update'), ['theme' => 'dark'])
             ->assertForbidden();
     }
 
@@ -109,7 +109,7 @@ class InternalUiSessionApiTest extends TestCase
         $user = User::factory()->create(['locale' => 'en']);
 
         $testResponse = $this->actingAs($user)
-            ->patchJson(route('api.v1.internal.ui.locale.update'), ['locale' => 'de']);
+            ->patchJson(route('app.locale.update'), ['locale' => 'de']);
 
         $testResponse
             ->assertOk()
@@ -128,11 +128,11 @@ class InternalUiSessionApiTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->postJson(route('api.v1.internal.ui.session.destroy'))
+            ->postJson(route('app.session.destroy'))
             ->assertOk()
             ->assertJsonPath('data.authenticated', false);
 
-        $this->getJson(route('api.v1.internal.ui.session.show'))
+        $this->getJson(route('app.session.show'))
             ->assertUnauthorized();
     }
 }

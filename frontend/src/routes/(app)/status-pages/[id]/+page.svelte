@@ -34,7 +34,7 @@
         error = "";
         message = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/status-pages/${statusPage.id}/publication`, { body: JSON.stringify({ is_public: !statusPage.publication.is_public }), method: "PATCH" });
+            await requestFirstPartyApi(`/api/status-pages/${statusPage.id}/publication`, { body: JSON.stringify({ is_public: !statusPage.publication.is_public }), method: "PATCH" });
             message = statusPage.publication.is_public ? "Status page unpublished." : "Status page published.";
             await invalidateAll();
         } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "The publication state could not be updated."; } finally { updatingPublication = false; }
@@ -50,7 +50,7 @@
         publishingUpdate = true;
         error = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/status-pages/${statusPage.id}/incidents/${selectedIncident.id}/updates`, {
+            await requestFirstPartyApi(`/api/status-pages/${statusPage.id}/incidents/${selectedIncident.id}/updates`, {
                 body: new FormData(event.currentTarget as HTMLFormElement),
                 headers: { "Idempotency-Key": crypto.randomUUID() },
                 method: "POST",

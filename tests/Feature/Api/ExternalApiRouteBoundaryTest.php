@@ -9,21 +9,22 @@ use Tests\TestCase;
 
 class ExternalApiRouteBoundaryTest extends TestCase
 {
-    public function test_every_external_v1_route_uses_an_external_controller_or_adapter(): void
+    public function test_runtime_api_routes_do_not_expose_legacy_namespace_segments(): void
     {
         $routes = collect(Route::getRoutes()->getRoutes())
-            ->filter(fn ($route): bool => str_starts_with((string) $route->getName(), 'v1.'))
-            ->reject(fn ($route): bool => str_starts_with($route->uri(), 'api/v1/internal/'))
-            ->reject(fn ($route): bool => $route->getName() === 'v1.server-health.store');
+            ->filter(fn ($route): bool => str_starts_with($route->uri(), 'api/'));
 
         $this->assertNotEmpty($routes);
 
         foreach ($routes as $route) {
-            $this->assertStringStartsWith(
-                'App\\Http\\Controllers\\Api\\External\\',
-                $route->getActionName(),
-                $route->uri() . ' must stay behind the external API boundary.'
-            );
+            $this->assertStringNotContainsString('/v1/', $route->uri());
+            $this->assertStringNotContainsString('/internal/', $route->uri());
+            $this->assertStringNotContainsString('/external/', $route->uri());
+            $this->assertStringNotContainsString('/ui/', $route->uri());
+            $this->assertStringNotContainsString('.v1.', (string) $route->getName());
+            $this->assertStringNotContainsString('.internal.', (string) $route->getName());
+            $this->assertStringNotContainsString('.external.', (string) $route->getName());
+            $this->assertStringNotContainsString('.ui.', (string) $route->getName());
         }
     }
 }

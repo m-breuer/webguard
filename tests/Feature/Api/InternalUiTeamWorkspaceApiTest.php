@@ -27,10 +27,10 @@ final class InternalUiTeamWorkspaceApiTest extends TestCase
         TeamMembership::factory()->for($team)->for($admin)->admin()->create();
         $membership = TeamMembership::factory()->for($team)->for($member)->create();
 
-        $this->actingAs($member)->getJson(route('api.v1.internal.ui.teams.show', $team))->assertOk()->assertJsonPath('data.can_manage', false);
-        $this->actingAs($member)->postJson(route('api.v1.internal.ui.teams.invitations.store', $team), ['email' => 'new@example.test', 'role' => 'member'])->assertForbidden();
-        $this->actingAs($admin)->patchJson(route('api.v1.internal.ui.teams.members.update', [$team, $membership]), ['role' => TeamRole::ADMIN->value])->assertOk()->assertJsonPath('data.members.1.role', 'admin');
-        $this->actingAs($admin)->postJson(route('api.v1.internal.ui.teams.invitations.store', $team), ['email' => 'new@example.test', 'role' => TeamRole::MEMBER->value])->assertCreated()->assertJsonPath('data.invitations.0.email', 'new@example.test');
+        $this->actingAs($member)->getJson(route('app.teams.show', $team))->assertOk()->assertJsonPath('data.can_manage', false);
+        $this->actingAs($member)->postJson(route('app.teams.invitations.store', $team), ['email' => 'new@example.test', 'role' => 'member'])->assertForbidden();
+        $this->actingAs($admin)->patchJson(route('app.teams.members.update', [$team, $membership]), ['role' => TeamRole::ADMIN->value])->assertOk()->assertJsonPath('data.members.1.role', 'admin');
+        $this->actingAs($admin)->postJson(route('app.teams.invitations.store', $team), ['email' => 'new@example.test', 'role' => TeamRole::MEMBER->value])->assertCreated()->assertJsonPath('data.invitations.0.email', 'new@example.test');
     }
 
     public function test_member_can_leave_but_last_admin_is_protected(): void
@@ -41,8 +41,8 @@ final class InternalUiTeamWorkspaceApiTest extends TestCase
         $team = Team::factory()->create(['created_by_user_id' => $admin->id]);
         TeamMembership::factory()->for($team)->for($admin)->admin()->create();
         TeamMembership::factory()->for($team)->for($member)->create();
-        $this->actingAs($member)->deleteJson(route('api.v1.internal.ui.teams.leave', $team))->assertOk()->assertJsonPath('data.left', true);
+        $this->actingAs($member)->deleteJson(route('app.teams.leave', $team))->assertOk()->assertJsonPath('data.left', true);
         $this->assertDatabaseMissing('team_memberships', ['team_id' => $team->id, 'user_id' => $member->id]);
-        $this->actingAs($admin)->deleteJson(route('api.v1.internal.ui.teams.leave', $team))->assertUnprocessable()->assertJsonValidationErrors(['role']);
+        $this->actingAs($admin)->deleteJson(route('app.teams.leave', $team))->assertUnprocessable()->assertJsonValidationErrors(['role']);
     }
 }

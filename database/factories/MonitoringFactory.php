@@ -80,7 +80,7 @@ class MonitoringFactory extends Factory
         return $this->state(function (): array {
             return [
                 'type' => MonitoringType::SERVER_HEALTH,
-                'target' => 'https://webguard.test/api/v1/server-health/example-token',
+                'target' => 'https://webguard.test/api/server-health/example-token',
                 'server_health_token' => 'example-token',
                 'server_health_last_reported_at' => null,
                 'server_health_cpu_threshold_percent' => 90.0,

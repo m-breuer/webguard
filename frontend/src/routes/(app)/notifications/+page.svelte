@@ -60,7 +60,7 @@
         if (!reset && meta.next_cursor) params.set("cursor", meta.next_cursor);
 
         try {
-            const payload = await requestFirstPartyApi<NotificationEntry[], NotificationInboxMeta>(`/api/v1/internal/ui/notifications?${params.toString()}`);
+            const payload = await requestFirstPartyApi<NotificationEntry[], NotificationInboxMeta>(`/api/notifications?${params.toString()}`);
             if (!payload.meta) {
                 throw new Error("Notification metadata is missing.");
             }
@@ -79,7 +79,7 @@
 
         try {
             const payload = await requestFirstPartyApi<{ read_notification_ids: string[] }, { unread_count: number }>(
-                `/api/v1/internal/ui/notifications/${entry.id}/read`,
+                `/api/notifications/${entry.id}/read`,
                 { method: "PATCH" },
             );
             entries = showRead
@@ -101,7 +101,7 @@
 
         try {
             const payload = await requestFirstPartyApi<{ read: boolean }, { unread_count: number }>(
-                "/api/v1/internal/ui/notifications/read-all",
+                "/api/notifications/read-all",
                 { method: "PATCH" },
             );
             entries = showRead ? entries.map((entry) => ({ ...entry, read: true })) : [];

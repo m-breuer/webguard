@@ -37,4 +37,4 @@ HTTP and keyword monitorings may configure `response_time_threshold_ms` and `res
 
 ## Compatibility and idempotency
 
-The instance route families remain `/api/v1/internal/*` and `/api/v1/internal/instances/*`; their authentication and retry behavior do not change. Both route families accept the same additive payload. A repeated observation can be stored as before; degradation notifications are deduplicated by the persisted performance state.
+The instance route family remains `/api/instances/*`; its authentication and retry behavior do not change. A repeated observation can be stored as before; degradation notifications are deduplicated by the persisted performance state.

@@ -55,19 +55,19 @@ class MobileMaintenanceApiTest extends TestCase
         ]);
         $this->actingAsMobile($user);
 
-        $this->getJson('/api/v1/mobile/maintenance/capabilities')
+        $this->getJson('/api/mobile/maintenance/capabilities')
             ->assertOk()
             ->assertJsonPath('data.can_schedule', true)
             ->assertJsonPath('data.manageable_monitoring_ids.0', $privateMonitoring->id)
             ->assertJsonMissing(['id' => $teamMonitoring->id]);
 
-        $this->getJson('/api/v1/mobile/maintenance/one-off')
+        $this->getJson('/api/mobile/maintenance/one-off')
             ->assertOk()
             ->assertJsonFragment(['id' => $privateMonitoring->id, 'state' => 'active', 'can_manage' => true])
             ->assertJsonFragment(['id' => $teamMonitoring->id, 'state' => 'upcoming', 'can_manage' => false])
             ->assertJsonMissing(['id' => $otherMonitoring->id]);
 
-        $this->getJson('/api/v1/mobile/maintenance/recurring?state=upcoming')
+        $this->getJson('/api/mobile/maintenance/recurring?state=upcoming')
             ->assertOk()
             ->assertJsonPath('data.0.id', $maintenanceWindow->id)
             ->assertJsonPath('data.0.schedule.timezone', 'Europe/Berlin')
@@ -91,25 +91,25 @@ class MobileMaintenanceApiTest extends TestCase
         ];
 
         $this->withHeaders(['Idempotency-Key' => 'recurring-maintenance-001'])
-            ->postJson('/api/v1/mobile/maintenance', $payload)
+            ->postJson('/api/mobile/maintenance', $payload)
             ->assertCreated()
             ->assertJsonPath('data.kind', 'recurring')
             ->assertJsonPath('idempotent', false);
         $this->withHeaders(['Idempotency-Key' => 'recurring-maintenance-001'])
-            ->postJson('/api/v1/mobile/maintenance', $payload)
+            ->postJson('/api/mobile/maintenance', $payload)
             ->assertOk()
             ->assertJsonPath('idempotent', true);
         $this->assertDatabaseCount('maintenance_windows', 1);
 
         $maintenanceWindow = MaintenanceWindow::query()->firstOrFail();
-        $this->patchJson('/api/v1/mobile/maintenance/recurring/' . $maintenanceWindow->id, ['enabled' => false])
+        $this->patchJson('/api/mobile/maintenance/recurring/' . $maintenanceWindow->id, ['enabled' => false])
             ->assertOk()
             ->assertJsonPath('data.state', 'disabled');
-        $this->patchJson('/api/v1/mobile/maintenance/recurring/' . $maintenanceWindow->id, ['enabled' => true])
+        $this->patchJson('/api/mobile/maintenance/recurring/' . $maintenanceWindow->id, ['enabled' => true])
             ->assertOk()
             ->assertJsonPath('data.enabled', true);
 
-        $this->postJson('/api/v1/mobile/maintenance', [
+        $this->postJson('/api/mobile/maintenance', [
             'scope' => 'monitoring',
             'monitoring_id' => $monitoring->id,
             'maintenance_from' => '2026-10-26T10:00:00+01:00',
@@ -136,17 +136,17 @@ class MobileMaintenanceApiTest extends TestCase
             'maintenance_until' => '2026-08-10T11:00:00Z',
         ];
         $this->withHeaders(['Idempotency-Key' => 'group-maintenance-001'])
-            ->postJson('/api/v1/mobile/maintenance', $payload)
+            ->postJson('/api/mobile/maintenance', $payload)
             ->assertCreated()
             ->assertJsonPath('data.updated_count', 2);
         $this->withHeaders(['Idempotency-Key' => 'group-maintenance-001'])
-            ->postJson('/api/v1/mobile/maintenance', $payload)
+            ->postJson('/api/mobile/maintenance', $payload)
             ->assertOk()
             ->assertJsonPath('idempotent', true);
         $this->assertDatabaseHas('monitorings', ['id' => $firstMonitoring->id, 'maintenance_until' => '2026-08-10 11:00:00']);
-        $this->deleteJson('/api/v1/mobile/maintenance/one-off/' . $teamMonitoring->id)->assertNotFound();
+        $this->deleteJson('/api/mobile/maintenance/one-off/' . $teamMonitoring->id)->assertNotFound();
 
-        $this->deleteJson('/api/v1/mobile/maintenance/one-off/' . $firstMonitoring->id)->assertNoContent();
+        $this->deleteJson('/api/mobile/maintenance/one-off/' . $firstMonitoring->id)->assertNoContent();
         $this->assertDatabaseHas('monitorings', ['id' => $firstMonitoring->id, 'maintenance_from' => null, 'maintenance_until' => null]);
     }
 
@@ -173,7 +173,7 @@ class MobileMaintenanceApiTest extends TestCase
         $this->actingAsMobile($user);
 
         $this->withHeaders(['Idempotency-Key' => 'maintenance-notice-001'])
-            ->postJson('/api/v1/mobile/maintenance', [
+            ->postJson('/api/mobile/maintenance', [
                 'scope' => 'monitoring',
                 'monitoring_id' => $monitoring->id,
                 'maintenance_from' => '2026-08-20T10:00:00+00:00',

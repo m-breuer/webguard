@@ -4,8 +4,8 @@ import type { StatusPage, StatusPageIncident } from "$lib/api/status-pages";
 export async function load({ fetch, params }) {
     const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
     const [statusPageResponse, incidentsResponse] = await Promise.all([
-        fetch(`/api/v1/internal/ui/status-pages/${params.id}`, { headers }),
-        fetch(`/api/v1/internal/ui/status-pages/${params.id}/incidents?per_page=50`, { headers }),
+        fetch(`/api/status-pages/${params.id}`, { headers }),
+        fetch(`/api/status-pages/${params.id}/incidents?per_page=50`, { headers }),
     ]);
 
     if (!statusPageResponse.ok || !incidentsResponse.ok) {

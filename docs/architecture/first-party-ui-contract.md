@@ -2,7 +2,7 @@
 
 **Status:** Active private browser contract.  
 **Tracking:** [WebGuard #736](https://github.com/marcel-breuer/webguard/issues/736)  
-**Route namespace:** `/api/v1/internal/ui/*`
+**Route namespace:** `/api/*`
 
 This catalogue is the contract between the SvelteKit application and Laravel.
 It is intentionally separate from the external v1, mobile, scanner-instance,
@@ -29,7 +29,7 @@ and mutate browser state; it never accesses the database directly.
 
 ## Session and guest authentication
 
-`/api/v1/internal/ui/auth/*` is the only guest-accessible branch. It accepts
+`/api/auth/*` is the only guest-accessible branch. It accepts
 only callers that are not authenticated, except password confirmation and
 verification-mail resend, which require an authenticated session.
 

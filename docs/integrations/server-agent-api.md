@@ -12,7 +12,7 @@ part of the browser, public API, or scanner-instance API contracts.
 Each Server Health monitoring creates a private report URL:
 
 ```text
-POST /api/v1/server-health/{token}
+POST /api/server-health/{token}
 ```
 
 The token is the authentication secret. The agent must send HTTPS outside a
@@ -27,7 +27,7 @@ During the migration window, an agent may instead use a telemetry-only named
 API key created in Profile → API Configuration:
 
 ```text
-POST /api/v1/server-health/monitorings/{monitoring-id}
+POST /api/server-health/monitorings/{monitoring-id}
 Authorization: Bearer {telemetry-only-key}
 ```
 

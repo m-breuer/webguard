@@ -18,7 +18,7 @@ final class InternalUiTeamStoreApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $this->actingAs($user)->postJson(route('api.v1.internal.ui.teams.store'), ['name' => 'Platform', 'description' => 'Shared services'])
+        $this->actingAs($user)->postJson(route('app.teams.store'), ['name' => 'Platform', 'description' => 'Shared services'])
             ->assertCreated()->assertJsonPath('data.name', 'Platform')->assertJsonPath('data.role', 'admin');
 
         $this->assertDatabaseHas('teams', ['name' => 'Platform', 'created_by_user_id' => $user->id]);

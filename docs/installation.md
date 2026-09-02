@@ -328,18 +328,13 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/app" -w /app oven/bun:1 bun
 The local stack uses the shared Docker network `webguard-network`.
 Because the local Traefik service also has the network alias `webguard.test`, other containers on the same network can reach WebGuard through the same URL as your browser.
 
-That means `webguard-instance` can use the legacy compatibility base URL:
+That means `webguard-instance` can use either local Core hostname with the
+single instance base URL:
 
-- `http://webguard.test/api/v1/internal`
-- `http://webguard-core/api/v1/internal`
+- `http://webguard.test/api/instances`
+- `http://webguard-core/api/instances`
 
-Core also exposes the target instance base URL:
-
-- `http://webguard.test/api/v1/internal/instances`
-- `http://webguard-core/api/v1/internal/instances`
-
-Use the target base URL after the coordinated `webguard-instance` migration.
-The required rollout and compatibility rules are documented in the [WebGuard
+The required contract rules are documented in the [WebGuard
 Instance API contract](integrations/webguard-instance-api.md).
 
 Example:
@@ -350,7 +345,7 @@ services:
     networks:
       - webguard-network
     environment:
-      WEBGUARD_CORE_API_URL: http://webguard.test/api/v1/internal
+      WEBGUARD_CORE_API_URL: http://webguard.test/api/instances
 
 networks:
   webguard-network:

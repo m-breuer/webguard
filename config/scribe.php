@@ -16,7 +16,7 @@ return [
     'title' => config('app.name') . ' API Reference',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => 'Stable external REST API v1 for monitoring management, status data, teams, and operations overviews.',
+    'description' => 'Stable REST API for monitoring management, status data, teams, and operations overviews.',
 
     // The base URL displayed in the docs.
     // If you're using `laravel` type, you can set this to a dynamic string, like '{{ config("app.tenant_url") }}' to get a dynamic base URL.
@@ -27,7 +27,7 @@ return [
         [
             'match' => [
                 // Match only routes whose paths match this pattern (use * as a wildcard to match any characters). Example: 'users/*'.
-                'prefixes' => ['api/v1/*'],
+                'prefixes' => ['api/*'],
 
                 // Match only routes whose domains match this pattern (use * as a wildcard to match any characters). Example: 'api.*'.
                 'domains' => ['*'],
@@ -40,10 +40,10 @@ return [
 
             // Exclude these routes even if they matched the rules above.
             'exclude' => [
-                'api/v1/internal/*',
-                'api/v1/server-health/*',
-                'api/v1/mobile/*',
-                'api/v1/mobile-push-devices*',
+                'api/auth/*',
+                'api/instances/*',
+                'api/mobile/*',
+                'api/server-health/*',
             ],
         ],
     ],
@@ -127,7 +127,7 @@ return [
     ],
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
-    'intro_text' => 'This reference documents the stable `/api/v1` integration contract. Existing response bodies remain backward compatible. The repository guide `docs/api/external-v1.md` defines pagination, errors, idempotency, and deprecation policy.',
+    'intro_text' => 'This reference documents the stable `/api` integration contract. Existing response bodies remain backward compatible. The repository guide `docs/api/external-v1.md` defines pagination, errors, idempotency, and deprecation policy.',
 
     // Example requests for each endpoint will be shown in each of these languages.
     // Supported options are: bash, javascript, php, python

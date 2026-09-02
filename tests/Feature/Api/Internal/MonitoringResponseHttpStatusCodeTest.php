@@ -36,7 +36,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
         $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->postJson(route('v1.internal.monitoring-responses.store'), [
+        ])->postJson(route('instances.monitoring-responses.store'), [
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::DOWN->value,
             'http_status_code' => 503,
@@ -71,7 +71,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
         $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->postJson(route('v1.internal.monitoring-responses.store'), [
+        ])->postJson(route('instances.monitoring-responses.store'), [
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP->value,
             'http_status_code' => 200,
@@ -105,7 +105,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
         $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->postJson(route('v1.internal.monitoring-responses.store'), [
+        ])->postJson(route('instances.monitoring-responses.store'), [
             'monitoring_id' => $monitoring->id,
             'status' => MonitoringStatus::UP->value,
             'http_status_code' => 99,
@@ -137,7 +137,7 @@ class MonitoringResponseHttpStatusCodeTest extends TestCase
             $this->withHeaders([
                 'X-INSTANCE-CODE' => $serverInstance->code,
                 'X-API-KEY' => 'test-token-1234567890',
-            ])->postJson(route('v1.internal.monitoring-responses.store'), [
+            ])->postJson(route('instances.monitoring-responses.store'), [
                 'monitoring_id' => $monitoring->id,
                 'status' => MonitoringStatus::UP->value,
                 'http_status_code' => 200,

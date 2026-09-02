@@ -35,7 +35,8 @@ class TrackApiUsage
             $user = auth('sanctum')->user();
 
             if ($user) {
-                if ($this->isMobileAppToken($user->currentAccessToken())) {
+                $accessToken = $user->currentAccessToken();
+                if (! $accessToken instanceof PersonalAccessToken || $this->isMobileAppToken($accessToken)) {
                     return $this->withRequestId($next($request), $requestId);
                 }
 

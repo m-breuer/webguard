@@ -20,7 +20,7 @@ final class InternalUiProfileApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create(['notification_channels' => ['telegram' => ['bot_token' => 'secret']]]);
 
-        $testResponse = $this->actingAs($user)->patchJson(route('api.v1.internal.ui.profile.update'), [
+        $testResponse = $this->actingAs($user)->patchJson(route('app.profile.update'), [
             'name' => 'Updated member',
             'email' => 'updated@example.test',
         ]);
@@ -38,13 +38,13 @@ final class InternalUiProfileApiTest extends TestCase
 
     public function test_profile_contract_requires_authentication_and_valid_data(): void
     {
-        $this->patchJson(route('api.v1.internal.ui.profile.update'), [])->assertUnauthorized();
+        $this->patchJson(route('app.profile.update'), [])->assertUnauthorized();
 
         Package::factory()->create();
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->patchJson(route('api.v1.internal.ui.profile.update'), ['name' => '', 'email' => 'not-an-email'])
+            ->patchJson(route('app.profile.update'), ['name' => '', 'email' => 'not-an-email'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name', 'email']);
     }

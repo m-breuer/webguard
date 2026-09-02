@@ -1,6 +1,6 @@
 # WebGuard Instance API contract
 
-**Status:** Current compatibility baseline and planned path migration.  
+**Status:** Current instance contract.  
 **Core tracking:** [WebGuard Core #593](https://github.com/marcel-breuer/webguard/issues/593)  
 **Instance tracking:** [webguard-instance #35](https://github.com/marcel-breuer/webguard-instance/issues/35)
 
@@ -15,16 +15,11 @@ The website-check cadence is tracked by [WebGuard Core #716](https://github.com/
 
 ## Compatibility and base URL
 
-Core exposes both `/api/v1/internal` and `/api/v1/internal/instances` with
-equivalent behavior. The legacy path remains available until both linked issues
-have completed their contract-test and rollout conditions.
-
-The instance adapter must make the Core base URL configurable and must support
-both bases during that compatibility window:
+Core exposes one instance base URL. The instance adapter must keep the Core base
+URL configurable:
 
 ```text
-Legacy:  https://core.example/api/v1/internal
-Target:  https://core.example/api/v1/internal/instances
+https://core.example/api/instances
 ```
 
 For local Docker setup, see [installation](../installation.md#webguard-instance-integration-with-local-docker).
@@ -45,22 +40,18 @@ Core rejects missing, inactive, unknown, or invalid credentials with `401` and
 its authenticated instance code. It must use HTTPS outside trusted local Docker
 networks.
 
-## Current endpoints and target paths
+## Endpoints
 
-The paths below are equivalent compatibility routes. Core will not remove or
-redirect the legacy paths before the coordinated rollout.
+Prefix every path with `https://core.example/api/instances`.
 
-| Method | Current path | Target path | Purpose |
-| --- | --- | --- | --- |
-| `GET` | `/monitorings` | `/monitorings` | Fetch active monitorings assigned to the instance. |
-| `POST` | `/monitoring-responses` | `/monitoring-responses` | Submit a monitoring result. |
-| `POST` | `/incidents` | `/incidents` | Open an incident for a single-location monitoring. |
-| `PUT` | `/incidents/{monitoring}` | `/incidents/{monitoring}` | Close an open incident. |
-| `POST` | `/ssl-results` | `/ssl-results` | Submit SSL result data. |
-| `POST` | `/domain-results` | `/domain-results` | Submit domain-expiration result data. |
-
-For the current column, prefix each path with the legacy base URL. For the target
-column, prefix it with the target base URL; the suffix is intentionally the same.
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/monitorings` | Fetch active monitorings assigned to the instance. |
+| `POST` | `/monitoring-responses` | Submit a monitoring result. |
+| `POST` | `/incidents` | Open an incident for a single-location monitoring. |
+| `PUT` | `/incidents/{monitoring}` | Close an open incident. |
+| `POST` | `/ssl-results` | Submit SSL result data. |
+| `POST` | `/domain-results` | Submit domain-expiration result data. |
 
 ## Monitoring retrieval
 
@@ -144,17 +135,11 @@ assuming the callback was not persisted.
 A later idempotency change requires a new linked Core and instance issue and an
 additive contract section before either repository implements it.
 
-## Coordinated rollout checklist
+## Coordinated changes
 
-1. Core provides target `/api/v1/internal/instances/*` routes as compatibility
-   adapters with identical authentication, validation, status codes, and payloads.
-2. Core adds feature tests proving both legacy and target routes behave the same.
-3. `webguard-instance` adds configurable base-path support and contract tests,
-   tracked in [#35](https://github.com/marcel-breuer/webguard-instance/issues/35).
-4. Deploy Core with both paths, then migrate instance deployments to the target
-   base URL.
-5. Confirm legacy-path traffic has drained and contract tests pass in both
-   repositories before scheduling legacy removal.
+1. Create and link a `webguard-instance` issue before changing this contract.
+2. Update Core and instance contract tests together.
+3. Deploy compatible Core and instance changes as one coordinated rollout.
 
 No Core change may require a scanner implementation change without updating this
 document and creating or linking the corresponding `webguard-instance` issue.

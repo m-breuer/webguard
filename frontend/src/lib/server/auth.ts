@@ -18,7 +18,7 @@ export function setAuthPageHeaders(setHeaders: (headers: Record<string, string>)
 }
 
 export async function loadGuestAuthContext(fetcher: typeof fetch): Promise<GuestAuthContext> {
-    const session = await fetcher("/api/v1/internal/ui/session", {
+    const session = await fetcher("/api/session", {
         headers: { Accept: "application/json" },
     });
 
@@ -30,7 +30,7 @@ export async function loadGuestAuthContext(fetcher: typeof fetch): Promise<Guest
         error(session.status, "Your session could not be checked.");
     }
 
-    const response = await fetcher("/api/v1/internal/ui/auth/options", {
+    const response = await fetcher("/api/auth/options", {
         headers: { Accept: "application/json" },
     });
 

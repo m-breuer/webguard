@@ -30,7 +30,7 @@ class UptimeDowntimeApiTest extends TestCase
             'created_at' => Date::now()->subMinutes(30),
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('has_data', false);
@@ -65,7 +65,7 @@ class UptimeDowntimeApiTest extends TestCase
             'up_at' => null,
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=1');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-downtime?days=1');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('has_data', true);
@@ -107,7 +107,7 @@ class UptimeDowntimeApiTest extends TestCase
             'up_at' => $aggregatedDate->copy()->addHours(2),
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('has_data', true);
@@ -146,7 +146,7 @@ class UptimeDowntimeApiTest extends TestCase
             'incidents_count' => 3,
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-downtime?days=7');
 
         $testResponse->assertOk();
         $testResponse->assertJsonPath('has_data', true);
@@ -204,7 +204,7 @@ class UptimeDowntimeApiTest extends TestCase
         DB::enableQueryLog();
 
         foreach ([7, 30, 90] as $days) {
-            $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime?days=' . $days)
+            $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-downtime?days=' . $days)
                 ->assertOk();
         }
 
@@ -213,7 +213,7 @@ class UptimeDowntimeApiTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $testResponse = $this->actingAs($user)->getJson('/api/v1/monitorings/' . $monitoring->id . '/uptime-downtime-summary?' . http_build_query([
+        $testResponse = $this->actingAs($user)->getJson('/api/monitorings/' . $monitoring->id . '/uptime-downtime-summary?' . http_build_query([
             'days' => [7, 30, 90],
         ]));
 

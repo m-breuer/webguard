@@ -19,7 +19,7 @@ export interface NotificationSettings {
 
 export async function load({ fetch }) {
     const response = await fetch(
-        "/api/v1/internal/ui/profile/notification-settings",
+        "/api/profile/notification-settings",
         {
             headers: { Accept: "application/json" },
         },

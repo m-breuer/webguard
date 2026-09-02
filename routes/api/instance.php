@@ -17,5 +17,4 @@ $registerInstanceRoutes = static function (string $prefix, string $namePrefix): 
     });
 };
 
-$registerInstanceRoutes('v1/internal', 'v1.internal.');
-$registerInstanceRoutes('v1/internal/instances', 'v1.internal.instances.');
+$registerInstanceRoutes('instances', 'instances.');

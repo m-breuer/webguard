@@ -48,7 +48,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'response_time' => 128.4,
         ]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.index', [
+        $this->actingAs($user)->getJson(route('app.monitorings.index', [
             'per_page' => 1,
             'search' => 'Visible',
         ]))
@@ -75,7 +75,7 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonMissing(['name' => 'Hidden API']);
 
         $this->assertInternalUiTelemetry(
-            $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.index')),
+            $this->actingAs($user)->getJson(route('app.monitorings.index')),
             10,
             131072,
         );
@@ -85,21 +85,21 @@ class InternalUiMonitoringApiTest extends TestCase
     {
         $monitoring = Monitoring::factory()->create();
 
-        $this->getJson(route('api.v1.internal.ui.monitorings.index'))
+        $this->getJson(route('app.monitorings.index'))
             ->assertUnauthorized();
-        $this->getJson(route('api.v1.internal.ui.monitorings.show', $monitoring))
+        $this->getJson(route('app.monitorings.show', $monitoring))
             ->assertUnauthorized();
-        $this->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring))
+        $this->getJson(route('app.monitorings.detail-data', $monitoring))
             ->assertUnauthorized();
-        $this->getJson(route('api.v1.internal.ui.monitorings.cards', ['ids' => [$monitoring->id]]))
+        $this->getJson(route('app.monitorings.cards', ['ids' => [$monitoring->id]]))
             ->assertUnauthorized();
-        $this->getJson(route('api.v1.internal.ui.monitorings.form-options'))
+        $this->getJson(route('app.monitorings.form-options'))
             ->assertUnauthorized();
-        $this->getJson(route('api.v1.internal.ui.monitoring-groups.index'))
+        $this->getJson(route('app.monitoring-groups.index'))
             ->assertUnauthorized();
-        $this->getJson(route('api.v1.internal.ui.maintenance.capabilities'))
+        $this->getJson(route('app.maintenance.capabilities'))
             ->assertUnauthorized();
-        $this->postJson(route('api.v1.internal.ui.monitorings.store'), [])
+        $this->postJson(route('app.monitorings.store'), [])
             ->assertUnauthorized();
     }
 
@@ -108,9 +108,9 @@ class InternalUiMonitoringApiTest extends TestCase
         $user = User::factory()->create();
         $foreignMonitoring = Monitoring::factory()->create();
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.show', $foreignMonitoring))
+        $this->actingAs($user)->getJson(route('app.monitorings.show', $foreignMonitoring))
             ->assertNotFound();
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $foreignMonitoring))
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', $foreignMonitoring))
             ->assertNotFound();
     }
 
@@ -155,7 +155,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'up_at' => now()->subHour(),
         ]);
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring));
+        $testResponse = $this->actingAs($user)->getJson(route('app.monitorings.detail-data', $monitoring));
 
         $testResponse->assertOk()
             ->assertJsonPath('data.recent_checks.0.response_time', 123.4)
@@ -208,13 +208,13 @@ class InternalUiMonitoringApiTest extends TestCase
             ]);
         }
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring))
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', $monitoring))
             ->assertOk()
             ->assertJsonCount(5, 'data.recent_checks')
             ->assertJsonPath('meta.recent_checks.has_more', true)
             ->assertJsonPath('meta.recent_checks.next_offset', 5);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', [
             'monitoring' => $monitoring,
             'checks_offset' => 5,
         ]))
@@ -223,7 +223,7 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonPath('meta.recent_checks.has_more', true)
             ->assertJsonPath('meta.recent_checks.next_offset', 10);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', [
             'monitoring' => $monitoring,
             'checks_offset' => -1,
         ]))->assertUnprocessable();
@@ -244,14 +244,14 @@ class InternalUiMonitoringApiTest extends TestCase
             ]);
         }
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', $monitoring))
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', $monitoring))
             ->assertOk()
             ->assertJsonCount(5, 'data.incidents')
             ->assertJsonPath('meta.incidents.limit', 5)
             ->assertJsonPath('meta.incidents.has_more', true)
             ->assertJsonPath('meta.incidents.next_offset', 5);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', [
             'monitoring' => $monitoring,
             'incident_offset' => 5,
             'response_time_days' => 7,
@@ -262,12 +262,12 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonPath('meta.incidents.next_offset', null)
             ->assertJsonPath('meta.response_times.days', 7);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', [
             'monitoring' => $monitoring,
             'incident_offset' => -1,
         ]))->assertUnprocessable();
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.detail-data', [
+        $this->actingAs($user)->getJson(route('app.monitorings.detail-data', [
             'monitoring' => $monitoring,
             'response_time_days' => 2,
         ]))->assertUnprocessable();
@@ -279,7 +279,7 @@ class InternalUiMonitoringApiTest extends TestCase
         $firstMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Primary API']);
         $secondMonitoring = Monitoring::factory()->for($user)->create(['name' => 'Website']);
 
-        $testResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitoring-groups.store'), [
+        $testResponse = $this->actingAs($user)->postJson(route('app.monitoring-groups.store'), [
             'name' => 'Production',
             'description' => 'Critical services',
             'monitoring_ids' => [$firstMonitoring->id],
@@ -287,16 +287,16 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonPath('data.assignments.0.id', $firstMonitoring->id);
         $groupId = $testResponse->json('data.id');
 
-        $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitoring-groups.update', $groupId), [
+        $this->actingAs($user)->patchJson(route('app.monitoring-groups.update', $groupId), [
             'monitoring_ids' => [$secondMonitoring->id],
         ])
             ->assertOk()
             ->assertJsonPath('data.assignments.0.id', $secondMonitoring->id);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.notification-preferences.show', $firstMonitoring))
+        $this->actingAs($user)->getJson(route('app.monitorings.notification-preferences.show', $firstMonitoring))
             ->assertOk()
             ->assertJsonPath('data.monitoring_id', $firstMonitoring->id);
-        $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitorings.notification-preferences.update', $firstMonitoring), [
+        $this->actingAs($user)->patchJson(route('app.monitorings.notification-preferences.update', $firstMonitoring), [
             'notification_on_failure' => false,
             'notification_channels' => [],
             'ssl_expiry_warning_days' => 14,
@@ -307,7 +307,7 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $this->actingAs($user)
             ->withHeader('Idempotency-Key', 'internal-ui-maintenance-001')
-            ->postJson(route('api.v1.internal.ui.maintenance.store'), [
+            ->postJson(route('app.maintenance.store'), [
                 'mode' => 'one_off',
                 'scope' => 'group',
                 'monitoring_group_id' => $groupId,
@@ -318,7 +318,7 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonPath('data.kind', 'one_off')
             ->assertJsonPath('data.updated_count', 1);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.maintenance.one-off.index'))
+        $this->actingAs($user)->getJson(route('app.maintenance.one-off.index'))
             ->assertOk()
             ->assertJsonPath('data.0.target.id', $secondMonitoring->id);
     }
@@ -331,16 +331,16 @@ class InternalUiMonitoringApiTest extends TestCase
         $team = Team::factory()->create(['created_by_user_id' => $owner->id]);
         $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::ADMIN]);
 
-        $this->actingAs($owner)->postJson(route('api.v1.internal.ui.monitorings.ownership.team.store', $monitoring), [
+        $this->actingAs($owner)->postJson(route('app.monitorings.ownership.team.store', $monitoring), [
             'team_id' => $team->id,
         ])
             ->assertOk()
             ->assertJsonPath('data.ownership.type', 'team')
             ->assertJsonPath('data.ownership.team_id', $team->id);
 
-        $this->actingAs($otherUser)->postJson(route('api.v1.internal.ui.monitorings.ownership.private.store', $monitoring))
+        $this->actingAs($otherUser)->postJson(route('app.monitorings.ownership.private.store', $monitoring))
             ->assertNotFound();
-        $this->actingAs($owner)->postJson(route('api.v1.internal.ui.monitorings.ownership.private.store', $monitoring))
+        $this->actingAs($owner)->postJson(route('app.monitorings.ownership.private.store', $monitoring))
             ->assertOk()
             ->assertJsonPath('data.ownership.type', 'private');
     }
@@ -357,7 +357,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'response_time' => 128.4,
         ]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+        $this->actingAs($user)->getJson(route('app.monitorings.cards', [
             'ids' => [$visibleMonitoring->id, $foreignMonitoring->id],
         ]))
             ->assertOk()
@@ -366,7 +366,7 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $unverifiedUser = User::factory()->unverified()->create();
 
-        $this->actingAs($unverifiedUser)->getJson(route('api.v1.internal.ui.monitorings.index'))
+        $this->actingAs($unverifiedUser)->getJson(route('app.monitorings.index'))
             ->assertForbidden();
     }
 
@@ -376,19 +376,19 @@ class InternalUiMonitoringApiTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Scoped detail API']);
 
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.monitorings.index', ['per_page' => 101]))
+            ->getJson(route('app.monitorings.index', ['per_page' => 101]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('per_page');
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.monitorings.cards'))
+            ->getJson(route('app.monitorings.cards'))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('ids');
         $this->actingAs($user)
-            ->getJson(route('api.v1.internal.ui.monitorings.cards', ['ids' => array_fill(0, 101, $monitoring->id)]))
+            ->getJson(route('app.monitorings.cards', ['ids' => array_fill(0, 101, $monitoring->id)]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('ids');
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.show', $monitoring));
+        $testResponse = $this->actingAs($user)->getJson(route('app.monitorings.show', $monitoring));
 
         $this->assertDataEnvelope($testResponse, ['data.id', 'data.name']);
         $testResponse->assertJsonPath('data.id', $monitoring->id)
@@ -417,7 +417,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'updated_at' => $foreignCheckedAt,
         ]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+        $this->actingAs($user)->getJson(route('app.monitorings.cards', [
             'ids' => [$ownedMonitoring->id, $foreignMonitoring->id],
         ]))
             ->assertOk()
@@ -434,7 +434,7 @@ class InternalUiMonitoringApiTest extends TestCase
 
         $monitorings = Monitoring::factory()->count(26)->for($user)->create();
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+        $this->actingAs($user)->getJson(route('app.monitorings.cards', [
             'ids' => $monitorings->pluck('id')->all(),
         ]))
             ->assertOk()
@@ -485,7 +485,7 @@ class InternalUiMonitoringApiTest extends TestCase
         DB::flushQueryLog();
         DB::enableQueryLog();
 
-        $testResponse = $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.cards', [
+        $testResponse = $this->actingAs($user)->getJson(route('app.monitorings.cards', [
             'ids' => $monitorings->pluck('id')->all(),
         ]));
 
@@ -510,7 +510,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.form-options'))
+        $this->actingAs($user)->getJson(route('app.monitorings.form-options'))
             ->assertOk()
             ->assertSee($serverInstance->code)
             ->assertJsonFragment(['http']);
@@ -528,19 +528,19 @@ class InternalUiMonitoringApiTest extends TestCase
             'ssl_expiry_warning_days' => 7,
         ];
 
-        $testResponse = $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), $payload)
+        $testResponse = $this->actingAs($user)->postJson(route('app.monitorings.store'), $payload)
             ->assertCreated()
             ->assertJsonPath('data.name', 'First-party API check')
             ->assertJsonMissingPath('data.auth_password');
         $monitoringId = $testResponse->json('data.id');
 
-        $this->actingAs($user)->getJson(route('api.v1.internal.ui.monitorings.form-options.edit', $monitoringId))
+        $this->actingAs($user)->getJson(route('app.monitorings.form-options.edit', $monitoringId))
             ->assertOk()
             ->assertJsonPath('data.monitoring.name', 'First-party API check')
             ->assertJsonMissingPath('data.monitoring.auth_password')
             ->assertJsonMissingPath('data.monitoring.http_headers');
 
-        $this->actingAs($user)->patchJson(route('api.v1.internal.ui.monitorings.update', $monitoringId), [
+        $this->actingAs($user)->patchJson(route('app.monitorings.update', $monitoringId), [
             ...$payload,
             'name' => 'Updated first-party API check',
             'status' => MonitoringLifecycleStatus::PAUSED->value,
@@ -548,7 +548,7 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.name', 'Updated first-party API check');
 
-        $this->actingAs($user)->deleteJson(route('api.v1.internal.ui.monitorings.destroy', $monitoringId))
+        $this->actingAs($user)->deleteJson(route('app.monitorings.destroy', $monitoringId))
             ->assertOk()
             ->assertJsonPath('data.deleted', true);
     }
@@ -565,7 +565,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), [
+        $this->actingAs($user)->postJson(route('app.monitorings.store'), [
             'name' => 'Overflow check',
             'type' => MonitoringType::HTTP->value,
             'target' => 'https://monitoring.example.test',
@@ -593,7 +593,7 @@ class InternalUiMonitoringApiTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->actingAs($user)->postJson(route('api.v1.internal.ui.monitorings.store'), [
+        $this->actingAs($user)->postJson(route('app.monitorings.store'), [
             'name' => 'Team check',
             'type' => MonitoringType::HTTP->value,
             'target' => 'https://monitoring.example.test',

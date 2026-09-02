@@ -20,7 +20,7 @@ class MobilePushDeviceApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $testResponse = $this->actingAs($user)->postJson('/api/v1/mobile-push-devices', [
+        $testResponse = $this->actingAs($user)->postJson('/api/mobile/push-devices', [
             'platform' => 'ios',
             'push_provider' => 'apns',
             'push_token' => 'apns-token-123',
@@ -54,13 +54,13 @@ class MobilePushDeviceApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create();
 
-        $this->actingAs($user)->postJson('/api/v1/mobile-push-devices', [
+        $this->actingAs($user)->postJson('/api/mobile/push-devices', [
             'platform' => 'android',
             'push_token' => 'same-fcm-token',
             'device_name' => 'Old name',
         ])->assertCreated();
 
-        $testResponse = $this->actingAs($user)->postJson('/api/v1/mobile-push-devices', [
+        $testResponse = $this->actingAs($user)->postJson('/api/mobile/push-devices', [
             'platform' => 'android',
             'push_token' => 'same-fcm-token',
             'device_name' => 'New name',
@@ -83,13 +83,13 @@ class MobilePushDeviceApiTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->getJson('/api/v1/mobile-push-devices')
+            ->getJson('/api/mobile/push-devices')
             ->assertOk()
             ->assertJsonPath('data.0.id', $device->id)
             ->assertJsonMissingPath('data.0.push_token');
 
         $this->actingAs($user)
-            ->patchJson('/api/v1/mobile-push-devices/' . $device->id, [
+            ->patchJson('/api/mobile/push-devices/' . $device->id, [
                 'device_name' => 'Pixel 9',
                 'enabled' => false,
             ])
@@ -98,7 +98,7 @@ class MobilePushDeviceApiTest extends TestCase
             ->assertJsonPath('data.enabled', false);
 
         $this->actingAs($user)
-            ->deleteJson('/api/v1/mobile-push-devices/' . $device->id)
+            ->deleteJson('/api/mobile/push-devices/' . $device->id)
             ->assertNoContent();
 
         $device->refresh();
@@ -114,13 +114,13 @@ class MobilePushDeviceApiTest extends TestCase
         $device = MobilePushDevice::factory()->for($otherUser)->create();
 
         $this->actingAs($user)
-            ->patchJson('/api/v1/mobile-push-devices/' . $device->id, [
+            ->patchJson('/api/mobile/push-devices/' . $device->id, [
                 'enabled' => false,
             ])
             ->assertNotFound();
 
         $this->actingAs($user)
-            ->deleteJson('/api/v1/mobile-push-devices/' . $device->id)
+            ->deleteJson('/api/mobile/push-devices/' . $device->id)
             ->assertNotFound();
     }
 }

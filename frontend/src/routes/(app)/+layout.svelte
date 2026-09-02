@@ -13,7 +13,7 @@
     let { data, children }: Props = $props();
 
     async function signOut(): Promise<void> {
-        await requestFirstPartyApi("/api/v1/internal/ui/session/logout", { method: "POST" });
+        await requestFirstPartyApi("/api/session/logout", { method: "POST" });
         window.location.assign("/login");
     }
 </script>

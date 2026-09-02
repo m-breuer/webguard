@@ -32,7 +32,7 @@
         actionPending = true;
         error = "";
         try {
-            editing = (await requestFirstPartyApi<StatusPage>(`/api/v1/internal/ui/status-pages/${statusPage.id}`)).data;
+            editing = (await requestFirstPartyApi<StatusPage>(`/api/status-pages/${statusPage.id}`)).data;
             editOpen = true;
         } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "The status page could not be loaded."; } finally { actionPending = false; }
     }
@@ -47,7 +47,7 @@
         actionPending = true;
         error = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/status-pages/${statusPage.id}`, { method: "DELETE" });
+            await requestFirstPartyApi(`/api/status-pages/${statusPage.id}`, { method: "DELETE" });
             await reload();
         } catch (exception) { error = exception instanceof FirstPartyApiError ? exception.message : "The status page could not be deleted."; } finally { actionPending = false; }
     }
@@ -61,5 +61,5 @@
     {#if data.statusPages.data.length === 0}<EmptyState title="No status pages yet" description="Create a status page to share service availability with subscribers." />{:else}<section class="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-4">{#each data.statusPages.data as statusPage (statusPage.id)}<Card title={statusPage.name} description={statusPage.description ?? "No description provided."}>{#snippet actions()}<div class="flex items-center gap-2"><StatusBadge tone={statusPage.publication.is_public ? "healthy" : "paused"} label={statusPage.publication.is_public ? "Public" : "Private"} /><span class="text-sm font-bold text-wg-text-muted">{statusPage.component_count} components</span></div>{/snippet}<div class="flex flex-wrap gap-3 md:flex-nowrap"><Button class="min-h-10 px-3 py-1.5" variant="secondary" type="button" onclick={() => goto(`/status-pages/${statusPage.id}`)}>Open</Button>{#if statusPage.publication.is_public}<a class="inline-flex min-h-10 items-center justify-center rounded-md border border-wg-border px-3 py-1.5 text-sm font-bold text-wg-text no-underline" href={`/status/${statusPage.id}`} target="_blank" rel="noreferrer">Public page</a>{/if}<Button class="min-h-10 px-3 py-1.5" variant="secondary" type="button" disabled={actionPending} aria-busy={actionPending} onclick={() => edit(statusPage)}>Edit</Button><Button class="min-h-10 px-3 py-1.5" variant="danger" type="button" disabled={actionPending} aria-busy={actionPending} onclick={() => remove(statusPage)}>Delete</Button></div></Card>{/each}</section>{/if}
 </main>
 
-<Dialog bind:open={createOpen} title="Create status page" description="Add service components without nested panels or a second submit."><StatusPageForm action="/api/v1/internal/ui/status-pages" method="POST" monitorings={data.options.data.monitorings} onSuccess={reload} /></Dialog>
-<Dialog bind:open={editOpen} title="Edit status page" description="Update status-page details and components in one request.">{#if editing}<StatusPageForm action={`/api/v1/internal/ui/status-pages/${editing.id}`} method="PATCH" statusPage={editing} monitorings={data.options.data.monitorings} onSuccess={reload} />{/if}</Dialog>
+<Dialog bind:open={createOpen} title="Create status page" description="Add service components without nested panels or a second submit."><StatusPageForm action="/api/status-pages" method="POST" monitorings={data.options.data.monitorings} onSuccess={reload} /></Dialog>
+<Dialog bind:open={editOpen} title="Edit status page" description="Update status-page details and components in one request.">{#if editing}<StatusPageForm action={`/api/status-pages/${editing.id}`} method="PATCH" statusPage={editing} monitorings={data.options.data.monitorings} onSuccess={reload} />{/if}</Dialog>

@@ -31,7 +31,7 @@
         actionPending = true;
         actionError = "";
         try {
-            editing = (await requestFirstPartyApi<MonitoringGroup>(`/api/v1/internal/ui/monitoring-groups/${group.id}`)).data;
+            editing = (await requestFirstPartyApi<MonitoringGroup>(`/api/monitoring-groups/${group.id}`)).data;
             editOpen = true;
         } catch (exception) {
             actionError = exception instanceof FirstPartyApiError ? exception.message : "The monitoring group could not be loaded.";
@@ -50,7 +50,7 @@
         actionPending = true;
         actionError = "";
         try {
-            await requestFirstPartyApi(`/api/v1/internal/ui/monitoring-groups/${group.id}`, { method: "DELETE" });
+            await requestFirstPartyApi(`/api/monitoring-groups/${group.id}`, { method: "DELETE" });
             await reload();
         } catch (exception) {
             actionError = exception instanceof FirstPartyApiError ? exception.message : "The monitoring group could not be deleted.";
@@ -68,5 +68,5 @@
     {#if data.groups.data.length === 0}<EmptyState title="No monitoring groups yet" description="Create a group to organize related private monitorings." />{:else}<section class="grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">{#each data.groups.data as group (group.id)}<Card title={group.name} description={group.description ?? "No description provided."}>{#snippet actions()}<span class="text-sm font-bold text-wg-text-muted">{group.assignable_monitoring_count} monitorings</span>{/snippet}<div class="flex flex-wrap gap-3 md:flex-nowrap"><Button class="min-h-10 px-3 py-1.5" variant="secondary" type="button" disabled={actionPending} aria-busy={actionPending} onclick={() => edit(group)}>Edit</Button><Button class="min-h-10 px-3 py-1.5" variant="danger" type="button" disabled={actionPending} aria-busy={actionPending} onclick={() => remove(group)}>Delete</Button></div></Card>{/each}</section>{/if}
 </main>
 
-<Dialog bind:open={createOpen} title="Create monitoring group" description="Assign private monitorings now or update the group later."><MonitoringGroupForm action="/api/v1/internal/ui/monitoring-groups" method="POST" assignments={data.assignments.data} onSuccess={reload} /></Dialog>
-<Dialog bind:open={editOpen} title="Edit monitoring group" description="Update the group and its private monitoring assignments.">{#if editing}<MonitoringGroupForm action={`/api/v1/internal/ui/monitoring-groups/${editing.id}`} method="PATCH" group={editing} assignments={data.assignments.data} onSuccess={reload} />{/if}</Dialog>
+<Dialog bind:open={createOpen} title="Create monitoring group" description="Assign private monitorings now or update the group later."><MonitoringGroupForm action="/api/monitoring-groups" method="POST" assignments={data.assignments.data} onSuccess={reload} /></Dialog>
+<Dialog bind:open={editOpen} title="Edit monitoring group" description="Update the group and its private monitoring assignments.">{#if editing}<MonitoringGroupForm action={`/api/monitoring-groups/${editing.id}`} method="PATCH" group={editing} assignments={data.assignments.data} onSuccess={reload} />{/if}</Dialog>

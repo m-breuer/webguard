@@ -13,6 +13,7 @@ use App\Services\Monitorings\MonitoringGroupAssignmentService;
 use App\Support\MonitoringPayload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -57,7 +58,7 @@ class MonitoringManagementController extends Controller
             return $monitoring;
         });
 
-        return response()->json(['data' => $this->successPayload($monitoring)], 201);
+        return response()->json(['data' => $this->successPayload($monitoring, $user)], 201);
     }
 
     public function update(InternalUiMonitoringRequest $internalUiMonitoringRequest, Monitoring $monitoring, MonitoringGroupAssignmentService $monitoringGroupAssignmentService): JsonResponse
@@ -96,7 +97,7 @@ class MonitoringManagementController extends Controller
             }
         });
 
-        return response()->json(['data' => $this->successPayload($monitoring->refresh())]);
+        return response()->json(['data' => $this->successPayload($monitoring->refresh(), $user)]);
     }
 
     public function destroy(Request $request, Monitoring $monitoring): JsonResponse
@@ -112,14 +113,28 @@ class MonitoringManagementController extends Controller
     }
 
     /**
-     * @return array{id: string, name: string, type: string}
+     * @return array{id: string, name: string, type: string, lifecycle_status: string, public_label_enabled: bool, ownership: array{type: string, can_manage: bool, team_id: string|null}, group_assignments: Collection<int, array{id: string, name: string}>}
      */
-    private function successPayload(Monitoring $monitoring): array
+    private function successPayload(Monitoring $monitoring, User $user): array
     {
+        $monitoring->loadMissing([
+            'groups' => fn ($query) => $query->where('user_id', $user->id)->select(['id', 'name']),
+        ]);
+
         return [
             'id' => $monitoring->id,
             'name' => $monitoring->name,
             'type' => $monitoring->type->value,
+            'lifecycle_status' => $monitoring->status->value,
+            'public_label_enabled' => $monitoring->public_label_enabled,
+            'ownership' => [
+                'type' => $monitoring->isTeamOwned() ? 'team' : 'private',
+                'can_manage' => $monitoring->isManageableBy($user),
+                'team_id' => $monitoring->team_id,
+            ],
+            'group_assignments' => $monitoring->groups
+                ->map(static fn ($group): array => ['id' => $group->id, 'name' => $group->name])
+                ->values(),
         ];
     }
 }

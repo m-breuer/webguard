@@ -1,7 +1,7 @@
 import { error } from "@sveltejs/kit";
 
 export async function load({ fetch }) {
-    const response = await fetch("/api/v1/internal/ui/teams", {
+    const response = await fetch("/api/teams", {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
     });
 

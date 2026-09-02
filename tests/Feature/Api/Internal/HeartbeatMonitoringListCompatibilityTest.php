@@ -43,7 +43,7 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
             'preferred_location' => $serverInstance->code,
             'status' => MonitoringLifecycleStatus::ACTIVE,
             'server_health_token' => 'server-health-token',
-            'target' => route('v1.server-health.store', ['token' => 'server-health-token']),
+            'target' => route('server-health.store', ['token' => 'server-health-token']),
             'server_health_cpu_threshold_percent' => 85,
             'server_health_ram_threshold_percent' => 80,
             'server_health_storage_threshold_percent' => 95,
@@ -52,7 +52,7 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
         $testResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', ['location' => $serverInstance->code]));
+        ])->getJson(route('instances.monitorings.list', ['location' => $serverInstance->code]));
 
         $testResponse->assertOk();
         $testResponse->assertJsonFragment(['id' => $httpMonitoring->id]);
@@ -62,7 +62,7 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
         $heartbeatResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', [
+        ])->getJson(route('instances.monitorings.list', [
             'location' => $serverInstance->code,
             'type' => MonitoringType::HEARTBEAT->value,
         ]));
@@ -75,7 +75,7 @@ class HeartbeatMonitoringListCompatibilityTest extends TestCase
         $serverHealthResponse = $this->withHeaders([
             'X-INSTANCE-CODE' => $serverInstance->code,
             'X-API-KEY' => 'test-token-1234567890',
-        ])->getJson(route('v1.internal.monitorings.list', [
+        ])->getJson(route('instances.monitorings.list', [
             'location' => $serverInstance->code,
             'type' => MonitoringType::SERVER_HEALTH->value,
         ]));

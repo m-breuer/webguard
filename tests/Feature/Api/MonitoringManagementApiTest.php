@@ -25,7 +25,7 @@ class MonitoringManagementApiTest extends TestCase
         $serverInstance = $this->serverInstance('api-management-1');
         Sanctum::actingAs($user);
 
-        $testResponse = $this->postJson('/api/v1/monitorings', $this->monitoringPayload([
+        $testResponse = $this->postJson('/api/monitorings', $this->monitoringPayload([
             'name' => 'API Created Check',
             'target' => 'https://created.example.test',
             'preferred_locations' => [$serverInstance->code],
@@ -35,31 +35,32 @@ class MonitoringManagementApiTest extends TestCase
         $monitoring = Monitoring::query()->where('name', 'API Created Check')->firstOrFail();
         $this->assertSame($user->id, $monitoring->user_id);
 
-        $this->getJson('/api/v1/monitorings?per_page=1')
+        $this->getJson('/api/monitorings?per_page=1')
             ->assertOk()
             ->assertJsonPath('data.0.name', 'API Created Check');
 
-        $this->patchJson('/api/v1/monitorings/' . $monitoring->id, $this->monitoringPayload([
+        $this->patchJson('/api/monitorings/' . $monitoring->id, $this->monitoringPayload([
             'name' => 'API Updated Check',
             'target' => 'https://updated.example.test',
             'status' => MonitoringLifecycleStatus::PAUSED->value,
             'preferred_locations' => [$serverInstance->code],
         ]))->assertOk()
-            ->assertJsonPath('data.name', 'API Updated Check')
-            ->assertJsonPath('data.status', MonitoringLifecycleStatus::PAUSED->value)
-            ->assertJsonPath('data.public_label_enabled', false);
+            ->assertJsonPath('data.name', 'API Updated Check');
+        $this->assertSame(MonitoringLifecycleStatus::PAUSED, $monitoring->fresh()->status);
 
-        $this->patchJson('/api/v1/monitorings/' . $monitoring->id, $this->monitoringPayload([
+        $this->patchJson('/api/monitorings/' . $monitoring->id, $this->monitoringPayload([
             'name' => 'API Updated Check',
             'target' => 'https://updated.example.test',
             'status' => MonitoringLifecycleStatus::ACTIVE->value,
             'preferred_locations' => [$serverInstance->code],
-        ]))->assertOk()
-            ->assertJsonPath('data.status', MonitoringLifecycleStatus::ACTIVE->value);
+        ]))->assertOk();
+        $this->assertSame(MonitoringLifecycleStatus::ACTIVE, $monitoring->fresh()->status);
 
-        $this->deleteJson('/api/v1/monitorings/' . $monitoring->id)->assertNoContent();
+        $this->deleteJson('/api/monitorings/' . $monitoring->id)
+            ->assertOk()
+            ->assertJsonPath('data.deleted', true);
         $this->assertSoftDeleted('monitorings', ['id' => $monitoring->id]);
-        $this->deleteJson('/api/v1/monitorings/' . $monitoring->id)->assertNotFound();
+        $this->deleteJson('/api/monitorings/' . $monitoring->id)->assertNotFound();
     }
 
     public function test_monitoring_list_uses_a_stable_name_and_id_order(): void
@@ -70,7 +71,7 @@ class MonitoringManagementApiTest extends TestCase
         $second = Monitoring::factory()->for($user)->create(['name' => 'Same name']);
         Sanctum::actingAs($user);
 
-        $testResponse = $this->getJson('/api/v1/monitorings?per_page=2');
+        $testResponse = $this->getJson('/api/monitorings?per_page=2');
 
         $testResponse->assertOk();
         $expectedIds = collect([$first->id, $second->id])->sort()->values()->all();
@@ -87,16 +88,16 @@ class MonitoringManagementApiTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/v1/monitorings/' . $monitoring->id . '/team-ownership', [
+        $this->postJson('/api/monitorings/' . $monitoring->id . '/ownership/team', [
             'team_id' => $team->id,
         ])->assertOk()
-            ->assertJsonPath('data.team_id', $team->id)
-            ->assertJsonPath('data.user_id', null);
+            ->assertJsonPath('data.ownership.team_id', $team->id)
+            ->assertJsonPath('data.ownership.type', 'team');
 
-        $this->deleteJson('/api/v1/monitorings/' . $monitoring->id . '/team-ownership')
+        $this->postJson('/api/monitorings/' . $monitoring->id . '/ownership/private')
             ->assertOk()
-            ->assertJsonPath('data.user_id', $user->id)
-            ->assertJsonPath('data.team_id', null);
+            ->assertJsonPath('data.ownership.team_id', null)
+            ->assertJsonPath('data.ownership.type', 'private');
     }
 
     public function test_store_rejects_private_monitoring_when_package_limit_is_reached(): void
@@ -107,7 +108,7 @@ class MonitoringManagementApiTest extends TestCase
         Monitoring::factory()->for($user)->create();
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/v1/monitorings', $this->monitoringPayload([
+        $this->postJson('/api/monitorings', $this->monitoringPayload([
             'name' => 'Over Limit',
             'preferred_locations' => [$serverInstance->code],
         ]))->assertUnprocessable()
@@ -123,7 +124,7 @@ class MonitoringManagementApiTest extends TestCase
         $monitoring = Monitoring::factory()->for($user)->create();
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/v1/monitorings/' . $monitoring->id . '/team-ownership', [
+        $this->postJson('/api/monitorings/' . $monitoring->id . '/ownership/team', [
             'team_id' => $team->id,
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['team_id']);
@@ -145,11 +146,11 @@ class MonitoringManagementApiTest extends TestCase
         $serverInstance = $this->serverInstance('api-management-team');
         Sanctum::actingAs($member);
 
-        $this->patchJson('/api/v1/monitorings/' . $monitoring->id, $this->monitoringPayload([
+        $this->patchJson('/api/monitorings/' . $monitoring->id, $this->monitoringPayload([
             'preferred_locations' => [$serverInstance->code],
         ]))->assertForbidden();
 
-        $this->deleteJson('/api/v1/monitorings/' . $monitoring->id)->assertForbidden();
+        $this->deleteJson('/api/monitorings/' . $monitoring->id)->assertForbidden();
     }
 
     /**

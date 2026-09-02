@@ -21,7 +21,7 @@ final class InternalUiPasswordApiTest extends TestCase
         Package::factory()->create();
         $user = User::factory()->create(['password' => Hash::make('current-password')]);
 
-        $testResponse = $this->actingAs($user)->putJson(route('api.v1.internal.ui.profile.password.update'), [
+        $testResponse = $this->actingAs($user)->putJson(route('app.profile.password.update'), [
             'current_password' => 'current-password',
             'password' => 'new-password-123',
             'password_confirmation' => 'new-password-123',
@@ -34,12 +34,12 @@ final class InternalUiPasswordApiTest extends TestCase
 
     public function test_password_contract_rejects_guests_and_invalid_current_passwords(): void
     {
-        $this->putJson(route('api.v1.internal.ui.profile.password.update'), [])->assertUnauthorized();
+        $this->putJson(route('app.profile.password.update'), [])->assertUnauthorized();
 
         Package::factory()->create();
         $user = User::factory()->create(['password' => Hash::make('current-password')]);
 
-        $this->actingAs($user)->putJson(route('api.v1.internal.ui.profile.password.update'), [
+        $this->actingAs($user)->putJson(route('app.profile.password.update'), [
             'current_password' => 'incorrect-password',
             'password' => 'new-password-123',
             'password_confirmation' => 'new-password-123',

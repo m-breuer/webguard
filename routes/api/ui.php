@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Mobile\MobileMaintenanceController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringGroupController;
 use App\Http\Controllers\Api\Mobile\MobileMonitoringNotificationPreferenceController;
 use App\Http\Controllers\Api\Mobile\MobileStatusPageWorkspaceController;
+use App\Http\Controllers\Api\TeamController as StandardTeamController;
 use App\Http\Middleware\MeasureInternalUiRequest;
 use Illuminate\Support\Facades\Route;
 
@@ -93,7 +94,10 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
         Route::get('/teams', TeamIndexController::class)->name('teams.index');
         Route::post('/teams', TeamStoreController::class)->name('teams.store');
         Route::get('/teams/{team}', [TeamWorkspaceController::class, 'show'])->name('teams.show');
+        Route::get('/teams/{team}/members', [TeamWorkspaceController::class, 'show'])->name('teams.members.index');
+        Route::get('/teams/{team}/invitations', [TeamWorkspaceController::class, 'show'])->name('teams.invitations.index');
         Route::patch('/teams/{team}', [TeamWorkspaceController::class, 'update'])->name('teams.update');
+        Route::delete('/teams/{team}', [StandardTeamController::class, 'destroy'])->name('teams.destroy');
         Route::patch('/teams/{team}/members/{teamMembership}', [TeamWorkspaceController::class, 'updateMember'])->name('teams.members.update');
         Route::delete('/teams/{team}/members/{teamMembership}', [TeamWorkspaceController::class, 'destroyMember'])->name('teams.members.destroy');
         Route::post('/teams/{team}/invitations', [TeamWorkspaceController::class, 'invite'])->name('teams.invitations.store');

@@ -43,23 +43,23 @@ class TeamApiCoverageTest extends TestCase
             'expires_at' => now()->addDay(),
         ]);
 
-        $this->actingAs($member)->getJson('/api/v1/teams/' . $team->id)
+        $this->actingAs($member)->getJson('/api/teams/' . $team->id)
             ->assertOk()
             ->assertJsonPath('data.name', 'API Coverage');
-        $this->actingAs($member)->getJson('/api/v1/teams/' . $team->id . '/members')
+        $this->actingAs($member)->getJson('/api/teams/' . $team->id . '/members')
             ->assertOk()
             ->assertJsonFragment(['email' => $member->email]);
-        $this->actingAs($admin)->getJson('/api/v1/teams/' . $team->id . '/invitations')
+        $this->actingAs($admin)->getJson('/api/teams/' . $team->id . '/invitations')
             ->assertOk()
             ->assertJsonFragment(['email' => 'pending-api@example.com']);
-        $this->actingAs($admin)->patchJson('/api/v1/teams/' . $team->id, [
+        $this->actingAs($admin)->patchJson('/api/teams/' . $team->id, [
             'name' => 'API Updated',
             'description' => 'Changed',
         ])->assertOk()->assertJsonPath('data.name', 'API Updated');
-        $this->actingAs($admin)->deleteJson('/api/v1/teams/' . $team->id . '/members/' . $membership->id)
-            ->assertNoContent();
+        $this->actingAs($admin)->deleteJson('/api/teams/' . $team->id . '/members/' . $membership->id)
+            ->assertOk();
         $this->assertDatabaseMissing('team_memberships', ['id' => $membership->id]);
-        $this->actingAs($admin)->deleteJson('/api/v1/teams/' . $team->id)
+        $this->actingAs($admin)->deleteJson('/api/teams/' . $team->id)
             ->assertNoContent();
         $this->assertDatabaseMissing('teams', ['id' => $team->id]);
     }
@@ -70,17 +70,17 @@ class TeamApiCoverageTest extends TestCase
         $team = Team::factory()->create(['created_by_user_id' => $demoUser->id]);
         $membership = $team->memberships()->create(['user_id' => $demoUser->id, 'role' => TeamRole::ADMIN]);
 
-        $this->actingAs($demoUser)->postJson('/api/v1/teams', [
+        $this->actingAs($demoUser)->postJson('/api/teams', [
             'name' => 'Blocked',
         ])->assertForbidden();
-        $this->actingAs($demoUser)->patchJson('/api/v1/teams/' . $team->id, [
+        $this->actingAs($demoUser)->patchJson('/api/teams/' . $team->id, [
             'name' => 'Blocked',
         ])->assertForbidden();
-        $this->actingAs($demoUser)->deleteJson('/api/v1/teams/' . $team->id)->assertForbidden();
-        $this->actingAs($demoUser)->patchJson('/api/v1/teams/' . $team->id . '/members/' . $membership->id, [
+        $this->actingAs($demoUser)->deleteJson('/api/teams/' . $team->id)->assertForbidden();
+        $this->actingAs($demoUser)->patchJson('/api/teams/' . $team->id . '/members/' . $membership->id, [
             'role' => TeamRole::MEMBER->value,
         ])->assertForbidden();
-        $this->actingAs($demoUser)->deleteJson('/api/v1/teams/' . $team->id . '/members/' . $membership->id)
+        $this->actingAs($demoUser)->deleteJson('/api/teams/' . $team->id . '/members/' . $membership->id)
             ->assertForbidden();
     }
 }

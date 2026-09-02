@@ -10,7 +10,7 @@ interface ApiKeySummary {
 }
 
 export async function load({ fetch }) {
-    const response = await fetch("/api/v1/internal/ui/profile/api-keys", {
+    const response = await fetch("/api/profile/api-keys", {
         headers: { Accept: "application/json" },
     });
 

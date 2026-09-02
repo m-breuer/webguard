@@ -3,9 +3,9 @@ import { error } from "@sveltejs/kit";
 export async function load({ fetch }) {
     const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
     const [capabilitiesResponse, oneOffResponse, recurringResponse] = await Promise.all([
-        fetch("/api/v1/internal/ui/maintenance/capabilities", { headers }),
-        fetch("/api/v1/internal/ui/maintenance/one-off?per_page=100", { headers }),
-        fetch("/api/v1/internal/ui/maintenance/recurring?per_page=100", { headers }),
+        fetch("/api/maintenance/capabilities", { headers }),
+        fetch("/api/maintenance/one-off?per_page=100", { headers }),
+        fetch("/api/maintenance/recurring?per_page=100", { headers }),
     ]);
 
     if (!capabilitiesResponse.ok || !oneOffResponse.ok || !recurringResponse.ok) {

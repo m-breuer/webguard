@@ -3,8 +3,8 @@ import { error } from "@sveltejs/kit";
 export async function load({ fetch }) {
     const headers = { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
     const [groupsResponse, assignmentsResponse] = await Promise.all([
-        fetch("/api/v1/internal/ui/monitoring-groups?per_page=100", { headers }),
-        fetch("/api/v1/internal/ui/monitoring-groups/assignment-options?per_page=100", { headers }),
+        fetch("/api/monitoring-groups?per_page=100", { headers }),
+        fetch("/api/monitoring-groups/assignment-options?per_page=100", { headers }),
     ]);
 
     if (!groupsResponse.ok || !assignmentsResponse.ok) {
