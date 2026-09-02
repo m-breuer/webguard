@@ -72,7 +72,7 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
         $this->assertEqualsWithDelta(75.0, (float) $calendar['2026-04']['monthly_average_uptime'], 0.0001);
     }
 
-    public function test_calendar_can_include_empty_months_before_monitoring_creation(): void
+    public function test_calendar_excludes_months_without_daily_records(): void
     {
         Date::setTestNow('2026-04-20 12:00:00');
 
@@ -82,6 +82,8 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
             'created_at' => Date::parse('2026-04-01 00:00:00'),
         ]);
 
+        $this->createDailyResult($monitoring, '2026-04-10', 100.0, 120, 0);
+
         $calendar = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
             $monitoring,
             Date::parse('2026-01-01')->startOfDay(),
@@ -89,8 +91,22 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
             includeMonthsBeforeMonitoringCreation: true,
         )->toArray();
 
-        $this->assertSame(['2026-01', '2026-02', '2026-03', '2026-04'], array_keys($calendar));
-        $this->assertNull($calendar['2026-01']['days'][0]['uptime_percentage']);
+        $this->assertSame(['2026-04'], array_keys($calendar));
+        $this->assertSame(100.0, $calendar['2026-04']['days'][9]['uptime_percentage']);
+    }
+
+    public function test_oldest_recorded_month_uses_the_first_daily_result(): void
+    {
+        Package::factory()->create();
+        $monitoring = Monitoring::factory()->for(User::factory())->create();
+
+        $this->createDailyResult($monitoring, '2025-12-31', 100.0, 120, 0);
+        $this->createDailyResult($monitoring, '2026-04-10', 100.0, 120, 0);
+
+        $this->assertSame(
+            '2025-12',
+            resolve(MonitoringUptimeCalendarService::class)->oldestRecordedMonth($monitoring),
+        );
     }
 
     private function createDailyResult(

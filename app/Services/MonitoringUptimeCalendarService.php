@@ -44,6 +44,10 @@ class MonitoringUptimeCalendarService
             ->select(['date', 'uptime_minutes', 'downtime_minutes'])
             ->get()
             ->keyBy(fn ($result) => Date::parse($result->date)->toDateString());
+        $monthsWithRecords = $historicalData
+            ->keys()
+            ->map(static fn (string $date): string => Date::parse($date)->format('Y-m'))
+            ->flip();
 
         $dailyUptimeData = [];
         $monthlyMinutes = [];
@@ -51,6 +55,10 @@ class MonitoringUptimeCalendarService
 
         foreach ($carbonPeriod as $monthDate) {
             $monthYear = $monthDate->format('Y-m');
+            if (! $monthsWithRecords->has($monthYear)) {
+                continue;
+            }
+
             $monthDays = [];
             $monthlyMinutes[$monthYear] = [
                 'uptime_minutes' => 0,
@@ -103,5 +111,16 @@ class MonitoringUptimeCalendarService
             });
 
         return new MonitoringUptimeCalendarPayload($months);
+    }
+
+    public function oldestRecordedMonth(Monitoring $monitoring): ?string
+    {
+        $oldestDate = MonitoringDailyResult::query()
+            ->where('monitoring_id', $monitoring->id)
+            ->min('date');
+
+        return $oldestDate === null
+            ? null
+            : Date::parse($oldestDate)->startOfMonth()->format('Y-m');
     }
 }

@@ -67,7 +67,7 @@ class MonitoringDashboardPayloadServiceTest extends TestCase
         $this->assertArrayHasKey('uptime', $payload['uptime_downtime']);
         $this->assertArrayHasKey('aggregated', $payload['response_times']);
         $this->assertCount(24, $payload['heatmap']);
-        $this->assertArrayHasKey('2026-04', $payload['uptime_calendar']);
+        $this->assertSame([], $payload['uptime_calendar']);
     }
 
     private function createMonitoring(array $attributes = []): Monitoring

@@ -17,7 +17,7 @@
             detail: MonitoringDetailData;
             incidentsMeta: { limit: number; offset: number; has_more: boolean; next_offset: number | null };
             recentChecksMeta: { limit: number; has_more: boolean; next_offset: number | null };
-            uptimeCalendarMeta: { oldest_available_month: string };
+            uptimeCalendarMeta: { oldest_available_month: string | null };
         };
     }
     let { data }: Props = $props();
