@@ -32,7 +32,6 @@ class SvelteKitCutoverReadinessTest extends TestCase
             'frontend/src/routes/verify-email/+page.svelte',
             'frontend/src/routes/(app)/dashboard/+page.svelte',
             'frontend/src/routes/(app)/monitorings/+page.svelte',
-            'frontend/src/routes/(app)/monitorings/create/+page.svelte',
             'frontend/src/routes/(app)/monitorings/[id]/+page.svelte',
             'frontend/src/routes/(app)/maintenance/+page.svelte',
             'frontend/src/routes/(app)/monitoring-groups/+page.svelte',

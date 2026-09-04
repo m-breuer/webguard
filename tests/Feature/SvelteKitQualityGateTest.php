@@ -35,6 +35,25 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('await onSuccess()', $monitoringGroupForm);
     }
 
+    public function test_monitoring_creation_uses_dialogs_instead_of_a_standalone_page(): void
+    {
+        $dashboard = file_get_contents(base_path('frontend/src/routes/(app)/dashboard/+page.svelte'));
+        $monitorings = file_get_contents(base_path('frontend/src/routes/(app)/monitorings/+page.svelte'));
+
+        $this->assertIsString($dashboard);
+        $this->assertIsString($monitorings);
+        $this->assertFileDoesNotExist(base_path('frontend/src/routes/(app)/monitorings/create/+page.svelte'));
+        $this->assertFileDoesNotExist(base_path('frontend/src/routes/(app)/monitorings/create/+page.server.ts'));
+
+        foreach ([$dashboard, $monitorings] as $page) {
+            $this->assertStringContainsString('Dialog', $page);
+            $this->assertStringContainsString('MonitoringForm', $page);
+            $this->assertStringContainsString('presentation="edit-modal"', $page);
+            $this->assertStringContainsString('requestFirstPartyApi<MonitoringFormOptions>("/api/monitorings/form-options")', $page);
+            $this->assertStringNotContainsString('/monitorings/create', $page);
+        }
+    }
+
     public function test_sveltekit_components_use_tailwind_without_scoped_or_inline_styles(): void
     {
         foreach (File::allFiles(base_path('frontend/src')) as $file) {
