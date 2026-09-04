@@ -1,13 +1,17 @@
 <script lang="ts">
+    import { invalidateAll } from "$app/navigation";
+    import { FirstPartyApiError, requestFirstPartyApi } from "$lib/api/client";
     import { appRoutes } from "$lib/routes";
     import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
+    import Dialog from "$lib/components/Dialog.svelte";
     import EmptyState from "$lib/components/EmptyState.svelte";
     import Input from "$lib/components/Input.svelte";
+    import MonitoringForm from "$lib/components/MonitoringForm.svelte";
     import Pagination from "$lib/components/Pagination.svelte";
     import StatusBadge from "$lib/components/StatusBadge.svelte";
-    import type { DashboardResponse, DashboardService } from "$lib/api/monitoring";
+    import type { DashboardResponse, DashboardService, MonitoringFormOptions, MonitoringMutationResult } from "$lib/api/monitoring";
     import type { FirstPartySession } from "$lib/api/models";
 
     interface Props {
@@ -20,6 +24,10 @@
     let { data }: Props = $props();
     let serviceQuery = $state("");
     let activeFilter = $state<"all" | "attention" | "maintenance" | "paused">("all");
+    let createOpen = $state(false);
+    let createForm = $state<MonitoringFormOptions | null>(null);
+    let createLoading = $state(false);
+    let createError = $state("");
     const dashboard = $derived(data.dashboard.data);
     const pagination = $derived(data.dashboard.meta.service_pagination);
     const services = $derived(dashboard.services.filter((service) => matchesService(service, serviceQuery, activeFilter)));
@@ -79,6 +87,27 @@
     function paginationHref(page: number): string {
         return page === 1 ? appRoutes.dashboard : `${appRoutes.dashboard}?service_page=${page}`;
     }
+
+    async function openCreateModal(): Promise<void> {
+        if (createLoading) return;
+
+        createLoading = true;
+        createError = "";
+
+        try {
+            createForm = (await requestFirstPartyApi<MonitoringFormOptions>("/api/monitorings/form-options")).data;
+            createOpen = true;
+        } catch (exception) {
+            createError = exception instanceof FirstPartyApiError ? exception.message : "The monitoring form could not be loaded.";
+        } finally {
+            createLoading = false;
+        }
+    }
+
+    async function handleCreateSuccess(_monitoring: MonitoringMutationResult): Promise<void> {
+        createOpen = false;
+        await invalidateAll();
+    }
 </script>
 
 <svelte:head><title>Dashboard | WebGuard</title></svelte:head>
@@ -91,13 +120,15 @@
             <p class="mt-3 max-w-2xl leading-6 text-wg-text-muted">Review your service health, incidents, maintenance, and operational follow-ups in one place.</p>
         </div>
         {#if dashboard.capabilities.can_create_monitoring}
-            <a class="inline-flex min-h-11 items-center justify-center rounded-xl border border-transparent bg-wg-accent px-4 py-2.5 text-sm font-bold tracking-[0.035em] text-wg-accent-contrast no-underline transition enabled:hover:bg-wg-accent-strong" href="/monitorings/create">Create monitoring</a>
+            <Button type="button" loading={createLoading} onclick={openCreateModal}>Create monitoring</Button>
         {/if}
     </header>
 
+    {#if createError}<p class="mb-6 text-sm font-bold text-wg-danger" role="alert">{createError}</p>{/if}
+
     {#if dashboard.summary.total === 0}
         <EmptyState title="No monitorings yet" description="Create a monitoring to see service health, incidents, and operational insights here.">
-            {#snippet action()}<a class="inline-flex min-h-11 items-center justify-center rounded-xl bg-wg-accent px-4 py-2.5 text-sm font-bold text-wg-accent-contrast no-underline" href="/monitorings/create">Create monitoring</a>{/snippet}
+            {#snippet action()}<Button type="button" loading={createLoading} onclick={openCreateModal}>Create monitoring</Button>{/snippet}
         </EmptyState>
     {:else}
         <section class="rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-wg-surface sm:p-7" aria-labelledby="health-heading">
@@ -219,3 +250,9 @@
         </section>
     {/if}
 </main>
+
+<Dialog bind:open={createOpen} title="Create monitoring" description="Configure a monitoring and start collecting results." size="wide">
+    {#if createForm}
+        <MonitoringForm options={createForm} action="/api/monitorings" method="POST" presentation="edit-modal" onSuccess={handleCreateSuccess} onCancel={() => (createOpen = false)} />
+    {/if}
+</Dialog>

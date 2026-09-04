@@ -185,4 +185,4 @@
     {/if}
 </main>
 
-<Dialog bind:open={createOpen} title="Create monitoring" description="Configure a monitoring and start collecting results.">{#if createForm}<MonitoringForm options={createForm} action="/api/monitorings" method="POST" onSuccess={handleCreateSuccess} onCancel={() => (createOpen = false)} />{/if}</Dialog>
+<Dialog bind:open={createOpen} title="Create monitoring" description="Configure a monitoring and start collecting results." size="wide">{#if createForm}<MonitoringForm options={createForm} action="/api/monitorings" method="POST" presentation="edit-modal" onSuccess={handleCreateSuccess} onCancel={() => (createOpen = false)} />{/if}</Dialog>
