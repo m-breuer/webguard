@@ -4,11 +4,15 @@
 
     interface Props {
         initialLocale: string;
+        endpoint?: string | null;
+        menuAlign?: "left" | "right";
+        menuPlacement?: "above" | "below";
+        variant?: "sidebar" | "surface";
         open?: boolean;
         onOpen?: () => void;
     }
 
-    let { initialLocale, open = $bindable(false), onOpen }: Props = $props();
+    let { initialLocale, endpoint = "/api/locale", menuAlign = "left", menuPlacement = "above", variant = "sidebar", open = $bindable(false), onOpen }: Props = $props();
     let locale = $state("");
     let saving = $state(false);
     let error = $state("");
@@ -31,10 +35,14 @@
         error = "";
 
         try {
-            await requestFirstPartyApi<{ locale: string }>("/api/locale", {
-                body: JSON.stringify({ locale: nextLocale }),
-                method: "PATCH",
-            });
+            if (endpoint === null) {
+                document.cookie = `webguard_locale=${encodeURIComponent(nextLocale)}; path=/; SameSite=Lax`;
+            } else {
+                await requestFirstPartyApi<{ locale: string }>(endpoint, {
+                    body: JSON.stringify({ locale: nextLocale }),
+                    method: "PATCH",
+                });
+            }
 
             window.location.reload();
         } catch (exception) {
@@ -52,10 +60,10 @@
 </script>
 
 <details class="relative" bind:open ontoggle={handleToggle}>
-    <summary class="grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border border-purple-700 text-purple-100 [&::-webkit-details-marker]:hidden" aria-label="Language" title="Language">
+    <summary class={`grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border [&::-webkit-details-marker]:hidden ${variant === "surface" ? "border-wg-border bg-wg-surface text-wg-text" : "border-purple-700 text-purple-100"}`} aria-label="Language" title="Language">
         <NavIcon name="globe" />
     </summary>
-    <div class="absolute bottom-[calc(100%+0.5rem)] left-0 z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface" aria-label="Language" aria-busy={saving}>
+    <div class={`absolute ${menuPlacement === "below" ? "top-[calc(100%+0.5rem)]" : "bottom-[calc(100%+0.5rem)]"} ${menuAlign === "right" ? "right-0" : "left-0"} z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface`} aria-label="Language" aria-busy={saving}>
         <p class="mb-2 px-1 text-sm font-bold text-wg-text">Language</p>
         <div class="grid gap-1">
             {#each options as option}

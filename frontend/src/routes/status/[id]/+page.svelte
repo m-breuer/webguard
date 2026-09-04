@@ -3,6 +3,8 @@
     import { formatDateTime } from "$lib/i18n/format";
     import Button from "$lib/components/Button.svelte";
     import Input from "$lib/components/Input.svelte";
+    import AppearanceSelector from "$lib/components/AppearanceSelector.svelte";
+    import LocaleSelector from "$lib/components/LocaleSelector.svelte";
     import type { PublicStatusPayload } from "$lib/api/public-status";
 
     interface FormState {
@@ -12,6 +14,7 @@
     }
 
     interface PublicStatusPageData extends PublicStatusPayload {
+        locale: string;
         subscriptionNotice: string | null;
     }
 
@@ -50,13 +53,19 @@
         return "bg-red-500";
     }
 
+    function calendarDayLabel(value: string): string {
+        return formatDateTime(`${value}T12:00:00`, "Not recorded", {
+            month: "short", day: "numeric", year: "numeric",
+        });
+    }
+
 </script>
 
 <svelte:head><title>{data.name} | WebGuard Status</title><meta name="description" content={data.description ?? `Current status for ${data.name}.`} /></svelte:head>
 
 <main class="min-h-screen bg-wg-canvas px-4 py-8 sm:px-6 sm:py-14">
     <div class="mx-auto w-full max-w-5xl">
-        <header class="mx-auto max-w-3xl text-center"><a class="inline-flex size-10 items-center justify-center rounded-xl bg-wg-accent font-black text-wg-accent-contrast no-underline" href="/" aria-label="WebGuard">W</a><h1 class="mt-5 text-[clamp(2rem,6vw,3.5rem)] leading-[1.05] font-bold tracking-tight">{data.name}</h1>{#if data.description}<p class="mx-auto mt-4 max-w-2xl leading-7 text-wg-text-muted">{data.description}</p>{/if}{#if data.kind === "monitoring" && data.monitoring?.target}<a class="mt-4 inline-block break-all text-sm font-bold text-wg-accent" href={data.monitoring.target} target="_blank" rel="noreferrer">{data.monitoring.target}</a>{/if}</header>
+        <header class="mx-auto max-w-3xl text-center"><div class="flex items-center justify-between gap-4"><a class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-wg-accent font-black text-wg-accent-contrast no-underline" href="/" aria-label="WebGuard">W</a><div class="flex gap-2" aria-label="Page preferences"><AppearanceSelector endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" /><LocaleSelector initialLocale={data.locale} endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" /></div></div><h1 class="mt-5 text-[clamp(2rem,6vw,3.5rem)] leading-[1.05] font-bold tracking-tight">{data.name}</h1>{#if data.description}<p class="mx-auto mt-4 max-w-2xl leading-7 text-wg-text-muted">{data.description}</p>{/if}{#if data.kind === "monitoring" && data.monitoring?.target}<a class="mt-4 inline-block break-all text-sm font-bold text-wg-accent" href={data.monitoring.target} target="_blank" rel="noreferrer">{data.monitoring.target}</a>{/if}</header>
 
         <section class={`mt-9 rounded-2xl border px-5 py-5 shadow-sm sm:px-6 ${statusClasses}`} aria-label="Overall service status"><div class="flex items-center gap-4"><span class={`size-3.5 shrink-0 rounded-full ${statusDot}`} aria-hidden="true"></span><div><p class="text-lg font-bold sm:text-xl">{statusLabel}</p><p class="mt-1 text-sm opacity-80">Overall service status: {data.status.toUpperCase()}</p></div></div></section>
 
@@ -64,7 +73,7 @@
 
         {#if data.kind === "monitoring" && data.monitoring}<section class="mt-8"><h2 class="text-xl font-bold">Uptime</h2><div class="mt-4 grid gap-4 sm:grid-cols-3">{#each [7, 30, 90] as days}<article class="rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm"><p class="font-bold">Last {days} days</p><p class="mt-3 text-3xl font-bold text-wg-accent">{percentage(data.monitoring.uptime[String(days)]?.uptime.percentage ?? null)}</p><p class="mt-2 text-sm text-wg-text-muted">{data.monitoring.uptime[String(days)]?.downtime.incidents_count ?? 0} incidents</p></article>{/each}</div></section>{/if}
 
-        {#if calendarDays.length > 0}<section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><h2 class="text-xl font-bold">30-day uptime</h2><p class="mt-2 text-sm text-wg-text-muted">Each square represents a day of aggregated availability.</p><div class="mt-5 grid grid-cols-10 gap-2 sm:grid-cols-[repeat(15,minmax(0,1fr))]">{#each calendarDays as day (day.date)}<div class={`aspect-square rounded-md ${dayClasses(day.uptime_percentage)}`} title={`${day.date}: ${percentage(day.uptime_percentage)}`} aria-label={`${day.date}: ${percentage(day.uptime_percentage)}`}></div>{/each}</div></section>{/if}
+        {#if calendarDays.length > 0}<section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><h2 class="text-xl font-bold">30-day uptime</h2><p class="mt-2 text-sm text-wg-text-muted">Each square represents a day of aggregated availability.</p><div class="mt-5 grid grid-cols-10 gap-2 sm:grid-cols-[repeat(15,minmax(0,1fr))]">{#each calendarDays as day (day.date)}<button class={`group relative aspect-square rounded-md ${dayClasses(day.uptime_percentage)} focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wg-focus`} type="button" aria-label={`${calendarDayLabel(day.date)}: ${percentage(day.uptime_percentage)}`}><span class="pointer-events-none invisible absolute bottom-[calc(100%+0.5rem)] left-1/2 z-20 w-max max-w-48 -translate-x-1/2 rounded-md bg-wg-text px-2.5 py-2 text-center text-xs font-bold leading-5 text-wg-surface opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100 group-focus-visible:visible group-focus-visible:opacity-100" role="tooltip"><span class="block text-wg-surface/75">{calendarDayLabel(day.date)}</span><span class="mt-0.5 block text-sm">{percentage(day.uptime_percentage)} <span>Uptime</span></span></span></button>{/each}</div></section>{/if}
 
         <section class="mt-8 rounded-2xl border border-wg-border bg-wg-surface p-5 shadow-sm sm:p-6"><div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"><div><h2 class="text-xl font-bold">Subscribe to updates</h2><p class="mt-2 text-sm leading-6 text-wg-text-muted">Receive email notifications when this status changes.</p></div><form method="POST" class="grid w-full gap-3 md:max-w-md" use:enhance novalidate><label class="sr-only" for="subscriber-email">Email address</label><div class="flex flex-col gap-3 sm:flex-row"><Input id="subscriber-email" class="min-w-0 flex-1" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby={form?.error ? "subscriber-email-error" : undefined} value={form?.email ?? ""} /><Button type="submit">Subscribe</Button></div>{#if data.subscriptionNotice}<p class="text-sm font-bold text-emerald-700" role="status">{data.subscriptionNotice}</p>{/if}{#if form?.message}<p class="text-sm font-bold text-emerald-700" role="status">{form.message}</p>{/if}{#if form?.error}<p id="subscriber-email-error" class="text-sm font-bold text-wg-danger" role="alert">{form.error}</p>{/if}</form></div></section>
 
