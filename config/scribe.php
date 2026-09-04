@@ -181,10 +181,10 @@ return [
 
     // Custom logo path. This will be used as the value of the src attribute for the <img> tag,
     // so make sure it points to an accessible URL or path. Set to false to not use a logo.
-    // For example, if your logo is in public/img:
-    // - 'logo' => '../img/logo.png' // for `static` type (output folder is public/docs)
-    // - 'logo' => 'img/logo.png' // for `laravel` type
-    'logo' => '../assets/images/Logo-WebGuard.png',
+    // For example, if your logo is in public/images:
+    // - 'logo' => '../images/logo.png' // for `static` type (output folder is public/docs)
+    // - 'logo' => 'images/logo.png' // for `laravel` type
+    'logo' => 'images/Logo-WebGuard.png',
 
     // Customize the "Last updated" value displayed in the docs by specifying tokens and formats.
     // Examples:
