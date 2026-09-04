@@ -57,9 +57,17 @@ class MobileMonitoringGroupController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        $search = $request->string('search')->trim()->toString();
 
         $monitorings = Monitoring::query()
             ->privateOwnedBy($user)
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $query) use ($search): void {
+                    $query
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('target', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('name')
             ->orderBy('id')
             ->paginate($this->perPage($request));
