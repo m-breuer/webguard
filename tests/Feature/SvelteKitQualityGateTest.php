@@ -92,9 +92,17 @@ class SvelteKitQualityGateTest extends TestCase
             '"Subscribe to updates": "Updates abonnieren"',
             '"Users could not be loaded.": "Benutzer konnten nicht geladen werden."',
             '"Your session has expired. Sign in again to continue.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren."',
+            '"Ongoing": "Laufend"',
+            '"Resolved incident": "Gelöster Vorfall"',
         ] as $translation) {
             $this->assertStringContainsString($translation, $localize);
         }
+
+        $dashboard = file_get_contents(base_path('frontend/src/routes/(app)/dashboard/+page.svelte'));
+
+        $this->assertIsString($dashboard);
+        $this->assertStringNotContainsString('title="Seven-day uptime"', $dashboard);
+        $this->assertStringNotContainsString('Availability across all visible monitorings.', $dashboard);
 
         $this->assertStringContainsString('page.data.locale === "de" ? "de-DE" : "en-US"', $format);
         $this->assertStringContainsString('new Intl.DateTimeFormat(interfaceLocale(), options)', $format);
