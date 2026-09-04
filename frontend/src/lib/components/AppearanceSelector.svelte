@@ -7,12 +7,15 @@
 
     interface Props {
         initialTheme?: AppearanceTheme;
-        endpoint?: string;
+        endpoint?: string | null;
+        menuAlign?: "left" | "right";
+        menuPlacement?: "above" | "below";
+        variant?: "sidebar" | "surface";
         open?: boolean;
         onOpen?: () => void;
     }
 
-    let { initialTheme, endpoint = "/api/appearance", open = $bindable(false), onOpen }: Props = $props();
+    let { initialTheme, endpoint = "/api/appearance", menuAlign = "left", menuPlacement = "above", variant = "sidebar", open = $bindable(false), onOpen }: Props = $props();
     let theme = $state<AppearanceTheme>("system");
     let saving = $state(false);
     let error = $state("");
@@ -37,6 +40,11 @@
         theme = nextTheme;
         error = "";
         applyAppearanceTheme(nextTheme);
+
+        if (endpoint === null) {
+            return;
+        }
+
         saving = true;
 
         try {
@@ -65,8 +73,8 @@
 </script>
 
 <details class="relative" bind:open ontoggle={handleToggle}>
-    <summary class="grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border border-purple-700 text-purple-100 [&::-webkit-details-marker]:hidden" aria-label="Appearance" title="Appearance"><NavIcon name="sun" /></summary>
-    <div class="absolute bottom-[calc(100%+0.5rem)] left-0 z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface" aria-label="Appearance" aria-busy={saving}>
+    <summary class={`grid size-11 cursor-pointer list-none place-items-center rounded-[0.65rem] border [&::-webkit-details-marker]:hidden ${variant === "surface" ? "border-wg-border bg-wg-surface text-wg-text" : "border-purple-700 text-purple-100"}`} aria-label="Appearance" title="Appearance"><NavIcon name="sun" /></summary>
+    <div class={`absolute ${menuPlacement === "below" ? "top-[calc(100%+0.5rem)]" : "bottom-[calc(100%+0.5rem)]"} ${menuAlign === "right" ? "right-0" : "left-0"} z-30 w-48 rounded-xl border border-wg-border bg-wg-surface p-2 shadow-wg-surface`} aria-label="Appearance" aria-busy={saving}>
         {@render optionsList()}
     </div>
 </details>

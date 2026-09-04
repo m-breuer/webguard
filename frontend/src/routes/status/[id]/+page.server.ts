@@ -13,7 +13,7 @@ interface ApiErrorResponse {
     message?: string;
 }
 
-export async function load({ fetch, params, url }) {
+export async function load({ fetch, params, parent, url }) {
     const response = await fetch(`/api/public/status/${encodeURIComponent(params.id)}`, {
         headers: { Accept: "application/json" },
     });
@@ -29,9 +29,11 @@ export async function load({ fetch, params, url }) {
     }
 
     const subscription = url.searchParams.get("subscription");
+    const { locale } = await parent();
 
     return {
         ...payload.data,
+        locale,
         subscriptionNotice: subscription === "confirmation-sent"
             ? "Check your inbox to confirm your subscription."
             : subscription === "confirmed"

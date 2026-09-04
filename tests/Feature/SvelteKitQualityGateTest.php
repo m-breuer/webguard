@@ -184,6 +184,24 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('oldest_available_month', $monitoringAnalytics);
     }
 
+    public function test_public_status_page_exposes_preferences_and_uptime_tooltips(): void
+    {
+        $statusPage = file_get_contents(base_path('frontend/src/routes/status/[id]/+page.svelte'));
+        $appearanceSelector = file_get_contents(base_path('frontend/src/lib/components/AppearanceSelector.svelte'));
+        $localeSelector = file_get_contents(base_path('frontend/src/lib/components/LocaleSelector.svelte'));
+
+        $this->assertIsString($statusPage);
+        $this->assertIsString($appearanceSelector);
+        $this->assertIsString($localeSelector);
+        $this->assertStringContainsString('<AppearanceSelector endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" />', $statusPage);
+        $this->assertStringContainsString('<LocaleSelector initialLocale={data.locale} endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" />', $statusPage);
+        $this->assertStringContainsString('group-hover:visible group-hover:opacity-100', $statusPage);
+        $this->assertStringContainsString('group-focus-visible:visible group-focus-visible:opacity-100', $statusPage);
+        $this->assertStringContainsString('role="tooltip"', $statusPage);
+        $this->assertStringContainsString('document.cookie = `webguard_locale=', $localeSelector);
+        $this->assertStringContainsString('if (endpoint === null)', $appearanceSelector);
+    }
+
     public function test_notification_inbox_updates_read_state_from_successful_mutation_responses(): void
     {
         $notificationInbox = file_get_contents(base_path('frontend/src/routes/(app)/notifications/+page.svelte'));
