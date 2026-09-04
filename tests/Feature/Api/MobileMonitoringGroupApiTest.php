@@ -118,6 +118,33 @@ class MobileMonitoringGroupApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_assignment_options_search_all_owned_private_monitorings_by_name_or_target(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        Monitoring::factory()->for($user)->count(100)->sequence(
+            fn ($sequence): array => ['name' => sprintf('Alpha %03d', $sequence->index)]
+        )->create();
+        $nameMatch = Monitoring::factory()->for($user)->create(['name' => 'Needle monitoring']);
+        $targetMatch = Monitoring::factory()->for($user)->create([
+            'name' => 'Other monitoring',
+            'target' => 'https://target-search.example.test',
+        ]);
+        $foreignMatch = Monitoring::factory()->create(['name' => 'Needle foreign monitoring']);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/mobile/monitoring-groups/assignment-options?per_page=100&search=needle')
+            ->assertOk()
+            ->assertJsonPath('total', 1)
+            ->assertJsonPath('data.0.id', $nameMatch->id)
+            ->assertJsonMissing(['id' => $foreignMatch->id]);
+
+        $this->getJson('/api/mobile/monitoring-groups/assignment-options?per_page=100&search=target-search')
+            ->assertOk()
+            ->assertJsonPath('total', 1)
+            ->assertJsonPath('data.0.id', $targetMatch->id);
+    }
+
     public function test_monitoring_management_contract_includes_group_assignments_and_ownership_metadata(): void
     {
         $package = Package::factory()->create(['monitoring_limit' => 5]);
