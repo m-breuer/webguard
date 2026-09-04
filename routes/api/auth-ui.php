@@ -12,7 +12,9 @@ Route::middleware(MeasureInternalUiRequest::class)->group(function (): void {
         Route::post('/login', [AuthWorkspaceController::class, 'login'])->name('login');
         Route::post('/register', [AuthWorkspaceController::class, 'register'])->name('register');
         Route::get('/demo-credentials', [AuthWorkspaceController::class, 'demoCredentials'])->name('demo-credentials');
-        Route::post('/forgot-password', [AuthWorkspaceController::class, 'sendPasswordResetLink'])->name('password.email');
+        Route::post('/forgot-password', [AuthWorkspaceController::class, 'sendPasswordResetLink'])
+            ->middleware('throttle:5,1')
+            ->name('password.email');
         Route::post('/reset-password', [AuthWorkspaceController::class, 'resetPassword'])->name('password.reset');
     });
 

@@ -95,13 +95,9 @@ final class AuthWorkspaceController extends Controller
     public function sendPasswordResetLink(Request $request): JsonResponse
     {
         $validated = $request->validate(['email' => ['required', 'email']]);
-        $status = Password::sendResetLink(['email' => $validated['email']]);
+        Password::sendResetLink(['email' => $validated['email']]);
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            throw ValidationException::withMessages(['email' => __($status)]);
-        }
-
-        return response()->json(['data' => ['message' => __($status)]]);
+        return response()->json(['data' => ['message' => __('password.reset_request_accepted')]]);
     }
 
     public function resetPassword(Request $request): JsonResponse
