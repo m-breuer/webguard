@@ -8,6 +8,8 @@
         method?: "POST" | "PATCH" | "PUT" | "DELETE";
         submitLabel: string;
         successMessage?: string;
+        submitAsJson?: boolean;
+        submitDisabled?: boolean;
         children?: Snippet;
         onSuccess?: (data: T) => void | Promise<void>;
     }
@@ -17,6 +19,8 @@
         method = "POST",
         submitLabel,
         successMessage = "Saved successfully.",
+        submitAsJson = false,
+        submitDisabled = false,
         children,
         onSuccess,
     }: Props = $props();
@@ -41,7 +45,7 @@
             const form = event.currentTarget as HTMLFormElement;
             const body = new FormData(form);
             const response = await requestFirstPartyApi<T>(action, {
-                body,
+                body: submitAsJson ? JSON.stringify(Object.fromEntries(body)) : body,
                 method,
             });
 
@@ -76,5 +80,5 @@
         {#if sessionRecovery}<a class="text-sm font-bold text-wg-accent no-underline hover:underline" href="/login?expired=1">Sign in again</a>{/if}
     {/if}
 
-    <Button type="submit" loading={submitting}>{submitLabel}</Button>
+    <Button type="submit" disabled={submitDisabled} loading={submitting}>{submitLabel}</Button>
 </form>
