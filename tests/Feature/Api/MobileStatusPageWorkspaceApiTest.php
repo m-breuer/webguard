@@ -7,6 +7,7 @@ namespace Tests\Feature\Api;
 use App\Enums\IncidentFollowUpStatus;
 use App\Enums\IncidentUpdateStatus;
 use App\Enums\TeamRole;
+use App\Enums\UserRole;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringGroup;
@@ -148,6 +149,27 @@ class MobileStatusPageWorkspaceApiTest extends TestCase
         $this->assertDatabaseCount('incident_follow_ups', 0);
 
         $this->assertDatabaseHas('activity_log', [
+            'event' => 'incident_update_published',
+            'causer_id' => $user->id,
+        ]);
+    }
+
+    public function test_demo_user_cannot_publish_incident_updates(): void
+    {
+        ['user' => $user, 'statusPage' => $statusPage, 'incident' => $incident] = $this->workspace();
+        $user->update(['role' => UserRole::DEMO]);
+        $this->actingAsMobile($user);
+        $base = '/api/mobile/status-pages/' . $statusPage->id . '/incidents/' . $incident->id;
+
+        $this->withHeaders(['Idempotency-Key' => 'demo-incident-update-001'])
+            ->postJson($base . '/updates', [
+                'status' => IncidentUpdateStatus::IDENTIFIED->value,
+                'message' => 'A demo user must not publish this update.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('incident_updates', 0);
+        $this->assertDatabaseMissing('activity_log', [
             'event' => 'incident_update_published',
             'causer_id' => $user->id,
         ]);
