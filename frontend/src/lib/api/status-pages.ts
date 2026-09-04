@@ -4,6 +4,12 @@ export interface StatusPageMonitoring {
     target: string;
 }
 
+export interface StatusPageMonitoringGroup {
+    id: string;
+    name: string;
+    monitorings_count: number;
+}
+
 export interface StatusPageComponent {
     id?: string;
     name: string;

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StatusPages\StatusPageRequest;
 use App\Http\Resources\External\MobileStatusPageResource;
 use App\Models\Monitoring;
+use App\Models\MonitoringGroup;
 use App\Models\StatusPage;
 use App\Models\User;
 use App\Services\MobileStatusPageWorkspaceService;
@@ -37,6 +38,18 @@ class StatusPageManagementController extends Controller
                         'id' => $monitoring->id,
                         'name' => $monitoring->name,
                         'target' => $monitoring->target,
+                    ])
+                    ->values()
+                    ->all(),
+                'monitoring_groups' => MonitoringGroup::query()
+                    ->where('user_id', $user->id)
+                    ->withCount('monitorings')
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                    ->map(fn (MonitoringGroup $monitoringGroup): array => [
+                        'id' => $monitoringGroup->id,
+                        'name' => $monitoringGroup->name,
+                        'monitorings_count' => (int) $monitoringGroup->monitorings_count,
                     ])
                     ->values()
                     ->all(),
