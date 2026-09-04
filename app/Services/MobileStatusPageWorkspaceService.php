@@ -99,6 +99,8 @@ class MobileStatusPageWorkspaceService
      */
     public function createUpdate(Incident $incident, User $user, array $attributes): array
     {
+        abort_if($user->isDemo(), 403);
+
         $idempotencyKey = (string) Arr::pull($attributes, 'idempotency_key');
 
         return DB::transaction(function () use ($incident, $user, $attributes, $idempotencyKey): array {
