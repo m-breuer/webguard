@@ -24,7 +24,8 @@ class AuthMailDesignTest extends TestCase
         $this->assertStringContainsString('class="mail-logo-mark"', $html);
         $this->assertStringContainsString(e(__('mail.general.brand_subtitle')), $html);
         $this->assertStringContainsString('border-radius: 16px', $html);
-        $this->assertStringContainsString('background-color: #10b981', $html);
+        $this->assertStringContainsString('background-color: #7e22ce', $html);
+        $this->assertStringContainsString('border-bottom: 10px solid #7e22ce', $html);
         $this->assertStringNotContainsString('monitoring-locations', $html);
         $this->assertStringContainsString('http://localhost:4321/terms-of-use', $html);
     }

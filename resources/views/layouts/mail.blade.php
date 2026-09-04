@@ -82,7 +82,7 @@
         }
 
         a {
-            color: #047857;
+            color: #7e22ce;
         }
 
         .mail-frame {
@@ -106,7 +106,7 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background-color: #10b981;
+            background-color: #7e22ce;
             color: #ffffff;
             font-size: 17px;
             font-weight: 800;
@@ -150,10 +150,10 @@
             display: inline-block;
             margin: 0 0 14px;
             padding: 4px 10px;
-            border: 1px solid rgba(16, 185, 129, 0.35);
+            border: 1px solid #d8b4fe;
             border-radius: 999px;
-            background-color: #d1fae5;
-            color: #047857;
+            background-color: #f3e8ff;
+            color: #6b21a8;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.08em;
@@ -228,7 +228,7 @@
             margin-top: 4px;
             padding: 12px 18px;
             border-radius: 8px;
-            background-color: #10b981;
+            background-color: #7e22ce;
             color: #ffffff !important;
             font-size: 14px;
             font-weight: 700;
@@ -237,7 +237,7 @@
         }
 
         .mail-button:hover {
-            background-color: #059669;
+            background-color: #6b21a8;
         }
 
         .mail-footer {

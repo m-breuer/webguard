@@ -27,7 +27,7 @@ blockquote {
 }
 
 a {
-    color: #047857;
+    color: #7e22ce;
 }
 
 a img {
@@ -115,7 +115,7 @@ img {
 }
 
 .mail-logo-mark {
-    background-color: #10b981;
+    background-color: #7e22ce;
     border-radius: 12px;
     color: #ffffff;
     display: inline-block;
@@ -273,20 +273,20 @@ img {
 
 .button-blue,
 .button-primary {
-    background-color: #10b981;
-    border-bottom: 10px solid #10b981;
-    border-left: 18px solid #10b981;
-    border-right: 18px solid #10b981;
-    border-top: 10px solid #10b981;
+    background-color: #7e22ce;
+    border-bottom: 10px solid #7e22ce;
+    border-left: 18px solid #7e22ce;
+    border-right: 18px solid #7e22ce;
+    border-top: 10px solid #7e22ce;
 }
 
 .button-green,
 .button-success {
-    background-color: #10b981;
-    border-bottom: 10px solid #10b981;
-    border-left: 18px solid #10b981;
-    border-right: 18px solid #10b981;
-    border-top: 10px solid #10b981;
+    background-color: #7e22ce;
+    border-bottom: 10px solid #7e22ce;
+    border-left: 18px solid #7e22ce;
+    border-right: 18px solid #7e22ce;
+    border-top: 10px solid #7e22ce;
 }
 
 .button-red,
@@ -301,7 +301,7 @@ img {
 /* Panels */
 
 .panel {
-    border-left: 4px solid #10b981;
+    border-left: 4px solid #7e22ce;
     margin: 24px 0;
 }
 
