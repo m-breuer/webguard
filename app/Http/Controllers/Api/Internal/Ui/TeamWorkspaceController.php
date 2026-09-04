@@ -36,6 +36,23 @@ final class TeamWorkspaceController extends Controller
         return response()->json(['data' => $this->payload($team->refresh(), $user)]);
     }
 
+    public function destroy(Request $request, Team $team, TeamMembershipService $teamMembershipService): JsonResponse
+    {
+        /** @var User $user */ $user = $request->user();
+        abort_if($user->isDemo(), 403);
+        $teamMembershipService->assertAdmin($team, $user);
+
+        $request->validate([
+            'confirmation' => ['required', 'string', Rule::in([$team->name])],
+        ], [
+            'confirmation.in' => 'Enter the team name exactly to confirm deletion.',
+        ]);
+
+        $team->delete();
+
+        return response()->json(status: 204);
+    }
+
     public function updateMember(Request $request, Team $team, TeamMembership $teamMembership, TeamMembershipService $teamMembershipService): JsonResponse
     {
         /** @var User $user */ $user = $request->user();

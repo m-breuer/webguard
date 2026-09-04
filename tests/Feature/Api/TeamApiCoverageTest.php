@@ -59,7 +59,7 @@ class TeamApiCoverageTest extends TestCase
         $this->actingAs($admin)->deleteJson('/api/teams/' . $team->id . '/members/' . $membership->id)
             ->assertOk();
         $this->assertDatabaseMissing('team_memberships', ['id' => $membership->id]);
-        $this->actingAs($admin)->deleteJson('/api/teams/' . $team->id)
+        $this->actingAs($admin)->deleteJson('/api/teams/' . $team->id, ['confirmation' => $team->refresh()->name])
             ->assertNoContent();
         $this->assertDatabaseMissing('teams', ['id' => $team->id]);
     }
