@@ -7,6 +7,7 @@ namespace Tests\Feature\Api;
 use App\Enums\IncidentUpdateStatus;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringGroup;
 use App\Models\Package;
 use App\Models\StatusPage;
 use App\Models\User;
@@ -93,6 +94,58 @@ class InternalUiStatusPageApiTest extends TestCase
             ->deleteJson(route('app.status-pages.destroy', $statusPageId))
             ->assertNoContent();
         $this->assertDatabaseMissing('status_pages', ['id' => $statusPageId]);
+    }
+
+    public function test_owner_can_create_a_status_page_component_from_an_owned_monitoring_group(): void
+    {
+        $user = $this->user();
+        $monitoring = Monitoring::factory()->for($user)->create(['name' => 'Checkout API']);
+        $group = MonitoringGroup::factory()->for($user)->create(['name' => 'Checkout services']);
+        $group->monitorings()->attach($monitoring);
+        $foreignGroup = MonitoringGroup::factory()->for($this->user())->create();
+
+        $this->actingAs($user)
+            ->getJson(route('app.status-pages.options'))
+            ->assertOk()
+            ->assertJsonPath('data.monitoring_groups.0.id', $group->id)
+            ->assertJsonPath('data.monitoring_groups.0.monitorings_count', 1)
+            ->assertJsonMissing(['id' => $foreignGroup->id]);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('app.status-pages.store'), [
+                'name' => 'Acme Status',
+                'is_public' => true,
+                'components' => [[
+                    'name' => 'Checkout',
+                    'source_type' => 'monitoring_group',
+                    'monitoring_group_id' => $group->id,
+                ]],
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.components.0.source_type', 'monitoring_group')
+            ->assertJsonPath('data.components.0.monitoring_group.id', $group->id)
+            ->assertJsonPath('data.components.0.monitorings.0.id', $monitoring->id);
+
+        $componentId = $response->json('data.components.0.id');
+        $this->assertDatabaseHas('status_page_components', [
+            'id' => $componentId,
+            'monitoring_group_id' => $group->id,
+            'source_type' => 'monitoring_group',
+        ]);
+        $this->assertDatabaseCount('status_page_component_monitoring', 0);
+
+        $this->actingAs($user)
+            ->postJson(route('app.status-pages.store'), [
+                'name' => 'Invalid page',
+                'is_public' => true,
+                'components' => [[
+                    'name' => 'Foreign group',
+                    'source_type' => 'monitoring_group',
+                    'monitoring_group_id' => $foreignGroup->id,
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('components.0.monitoring_group_id');
     }
 
     public function test_owner_can_publish_an_idempotent_incident_update_for_a_status_page(): void
