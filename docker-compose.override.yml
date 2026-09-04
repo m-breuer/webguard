@@ -114,3 +114,8 @@ services:
       MYSQL_PASSWORD: "webguard"
     ports:
       - "${DOCKER_MYSQL_PORT:-3306}:3306"
+
+  redis:
+    environment:
+      REDIS_PASSWORD: "null"
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]

@@ -21,6 +21,12 @@ export APP_KEY="${APP_KEY:-base64:2fl+Ktvkfl+Fuz4Qp/A75G2RTiWVA/ZoKZvp6fiiM10=}"
 export MARKETING_URL="${MARKETING_URL:-https://marketing.webguard.test}"
 export APP_URL="${APP_URL:-http://gateway:8080}"
 export MAIL_MAILER="${MAIL_MAILER:-log}"
+smoke_secret() {
+    od -An -N32 -tx1 /dev/urandom | tr -d ' \n'
+}
+export DB_PASSWORD="${DB_PASSWORD:-$(smoke_secret)}"
+export MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-$(smoke_secret)}"
+export REDIS_PASSWORD="${REDIS_PASSWORD:-$(smoke_secret)}"
 
 $compose build php frontend gateway queue-default
 $compose up --no-build --detach --wait --wait-timeout 180 php frontend gateway schedule queue-default mysql redis
