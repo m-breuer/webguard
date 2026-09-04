@@ -74,7 +74,7 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
 
         $this->postJson(route('auth.password.email'), ['email' => $user->email])
             ->assertOk()
-            ->assertJsonPath('data.message', __(Password::RESET_LINK_SENT));
+            ->assertJsonPath('data.message', __('password.reset_request_accepted'));
         Notification::assertSentTo($user, ResetPassword::class);
 
         $token = Password::broker()->createToken($user);
@@ -86,6 +86,33 @@ final class InternalUiAuthWorkspaceApiTest extends TestCase
         ])->assertOk()->assertJsonPath('data.next_url', '/login');
 
         $this->assertTrue(Hash::check('new-password-123', $user->fresh()->password));
+    }
+
+    public function test_password_reset_does_not_reveal_whether_an_email_exists(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+
+        $knownEmailResponse = $this->postJson(route('auth.password.email'), ['email' => $user->email]);
+        $unknownEmailResponse = $this->postJson(route('auth.password.email'), ['email' => 'unknown@example.test']);
+
+        $this->assertSame($knownEmailResponse->status(), $unknownEmailResponse->status());
+        $this->assertSame($knownEmailResponse->json(), $unknownEmailResponse->json());
+        Notification::assertSentTo($user, ResetPassword::class);
+    }
+
+    public function test_password_reset_requests_are_rate_limited(): void
+    {
+        Notification::fake();
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->postJson(route('auth.password.email'), [
+                'email' => 'unknown-' . $attempt . '@example.test',
+            ])->assertOk();
+        }
+
+        $this->postJson(route('auth.password.email'), ['email' => 'unknown-final@example.test'])
+            ->assertTooManyRequests();
     }
 
     public function test_authenticated_user_can_resend_verification_and_confirm_password(): void
