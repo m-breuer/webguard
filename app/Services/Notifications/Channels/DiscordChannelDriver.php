@@ -7,7 +7,6 @@ namespace App\Services\Notifications\Channels;
 use App\Enums\NotificationChannel;
 use App\Services\Notifications\NotificationPayload;
 use App\Support\PubliclyRoutableUrl;
-use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class DiscordChannelDriver implements NotificationChannelDriver
@@ -32,9 +31,7 @@ class DiscordChannelDriver implements NotificationChannelDriver
     {
         $webhookUrl = (string) ($config['webhook_url'] ?? '');
 
-        throw_unless(PubliclyRoutableUrl::allows($webhookUrl), RuntimeException::class, 'Discord notification webhook URL is not publicly routable.');
-
-        $response = Http::timeout(10)->post($webhookUrl, [
+        $response = PubliclyRoutableUrl::post($webhookUrl, [
             'content' => $notificationPayload->title . "\n" . $notificationPayload->message,
             'embeds' => [[
                 'title' => $notificationPayload->title,

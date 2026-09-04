@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+require_once __DIR__ . '/Support/PubliclyRoutableUrlDnsStub.php';
+
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;

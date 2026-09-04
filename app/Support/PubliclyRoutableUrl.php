@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
+
 class PubliclyRoutableUrl
 {
     public static function allows(string $url, bool $resolveDns = false): bool
     {
-        $host = parse_url($url, PHP_URL_HOST);
-        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $parts = parse_url($url);
+        $host = is_array($parts) ? ($parts['host'] ?? null) : null;
+        $scheme = is_array($parts) ? ($parts['scheme'] ?? null) : null;
 
         if (! is_string($host) || ! is_string($scheme)) {
             return false;
@@ -22,9 +27,96 @@ class PubliclyRoutableUrl
         return self::isPublicHost($host, $resolveDns);
     }
 
+    /**
+     * Resolve a webhook URL to a public address that can be pinned for the
+     * subsequent request. This closes the validation-to-use DNS rebinding gap.
+     *
+     * @return array{host: string, ip: string, port: int}|null
+     */
+    public static function destination(string $url): ?array
+    {
+        $parts = parse_url($url);
+        $host = is_array($parts) ? ($parts['host'] ?? null) : null;
+        $scheme = is_array($parts) ? ($parts['scheme'] ?? null) : null;
+
+        if (! is_string($host) || ! is_string($scheme)) {
+            return null;
+        }
+
+        $scheme = mb_strtolower($scheme);
+
+        if (! in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        if (str_ends_with($host, '.')) {
+            return null;
+        }
+
+        $host = self::normalizeHost($host);
+
+        if ($host === '' || ! self::isPublicHost($host, false)) {
+            return null;
+        }
+
+        $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
+
+        if (! is_int($port) || $port < 1 || $port > 65535) {
+            return null;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return self::isPublicIp($host)
+                ? ['host' => $host, 'ip' => $host, 'port' => $port]
+                : null;
+        }
+
+        $addresses = self::resolveHost($host);
+
+        if ($addresses === []) {
+            return null;
+        }
+
+        foreach ($addresses as $address) {
+            if (! self::isPublicIp($address)) {
+                return null;
+            }
+        }
+
+        return ['host' => $host, 'ip' => $addresses[0], 'port' => $port];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public static function post(string $url, array $payload): Response
+    {
+        $destination = self::destination($url);
+
+        throw_unless($destination !== null, RuntimeException::class, 'Notification webhook URL is not publicly routable.');
+
+        $options = [
+            'allow_redirects' => false,
+        ];
+
+        if (! filter_var($destination['host'], FILTER_VALIDATE_IP)) {
+            throw_unless(defined('CURLOPT_RESOLVE'), RuntimeException::class, 'Webhook delivery requires the cURL extension.');
+
+            $options['curl'] = [
+                CURLOPT_RESOLVE => [
+                    sprintf('%s:%d:%s', $destination['host'], $destination['port'], $destination['ip']),
+                ],
+            ];
+        }
+
+        return Http::timeout(10)
+            ->withOptions($options)
+            ->post($url, $payload);
+    }
+
     private static function isPublicHost(string $host, bool $resolveDns): bool
     {
-        $host = mb_strtolower(mb_trim($host, "[] \t\n\r\0\x0B."));
+        $host = self::normalizeHost($host);
 
         if ($host === '' || $host === 'localhost') {
             return false;
@@ -49,7 +141,7 @@ class PubliclyRoutableUrl
         $addresses = self::resolveHost($host);
 
         if ($addresses === []) {
-            return true;
+            return false;
         }
 
         foreach ($addresses as $address) {
@@ -59,6 +151,11 @@ class PubliclyRoutableUrl
         }
 
         return true;
+    }
+
+    private static function normalizeHost(string $host): string
+    {
+        return mb_strtolower(mb_trim($host, "[] \t\n\r\0\x0B."));
     }
 
     private static function isPublicIp(string $address): bool
