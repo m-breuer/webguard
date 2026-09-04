@@ -200,22 +200,12 @@
                 {:else}
                     <ul class="m-0 grid list-none gap-3 p-0">
                         {#each dashboard.recent_incidents as incident}
-                            <li class="rounded-xl border border-wg-border p-3"><p class="font-bold">{incident.monitoring_name ?? "Monitoring"}</p><p class="mt-1 text-sm text-wg-text-muted">Started {dateTime(incident.down_at)} · {incident.resolved ? "Resolved" : "Open"}</p></li>
+                            <li class="rounded-xl border border-wg-border p-3"><p class="font-bold">{incident.monitoring_name ?? "Monitoring"}</p><p class="mt-1 text-sm text-wg-text-muted">Started {dateTime(incident.down_at)} · {incident.resolved ? "Resolved incident" : "Open incident"}</p></li>
                         {/each}
                     </ul>
                 {/if}
             </Card>
 
-            <Card title="Seven-day uptime" description="Availability across all visible monitorings.">
-                <div class="grid grid-cols-7 gap-2" aria-label="Seven-day uptime trend">
-                    {#each dashboard.trend as day}
-                        <div class={`rounded-lg p-2 text-center ${day.uptime_percentage === null ? "bg-wg-surface-muted text-wg-text-muted" : day.uptime_percentage >= 99 ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200" : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200"}`} title={`${day.label}: ${day.uptime_percentage === null ? "No data" : `${day.uptime_percentage.toFixed(2)}%`}`}>
-                            <p class="text-xs font-bold">{day.label}</p>
-                            <p class="mt-1 text-xs">{day.uptime_percentage === null ? "—" : `${Math.round(day.uptime_percentage)}%`}</p>
-                        </div>
-                    {/each}
-                </div>
-            </Card>
         </section>
     {/if}
 </main>
