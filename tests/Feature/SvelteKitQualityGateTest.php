@@ -268,6 +268,10 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringNotContainsString('${value}T12:00:00', $statusPage);
         $this->assertStringContainsString('document.cookie = `webguard_locale=', $localeSelector);
         $this->assertStringContainsString('if (endpoint === null)', $appearanceSelector);
+        $this->assertStringContainsString('src="/brand/webguard-logo.png"', $statusPage);
+        $this->assertStringContainsString('<span class="font-extrabold tracking-tight">WebGuard</span>', $statusPage);
+        $this->assertStringContainsString('import { translate } from "$lib/i18n/localize";', $statusPage);
+        $this->assertStringContainsString('return translate(value, data.locale);', $statusPage);
     }
 
     public function test_notification_inbox_updates_read_state_from_successful_mutation_responses(): void

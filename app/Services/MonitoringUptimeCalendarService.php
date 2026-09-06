@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Date;
 
 class MonitoringUptimeCalendarService
 {
+    public function __construct(private readonly MonitoringAvailabilityService $monitoringAvailabilityService) {}
+
     public function getGroupedByDateAndMonth(
         Monitoring $monitoring,
         Carbon $startDate,
@@ -25,8 +27,10 @@ class MonitoringUptimeCalendarService
         $startDate = $startDate->copy();
         $endDate = $endDate->copy();
 
+        $now = Date::now();
+
         if ($endDate->isFuture()) {
-            $endDate = Date::now()->endOfDay();
+            $endDate = $now->copy();
         }
 
         if ($startDate->diffInDays($endDate) > 366) {
@@ -48,6 +52,23 @@ class MonitoringUptimeCalendarService
             ->keys()
             ->map(static fn (string $date): string => Date::parse($date)->format('Y-m'))
             ->flip();
+        $today = $now->copy()->startOfDay();
+        $currentDayAvailability = null;
+
+        if ($today->betweenIncluded($startDate, $endDate)) {
+            $currentDayAvailability = $this->monitoringAvailabilityService->getUptimeDowntime(
+                $monitoring,
+                $today,
+                $now,
+                trackingStartedAt: $historicalData->isNotEmpty()
+                    ? Date::parse((string) $historicalData->keys()->sort()->first())->startOfDay()
+                    : null,
+            );
+
+            if ($currentDayAvailability->hasData) {
+                $monthsWithRecords->put($today->format('Y-m'), true);
+            }
+        }
 
         $dailyUptimeData = [];
         $monthlyMinutes = [];
@@ -72,15 +93,19 @@ class MonitoringUptimeCalendarService
                 $uptimeMinutes = 0;
                 $downtimeMinutes = 0;
 
-                if ($currentDay->between($startDate, $endDate) && $historicalData->has($dateString)) {
+                if ($currentDay->isSameDay($today) && $currentDayAvailability?->hasData) {
+                    $uptimeMinutes = $currentDayAvailability->uptime->minutes;
+                    $downtimeMinutes = $currentDayAvailability->downtime->minutes;
+                } elseif ($currentDay->betweenIncluded($startDate, $endDate) && $historicalData->has($dateString)) {
                     $result = $historicalData[$dateString];
                     $uptimeMinutes = (int) ($result->uptime_minutes ?? 0);
                     $downtimeMinutes = (int) ($result->downtime_minutes ?? 0);
-                    $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
-                    $uptimePercentage = $totalTrackedMinutes > 0
-                        ? ($uptimeMinutes / $totalTrackedMinutes) * 100
-                        : null;
                 }
+
+                $totalTrackedMinutes = $uptimeMinutes + $downtimeMinutes;
+                $uptimePercentage = $totalTrackedMinutes > 0
+                    ? ($uptimeMinutes / $totalTrackedMinutes) * 100
+                    : null;
 
                 $monthlyMinutes[$monthYear]['uptime_minutes'] += $uptimeMinutes;
                 $monthlyMinutes[$monthYear]['downtime_minutes'] += $downtimeMinutes;

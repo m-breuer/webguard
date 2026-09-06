@@ -15,6 +15,11 @@ Each Server Health monitoring creates a private report URL:
 POST /api/server-health/{token}
 ```
 
+The former `/api/v1/server-health/{token}` path remains available as a
+compatibility alias for already-installed agents. New installations should use
+the canonical path above. The alias has the same authentication, throttling,
+validation, and response contract.
+
 The token is the authentication secret. The agent must send HTTPS outside a
 trusted local development environment, must not log the URL/token, and must set
 `Content-Type: application/json` and `Accept: application/json`. Core permits
@@ -30,6 +35,9 @@ API key created in Profile → API Configuration:
 POST /api/server-health/monitorings/{monitoring-id}
 Authorization: Bearer {telemetry-only-key}
 ```
+
+The former `/api/v1/server-health/monitorings/{monitoring-id}` bearer path
+also remains available as a compatibility alias during migration.
 
 The key needs the `server-health:write` ability, and its owner must be allowed
 to manage the referenced Server Health monitoring. It cannot submit another

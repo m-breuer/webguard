@@ -37,6 +37,11 @@ Route::post('/server-health/{token}', ServerHealthReportController::class)
     ->middleware('throttle:60,1')
     ->name('server-health.store');
 
+// Keep the pre-namespace-consolidation endpoint available for installed agents.
+Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
+    ->middleware('throttle:60,1')
+    ->name('server-health.legacy.store');
+
 Route::get('/public/monitoring-locations', PublicMonitoringLocationController::class)
     ->middleware('throttle:60,1')
     ->name('public.monitoring-locations.index');
@@ -44,6 +49,10 @@ Route::get('/public/monitoring-locations', PublicMonitoringLocationController::c
 Route::post('/server-health/monitorings/{monitoring}', BearerServerHealthReportController::class)
     ->middleware(['auth:sanctum', 'api-key.ability:server-health:write', 'throttle:60,1'])
     ->name('server-health.bearer.store');
+
+Route::post('/v1/server-health/monitorings/{monitoring}', BearerServerHealthReportController::class)
+    ->middleware(['auth:sanctum', 'api-key.ability:server-health:write', 'throttle:60,1'])
+    ->name('server-health.bearer.legacy.store');
 
 Route::group(['prefix' => 'api-keys', 'as' => 'api-keys.', 'middleware' => ['auth:sanctum', 'api-key.manage']], function (): void {
     Route::get('/', [ApiKeyController::class, 'index'])->name('index');

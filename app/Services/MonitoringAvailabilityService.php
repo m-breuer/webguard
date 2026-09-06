@@ -24,7 +24,8 @@ class MonitoringAvailabilityService
         Carbon $startDate,
         Carbon $endDate,
         bool $loadAggregatedData = false,
-        bool $includeIntradayRawData = true
+        bool $includeIntradayRawData = true,
+        ?Carbon $trackingStartedAt = null
     ): MonitoringAvailabilityPayload {
         $startDate = $startDate->copy();
         $endDate = $endDate->copy();
@@ -41,7 +42,7 @@ class MonitoringAvailabilityService
             return $this->getAggregatedUptimeDowntime($monitoring, $startDate, $endDate, $includeIntradayRawData);
         }
 
-        return $this->getRawUptimeDowntime($monitoring, $startDate, $endDate);
+        return $this->getRawUptimeDowntime($monitoring, $startDate, $endDate, trackingStartedAt: $trackingStartedAt);
     }
 
     /**

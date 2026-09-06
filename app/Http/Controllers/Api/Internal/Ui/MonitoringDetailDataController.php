@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Internal\Ui;
 
 use App\Http\Controllers\Controller;
+use App\Models\StatusPage;
 use App\Models\User;
 use App\Queries\MonitoringDetailQuery;
 use App\Services\MobileMonitoringDetailPayloadService;
@@ -14,6 +15,7 @@ use App\Services\MonitoringResponseTimeService;
 use App\Services\MonitoringServerHealthTelemetryService;
 use App\Services\MonitoringUptimeCalendarService;
 use App\Support\MonitoringDateRange;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -84,11 +86,24 @@ final class MonitoringDetailDataController extends Controller
         ])->values()->all();
         $payload['data']['summary']['check_regions'] = $monitoring->preferredLocationCodes();
         $payload['data']['summary']['notification_channels'] = array_values($monitoring->notification_channels ?? []);
-        $payload['data']['summary']['status_pages'] = $monitoring->statusPageComponents
+        $statusPages = $monitoring->statusPageComponents
             ->map(static fn ($component) => $component->statusPage)
-            ->filter()
+            ->filter();
+
+        if ($monitoring->groups->isNotEmpty()) {
+            $statusPages = $statusPages->merge(
+                $user->statusPages()
+                    ->whereHas('components', fn (Builder $query): Builder => $query->whereIn(
+                        'monitoring_group_id',
+                        $monitoring->groups->modelKeys(),
+                    ))
+                    ->get(['id', 'name'])
+            );
+        }
+
+        $payload['data']['summary']['status_pages'] = $statusPages
             ->unique('id')
-            ->map(static fn ($statusPage): array => [
+            ->map(static fn (StatusPage $statusPage): array => [
                 'id' => $statusPage->id,
                 'name' => $statusPage->name,
             ])->values()->all();

@@ -17,6 +17,13 @@ class ExternalApiRouteBoundaryTest extends TestCase
         $this->assertNotEmpty($routes);
 
         foreach ($routes as $route) {
+            if (in_array($route->uri(), [
+                'api/v1/server-health/{token}',
+                'api/v1/server-health/monitorings/{monitoring}',
+            ], true)) {
+                continue;
+            }
+
             $this->assertStringNotContainsString('/v1/', $route->uri());
             $this->assertStringNotContainsString('/internal/', $route->uri());
             $this->assertStringNotContainsString('/external/', $route->uri());
