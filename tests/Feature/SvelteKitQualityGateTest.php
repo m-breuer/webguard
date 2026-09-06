@@ -35,6 +35,16 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('await onSuccess()', $monitoringGroupForm);
     }
 
+    public function test_shared_checkbox_supports_multiple_values_in_a_bound_group(): void
+    {
+        $checkbox = file_get_contents(base_path('frontend/src/lib/components/Checkbox.svelte'));
+
+        $this->assertIsString($checkbox);
+        $this->assertStringContainsString('function toggleGroup', $checkbox);
+        $this->assertStringContainsString('group = input.checked', $checkbox);
+        $this->assertStringNotContainsString('bind:group', $checkbox);
+    }
+
     public function test_monitoring_creation_uses_dialogs_instead_of_a_standalone_page(): void
     {
         $dashboard = file_get_contents(base_path('frontend/src/routes/(app)/dashboard/+page.svelte'));
