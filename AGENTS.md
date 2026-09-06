@@ -163,6 +163,8 @@ Verified project commands:
 | Frontend build | `docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm node bun run build` |
 | One queue job | `docker compose -f docker-compose.yml -f docker-compose.override.yml exec queue-default php artisan queue:work redis --once` |
 
+Database migrations MUST always be executed with Laravel's `php artisan migrate` command inside the Docker `php` service. Agents MUST NOT run migrations with host PHP or a host-side `php artisan` command while Docker is available.
+
 Host commands MAY be used only when Docker is unavailable or a task explicitly requires host execution. State the exception and remaining risk.
 
 Validation matrix:
