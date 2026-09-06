@@ -103,7 +103,7 @@ class NotificationBoardService
         $notificationIds = $monitoringNotification->type === NotificationType::STATUS_CHANGE
             ? MonitoringNotification::query()->withoutGlobalScopes()->where('monitoring_id', $monitoringNotification->monitoring_id)->statusChange()
                 ->where(fn (Builder $builder) => $builder->where('created_at', '<', $monitoringNotification->created_at)
-                    ->orWhere(fn (Builder $query) => $builder->where('created_at', $monitoringNotification->created_at)->where('id', '<=', $monitoringNotification->id)))->pluck('id')
+                    ->orWhere(fn (Builder $query) => $query->where('created_at', $monitoringNotification->created_at)->where('id', '<=', $monitoringNotification->id)))->pluck('id')
             : collect([$monitoringNotification->id]);
 
         $notificationIds = $notificationIds->map(static fn (mixed $id): string => (string) $id)->values()->all();
