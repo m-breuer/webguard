@@ -133,6 +133,22 @@ final class InternalUiNotificationWorkspaceApiTest extends TestCase
             ->assertJsonPath('meta.unread_count', 0);
     }
 
+    public function test_member_notification_inbox_defaults_to_five_unread_entries(): void
+    {
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        foreach (range(1, 6) as $index) {
+            $this->notification($monitoring, NotificationType::SSL_EXPIRY, "SSL_EXPIRING_{$index}", now()->subMinutes($index));
+        }
+
+        $this->actingAs($user)->getJson(route('app.notifications.index'))
+            ->assertOk()
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('meta.has_more', true)
+            ->assertJsonPath('meta.unread_count', 6);
+    }
+
     private function notification(Monitoring $monitoring, NotificationType $notificationType, string $message, mixed $createdAt): MonitoringNotification
     {
         $monitoringNotification = MonitoringNotification::query()->create([

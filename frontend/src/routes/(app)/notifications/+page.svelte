@@ -72,7 +72,7 @@
     async function load(reset: boolean): Promise<void> {
         loading = true;
         errorMessage = "";
-        const params = new URLSearchParams({ limit: "25", show_read: showRead ? "1" : "0" });
+        const params = new URLSearchParams({ limit: "5", show_read: showRead ? "1" : "0" });
         if (eventType) params.set("event_type", eventType);
         if (!reset && meta.next_cursor) params.set("cursor", meta.next_cursor);
 

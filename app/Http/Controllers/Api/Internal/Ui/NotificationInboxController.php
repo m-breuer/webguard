@@ -27,7 +27,7 @@ final class NotificationInboxController extends Controller
             ])],
             'show_read' => ['nullable', 'boolean'],
         ]);
-        $limit = (int) ($validated['limit'] ?? 25);
+        $limit = (int) ($validated['limit'] ?? 5);
         $entries = $notificationBoardService->mobileEntries(
             $user,
             $validated['cursor'] ?? null,
