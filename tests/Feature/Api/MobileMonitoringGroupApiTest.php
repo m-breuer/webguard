@@ -33,7 +33,7 @@ class MobileMonitoringGroupApiTest extends TestCase
         $testResponse = $this->postJson('/api/mobile/monitoring-groups', [
             'name' => 'Production',
             'description' => 'Critical services',
-            'monitoring_ids' => [$firstMonitoring->id],
+            'monitoring_ids' => [$firstMonitoring->id, $secondMonitoring->id],
         ]);
 
         $testResponse
@@ -41,8 +41,9 @@ class MobileMonitoringGroupApiTest extends TestCase
             ->assertJsonPath('data.name', 'Production')
             ->assertJsonPath('data.ownership.type', 'private')
             ->assertJsonPath('data.ownership.can_manage', true)
-            ->assertJsonPath('data.assignable_monitoring_count', 1)
-            ->assertJsonPath('data.assignments.0.id', $firstMonitoring->id);
+            ->assertJsonPath('data.assignable_monitoring_count', 2)
+            ->assertJsonPath('data.assignments.0.id', $firstMonitoring->id)
+            ->assertJsonPath('data.assignments.1.id', $secondMonitoring->id);
 
         $monitoringGroup = MonitoringGroup::query()->where('name', 'Production')->firstOrFail();
 
