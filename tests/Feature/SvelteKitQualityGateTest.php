@@ -241,6 +241,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('ssl_expiring: "SSL Expiring"', $notificationInbox);
         $this->assertStringContainsString('function hasTechnicalMessage', $notificationInbox);
         $this->assertStringContainsString('{#if !hasTechnicalMessage(entry)}', $notificationInbox);
+        $this->assertStringContainsString('target="_blank" rel="noopener noreferrer"', $notificationInbox);
     }
 
     public function test_response_time_chart_uses_the_computed_application_font_stack(): void
