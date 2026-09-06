@@ -64,8 +64,8 @@
         }
     }
 
-    function handleToggle(): void {
-        if (open) {
+    function handleToggle(event: Event): void {
+        if ((event.currentTarget as HTMLDetailsElement).open) {
             onOpen?.();
         }
     }

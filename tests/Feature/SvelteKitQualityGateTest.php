@@ -124,6 +124,10 @@ class SvelteKitQualityGateTest extends TestCase
             '"Your session has expired. Sign in again to continue.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren."',
             '"Ongoing": "Laufend"',
             '"Resolved incident": "Gelöster Vorfall"',
+            '"Down": "Ausgefallen"',
+            '"Last 7 Days": "Letzte 7 Tage"',
+            '"Successful": "Erfolgreich"',
+            '"Up": "Betriebsbereit"',
         ] as $translation) {
             $this->assertStringContainsString($translation, $localize);
         }
@@ -222,6 +226,28 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('loadPreviousCalendarMonth', $monitoringAnalytics);
         $this->assertStringContainsString('Load previous month', $monitoringAnalytics);
         $this->assertStringContainsString('oldest_available_month', $monitoringAnalytics);
+    }
+
+    public function test_preference_menus_close_each_other_from_the_details_open_state(): void
+    {
+        $appearanceSelector = file_get_contents(base_path('frontend/src/lib/components/AppearanceSelector.svelte'));
+        $localeSelector = file_get_contents(base_path('frontend/src/lib/components/LocaleSelector.svelte'));
+        $monitoringDetail = file_get_contents(base_path('frontend/src/routes/(app)/monitorings/[id]/+page.svelte'));
+        $localize = file_get_contents(base_path('frontend/src/lib/i18n/localize.ts'));
+
+        $this->assertIsString($appearanceSelector);
+        $this->assertIsString($localeSelector);
+        $this->assertIsString($monitoringDetail);
+        $this->assertIsString($localize);
+        $this->assertStringContainsString('function handleToggle(event: Event): void', $appearanceSelector);
+        $this->assertStringContainsString('function handleToggle(event: Event): void', $localeSelector);
+        $this->assertStringContainsString('(event.currentTarget as HTMLDetailsElement).open', $appearanceSelector);
+        $this->assertStringContainsString('(event.currentTarget as HTMLDetailsElement).open', $localeSelector);
+        $this->assertStringContainsString('function translateDynamic(value: string): string | undefined', $localize);
+        $this->assertStringContainsString('Checked every (\\d+) (minutes|seconds)', $localize);
+        $this->assertStringContainsString('The first monitoring results can take up to (\\d+) minutes', $localize);
+        $this->assertStringContainsString('function intervalLabel', $monitoringDetail);
+        $this->assertStringContainsString('function periodDescription', $monitoringDetail);
     }
 
     public function test_public_status_page_exposes_preferences_and_uptime_tooltips(): void

@@ -52,6 +52,7 @@ const german: Record<string, string> = {
     "Daily": "Täglich",
     "Dashboard": "Dashboard",
     "Dark": "Dunkel",
+    "Down": "Ausgefallen",
     "Delete": "Löschen",
     "Delete account": "Konto löschen",
     "Delete monitoring": "Überwachung löschen",
@@ -336,8 +337,12 @@ const german: Record<string, string> = {
     "Keep system health, monitoring groups, status pages, and incident patterns in one operational view.": "Behalten Sie Systemzustand, Überwachungsgruppen, Statusseiten und Vorfallsmuster in einer Betriebsansicht im Blick.",
     "Keyword": "Schlüsselwort",
     "Last 7 days": "Letzte 7 Tage",
+    "Last 7 Days": "Letzte 7 Tage",
+    "Last 30 Days": "Letzte 30 Tage",
+    "Last 90 Days": "Letzte 90 Tage",
     "Last 24 hours availability": "Verfügbarkeit der letzten 24 Stunden",
     "Latest report and configured thresholds.": "Letzter Bericht und konfigurierte Schwellenwerte.",
+    "Load previous month": "Vorherigen Monat laden",
     "Loading response-time data…": "Antwortzeitdaten werden geladen …",
     "Maintenance | WebGuard": "Wartung | WebGuard",
     "Mark all as read": "Alle als gelesen markieren",
@@ -390,6 +395,7 @@ const german: Record<string, string> = {
     "Please try again in a moment.": "Bitte versuchen Sie es in Kürze erneut.",
     "Price": "Preis",
     "Private monitoring": "Private Überwachung",
+    "Successful": "Erfolgreich",
     "Private monitorings": "Private Überwachungen",
     "Publish service availability for your customers and teams.": "Veröffentlichen Sie die Dienstverfügbarkeit für Ihre Kunden und Teams.",
     "Publish this monitoring on a status page from": "Veröffentlichen Sie diese Überwachung auf einer Statusseite aus",
@@ -474,6 +480,10 @@ const german: Record<string, string> = {
     "Your confirmation is being processed.": "Ihre Bestätigung wird verarbeitet.",
     "Your session has expired. Sign in again to continue.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren.",
     "A recurring maintenance window is configured.": "Ein wiederkehrendes Wartungsfenster ist konfiguriert.",
+    "Certificate validation failed": "Zertifikatsprüfung fehlgeschlagen",
+    "Domain validation failed": "Domainprüfung fehlgeschlagen",
+    "Maintenance active": "Wartung aktiv",
+    "Maintenance scheduled": "Wartung geplant",
     "Admin": "Administrator",
     "Choose a new password | WebGuard": "Neues Passwort wählen | WebGuard",
     "Create": "Erstellen",
@@ -495,6 +505,9 @@ const german: Record<string, string> = {
     "Provide a bot token and the target chat ID.": "Geben Sie einen Bot-Token und die Ziel-Chat-ID an.",
     "Recent incidents": "Aktuelle Vorfälle",
     "Resolved incident": "Gelöster Vorfall",
+    "Archived": "Archiviert",
+    "Live": "Live",
+    "Up": "Betriebsbereit",
     "Register": "Registrieren",
     "Reset password | WebGuard": "Passwort zurücksetzen | WebGuard",
     "Review your service health, incidents, maintenance, and operational follow-ups in one place.": "Überprüfen Sie Dienststatus, Vorfälle, Wartung und operative Nachverfolgungen an einem Ort.",
@@ -678,6 +691,67 @@ const german: Record<string, string> = {
     "You will lose access to team monitorings.": "Sie verlieren den Zugriff auf Team-Überwachungen.",
 };
 
+function translateDynamic(value: string): string | undefined {
+    const checkedEvery = value.match(/^Checked every (\d+) (minutes|seconds)$/);
+
+    if (checkedEvery) {
+        return `Alle ${checkedEvery[1]} ${checkedEvery[2] === "minutes" ? "Minuten" : "Sekunden"} geprüft`;
+    }
+
+    const downtime = value.match(/^(\d+) (incident|incidents), ([\d.,]+)% downtime$/);
+
+    if (downtime) {
+        return `${downtime[1]} ${downtime[2] === "incident" ? "Vorfall" : "Vorfälle"}, ${downtime[3]} % Ausfallzeit`;
+    }
+
+    const loadedChecks = value.match(/^(\d+) loaded checks · Live and archived data$/);
+
+    if (loadedChecks) {
+        return `${loadedChecks[1]} geladene Prüfungen · Live- und Archivdaten`;
+    }
+
+    const duration = value.match(/^(.* · )(\d+)(h|m)(?: (\d+)m)?$/);
+
+    if (duration) {
+        const hours = duration[3] === "h" ? `${duration[2]} Std.` : "";
+        const minutes = duration[3] === "m" ? `${duration[2]} Min.` : duration[4] ? `${duration[4]} Min.` : "";
+
+        return `${duration[1]}${[hours, minutes].filter(Boolean).join(" ")}`;
+    }
+
+    const firstResults = value.match(/^The first monitoring results can take up to (\d+) minutes, based on the configured check interval\.$/);
+
+    if (firstResults) {
+        return `Die ersten Überwachungsergebnisse können je nach konfiguriertem Prüfintervall bis zu ${firstResults[1]} Minuten dauern.`;
+    }
+
+    const since = value.match(/^Since (.+)$/);
+
+    if (since) {
+        return `Seit ${since[1]}`;
+    }
+
+    const validUntil = value.match(/^Valid until (.+)$/);
+
+    if (validUntil) {
+        return `Gültig bis ${validUntil[1]}`;
+    }
+
+    const starts = value.match(/^Starts (.+)$/);
+
+    if (starts) {
+        return `Beginnt ${starts[1]}`;
+    }
+
+    const availabilityFor = value.match(/^Availability for (.+)$/);
+
+    if (availabilityFor) {
+        return `Verfügbarkeit für ${availabilityFor[1]}`;
+    }
+
+    return undefined;
+}
+
 function translate(value: string, locale: string): string {
     if (locale !== "de") return value;
 
@@ -685,6 +759,7 @@ function translate(value: string, locale: string): string {
     const trailing = value.match(/\s*$/)?.[0] ?? "";
     const content = value.trim();
     const translated = german[content]
+        ?? translateDynamic(content)
         ?? (content.endsWith(" | Status pages | WebGuard")
             ? `${content.slice(0, -" | Status pages | WebGuard".length)} | Statusseiten | WebGuard`
             : content);
