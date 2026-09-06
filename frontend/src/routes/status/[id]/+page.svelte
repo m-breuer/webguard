@@ -54,7 +54,7 @@
     }
 
     function calendarDayLabel(value: string): string {
-        return formatDateTime(`${value}T12:00:00`, "Not recorded", {
+        return formatDateTime(value, "Not recorded", {
             month: "short", day: "numeric", year: "numeric",
         });
     }

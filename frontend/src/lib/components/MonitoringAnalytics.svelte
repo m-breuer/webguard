@@ -94,7 +94,7 @@
     }
 
     function calendarDayLabel(value: string): string {
-        return formatDateTime(`${value}T12:00:00`, "—", {
+        return formatDateTime(value, "—", {
             month: "short", day: "numeric", year: "numeric",
         });
     }

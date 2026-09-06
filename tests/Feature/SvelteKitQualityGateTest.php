@@ -217,6 +217,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('group-focus-visible:opacity-100', $monitoringAnalytics);
         $this->assertStringContainsString('focus-visible:outline-wg-focus', $monitoringAnalytics);
         $this->assertStringContainsString('<span>Uptime</span>', $monitoringAnalytics);
+        $this->assertStringContainsString('return formatDateTime(value, "—",', $monitoringAnalytics);
+        $this->assertStringNotContainsString('${value}T12:00:00', $monitoringAnalytics);
         $this->assertStringContainsString('loadPreviousCalendarMonth', $monitoringAnalytics);
         $this->assertStringContainsString('Load previous month', $monitoringAnalytics);
         $this->assertStringContainsString('oldest_available_month', $monitoringAnalytics);
@@ -236,6 +238,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('group-hover:visible group-hover:opacity-100', $statusPage);
         $this->assertStringContainsString('group-focus-visible:visible group-focus-visible:opacity-100', $statusPage);
         $this->assertStringContainsString('role="tooltip"', $statusPage);
+        $this->assertStringContainsString('return formatDateTime(value, "Not recorded",', $statusPage);
+        $this->assertStringNotContainsString('${value}T12:00:00', $statusPage);
         $this->assertStringContainsString('document.cookie = `webguard_locale=', $localeSelector);
         $this->assertStringContainsString('if (endpoint === null)', $appearanceSelector);
     }
