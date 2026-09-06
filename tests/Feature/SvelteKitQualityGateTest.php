@@ -42,6 +42,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertIsString($checkbox);
         $this->assertStringContainsString('function toggleGroup', $checkbox);
         $this->assertStringContainsString('group = input.checked', $checkbox);
+        $this->assertSame(2, substr_count($checkbox, 'rounded-full'));
         $this->assertStringNotContainsString('bind:group', $checkbox);
     }
 
