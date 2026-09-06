@@ -20,6 +20,8 @@ final class StatusPageUptimeCalendarService
 {
     public const LOOKBACK_DAYS = 30;
 
+    public function __construct(private readonly MonitoringAvailabilityService $monitoringAvailabilityService) {}
+
     public function getLast30Days(StatusPage $statusPage): MonitoringUptimeCalendarPayload
     {
         $statusPage->loadMissing([
@@ -27,10 +29,11 @@ final class StatusPageUptimeCalendarService
             'components.monitoringGroup.monitorings' => fn ($query) => $query->withoutGlobalScope('user'),
         ]);
 
-        $monitoringIds = $statusPage->components
-            ->flatMap(fn (StatusPageComponent $statusPageComponent): Collection => $this->componentMonitorings($statusPageComponent)->pluck('id'))
-            ->unique()
+        $monitorings = $statusPage->components
+            ->flatMap(fn (StatusPageComponent $statusPageComponent): Collection => $this->componentMonitorings($statusPageComponent))
+            ->unique('id')
             ->values();
+        $monitoringIds = $monitorings->pluck('id');
 
         $endDate = Date::now()->endOfDay();
         $startDate = $endDate->copy()->subDays(self::LOOKBACK_DAYS - 1)->startOfDay();
@@ -44,6 +47,16 @@ final class StatusPageUptimeCalendarService
 
         $dailyUptimeData = [];
         $monthlyMinutes = [];
+        $today = Date::now()->startOfDay();
+        $currentDayAvailability = $today->betweenIncluded($startDate, $endDate)
+            ? $monitorings->map(fn (Monitoring $monitoring) => $this->monitoringAvailabilityService
+                ->getUptimeDowntime(
+                    $monitoring,
+                    $today,
+                    Date::now(),
+                ))
+                ->all()
+            : [];
         $carbonPeriod = CarbonPeriod::create($startDate->copy()->startOfMonth(), '1 month', $endDate->copy()->endOfMonth());
 
         foreach ($carbonPeriod as $monthDate) {
@@ -64,6 +77,11 @@ final class StatusPageUptimeCalendarService
                     $results = $historicalData->get($dateString, collect());
                     $uptimeMinutes = (int) $results->sum('uptime_minutes');
                     $downtimeMinutes = (int) $results->sum('downtime_minutes');
+                }
+
+                if ($currentDay->isSameDay($today)) {
+                    $uptimeMinutes = collect($currentDayAvailability)->sum(fn ($availability): int => $availability->uptime->minutes);
+                    $downtimeMinutes = collect($currentDayAvailability)->sum(fn ($availability): int => $availability->downtime->minutes);
                 }
 
                 $trackedMinutes = $uptimeMinutes + $downtimeMinutes;

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
     import { formatDateTime } from "$lib/i18n/format";
+    import { translate } from "$lib/i18n/localize";
     import Button from "$lib/components/Button.svelte";
     import Input from "$lib/components/Input.svelte";
     import AppearanceSelector from "$lib/components/AppearanceSelector.svelte";
@@ -25,20 +26,24 @@
 
     let { data, form }: Props = $props();
 
-    const statusLabel = $derived(data.status === "up" ? "All systems operational" : data.status === "down" ? "Service disruption" : "Status unavailable");
+    function text(value: string): string {
+        return translate(value, data.locale);
+    }
+
+    const statusLabel = $derived(text(data.status === "up" ? "All systems operational" : data.status === "down" ? "Service disruption" : "Status unavailable"));
     const statusClasses = $derived(data.status === "up" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : data.status === "down" ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900");
     const statusDot = $derived(data.status === "up" ? "bg-emerald-500" : data.status === "down" ? "bg-red-500" : "bg-amber-500");
     const calendarDays = $derived(Object.values(data.uptime_calendar ?? {}).flatMap((month) => month.days));
     function dateTime(value: string | null): string {
-        return formatDateTime(value, "Not recorded");
+        return formatDateTime(value, text("Not recorded"));
     }
 
     function updateStatusLabel(status: string): string {
-        return status.charAt(0).toUpperCase() + status.slice(1);
+        return text(status.charAt(0).toUpperCase() + status.slice(1));
     }
 
     function percentage(value: number | null): string {
-        return value === null ? "No data" : `${value.toFixed(2)}%`;
+        return value === null ? text("No data") : `${value.toFixed(2)}%`;
     }
 
     function stateClasses(status: "up" | "down" | "unknown"): string {
@@ -65,7 +70,7 @@
 
 <main class="min-h-screen bg-wg-canvas px-4 py-8 sm:px-6 sm:py-14">
     <div class="mx-auto w-full max-w-5xl">
-        <header class="mx-auto max-w-3xl text-center"><div class="flex items-center justify-between gap-4"><a class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-wg-accent font-black text-wg-accent-contrast no-underline" href="/" aria-label="WebGuard">W</a><div class="flex gap-2" aria-label="Page preferences"><AppearanceSelector endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" /><LocaleSelector initialLocale={data.locale} endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" /></div></div><h1 class="mt-5 text-[clamp(2rem,6vw,3.5rem)] leading-[1.05] font-bold tracking-tight">{data.name}</h1>{#if data.description}<p class="mx-auto mt-4 max-w-2xl leading-7 text-wg-text-muted">{data.description}</p>{/if}{#if data.kind === "monitoring" && data.monitoring?.target}<a class="mt-4 inline-block break-all text-sm font-bold text-wg-accent" href={data.monitoring.target} target="_blank" rel="noreferrer">{data.monitoring.target}</a>{/if}</header>
+        <header class="mx-auto max-w-3xl text-center"><div class="flex items-center justify-between gap-4"><a class="flex min-w-0 items-center gap-3 text-wg-text no-underline" href="/" aria-label="WebGuard"><img class="size-10 shrink-0 rounded-xl bg-white object-contain p-0.5" src="/brand/webguard-logo.png" alt="" /><span class="font-extrabold tracking-tight">WebGuard</span></a><div class="flex gap-2" aria-label="Page preferences"><AppearanceSelector endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" /><LocaleSelector initialLocale={data.locale} endpoint={null} menuAlign="right" menuPlacement="below" variant="surface" /></div></div><h1 class="mt-5 text-[clamp(2rem,6vw,3.5rem)] leading-[1.05] font-bold tracking-tight">{data.name}</h1>{#if data.description}<p class="mx-auto mt-4 max-w-2xl leading-7 text-wg-text-muted">{data.description}</p>{/if}{#if data.kind === "monitoring" && data.monitoring?.target}<a class="mt-4 inline-block break-all text-sm font-bold text-wg-accent" href={data.monitoring.target} target="_blank" rel="noreferrer">{data.monitoring.target}</a>{/if}</header>
 
         <section class={`mt-9 rounded-2xl border px-5 py-5 shadow-sm sm:px-6 ${statusClasses}`} aria-label="Overall service status"><div class="flex items-center gap-4"><span class={`size-3.5 shrink-0 rounded-full ${statusDot}`} aria-hidden="true"></span><div><p class="text-lg font-bold sm:text-xl">{statusLabel}</p><p class="mt-1 text-sm opacity-80">Overall service status: {data.status.toUpperCase()}</p></div></div></section>
 

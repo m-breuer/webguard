@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Data\MonitoringUptimeCalendarPayload;
+use App\Enums\MonitoringStatus;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
+use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\User;
 use App\Services\MonitoringUptimeCalendarService;
@@ -72,6 +74,49 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
         $this->assertEqualsWithDelta(75.0, (float) $calendar['2026-04']['monthly_average_uptime'], 0.0001);
     }
 
+    public function test_calendar_includes_current_day_only_through_the_current_time(): void
+    {
+        Date::setTestNow('2026-04-20 09:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-01 00:00:00'),
+        ]);
+
+        $this->createResponse($monitoring, MonitoringStatus::UP, '2026-04-20 00:00:00');
+        $this->createResponse($monitoring, MonitoringStatus::DOWN, '2026-04-20 08:00:00');
+
+        $calendar = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
+            $monitoring,
+            Date::parse('2026-04-01')->startOfDay(),
+            Date::parse('2026-04-30')->endOfDay()
+        )->toArray();
+
+        $this->assertEqualsWithDelta(88.8889, (float) $calendar['2026-04']['days'][19]['uptime_percentage'], 0.0001);
+    }
+
+    public function test_calendar_marks_a_healthy_current_day_as_fully_available(): void
+    {
+        Date::setTestNow('2026-04-20 09:00:00');
+
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'created_at' => Date::parse('2026-04-01 00:00:00'),
+        ]);
+
+        $this->createResponse($monitoring, MonitoringStatus::UP, '2026-04-20 00:00:00');
+
+        $calendar = resolve(MonitoringUptimeCalendarService::class)->getGroupedByDateAndMonth(
+            $monitoring,
+            Date::parse('2026-04-01')->startOfDay(),
+            Date::parse('2026-04-30')->endOfDay()
+        )->toArray();
+
+        $this->assertSame(100.0, $calendar['2026-04']['days'][19]['uptime_percentage']);
+    }
+
     public function test_calendar_excludes_months_without_daily_records(): void
     {
         Date::setTestNow('2026-04-20 12:00:00');
@@ -135,6 +180,18 @@ class MonitoringUptimeCalendarServiceTest extends TestCase
             'min_response_time' => 100,
             'max_response_time' => 100,
             'incidents_count' => 0,
+        ]);
+    }
+
+    private function createResponse(Monitoring $monitoring, MonitoringStatus $status, string $createdAt): void
+    {
+        MonitoringResponse::query()->forceCreate([
+            'monitoring_id' => $monitoring->id,
+            'status' => $status,
+            'http_status_code' => $status === MonitoringStatus::UP ? 200 : 503,
+            'response_time' => $status === MonitoringStatus::UP ? 100.0 : null,
+            'created_at' => Date::parse($createdAt),
+            'updated_at' => Date::parse($createdAt),
         ]);
     }
 }

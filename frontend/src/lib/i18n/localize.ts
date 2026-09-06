@@ -342,9 +342,11 @@ const german: Record<string, string> = {
     "Last 90 Days": "Letzte 90 Tage",
     "Last 24 hours availability": "Verfügbarkeit der letzten 24 Stunden",
     "Latest report and configured thresholds.": "Letzter Bericht und konfigurierte Schwellenwerte.",
+    "Last checked": "Zuletzt geprüft",
     "Load previous month": "Vorherigen Monat laden",
     "Loading response-time data…": "Antwortzeitdaten werden geladen …",
     "Maintenance | WebGuard": "Wartung | WebGuard",
+    "Maintenance in progress": "Wartung läuft",
     "Mark all as read": "Alle als gelesen markieren",
     "Min. Response Time": "Min. Antwortzeit",
     "Max. Response Time": "Max. Antwortzeit",
@@ -378,6 +380,7 @@ const german: Record<string, string> = {
     "Notify on failure": "Bei Fehler benachrichtigen",
     "One-off maintenance": "Einmalige Wartung",
     "Open incident": "Offener Vorfall",
+    "Open-ended": "Ohne Enddatum",
     "Ongoing": "Laufend",
     "Open public page": "Öffentliche Seite öffnen",
     "Open target": "Ziel öffnen",
@@ -413,6 +416,7 @@ const german: Record<string, string> = {
     "Response time period": "Antwortzeitraum",
     "Response-time data could not be loaded.": "Antwortzeitdaten konnten nicht geladen werden.",
     "Response-time data will appear after the monitoring collects results.": "Antwortzeitdaten werden angezeigt, sobald die Überwachung Ergebnisse erfasst.",
+    "30-day uptime": "Verfügbarkeit der letzten 30 Tage",
     "Return to dashboard": "Zurück zum Dashboard",
     "Role": "Rolle",
     "Save notification settings": "Benachrichtigungseinstellungen speichern",
@@ -749,10 +753,28 @@ function translateDynamic(value: string): string | undefined {
         return `Verfügbarkeit für ${availabilityFor[1]}`;
     }
 
+    const lastChecked = value.match(/^Last checked (.+)$/);
+
+    if (lastChecked) {
+        return `Zuletzt geprüft ${lastChecked[1]}`;
+    }
+
+    const lastDays = value.match(/^Last (\d+) days$/);
+
+    if (lastDays) {
+        return `Letzte ${lastDays[1]} Tage`;
+    }
+
+    const incidentCount = value.match(/^(\d+) incidents?$/);
+
+    if (incidentCount) {
+        return `${incidentCount[1]} ${incidentCount[1] === "1" ? "Vorfall" : "Vorfälle"}`;
+    }
+
     return undefined;
 }
 
-function translate(value: string, locale: string): string {
+export function translate(value: string, locale: string): string {
     if (locale !== "de") return value;
 
     const leading = value.match(/^\s*/)?.[0] ?? "";

@@ -15,6 +15,7 @@ use App\Models\MonitoringGroup;
 use App\Models\MonitoringResponse;
 use App\Models\Package;
 use App\Models\ServerInstance;
+use App\Models\StatusPage;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -186,7 +187,32 @@ class InternalUiMonitoringApiTest extends TestCase
             ->assertJsonMissing(['server_health_token' => 'private-token'])
             ->assertJsonMissing(['Authorization' => 'Bearer private-token']);
 
-        $this->assertInternalUiTelemetry($testResponse, 22, 262144);
+        $this->assertInternalUiTelemetry($testResponse, 25, 262144);
+    }
+
+    public function test_internal_ui_monitoring_detail_lists_status_pages_from_monitoring_groups(): void
+    {
+        $user = User::factory()->create();
+        $monitoring = Monitoring::factory()->for($user)->create();
+        $group = MonitoringGroup::factory()->for($user)->create();
+        $group->monitorings()->attach($monitoring);
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Customer status',
+            'is_public' => true,
+        ]);
+        $statusPage->components()->create([
+            'monitoring_group_id' => $group->id,
+            'name' => 'Services',
+            'position' => 0,
+            'source_type' => 'monitoring_group',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('app.monitorings.detail-data', $monitoring))
+            ->assertOk()
+            ->assertJsonPath('data.summary.status_pages.0.id', $statusPage->id)
+            ->assertJsonPath('data.summary.status_pages.0.name', 'Customer status');
     }
 
     public function test_internal_ui_monitoring_detail_data_pages_recent_checks_with_a_bounded_offset(): void

@@ -68,6 +68,41 @@ class PublicStatusPayloadApiTest extends TestCase
             ->assertJsonPath('data.identifier', $statusPage->id);
     }
 
+    public function test_public_status_page_calendar_includes_current_intraday_uptime(): void
+    {
+        Date::setTestNow('2026-08-23 12:00:00');
+        $user = $this->user();
+        $monitoring = Monitoring::factory()->for($user)->create();
+
+        MonitoringResponse::query()->forceCreate([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP,
+            'http_status_code' => 200,
+            'created_at' => Date::parse('2026-08-23 00:00:00'),
+            'updated_at' => Date::parse('2026-08-23 00:00:00'),
+        ]);
+        MonitoringResponse::query()->forceCreate([
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::DOWN,
+            'http_status_code' => 503,
+            'created_at' => Date::parse('2026-08-23 09:00:00'),
+            'updated_at' => Date::parse('2026-08-23 09:00:00'),
+        ]);
+
+        $statusPage = StatusPage::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Acme Status',
+            'is_public' => true,
+        ]);
+        $statusPage->components()->create(['name' => 'Core services', 'position' => 0])
+            ->monitorings()
+            ->attach($monitoring->id, ['position' => 0]);
+
+        $this->getJson(route('public.status.show', $statusPage))
+            ->assertOk()
+            ->assertJsonPath('data.uptime_calendar.2026-08.days.22.uptime_percentage', 75);
+    }
+
     public function test_private_public_status_resources_are_not_exposed(): void
     {
         $user = $this->user();
