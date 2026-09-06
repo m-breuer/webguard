@@ -24,6 +24,19 @@
         meta = data.meta;
     });
 
+    const eventLabels: Record<string, string> = {
+        incident: "Incident",
+        recovery: "Recovery",
+        maintenance: "Maintenance",
+        performance_degraded: "Performance Degraded",
+        performance_recovered: "Performance Recovered",
+        ssl_expiring: "SSL Expiring",
+        ssl_expired: "SSL Expired",
+        domain_expiring: "Domain Expiring",
+        domain_expired: "Domain Expired",
+        delivery_failure: "Delivery Failure",
+    };
+
     const eventTypes = [
         ["", "All events"],
         ["incident", "Incidents"],
@@ -43,7 +56,11 @@
     }
 
     function eventLabel(entry: NotificationEntry): string {
-        return entry.event_type.split("_").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
+        return eventLabels[entry.event_type] ?? entry.event_type.split("_").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
+    }
+
+    function hasTechnicalMessage(entry: NotificationEntry): boolean {
+        return entry.message === entry.event_type.toUpperCase();
     }
 
     function tone(entry: NotificationEntry): "healthy" | "degraded" | "danger" | "neutral" {
@@ -141,7 +158,7 @@
             <div class="mt-6 divide-y divide-wg-border rounded-xl border border-wg-border">
                 {#each entries as entry (entry.id)}
                     <article class={`grid gap-4 p-4 sm:grid-cols-[1fr_auto] sm:items-center ${entry.read ? "opacity-70" : ""}`}>
-                        <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><StatusBadge tone={tone(entry)} label={eventLabel(entry)} />{#if entry.delivery_status === "failed"}<StatusBadge tone="degraded" label="Delivery failed" />{/if}{#if entry.read}<span class="text-xs font-bold text-wg-text-muted">Read</span>{/if}</div><h2 class="mt-3 text-base font-bold"><a class="text-wg-text no-underline hover:text-wg-accent hover:underline" href={`/monitorings/${entry.monitoring.id}`}>{entry.monitoring.name}</a></h2><p class="mt-1 text-sm leading-6 text-wg-text-muted">{entry.message}</p><p class="mt-2 text-xs font-semibold tracking-[0.03em] text-wg-text-muted">{entry.monitoring.target} · {formatDate(entry.occurred_at)}</p></div>
+                        <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><StatusBadge tone={tone(entry)} label={eventLabel(entry)} />{#if entry.delivery_status === "failed"}<StatusBadge tone="degraded" label="Delivery failed" />{/if}{#if entry.read}<span class="text-xs font-bold text-wg-text-muted">Read</span>{/if}</div><h2 class="mt-3 text-base font-bold"><a class="text-wg-text no-underline hover:text-wg-accent hover:underline" href={`/monitorings/${entry.monitoring.id}`}>{entry.monitoring.name}</a></h2>{#if !hasTechnicalMessage(entry)}<p class="mt-1 text-sm leading-6 text-wg-text-muted">{entry.message}</p>{/if}<p class="mt-2 text-xs font-semibold tracking-[0.03em] text-wg-text-muted">{entry.monitoring.target} · {formatDate(entry.occurred_at)}</p></div>
                         {#if !entry.read}<Button variant="quiet" loading={markingRead === entry.id} onclick={() => markRead(entry)}>Mark as read</Button>{/if}
                     </article>
                 {/each}
