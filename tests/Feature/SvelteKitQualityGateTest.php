@@ -242,6 +242,15 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('function hasTechnicalMessage', $notificationInbox);
         $this->assertStringContainsString('{#if !hasTechnicalMessage(entry)}', $notificationInbox);
         $this->assertStringContainsString('target="_blank" rel="noopener noreferrer"', $notificationInbox);
+
+        $appShell = file_get_contents(base_path('frontend/src/lib/components/AppShell.svelte'));
+
+        $this->assertIsString($appShell);
+        $this->assertStringContainsString('unreadNotificationCount = $state(0)', $appShell);
+        $this->assertStringContainsString('/api/notifications?limit=1&show_read=0', $appShell);
+        $this->assertStringContainsString('bg-red-500', $appShell);
+        $this->assertStringContainsString('webguard:notifications-count', $appShell);
+        $this->assertStringContainsString('publishUnreadNotificationCount', $notificationInbox);
     }
 
     public function test_response_time_chart_uses_the_computed_application_font_stack(): void

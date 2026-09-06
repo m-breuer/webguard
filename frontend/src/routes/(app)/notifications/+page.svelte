@@ -19,6 +19,10 @@
     let markingRead = $state<string | null>(null);
     let errorMessage = $state("");
 
+    function publishUnreadNotificationCount(count: number): void {
+        window.dispatchEvent(new CustomEvent("webguard:notifications-count", { detail: count }));
+    }
+
     $effect(() => {
         entries = data.entries;
         meta = data.meta;
@@ -104,7 +108,9 @@
                     ? { ...currentEntry, read: true }
                     : currentEntry)
                 : entries.filter((currentEntry) => !payload.data.read_notification_ids.includes(currentEntry.id));
-            meta = { ...meta, unread_count: payload.meta?.unread_count ?? meta.unread_count };
+            const unreadCount = payload.meta?.unread_count ?? meta.unread_count;
+            meta = { ...meta, unread_count: unreadCount };
+            publishUnreadNotificationCount(unreadCount);
         } catch (error) {
             errorMessage = error instanceof FirstPartyApiError ? error.message : "The notification could not be marked as read.";
         } finally {
@@ -122,12 +128,14 @@
                 { method: "PATCH" },
             );
             entries = showRead ? entries.map((entry) => ({ ...entry, read: true })) : [];
+            const unreadCount = payload.meta?.unread_count ?? meta.unread_count;
             meta = {
                 ...meta,
                 has_more: showRead ? meta.has_more : false,
                 next_cursor: showRead ? meta.next_cursor : null,
-                unread_count: payload.meta?.unread_count ?? meta.unread_count,
+                unread_count: unreadCount,
             };
+            publishUnreadNotificationCount(unreadCount);
         } catch (error) {
             errorMessage = error instanceof FirstPartyApiError ? error.message : "Notifications could not be marked as read.";
         } finally {
