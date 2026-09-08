@@ -38,7 +38,9 @@ Controllers are transport adapters. They authorize a request and invoke a
 client-neutral application query or command. Domain services and typed data
 objects may be shared; HTTP resources and presentation values may not be shared
 by default. UI resources contain raw locale-neutral values, never rendered HTML,
-translated relative timestamps, or named-route URLs.
+translated relative timestamps, or named-route URLs. The explicit public
+translation catalog is the exception and is limited to the approved
+SvelteKit language files.
 
 Monitoring reads follow the same rule: actor-scoped query classes own overview,
 detail, and batch-card data access. Focused services own health derivation,
@@ -77,6 +79,7 @@ standard `422` JSON error shape, and authorization failures use the existing
 | `POST /api/session/logout` | Authenticated | Invalidates the browser session and returns `data.authenticated: false`; it does not redirect. |
 | `PATCH /api/appearance` | Authenticated member or admin | Persists a validated `light`, `dark`, or `system` preference and returns the persisted user ID and theme in the same response. Demo users remain read-only. |
 | `GET /sanctum/csrf-cookie` | Browser session | Laravel Sanctum CSRF bootstrap. SvelteKit calls it before its first unsafe same-origin request and sends Laravel's standard CSRF header/cookie pair. |
+| `GET /api/translations?locale=en|de` | Public read | Allowlisted SvelteKit translations from Laravel language files; unsupported locales fall back to English. |
 
 Verified workspace routes remain behind `verified`; the session and appearance
 contracts deliberately do not, matching the existing profile behavior. Every

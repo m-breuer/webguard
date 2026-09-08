@@ -1,9 +1,10 @@
 <script lang="ts">
     import "../app.css";
     import { localize } from "$lib/i18n/localize";
+    import type { TranslationMessages } from "$lib/i18n/localize";
 
     interface Props {
-        data: { locale: string };
+        data: { locale: string; messages: TranslationMessages };
         children: import("svelte").Snippet;
     }
 
@@ -18,4 +19,4 @@
     <meta name="theme-color" content="#6b21a8" />
 </svelte:head>
 
-<div use:localize={data.locale}>{@render children()}</div>
+<div use:localize={{ locale: data.locale, messages: data.messages }}>{@render children()}</div>

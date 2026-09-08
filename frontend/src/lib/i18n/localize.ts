@@ -1,823 +1,173 @@
-const german: Record<string, string> = {
-    "Account": "Konto",
-    "Account information": "Kontoinformationen",
-    "Actions": "Aktionen",
-    "Active": "Aktiv",
-    "Active monitorings": "Aktive Überwachungen",
-    "Activity logs": "Aktivitätsprotokolle",
-    "Activity logs | WebGuard": "Aktivitätsprotokolle | WebGuard",
-    "Actor": "Auslöser",
-    "Add component": "Komponente hinzufügen",
-    "Administration": "Administration",
-    "Administration dashboard": "Administrations-Dashboard",
-    "Advanced filters": "Erweiterte Filter",
-    "Affected service": "Betroffener Dienst",
-    "All": "Alle",
-    "All events": "Alle Ereignisse",
-    "All groups": "Alle Gruppen",
-    "All monitorings": "Alle Überwachungen",
-    "All systems": "Alle Systeme",
-    "All systems operational": "Alle Systeme betriebsbereit",
-    "All users": "Alle Benutzer",
-    "Analytics": "Analysen",
-    "API access": "API-Zugriff",
-    "API key created.": "API-Schlüssel erstellt.",
-    "API key revoked.": "API-Schlüssel widerrufen.",
-    "API keys": "API-Schlüssel",
-    "Appearance": "Darstellung",
-    "Apply": "Anwenden",
-    "Apply filters": "Filter anwenden",
-    "Assignment and alerts": "Zuweisung und Benachrichtigungen",
-    "Average": "Durchschnitt",
-    "Basic configuration": "Grundkonfiguration",
-    "Basics": "Grundlagen",
-    "Bot token": "Bot-Token",
-    "Cancel": "Abbrechen",
-    "Channels": "Kanäle",
-    "Changes": "Änderungen",
-    "Chat ID": "Chat-ID",
-    "Check configuration": "Prüfkonfiguration",
-    "Check regions": "Prüfregionen",
-    "Check settings": "Prüfeinstellungen",
-    "Clear": "Entfernen",
-    "Close navigation": "Navigation schließen",
-    "Clear selection": "Auswahl leeren",
-    "Collaboration": "Zusammenarbeit",
-    "Components": "Komponenten",
-    "Configure notifications": "Benachrichtigungen konfigurieren",
-    "Confirm new password": "Neues Passwort bestätigen",
-    "Current password": "Aktuelles Passwort",
-    "Current status": "Aktueller Status",
-    "Customer impact": "Kundenauswirkung",
-    "Daily": "Täglich",
-    "Dashboard": "Dashboard",
-    "Dark": "Dunkel",
-    "Down": "Ausgefallen",
-    "Delete": "Löschen",
-    "Delete account": "Konto löschen",
-    "Delete monitoring": "Überwachung löschen",
-    "Demo": "Demo",
-    "Description": "Beschreibung",
-    "Domain and SSL": "Domain und SSL",
-    "Domain registration": "Domain-Registrierung",
-    "Duration": "Dauer",
-    "Edit": "Bearbeiten",
-    "Edit monitoring": "Überwachung bearbeiten",
-    "Edit status page": "Statusseite bearbeiten",
-    "Edit team": "Team bearbeiten",
-    "Email": "E-Mail",
-    "Email address": "E-Mail-Adresse",
-    "Email summaries": "E-Mail-Zusammenfassungen",
-    "Enable": "Aktivieren",
-    "Enabled": "Aktiviert",
-    "Event": "Ereignis",
-    "Event type": "Ereignistyp",
-    "Failure confirmation attempts": "Bestätigungsversuche bei Fehlern",
-    "Group": "Gruppe",
-    "Groups": "Gruppen",
-    "Healthy": "Betriebsbereit",
-    "HTTP method": "HTTP-Methode",
-    "Incidents": "Vorfälle",
-    "Inbox": "Posteingang",
-    "Language": "Sprache",
-    "Last 24 hours": "Letzte 24 Stunden",
-    "Last 90 days": "Letzte 90 Tage",
-    "Last 365 days": "Letzte 365 Tage",
-    "Last check": "Letzte Prüfung",
-    "Lifecycle": "Lebenszyklus",
-    "Light": "Hell",
-    "Load more": "Mehr laden",
-    "Maintenance": "Wartung",
-    "Maximum": "Maximum",
-    "Member": "Mitglied",
-    "Members": "Mitglieder",
-    "Minimum": "Minimum",
-    "Monitoring": "Überwachung",
-    "Monitoring diagnostics": "Überwachungsdiagnose",
-    "Monitoring group": "Überwachungsgruppe",
-    "Monitoring groups": "Überwachungsgruppen",
-    "Monitoring locations": "Überwachungsstandorte",
-    "Monitoring type": "Überwachungstyp",
-    "Monitorings": "Überwachungen",
-    "Monthly": "Monatlich",
-    "Name": "Name",
-    "Needs attention": "Benötigt Aufmerksamkeit",
-    "New password": "Neues Passwort",
-    "Next": "Weiter",
-    "Next maintenance": "Nächste Wartung",
-    "No activity has been recorded.": "Es wurden noch keine Aktivitäten erfasst.",
-    "No activity matches the selected filters.": "Keine Aktivitäten entsprechen den ausgewählten Filtern.",
-    "No API activity matches the selected filters.": "Keine API-Aktivität entspricht den ausgewählten Filtern.",
-    "No API keys have been created.": "Es wurden noch keine API-Schlüssel erstellt.",
-    "No changes": "Keine Änderungen",
-    "No channels enabled.": "Keine Kanäle aktiviert.",
-    "No checks have been recorded yet.": "Es wurden noch keine Prüfungen erfasst.",
-    "No groups": "Keine Gruppen",
-    "No incidents match the selected filters.": "Keine Vorfälle entsprechen den ausgewählten Filtern.",
-    "No incidents recorded in this period.": "In diesem Zeitraum wurden keine Vorfälle erfasst.",
-    "No maintenance planned.": "Keine Wartung geplant.",
-    "No monitoring groups yet": "Noch keine Überwachungsgruppen",
-    "No notification channels are configured.": "Es sind keine Benachrichtigungskanäle konfiguriert.",
-    "No one-off maintenance is scheduled.": "Es ist keine einmalige Wartung geplant.",
-    "No pending invitations.": "Keine ausstehenden Einladungen.",
-    "No recent incidents.": "Keine aktuellen Vorfälle.",
-    "No recurring maintenance is scheduled.": "Es ist keine wiederkehrende Wartung geplant.",
-    "No status pages yet": "Noch keine Statusseiten",
-    "Notification settings": "Benachrichtigungseinstellungen",
-    "Notifications": "Benachrichtigungen",
-    "One-off": "Einmalig",
-    "Open": "Öffnen",
-    "Open incidents": "Offene Vorfälle",
-    "Operations": "Betrieb",
-    "Owner": "Besitzer",
-    "Ownership": "Eigentümerschaft",
-    "Ownership and groups": "Eigentümerschaft und Gruppen",
-    "Packages": "Pakete",
-    "Password": "Passwort",
-    "Paused": "Pausiert",
-    "Period": "Zeitraum",
-    "Permissions": "Berechtigungen",
-    "Previous": "Zurück",
-    "Private": "Privat",
-    "Profile": "Profil",
-    "Profile settings": "Profileinstellungen",
-    "Public": "Öffentlich",
-    "Public display": "Öffentliche Anzeige",
-    "Public page": "Öffentliche Seite",
-    "Quick views": "Schnellansichten",
-    "Raw status": "Rohstatus",
-    "Read": "Gelesen",
-    "Recent Checks": "Letzte Prüfungen",
-    "Recurring": "Wiederkehrend",
-    "Reload": "Neu laden",
-    "Remove": "Entfernen",
-    "Reset": "Zurücksetzen",
-    "Resolved": "Gelöst",
-    "Response time": "Antwortzeit",
-    "Response Time": "Antwortzeit",
-    "Revoke": "Widerrufen",
-    "Revoked": "Widerrufen",
-    "Rows": "Zeilen",
-    "Save changes": "Änderungen speichern",
-    "Schedule maintenance": "Wartung planen",
-    "Search": "Suchen",
-    "Search monitorings": "Überwachungen suchen",
-    "Send test": "Test senden",
-    "Server health": "Serverzustand",
-    "Server instances": "Server-Instanzen",
-    "Service health": "Dienststatus",
-    "Service operations": "Betrieb",
-    "Severity": "Schweregrad",
-    "Show": "Anzeigen",
-    "Sign out": "Abmelden",
-    "Skip to main content": "Zum Hauptinhalt springen",
-    "Sort": "Sortieren",
-    "SSL certificate": "SSL-Zertifikat",
-    "Status": "Status",
-    "Status code": "Statuscode",
-    "Status pages": "Statusseiten",
-    "Subject": "Betreff",
-    "System": "System",
-    "Target": "Ziel",
-    "Team": "Team",
-    "Teams": "Teams",
-    "Timeout (seconds)": "Zeitüberschreitung (Sekunden)",
-    "Type": "Typ",
-    "Unknown": "Unbekannt",
-    "Unread": "Ungelesen",
-    "Update": "Aktualisieren",
-    "Uptime": "Verfügbarkeit",
-    "Uptime Calendar": "Verfügbarkeitskalender",
-    "User": "Benutzer",
-    "Users": "Benutzer",
-    "Webhook": "Webhook",
-    "Weekly": "Wöchentlich",
-    "Close dialog": "Dialog schließen",
-    "Configure a monitoring and start collecting results.": "Konfigurieren Sie eine Überwachung und starten Sie die Ergebniserfassung.",
-    "Create group": "Gruppe erstellen",
-    "Create monitoring": "Überwachung erstellen",
-    "Create monitoring group": "Überwachungsgruppe erstellen",
-    "Create status page": "Statusseite erstellen",
-    "Create team": "Team erstellen",
-    "Delete status page": "Statusseite löschen",
-    "Delete team": "Team löschen",
-    "Expected HTTP statuses": "Erwartete HTTP-Statuscodes",
-    "Expected interval (minutes)": "Erwartetes Intervall (Minuten)",
-    "Expected values": "Erwartete Werte",
-    "Monitoring ownership could not be updated.": "Die Eigentümerschaft der Überwachung konnte nicht aktualisiert werden.",
-    "Notification preferences": "Benachrichtigungseinstellungen",
-    "Publish this status page": "Diese Statusseite veröffentlichen",
-    "Save group": "Gruppe speichern",
-    "Save monitoring": "Überwachung speichern",
-    "Save notification preferences": "Benachrichtigungseinstellungen speichern",
-    "Search groups": "Gruppen suchen",
-    "Search monitoring locations": "Überwachungsstandorte suchen",
-    "Search options": "Optionen suchen",
-    "Select all": "Alle auswählen",
-    "Select an option": "Option auswählen",
-    "Select groups": "Gruppen auswählen",
-    "Select monitoring locations": "Überwachungsstandorte auswählen",
-    "Select monitorings": "Überwachungen auswählen",
-    "The monitoring could not be saved. Please try again.": "Die Überwachung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
-    "The monitoring group could not be saved.": "Die Überwachungsgruppe konnte nicht gespeichert werden.",
-    "The request could not be completed. Please try again.": "Die Anfrage konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
-    "Add service components without nested panels or a second submit.": "Fügen Sie Dienstkomponenten ohne verschachtelte Bereiche oder erneutes Speichern hinzu.",
-    "Appearance could not be saved.": "Die Darstellung konnte nicht gespeichert werden.",
-    "Choose where WebGuard should send alerts. Monitor-specific channel selection remains available on each monitoring.": "Legen Sie fest, wohin WebGuard Benachrichtigungen senden soll. Die kanalspezifische Auswahl bleibt für jede Überwachung verfügbar.",
-    "Configure monitoring capacity and availability for subscription packages.": "Konfigurieren Sie Überwachungskapazität und Verfügbarkeit für Abonnementpakete.",
-    "Control your effective alert settings for this monitoring.": "Steuern Sie die wirksamen Benachrichtigungseinstellungen für diese Überwachung.",
-    "Copy the key immediately. It will only be shown once.": "Kopieren Sie den Schlüssel sofort. Er wird nur einmal angezeigt.",
-    "Create a group to organize related private monitorings.": "Erstellen Sie eine Gruppe, um zusammengehörige private Überwachungen zu organisieren.",
-    "Create a status page to share service availability with subscribers.": "Erstellen Sie eine Statusseite, um die Dienstverfügbarkeit mit Abonnenten zu teilen.",
-    "Create a team to share monitoring ownership and collaborate with colleagues.": "Erstellen Sie ein Team, um die Eigentümerschaft von Überwachungen zu teilen und mit Kollegen zusammenzuarbeiten.",
-    "Create scoped credentials for supported WebGuard integrations.": "Erstellen Sie eingeschränkte Zugangsdaten für unterstützte WebGuard-Integrationen.",
-    "Each component can show selected monitorings or keep its monitoring-group source.": "Jede Komponente kann ausgewählte Überwachungen anzeigen oder ihre Überwachungsgruppen-Quelle beibehalten.",
-    "Enable a channel and add its delivery details. You can send a test without enabling it.": "Aktivieren Sie einen Kanal und hinterlegen Sie Zustelldetails. Ein Test ist auch ohne Aktivierung möglich.",
-    "Enable email reminders for unread messages": "E-Mail-Erinnerungen für ungelesene Nachrichten aktivieren",
-    "Enable monitoring digest by email": "Überwachungszusammenfassung per E-Mail aktivieren",
-    "Last 30 days": "Letzte 30 Tage",
-    "Manage the monitorings and members you collaborate with.": "Verwalten Sie die Überwachungen und Mitglieder, mit denen Sie zusammenarbeiten.",
-    "Manage user accounts, roles, packages, and verification state.": "Verwalten Sie Benutzerkonten, Rollen, Pakete und den Verifizierungsstatus.",
-    "Manage your account details, credentials, and security settings.": "Verwalten Sie Ihre Kontodaten, Zugangsdaten und Sicherheitseinstellungen.",
-    "No description provided.": "Keine Beschreibung vorhanden.",
-    "No notifications yet": "Noch keine Benachrichtigungen",
-    "No unread notifications": "Keine ungelesenen Benachrichtigungen",
-    "Notification settings saved. Refreshing…": "Benachrichtigungseinstellungen gespeichert. Aktualisierung läuft …",
-    "Notification preferences saved.": "Benachrichtigungseinstellungen gespeichert.",
-    "Operations overview": "Betriebsübersicht",
-    "Organize privately owned monitorings into reusable groups.": "Organisieren Sie privat verwaltete Überwachungen in wiederverwendbare Gruppen.",
-    "Profile saved. Refreshing your session…": "Profil gespeichert. Sitzung wird aktualisiert …",
-    "Publish a clear, component-based status view for your customers.": "Veröffentlichen Sie eine klare, komponentenbasierte Statusansicht für Ihre Kunden.",
-    "Read analytics": "Analysen lesen",
-    "Read monitoring analytics and availability data.": "Überwachungsanalysen und Verfügbarkeitsdaten lesen.",
-    "Review current service disruptions and recent incident activity.": "Prüfen Sie aktuelle Dienstunterbrechungen und jüngste Vorfallsaktivitäten.",
-    "Review privileged and operational events for auditability.": "Prüfen Sie privilegierte und operative Ereignisse zur Nachvollziehbarkeit.",
-    "Review recent authenticated API usage without exposing credentials.": "Prüfen Sie die jüngste authentifizierte API-Nutzung, ohne Zugangsdaten offenzulegen.",
-    "Schedule planned maintenance for manageable monitorings and private groups.": "Planen Sie Wartungen für verwaltbare Überwachungen und private Gruppen.",
-    "Send a test after changing a channel to verify its delivery configuration.": "Senden Sie nach einer Kanaländerung einen Test, um die Zustellkonfiguration zu prüfen.",
-    "Settings": "Einstellungen",
-    "Show changes": "Änderungen anzeigen",
-    "Status page": "Statusseite",
-    "System health and details in one focused workspace.": "Systemzustand und Details in einem zentralen Arbeitsbereich.",
-    "The key will stop working immediately.": "Der Schlüssel funktioniert sofort nicht mehr.",
-    "This action cannot be undone.": "Diese Aktion kann nicht rückgängig gemacht werden.",
-    "Update monitoring configuration and alert behavior.": "Aktualisieren Sie die Überwachungskonfiguration und das Benachrichtigungsverhalten.",
-    "Use your current password to confirm this security-sensitive change.": "Verwenden Sie Ihr aktuelles Passwort, um diese sicherheitsrelevante Änderung zu bestätigen.",
-    "View": "Ansehen",
-    "Your session has expired. Sign in again, then retry without losing the values entered here.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an und versuchen Sie es wieder, ohne die eingegebenen Werte zu verlieren.",
-    "Alert channels": "Benachrichtigungskanäle",
-    "Create API key": "API-Schlüssel erstellen",
-    "Notification settings | WebGuard": "Benachrichtigungseinstellungen | WebGuard",
-    "Profile | WebGuard": "Profil | WebGuard",
-    "Server instances | WebGuard": "Server-Instanzen | WebGuard",
-    "Status pages | WebGuard": "Statusseiten | WebGuard",
-    "Teams | WebGuard": "Teams | WebGuard",
-    "Account deletion scheduled.": "Kontolöschung geplant.",
-    "Active instances": "Aktive Instanzen",
-    "Additional checks could not be loaded.": "Weitere Prüfungen konnten nicht geladen werden.",
-    "Additional incidents could not be loaded.": "Weitere Vorfälle konnten nicht geladen werden.",
-    "Administration | WebGuard": "Administration | WebGuard",
-    "Administration data could not be loaded.": "Administrationsdaten konnten nicht geladen werden.",
-    "API availability checks for the public gateway.": "API-Verfügbarkeitsprüfungen für das öffentliche Gateway.",
-    "API gateway": "API-Gateway",
-    "API key": "API-Schlüssel",
-    "API requests · 24h": "API-Anfragen · 24 Std.",
-    "API usage": "API-Nutzung",
-    "API usage could not be loaded.": "Die API-Nutzung konnte nicht geladen werden.",
-    "API access | WebGuard": "API-Zugriff | WebGuard",
-    "Application navigation": "Anwendungsnavigation",
-    "Application server": "Anwendungsserver",
-    "Audit events · 24h": "Audit-Ereignisse · 24 Std.",
-    "Authentication mode": "Anmeldemodus",
-    "Back to monitorings": "Zurück zu Überwachungen",
-    "Back to sign in": "Zurück zur Anmeldung",
-    "Changing your email requires verification again.": "Wenn Sie Ihre E-Mail-Adresse ändern, ist eine erneute Verifizierung erforderlich.",
-    "Collapse sidebar": "Seitenleiste einklappen",
-    "Component description": "Komponentenbeschreibung",
-    "Component name": "Komponentenname",
-    "Confirm password | WebGuard": "Passwort bestätigen | WebGuard",
-    "Confirming subscription | WebGuard Status": "Abonnement bestätigen | WebGuard Status",
-    "Confirming your subscription": "Ihr Abonnement wird bestätigt",
-    "Country": "Land",
-    "Country code": "Ländercode",
-    "CPU threshold (%)": "CPU-Schwellenwert (%)",
-    "Create account": "Konto erstellen",
-    "Create account | WebGuard": "Konto erstellen | WebGuard",
-    "Create monitoring | WebGuard": "Überwachung erstellen | WebGuard",
-    "Create your account": "Erstellen Sie Ihr Konto",
-    "Current status:": "Aktueller Status:",
-    "Daily availability will appear after a full monitoring day.": "Die tägliche Verfügbarkeit wird nach einem vollständigen Überwachungstag angezeigt.",
-    "Dashboard | WebGuard": "Dashboard | WebGuard",
-    "Delivery failed": "Zustellung fehlgeschlagen",
-    "Delivery failures": "Zustellfehler",
-    "Dismiss notification": "Benachrichtigung schließen",
-    "Display name": "Anzeigename",
-    "DNS record": "DNS-Eintrag",
-    "DNS record type": "DNS-Eintragstyp",
-    "Domain expiration": "Domainablauf",
-    "Domain expired": "Domain abgelaufen",
-    "Domain expiring": "Domain läuft ab",
-    "Edit monitoring | WebGuard": "Überwachung bearbeiten | WebGuard",
-    "Email reset link": "Link zum Zurücksetzen per E-Mail senden",
-    "Enter the email address that receives these status updates to confirm the removal.": "Geben Sie die E-Mail-Adresse ein, die diese Statusaktualisierungen erhält, um die Abmeldung zu bestätigen.",
-    "Expand sidebar": "Seitenleiste ausklappen",
-    "Expected HTTP status codes": "Erwartete HTTP-Statuscodes",
-    "First start": "Erster Start",
-    "Forgot your password?": "Passwort vergessen?",
-    "Groups can contain monitorings that you privately own.": "Gruppen können Überwachungen enthalten, die Ihnen privat gehören.",
-    "Grace period (minutes)": "Kulanzzeitraum (Minuten)",
-    "HTTP timeout (in seconds)": "HTTP-Zeitüberschreitung (in Sekunden)",
-    "I agree to the": "Ich stimme den",
-    "If the account exists, a reset link has been sent.": "Falls das Konto existiert, wurde ein Link zum Zurücksetzen gesendet.",
-    "Incident count includes incidents opened in the selected period. MTTR is the average time between down and recovery for resolved incidents.": "Die Anzahl umfasst Vorfälle, die im ausgewählten Zeitraum eröffnet wurden. Die MTTR ist die durchschnittliche Zeit zwischen Ausfall und Wiederherstellung bei gelösten Vorfällen.",
-    "Incidents in selected period": "Vorfälle im ausgewählten Zeitraum",
-    "Incidents over time": "Vorfälle im Zeitverlauf",
-    "IPv4 address": "IPv4-Adresse",
-    "Keep me signed in": "Angemeldet bleiben",
-    "Keep system health, monitoring groups, status pages, and incident patterns in one operational view.": "Behalten Sie Systemzustand, Überwachungsgruppen, Statusseiten und Vorfallsmuster in einer Betriebsansicht im Blick.",
-    "Keyword": "Schlüsselwort",
-    "Last 7 days": "Letzte 7 Tage",
-    "Last 7 Days": "Letzte 7 Tage",
-    "Last 30 Days": "Letzte 30 Tage",
-    "Last 90 Days": "Letzte 90 Tage",
-    "Last 24 hours availability": "Verfügbarkeit der letzten 24 Stunden",
-    "Latest report and configured thresholds.": "Letzter Bericht und konfigurierte Schwellenwerte.",
-    "Last checked": "Zuletzt geprüft",
-    "Load previous month": "Vorherigen Monat laden",
-    "Loading response-time data…": "Antwortzeitdaten werden geladen …",
-    "Maintenance | WebGuard": "Wartung | WebGuard",
-    "Maintenance in progress": "Wartung läuft",
-    "Mark all as read": "Alle als gelesen markieren",
-    "Min. Response Time": "Min. Antwortzeit",
-    "Max. Response Time": "Max. Antwortzeit",
-    "Avg. Response Time": "Durchschn. Antwortzeit",
-    "Monitoring limit": "Überwachungslimit",
-    "Monitoring groups | WebGuard": "Überwachungsgruppen | WebGuard",
-    "Monitorings | WebGuard": "Überwachungen | WebGuard",
-    "N/A": "k. A.",
-    "n/a": "k. A.",
-    "No API logs": "Keine API-Protokolle",
-    "No availability data yet": "Noch keine Verfügbarkeitsdaten",
-    "No data": "Keine Daten",
-    "No incidents are associated with these components.": "Diesen Komponenten sind keine Vorfälle zugeordnet.",
-    "No incidents in this period": "Keine Vorfälle in diesem Zeitraum",
-    "No incidents were recorded in the selected period.": "Im ausgewählten Zeitraum wurden keine Vorfälle erfasst.",
-    "No maintenance windows are scheduled.": "Es sind keine Wartungsfenster geplant.",
-    "No monitorings found": "Keine Überwachungen gefunden",
-    "No monitorings match the selected quick view and filters.": "Keine Überwachungen entsprechen der ausgewählten Schnellansicht und den Filtern.",
-    "No outstanding attention items.": "Keine offenen Punkte, die Aufmerksamkeit erfordern.",
-    "No private monitorings are available.": "Keine privaten Überwachungen verfügbar.",
-    "No recent incidents have been recorded.": "Es wurden keine aktuellen Vorfälle erfasst.",
-    "No recurring services in this period.": "Keine wiederkehrenden Dienste in diesem Zeitraum.",
-    "No results in this period": "Keine Ergebnisse in diesem Zeitraum",
-    "No result yet": "Noch kein Ergebnis",
-    "No server-health reports have been received yet.": "Es wurden noch keine Serverzustandsberichte empfangen.",
-    "No services match the current filters.": "Keine Dienste entsprechen den aktuellen Filtern.",
-    "No specific regions configured.": "Keine spezifischen Regionen konfiguriert.",
-    "Notification delivery needs attention": "Benachrichtigungszustellung erfordert Aufmerksamkeit",
-    "Notification metadata is missing.": "Benachrichtigungsmetadaten fehlen.",
-    "Notifications | WebGuard": "Benachrichtigungen | WebGuard",
-    "Notify on failure": "Bei Fehler benachrichtigen",
-    "One-off maintenance": "Einmalige Wartung",
-    "Open incident": "Offener Vorfall",
-    "Open-ended": "Ohne Enddatum",
-    "Ongoing": "Laufend",
-    "Open public page": "Öffentliche Seite öffnen",
-    "Open target": "Ziel öffnen",
-    "Open workspace →": "Arbeitsbereich öffnen →",
-    "Operational actions such as pausing or deleting this monitoring remain available from the monitoring details.": "Betriebliche Aktionen wie Pausieren oder Löschen dieser Überwachung bleiben in den Überwachungsdetails verfügbar.",
-    "Operational health across your reusable monitoring groups.": "Betriebszustand Ihrer wiederverwendbaren Überwachungsgruppen.",
-    "Operational summary": "Betriebsübersicht",
-    "Operational overview across accounts, packages, infrastructure, and audit activity.": "Betriebsübersicht über Konten, Pakete, Infrastruktur und Audit-Aktivitäten.",
-    "Overall health": "Gesamtzustand",
-    "Overall service status:": "Gesamter Dienststatus:",
-    "Package": "Paket",
-    "Packages | WebGuard": "Pakete | WebGuard",
-    "Performance degraded": "Leistung beeinträchtigt",
-    "Performance recovered": "Leistung wiederhergestellt",
-    "Please try again in a moment.": "Bitte versuchen Sie es in Kürze erneut.",
-    "Price": "Preis",
-    "Private monitoring": "Private Überwachung",
-    "Successful": "Erfolgreich",
-    "Private monitorings": "Private Überwachungen",
-    "Publish service availability for your customers and teams.": "Veröffentlichen Sie die Dienstverfügbarkeit für Ihre Kunden und Teams.",
-    "Publish this monitoring on a status page from": "Veröffentlichen Sie diese Überwachung auf einer Statusseite aus",
-    "Publish update": "Aktualisierung veröffentlichen",
-    "RAM threshold (%)": "RAM-Schwellenwert (%)",
-    "Receive email notifications when this status changes.": "Erhalten Sie E-Mail-Benachrichtigungen, wenn sich dieser Status ändert.",
-    "Recurring maintenance": "Wiederkehrende Wartung",
-    "Recurring maintenance could not be updated.": "Die wiederkehrende Wartung konnte nicht aktualisiert werden.",
-    "Recurring maintenance scheduled.": "Wiederkehrende Wartung geplant.",
-    "Recurring services": "Wiederkehrende Dienste",
-    "Registrar": "Registrar",
-    "Remove stored HTTP basic-auth password": "Gespeichertes HTTP-Basic-Auth-Passwort entfernen",
-    "Report interval (minutes)": "Berichtsintervall (Minuten)",
-    "Response time line chart in milliseconds": "Antwortzeit-Liniendiagramm in Millisekunden",
-    "Response time period": "Antwortzeitraum",
-    "Response-time data could not be loaded.": "Antwortzeitdaten konnten nicht geladen werden.",
-    "Response-time data will appear after the monitoring collects results.": "Antwortzeitdaten werden angezeigt, sobald die Überwachung Ergebnisse erfasst.",
-    "30-day uptime": "Verfügbarkeit der letzten 30 Tage",
-    "Return to dashboard": "Zurück zum Dashboard",
-    "Role": "Rolle",
-    "Save notification settings": "Benachrichtigungseinstellungen speichern",
-    "Save ownership": "Eigentümerschaft speichern",
-    "Saving": "Wird gespeichert",
-    "Saved successfully.": "Erfolgreich gespeichert.",
-    "Search by name, target, port or keyword": "Nach Name, Ziel, Port oder Schlüsselwort suchen",
-    "Search route or user email": "Route oder Benutzer-E-Mail suchen",
-    "Selectable": "Auswählbar",
-    "Server instances could not be loaded.": "Server-Instanzen konnten nicht geladen werden.",
-    "Service attention required": "Dienst erfordert Aufmerksamkeit",
-    "Service degradation detected": "Dienstbeeinträchtigung erkannt",
-    "Service filters": "Dienstfilter",
-    "Service landscape": "Dienstübersicht",
-    "Service disruption": "Dienstunterbrechung",
-    "Seven-day uptime": "Verfügbarkeit der letzten sieben Tage",
-    "Seven-day uptime trend": "Verfügbarkeitstrend der letzten sieben Tage",
-    "Sign in": "Anmelden",
-    "Sign in | WebGuard": "Anmelden | WebGuard",
-    "Sign in again": "Erneut anmelden",
-    "Sign in to manage your monitorings, status pages, and notifications.": "Melden Sie sich an, um Ihre Überwachungen, Statusseiten und Benachrichtigungen zu verwalten.",
-    "SSL expired": "SSL-Zertifikat abgelaufen",
-    "SSL expiring": "SSL-Zertifikat läuft ab",
-    "SSL warning days": "SSL-Warntage",
-    "Start monitoring the services your team depends on.": "Beginnen Sie mit der Überwachung der Dienste, von denen Ihr Team abhängt.",
-    "Starts at": "Beginnt am",
-    "Storage threshold (%)": "Speicher-Schwellenwert (%)",
-    "Subscribe": "Abonnieren",
-    "Subscribe to updates": "Updates abonnieren",
-    "The endpoint is generated securely after this monitoring is saved.": "Der Endpunkt wird sicher generiert, nachdem diese Überwachung gespeichert wurde.",
-    "The first monitoring results can take up to": "Die ersten Überwachungsergebnisse können bis zu",
-    "minutes, based on the configured check interval.": "Minuten dauern, abhängig vom konfigurierten Prüfintervall.",
-    "The notification could not be marked as read.": "Die Benachrichtigung konnte nicht als gelesen markiert werden.",
-    "The recipient receives a signed email invitation.": "Der Empfänger erhält eine signierte Einladung per E-Mail.",
-    "This open incident has no public update yet.": "Dieser offene Vorfall hat noch keine öffentliche Aktualisierung.",
-    "This public status page is unavailable.": "Diese öffentliche Statusseite ist nicht verfügbar.",
-    "This subscription confirmation is unavailable.": "Diese Abonnementbestätigung ist nicht verfügbar.",
-    "Time window": "Zeitfenster",
-    "Total monitorings:": "Überwachungen insgesamt:",
-    "Type-specific results and thresholds.": "Typspezifische Ergebnisse und Schwellenwerte.",
-    "Unable to load | WebGuard": "Nicht verfügbar | WebGuard",
-    "Unable to load this page": "Diese Seite konnte nicht geladen werden",
-    "Unknown time": "Unbekannte Zeit",
-    "Unsubscribe": "Abbestellen",
-    "Unsubscribe from updates": "Updates abbestellen",
-    "Unsubscribe from updates | WebGuard Status": "Updates abbestellen | WebGuard Status",
-    "Update password": "Passwort aktualisieren",
-    "Upcoming maintenance": "Bevorstehende Wartung",
-    "Use a Discord webhook URL.": "Verwenden Sie eine Discord-Webhook-URL.",
-    "Use a Microsoft Teams incoming webhook URL.": "Verwenden Sie eine Microsoft-Teams-Incoming-Webhook-URL.",
-    "Use a Slack Incoming Webhook URL.": "Verwenden Sie eine Slack-Incoming-Webhook-URL.",
-    "Users | WebGuard": "Benutzer | WebGuard",
-    "Users could not be loaded.": "Benutzer konnten nicht geladen werden.",
-    "Verify email": "E-Mail verifizieren",
-    "Verify your email | WebGuard": "E-Mail verifizieren | WebGuard",
-    "View details": "Details ansehen",
-    "Waiting for results": "Warte auf Ergebnisse",
-    "WebGuard dashboard": "WebGuard-Dashboard",
-    "WebGuard login": "WebGuard-Anmeldung",
-    "Welcome back,": "Willkommen zurück,",
-    "Welcome to WebGuard": "Willkommen bei WebGuard",
-    "Write server health": "Serverzustand schreiben",
-    "You do not have manageable monitorings for maintenance scheduling.": "Sie haben keine verwaltbaren Überwachungen für die Wartungsplanung.",
-    "You have been unsubscribed.": "Sie wurden abgemeldet.",
-    "Your confirmation is being processed.": "Ihre Bestätigung wird verarbeitet.",
-    "Your session has expired. Sign in again to continue.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren.",
-    "A recurring maintenance window is configured.": "Ein wiederkehrendes Wartungsfenster ist konfiguriert.",
-    "Certificate validation failed": "Zertifikatsprüfung fehlgeschlagen",
-    "Domain validation failed": "Domainprüfung fehlgeschlagen",
-    "Maintenance active": "Wartung aktiv",
-    "Maintenance scheduled": "Wartung geplant",
-    "Admin": "Administrator",
-    "Choose a new password | WebGuard": "Neues Passwort wählen | WebGuard",
-    "Create": "Erstellen",
-    "Discard changes": "Änderungen verwerfen",
-    "Each square represents a day of aggregated availability.": "Jedes Quadrat steht für einen Tag aggregierter Verfügbarkeit.",
-    "Identified": "Identifiziert",
-    "Investigating": "Wird untersucht",
-    "Invite member": "Mitglied einladen",
-    "Keep editing": "Weiter bearbeiten",
-    "Leave team": "Team verlassen",
-    "Manage →": "Verwalten →",
-    "Mark as read": "Als gelesen markieren",
-    "Monitoring group:": "Überwachungsgruppe:",
-    "No monitoring groups yet.": "Noch keine Überwachungsgruppen.",
-    "No status pages yet.": "Noch keine Statusseiten.",
-    "Not published on a status page.": "Nicht auf einer Statusseite veröffentlicht.",
-    "Open confirmation": "Bestätigung öffnen",
-    "Open incidents →": "Offene Vorfälle →",
-    "Provide a bot token and the target chat ID.": "Geben Sie einen Bot-Token und die Ziel-Chat-ID an.",
-    "Recent incidents": "Aktuelle Vorfälle",
-    "Resolved incident": "Gelöster Vorfall",
-    "Archived": "Archiviert",
-    "Live": "Live",
-    "Up": "Betriebsbereit",
-    "Register": "Registrieren",
-    "Reset password | WebGuard": "Passwort zurücksetzen | WebGuard",
-    "Review your service health, incidents, maintenance, and operational follow-ups in one place.": "Überprüfen Sie Dienststatus, Vorfälle, Wartung und operative Nachverfolgungen an einem Ort.",
-    "Send the notification payload to a custom HTTP endpoint.": "Senden Sie die Benachrichtigungsdaten an einen eigenen HTTP-Endpunkt.",
-    "Service operations | WebGuard": "Betrieb | WebGuard",
-    "Submit server health reports from an approved integration.": "Übermitteln Sie Serverzustandsberichte aus einer genehmigten Integration.",
-    "Understand where this monitoring belongs.": "Verstehen Sie, wo diese Überwachung zugeordnet ist.",
-    "Updated with the latest monitoring results.": "Mit den neuesten Überwachungsergebnissen aktualisiert.",
-    "· Last checked": "· Zuletzt geprüft",
-    "· Resolved": "· Gelöst",
-    "← Profile settings": "← Profileinstellungen",
-    "← Status pages": "← Statusseiten",
-    "← Teams": "← Teams",
-    "across your accessible monitorings.": "über alle für Sie zugänglichen Überwachungen.",
-    "active services": "aktive Dienste",
-    "and": "und",
-    "Attention": "Aufmerksamkeit",
-    "Availability periods": "Verfügbarkeitszeiträume",
-    "Average MTTR": "Durchschnittliche MTTR",
-    "Choose a new password": "Wählen Sie ein neues Passwort",
-    "Component": "Komponente",
-    "components": "Komponenten",
-    "components ·": "Komponenten ·",
-    "Confirm your password": "Bestätigen Sie Ihr Passwort",
-    "Copy your API key": "API-Schlüssel kopieren",
-    "days": "Tage",
-    "Discord": "Discord",
-    "Edit monitoring group": "Überwachungsgruppe bearbeiten",
-    "Endpoint": "Endpunkt",
-    "entries": "Einträge",
-    "Filter incidents": "Vorfälle filtern",
-    "Fri": "Fr",
-    "healthy": "betriebsbereit",
-    "HTTP": "HTTP",
-    "incidents": "Vorfälle",
-    "Issuer": "Aussteller",
-    "Last": "Letzte",
-    "Limit": "Grenzwert",
-    "loaded checks · Live and archived data": "geladene Prüfungen · Live- und Archivdaten",
-    "Microsoft Teams": "Microsoft Teams",
-    "minutes": "Minuten",
-    "Mon": "Mo",
-    "Monitoring actions": "Überwachungsaktionen",
-    "Monitoring context": "Überwachungskontext",
-    "Monitoring summary": "Überwachungsübersicht",
-    "Monitoring total": "Überwachungen insgesamt",
-    "Monitoring type filters": "Filter für Überwachungstypen",
-    "monitorings": "Überwachungen",
-    "monitorings ·": "Überwachungen ·",
-    "ms": "ms",
-    "Name (A–Z)": "Name (A–Z)",
-    "Name (Z–A)": "Name (Z–A)",
-    "No incidents match the selected filters": "Keine Vorfälle entsprechen den ausgewählten Filtern",
-    "No monitorings yet": "Noch keine Überwachungen",
-    "No teams yet": "Noch keine Teams",
-    "of": "von",
-    "Opened": "Eröffnet",
-    "Overall service status": "Gesamter Dienststatus",
-    "Pagination": "Seitennavigation",
-    "Pending invitations": "Ausstehende Einladungen",
-    "privacy policy": "Datenschutzerklärung",
-    "Publish incident update": "Vorfallsaktualisierung veröffentlichen",
-    "Quick monitoring views": "Schnellansichten für Überwachungen",
-    "RAM": "RAM",
-    "Reset your password": "Passwort zurücksetzen",
-    "Revoke API key": "API-Schlüssel widerrufen",
-    "Sat": "Sa",
-    "Search activity logs": "Aktivitätsprotokolle durchsuchen",
-    "Search services": "Dienste suchen",
-    "Showing": "Anzeige",
-    "Since": "Seit",
-    "Slack": "Slack",
-    "Started": "Gestartet",
-    "Starts": "Beginnt",
-    "Storage": "Speicher",
-    "Sun": "So",
-    "Team:": "Team:",
-    "Telegram": "Telegram",
-    "terms of use": "Nutzungsbedingungen",
-    "Thu": "Do",
-    "Time": "Zeit",
-    "Toggle navigation": "Navigation umschalten",
-    "Tue": "Di",
-    "unread": "ungelesen",
-    "Verify your email": "Verifizieren Sie Ihre E-Mail-Adresse",
-    "Wed": "Mi",
-    "API keys could not be loaded.": "API-Schlüssel konnten nicht geladen werden.",
-    "Activity logs could not be loaded.": "Aktivitätsprotokolle konnten nicht geladen werden.",
-    "Check your inbox to confirm your subscription.": "Prüfen Sie Ihren Posteingang, um Ihr Abonnement zu bestätigen.",
-    "Dashboard data could not be loaded.": "Dashboarddaten konnten nicht geladen werden.",
-    "Incident analytics could not be loaded.": "Vorfallsanalysen konnten nicht geladen werden.",
-    "Maintenance data could not be loaded.": "Wartungsdaten konnten nicht geladen werden.",
-    "Monitoring could not be loaded.": "Die Überwachung konnte nicht geladen werden.",
-    "Monitoring groups could not be loaded.": "Überwachungsgruppen konnten nicht geladen werden.",
-    "Monitoring options could not be loaded.": "Überwachungsoptionen konnten nicht geladen werden.",
-    "Monitoring summary could not be loaded.": "Überwachungsübersicht konnte nicht geladen werden.",
-    "Monitorings could not be loaded.": "Überwachungen konnten nicht geladen werden.",
-    "Notification settings could not be loaded.": "Benachrichtigungseinstellungen konnten nicht geladen werden.",
-    "Notifications could not be loaded.": "Benachrichtigungen konnten nicht geladen werden.",
-    "Packages could not be loaded.": "Pakete konnten nicht geladen werden.",
-    "Status page details could not be loaded.": "Statusseitendetails konnten nicht geladen werden.",
-    "Status pages could not be loaded.": "Statusseiten konnten nicht geladen werden.",
-    "Team workspace could not be loaded.": "Team-Arbeitsbereich konnte nicht geladen werden.",
-    "Teams could not be loaded.": "Teams konnten nicht geladen werden.",
-    "The subscription could not be removed.": "Das Abonnement konnte nicht entfernt werden.",
-    "The subscription could not be started.": "Das Abonnement konnte nicht gestartet werden.",
-    "Your password has been reset. You can now sign in.": "Ihr Passwort wurde zurückgesetzt. Sie können sich jetzt anmelden.",
-    "Your subscription has been confirmed.": "Ihr Abonnement wurde bestätigt.",
-    "Demo credentials could not be loaded.": "Demo-Zugangsdaten konnten nicht geladen werden.",
-    "Incident update published.": "Vorfallsaktualisierung veröffentlicht.",
-    "Language could not be saved.": "Die Sprache konnte nicht gespeichert werden.",
-    "Maintenance could not be cleared.": "Die Wartung konnte nicht entfernt werden.",
-    "Maintenance could not be scheduled.": "Die Wartung konnte nicht geplant werden.",
-    "Monitoring is down": "Überwachung ist ausgefallen",
-    "Monitoring status is unknown": "Überwachungsstatus ist unbekannt",
-    "Never used": "Nie verwendet",
-    "No matching options found.": "Keine passenden Optionen gefunden.",
-    "No options available.": "Keine Optionen verfügbar.",
-    "Not recorded": "Nicht erfasst",
-    "Notification preferences could not be saved.": "Benachrichtigungseinstellungen konnten nicht gespeichert werden.",
-    "Notifications could not be marked as read.": "Benachrichtigungen konnten nicht als gelesen markiert werden.",
-    "Status page published.": "Statusseite veröffentlicht.",
-    "Status page unpublished.": "Statusseite unveröffentlicht.",
-    "Status unavailable": "Status nicht verfügbar",
-    "The incident update could not be published.": "Die Vorfallsaktualisierung konnte nicht veröffentlicht werden.",
-    "The monitoring could not be deleted.": "Die Überwachung konnte nicht gelöscht werden.",
-    "The monitoring editor could not be loaded.": "Der Überwachungseditor konnte nicht geladen werden.",
-    "The monitoring form could not be loaded.": "Das Überwachungsformular konnte nicht geladen werden.",
-    "The monitoring group could not be deleted.": "Die Überwachungsgruppe konnte nicht gelöscht werden.",
-    "The monitoring group could not be loaded.": "Die Überwachungsgruppe konnte nicht geladen werden.",
-    "The publication state could not be updated.": "Der Veröffentlichungsstatus konnte nicht aktualisiert werden.",
-    "The status page could not be deleted.": "Die Statusseite konnte nicht gelöscht werden.",
-    "The status page could not be loaded.": "Die Statusseite konnte nicht geladen werden.",
-    "The status page could not be saved.": "Die Statusseite konnte nicht gespeichert werden.",
-    "The test notification could not be sent.": "Die Testbenachrichtigung konnte nicht gesendet werden.",
-    "Waiting for the first result": "Warte auf das erste Ergebnis",
-    "Active, upcoming, and past maintenance applied to monitorings.": "Aktive, bevorstehende und vergangene Wartungen für Überwachungen.",
-    "Adjust your filters or create a monitoring to start collecting availability data.": "Passen Sie Ihre Filter an oder erstellen Sie eine Überwachung, um Verfügbarkeitsdaten zu erfassen.",
-    "Assign private monitorings now or update the group later.": "Weisen Sie private Überwachungen jetzt zu oder aktualisieren Sie die Gruppe später.",
-    "Attention required": "Aufmerksamkeit erforderlich",
-    "Availability across all visible monitorings.": "Verfügbarkeit über alle sichtbaren Überwachungen.",
-    "Choose whether this monitoring is private or administered by a team.": "Wählen Sie, ob diese Überwachung privat ist oder von einem Team verwaltet wird.",
-    "Create a monitoring to see service health, incidents, and operational insights here.": "Erstellen Sie eine Überwachung, um hier Dienststatus, Vorfälle und betriebliche Einblicke zu sehen.",
-    "Create package": "Paket erstellen",
-    "Create server instance": "Serverinstanz erstellen",
-    "Create user": "Benutzer erstellen",
-    "Duration (minutes)": "Dauer (Minuten)",
-    "Edit package": "Paket bearbeiten",
-    "Edit server instance": "Serverinstanz bearbeiten",
-    "Edit user": "Benutzer bearbeiten",
-    "Enable or pause recurring maintenance windows.": "Aktivieren oder pausieren Sie wiederkehrende Wartungsfenster.",
-    "Ends at": "Endet am",
-    "In maintenance": "In Wartung",
-    "Invitation links remain valid for seven days.": "Einladungslinks bleiben sieben Tage gültig.",
-    "Items that need operational follow-up.": "Elemente, die eine operative Nachverfolgung erfordern.",
-    "Latest incidents for monitorings you can access.": "Neueste Vorfälle für Überwachungen, auf die Sie Zugriff haben.",
-    "Maintain the regional instances that perform monitoring work.": "Verwalten Sie die regionalen Instanzen, die Überwachungsaufgaben ausführen.",
-    "Make admin": "Zum Administrator machen",
-    "Make member": "Zum Mitglied machen",
-    "Monitoring overview": "Überwachungsübersicht",
-    "No maintenance windows": "Keine Wartungsfenster",
-    "No package": "Kein Paket",
-    "One-off changes are protected against duplicate submissions.": "Einmalige Änderungen sind vor doppelten Übermittlungen geschützt.",
-    "Operational": "Betriebsbereit",
-    "Publication and component health at a glance.": "Veröffentlichungs- und Komponentenstatus auf einen Blick.",
-    "Publish clear updates as incidents are investigated and resolved.": "Veröffentlichen Sie klare Aktualisierungen, während Vorfälle untersucht und gelöst werden.",
-    "Published pages are available at their public status URL.": "Veröffentlichte Seiten sind unter ihrer öffentlichen Status-URL verfügbar.",
-    "Recent monitorings": "Aktuelle Überwachungen",
-    "Review failed delivery configuration.": "Überprüfen Sie die fehlgeschlagene Zustellkonfiguration.",
-    "Roles determine who can manage this team.": "Rollen bestimmen, wer dieses Team verwalten kann.",
-    "Save status page": "Statusseite speichern",
-    "Save team": "Team speichern",
-    "Scheduled and active maintenance windows.": "Geplante und aktive Wartungsfenster.",
-    "Target URL": "Ziel-URL",
-    "Unpublish": "Veröffentlichung aufheben",
-    "Update the group and its private monitoring assignments.": "Aktualisieren Sie die Gruppe und ihre privaten Überwachungszuweisungen.",
-    "Update the information shown to all team members.": "Aktualisieren Sie die Informationen, die allen Teammitgliedern angezeigt werden.",
-    "Update status-page details and components in one request.": "Aktualisieren Sie Statusseitendetails und Komponenten in einer Anfrage.",
-    "You can leave unless you are the last administrator.": "Sie können das Team verlassen, sofern Sie nicht der letzte Administrator sind.",
-    "You will become this team's first administrator.": "Sie werden der erste Administrator dieses Teams.",
-    "You will lose access to team monitorings.": "Sie verlieren den Zugriff auf Team-Überwachungen.",
-    "By type": "Nach Typ",
-    "By severity": "Nach Schweregrad",
-    "By customer impact": "Nach Kundenauswirkung",
-    "Narrow the operational view without a separate submit step.": "Schränken Sie die Betriebsansicht ohne separaten Übermittlungsschritt ein.",
-    "Services with more than one incident in this period.": "Dienste mit mehr als einem Vorfall in diesem Zeitraum.",
-    "Try a broader period or remove one of the filters.": "Versuchen Sie es mit einem längeren Zeitraum oder entfernen Sie einen der Filter.",
-};
+export type TranslationMessages = Record<string, string>;
 
-function translateDynamic(value: string): string | undefined {
+export interface LocalizeOptions {
+    locale: string;
+    messages: TranslationMessages;
+}
+
+function interpolate(template: string, replacements: Record<string, string>): string {
+    return template.replace(/:([A-Za-z0-9_]+)/g, (_, key: string) => replacements[key] ?? `:${key}`);
+}
+
+function dynamicMessage(
+    messages: TranslationMessages,
+    key: string,
+    replacements: Record<string, string>,
+    fallback: string,
+): string {
+    return interpolate(messages[key] ?? fallback, replacements);
+}
+
+function translateDynamic(value: string, messages: TranslationMessages): string | undefined {
     const checkedEvery = value.match(/^Checked every (\d+) (minutes|seconds)$/);
 
     if (checkedEvery) {
-        return `Alle ${checkedEvery[1]} ${checkedEvery[2] === "minutes" ? "Minuten" : "Sekunden"} geprüft`;
+        const unit = checkedEvery[2] === "minutes" ? "minutes" : "seconds";
+
+        return dynamicMessage(messages, `Checked every :value ${unit}`, { value: checkedEvery[1] }, `Checked every :value ${unit}`);
     }
 
     const downtime = value.match(/^(\d+) (incident|incidents), ([\d.,]+)% downtime$/);
 
     if (downtime) {
-        return `${downtime[1]} ${downtime[2] === "incident" ? "Vorfall" : "Vorfälle"}, ${downtime[3]} % Ausfallzeit`;
+        const key = `:count ${downtime[2]}, :percent downtime`;
+
+        return dynamicMessage(messages, key, { count: downtime[1], percent: downtime[3] }, value);
     }
 
     const loadedChecks = value.match(/^(\d+) loaded checks · Live and archived data$/);
 
     if (loadedChecks) {
-        return `${loadedChecks[1]} geladene Prüfungen · Live- und Archivdaten`;
+        return dynamicMessage(messages, ":count loaded checks · Live and archived data", { count: loadedChecks[1] }, value);
     }
 
     const duration = value.match(/^(.* · )(\d+)(h|m)(?: (\d+)m)?$/);
 
     if (duration) {
-        const hours = duration[3] === "h" ? `${duration[2]} Std.` : "";
-        const minutes = duration[3] === "m" ? `${duration[2]} Min.` : duration[4] ? `${duration[4]} Min.` : "";
+        if (duration[3] === "h" && duration[4]) {
+            return `${duration[1]}${dynamicMessage(messages, ":hours h :minutes min", { hours: duration[2], minutes: duration[4] }, ":hours h :minutes min")}`;
+        }
 
-        return `${duration[1]}${[hours, minutes].filter(Boolean).join(" ")}`;
+        if (duration[3] === "h") {
+            return `${duration[1]}${dynamicMessage(messages, ":hours h", { hours: duration[2] }, ":hours h")}`;
+        }
+
+        return `${duration[1]}${dynamicMessage(messages, ":minutes min", { minutes: duration[2] }, ":minutes min")}`;
     }
 
     const firstResults = value.match(/^The first monitoring results can take up to (\d+) minutes, based on the configured check interval\.$/);
 
     if (firstResults) {
-        return `Die ersten Überwachungsergebnisse können je nach konfiguriertem Prüfintervall bis zu ${firstResults[1]} Minuten dauern.`;
+        return dynamicMessage(
+            messages,
+            "The first monitoring results can take up to :minutes minutes, based on the configured check interval.",
+            { minutes: firstResults[1] },
+            value,
+        );
     }
 
     const since = value.match(/^Since (.+)$/);
 
     if (since) {
-        return `Seit ${since[1]}`;
+        return dynamicMessage(messages, "Since :value", { value: since[1] }, value);
     }
 
     const validUntil = value.match(/^Valid until (.+)$/);
 
     if (validUntil) {
-        return `Gültig bis ${validUntil[1]}`;
+        return dynamicMessage(messages, "Valid until :value", { value: validUntil[1] }, value);
     }
 
     const starts = value.match(/^Starts (.+)$/);
 
     if (starts) {
-        return `Beginnt ${starts[1]}`;
+        return dynamicMessage(messages, "Starts :value", { value: starts[1] }, value);
     }
 
     const availabilityFor = value.match(/^Availability for (.+)$/);
 
     if (availabilityFor) {
-        return `Verfügbarkeit für ${availabilityFor[1]}`;
+        return dynamicMessage(messages, "Availability for :value", { value: availabilityFor[1] }, value);
     }
 
     const lastChecked = value.match(/^Last checked (.+)$/);
 
     if (lastChecked) {
-        return `Zuletzt geprüft ${lastChecked[1]}`;
+        return dynamicMessage(messages, "Last checked :value", { value: lastChecked[1] }, value);
     }
 
     const lastDays = value.match(/^Last (\d+) days$/);
 
     if (lastDays) {
-        return `Letzte ${lastDays[1]} Tage`;
+        return dynamicMessage(messages, "Last :value days", { value: lastDays[1] }, value);
     }
 
     const incidentCount = value.match(/^(\d+) incidents?$/);
 
     if (incidentCount) {
-        return `${incidentCount[1]} ${incidentCount[1] === "1" ? "Vorfall" : "Vorfälle"}`;
+        const key = incidentCount[1] === "1" ? ":count incident" : ":count incidents";
+
+        return dynamicMessage(messages, key, { count: incidentCount[1] }, value);
     }
 
     const groupSummary = value.match(/^(\d+) monitorings · (\d+) healthy(?: · (\d+) down)?$/);
 
     if (groupSummary) {
-        return `${groupSummary[1]} Überwachungen · ${groupSummary[2]} betriebsbereit${groupSummary[3] ? ` · ${groupSummary[3]} ausgefallen` : ""}`;
+        const key = groupSummary[3]
+            ? ":monitorings monitorings · :healthy healthy · :down down"
+            : ":monitorings monitorings · :healthy healthy";
+
+        return dynamicMessage(messages, key, {
+            monitorings: groupSummary[1],
+            healthy: groupSummary[2],
+            down: groupSummary[3] ?? "",
+        }, value);
     }
 
     const statusPageSummary = value.match(/^(\d+) components · (\d+) monitorings$/);
 
     if (statusPageSummary) {
-        return `${statusPageSummary[1]} ${statusPageSummary[1] === "1" ? "Komponente" : "Komponenten"} · ${statusPageSummary[2]} Überwachungen`;
+        return dynamicMessage(messages, ":components components · :monitorings monitorings", {
+            components: statusPageSummary[1],
+            monitorings: statusPageSummary[2],
+        }, value);
     }
 
     const pagination = value.match(/^(\d+)–(\d+) of (\d+) incidents$/);
 
     if (pagination) {
-        return `${pagination[1]}–${pagination[2]} von ${pagination[3]} Vorfällen`;
+        return dynamicMessage(messages, ":from–:to of :total incidents", {
+            from: pagination[1],
+            to: pagination[2],
+            total: pagination[3],
+        }, value);
     }
 
     const minutes = value.match(/^(\d+) min$/);
 
     if (minutes) {
-        return `${minutes[1]} Min.`;
+        return dynamicMessage(messages, ":minutes min", { minutes: minutes[1] }, value);
     }
 
     const compactDuration = value.match(/^(\d+) h(?: (\d+) min)?$/);
 
     if (compactDuration) {
-        return `${compactDuration[1]} Std.${compactDuration[2] ? ` ${compactDuration[2]} Min.` : ""}`;
+        return compactDuration[2]
+            ? dynamicMessage(messages, ":hours h :minutes min", { hours: compactDuration[1], minutes: compactDuration[2] }, value)
+            : dynamicMessage(messages, ":hours h", { hours: compactDuration[1] }, value);
     }
 
     return undefined;
 }
 
-export function translate(value: string, locale: string): string {
+export function translate(value: string, locale: string, messages: TranslationMessages = {}): string {
     if (locale !== "de") return value;
 
     const leading = value.match(/^\s*/)?.[0] ?? "";
     const trailing = value.match(/\s*$/)?.[0] ?? "";
     const content = value.trim();
-    const translated = german[content]
-        ?? translateDynamic(content)
+    const translated = messages[content]
+        ?? translateDynamic(content, messages)
         ?? (content.endsWith(" | Status pages | WebGuard")
             ? `${content.slice(0, -" | Status pages | WebGuard".length)} | Statusseiten | WebGuard`
             : content);
@@ -829,21 +179,21 @@ const sourceText = new WeakMap<Node, string>();
 const sourceAttributes = new WeakMap<Element, Map<string, string>>();
 let sourceTitle: string | null = null;
 
-function localizeTextNode(node: Node, locale: string): void {
+function localizeTextNode(node: Node, options: LocalizeOptions): void {
     const currentValue = node.nodeValue ?? "";
     const sourceValue = sourceText.get(node);
-    const value = sourceValue === undefined || (currentValue !== sourceValue && currentValue !== translate(sourceValue, "de"))
+    const value = sourceValue === undefined || (currentValue !== sourceValue && currentValue !== translate(sourceValue, "de", options.messages))
         ? currentValue
         : sourceValue;
 
     sourceText.set(node, value);
 
-    const translated = translate(value, locale);
+    const translated = translate(value, options.locale, options.messages);
 
     if (translated !== node.nodeValue) node.nodeValue = translated;
 }
 
-function localizeElement(element: Element, locale: string): void {
+function localizeElement(element: Element, options: LocalizeOptions): void {
     if (element.closest("pre, code, script, style")) return;
 
     for (const attribute of ["aria-label", "placeholder", "title"]) {
@@ -853,58 +203,58 @@ function localizeElement(element: Element, locale: string): void {
 
         const attributes = sourceAttributes.get(element) ?? new Map<string, string>();
         const sourceValue = attributes.get(attribute);
-        const value = sourceValue === undefined || (currentValue !== sourceValue && currentValue !== translate(sourceValue, "de"))
+        const value = sourceValue === undefined || (currentValue !== sourceValue && currentValue !== translate(sourceValue, "de", options.messages))
             ? currentValue
             : sourceValue;
 
         attributes.set(attribute, value);
         sourceAttributes.set(element, attributes);
 
-        const translated = translate(value, locale);
+        const translated = translate(value, options.locale, options.messages);
 
         if (translated !== currentValue) element.setAttribute(attribute, translated);
     }
 
     for (const child of element.childNodes) {
         if (child.nodeType === Node.TEXT_NODE) {
-            localizeTextNode(child, locale);
+            localizeTextNode(child, options);
         } else if (child.nodeType === Node.ELEMENT_NODE) {
-            localizeElement(child as Element, locale);
+            localizeElement(child as Element, options);
         }
     }
 }
 
-export function localize(node: HTMLElement, locale: string): { update(nextLocale: string): void; destroy(): void } {
-    let activeLocale = locale === "de" ? "de" : "en";
+export function localize(node: HTMLElement, initialOptions: LocalizeOptions): { update(nextOptions: LocalizeOptions): void; destroy(): void } {
+    let options = initialOptions;
 
     const observer = new MutationObserver((records) => {
         for (const record of records) {
             if (record.type === "characterData") {
-                localizeTextNode(record.target, activeLocale);
+                localizeTextNode(record.target, options);
                 continue;
             }
 
             if (record.type === "attributes") {
-                localizeElement(record.target as Element, activeLocale);
+                localizeElement(record.target as Element, options);
                 continue;
             }
 
             for (const addedNode of record.addedNodes) {
                 if (addedNode.nodeType === Node.TEXT_NODE) {
-                    localizeTextNode(addedNode, activeLocale);
+                    localizeTextNode(addedNode, options);
                 } else if (addedNode.nodeType === Node.ELEMENT_NODE) {
-                    localizeElement(addedNode as Element, activeLocale);
+                    localizeElement(addedNode as Element, options);
                 }
             }
         }
     });
 
     const apply = (): void => {
-        document.documentElement.lang = activeLocale;
+        document.documentElement.lang = options.locale;
 
-        localizeElement(node, activeLocale);
+        localizeElement(node, options);
         sourceTitle ??= document.title;
-        const translatedTitle = translate(sourceTitle, activeLocale);
+        const translatedTitle = translate(sourceTitle, options.locale, options.messages);
 
         if (translatedTitle !== document.title) document.title = translatedTitle;
     };
@@ -919,8 +269,8 @@ export function localize(node: HTMLElement, locale: string): { update(nextLocale
     });
 
     return {
-        update(nextLocale: string): void {
-            activeLocale = nextLocale === "de" ? "de" : "en";
+        update(nextOptions: LocalizeOptions): void {
+            options = nextOptions;
             apply();
         },
         destroy(): void {

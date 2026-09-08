@@ -1,5 +1,6 @@
 import { error, fail, redirect } from "@sveltejs/kit";
 import type { PublicStatusPayload } from "$lib/api/public-status";
+import type { TranslationMessages } from "$lib/i18n/localize";
 import type { Actions } from "./$types";
 
 interface SubscriptionResponse {
@@ -29,11 +30,12 @@ export async function load({ fetch, params, parent, url }) {
     }
 
     const subscription = url.searchParams.get("subscription");
-    const { locale } = await parent();
+    const { locale, messages } = await parent();
 
     return {
         ...payload.data,
         locale,
+        messages: messages as TranslationMessages,
         subscriptionNotice: subscription === "confirmation-sent"
             ? "Check your inbox to confirm your subscription."
             : subscription === "confirmed"
