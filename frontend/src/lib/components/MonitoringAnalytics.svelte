@@ -278,6 +278,22 @@
 
 <section class="mt-7" aria-labelledby="uptime-calendar-heading">
     <h2 id="uptime-calendar-heading" class="text-2xl font-extrabold">Uptime Calendar</h2>
+    {#if canLoadPreviousCalendarMonth}
+        <div class="mt-3 flex justify-start">
+            <Button
+                variant="secondary"
+                class="size-11 px-0"
+                loading={loadingPreviousCalendarMonth}
+                onclick={loadPreviousCalendarMonth}
+                aria-label="Load previous month"
+                title="Load previous month"
+            >
+                <svg class="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="m12.5 15-5-5 5-5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </Button>
+        </div>
+    {/if}
     {#if calendarMonths.length > 0}
         <div class="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {#each calendarMonths as [month, value]}
@@ -308,9 +324,6 @@
             {/each}
         </div>
     {:else}<p class="mt-3 text-sm leading-6 text-wg-text-muted">Daily availability will appear after a full monitoring day.</p>{/if}
-    {#if canLoadPreviousCalendarMonth}
-        <div class="mt-5 flex justify-center"><Button variant="secondary" loading={loadingPreviousCalendarMonth} onclick={loadPreviousCalendarMonth}>Load previous month</Button></div>
-    {/if}
     {#if uptimeCalendarError}<p class="mt-3 text-sm font-bold text-wg-danger" role="alert">{uptimeCalendarError}</p>{/if}
     <article class="mt-4 rounded-[0.8rem] border border-wg-border bg-wg-surface px-4 py-4 shadow-sm sm:px-6"><div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-wg-text-muted"><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-emerald-500"></span>≥ 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-amber-400"></span>≥ 90 % and &lt; 97.5 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-red-500"></span>&lt; 90 %</span><span class="inline-flex items-center gap-2"><span class="size-3 rounded-sm bg-wg-surface-muted"></span>N/A</span></div></article>
 </section>
