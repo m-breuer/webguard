@@ -116,6 +116,18 @@
         };
     }
 
+    function responseTimeAxisLabel(value: string): string {
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) return "—";
+
+        if (responseTimeDays === 1) {
+            return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+        }
+
+        return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+
     async function loadPreviousCalendarMonth(): Promise<void> {
         if (loadingPreviousCalendarMonth || !canLoadPreviousCalendarMonth || calendarCursor === null) return;
 
@@ -171,7 +183,7 @@
         responseTimeChart = new Chart(canvas, {
             type: "line",
             data: {
-                labels: points.map((point) => timestamp(point.date)),
+                labels: points.map((point) => responseTimeAxisLabel(point.date)),
                 datasets: [
                     { label: "Min. Response Time", data: points.map((point) => point.min ?? point.avg), borderColor: "#c4b5fd", borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, pointHoverRadius: 4, tension: 0.35 },
                     { label: "Avg. Response Time", data: points.map((point) => point.avg), borderColor: accent, backgroundColor: accent, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, tension: 0.35 },
@@ -184,7 +196,17 @@
                 interaction: { mode: "index", intersect: false },
                 plugins: {
                     legend: { position: "top", labels: { color: muted, usePointStyle: true, pointStyle: "circle", boxWidth: 7, boxHeight: 7, padding: 20, font: { family: fontFamily, size: 12, weight: 600 } } },
-                    tooltip: { backgroundColor: chartColor("--wg-text", "#172033"), titleColor: "#ffffff", bodyColor: "#ffffff", padding: 12, displayColors: true, callbacks: { label: (context) => `${context.dataset.label}: ${Math.round(Number(context.parsed.y))} ms` } },
+                    tooltip: {
+                        backgroundColor: chartColor("--wg-text", "#172033"),
+                        titleColor: "#ffffff",
+                        bodyColor: "#ffffff",
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            title: (contexts) => timestamp(points[contexts[0]?.dataIndex]?.date ?? null),
+                            label: (context) => `${context.dataset.label}: ${Math.round(Number(context.parsed.y))} ms`,
+                        },
+                    },
                 },
                 scales: {
                     x: { grid: { display: false }, border: { display: false }, ticks: { color: muted, maxTicksLimit: 6, font: { family: fontFamily, size: 11, weight: 600 } } },
