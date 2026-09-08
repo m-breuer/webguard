@@ -693,6 +693,12 @@ const german: Record<string, string> = {
     "You can leave unless you are the last administrator.": "Sie können das Team verlassen, sofern Sie nicht der letzte Administrator sind.",
     "You will become this team's first administrator.": "Sie werden der erste Administrator dieses Teams.",
     "You will lose access to team monitorings.": "Sie verlieren den Zugriff auf Team-Überwachungen.",
+    "By type": "Nach Typ",
+    "By severity": "Nach Schweregrad",
+    "By customer impact": "Nach Kundenauswirkung",
+    "Narrow the operational view without a separate submit step.": "Schränken Sie die Betriebsansicht ohne separaten Übermittlungsschritt ein.",
+    "Services with more than one incident in this period.": "Dienste mit mehr als einem Vorfall in diesem Zeitraum.",
+    "Try a broader period or remove one of the filters.": "Versuchen Sie es mit einem längeren Zeitraum oder entfernen Sie einen der Filter.",
 };
 
 function translateDynamic(value: string): string | undefined {
@@ -769,6 +775,36 @@ function translateDynamic(value: string): string | undefined {
 
     if (incidentCount) {
         return `${incidentCount[1]} ${incidentCount[1] === "1" ? "Vorfall" : "Vorfälle"}`;
+    }
+
+    const groupSummary = value.match(/^(\d+) monitorings · (\d+) healthy(?: · (\d+) down)?$/);
+
+    if (groupSummary) {
+        return `${groupSummary[1]} Überwachungen · ${groupSummary[2]} betriebsbereit${groupSummary[3] ? ` · ${groupSummary[3]} ausgefallen` : ""}`;
+    }
+
+    const statusPageSummary = value.match(/^(\d+) components · (\d+) monitorings$/);
+
+    if (statusPageSummary) {
+        return `${statusPageSummary[1]} ${statusPageSummary[1] === "1" ? "Komponente" : "Komponenten"} · ${statusPageSummary[2]} Überwachungen`;
+    }
+
+    const pagination = value.match(/^(\d+)–(\d+) of (\d+) incidents$/);
+
+    if (pagination) {
+        return `${pagination[1]}–${pagination[2]} von ${pagination[3]} Vorfällen`;
+    }
+
+    const minutes = value.match(/^(\d+) min$/);
+
+    if (minutes) {
+        return `${minutes[1]} Min.`;
+    }
+
+    const compactDuration = value.match(/^(\d+) h(?: (\d+) min)?$/);
+
+    if (compactDuration) {
+        return `${compactDuration[1]} Std.${compactDuration[2] ? ` ${compactDuration[2]} Min.` : ""}`;
     }
 
     return undefined;

@@ -128,6 +128,11 @@ class SvelteKitQualityGateTest extends TestCase
             '"Last 7 Days": "Letzte 7 Tage"',
             '"Successful": "Erfolgreich"',
             '"Up": "Betriebsbereit"',
+            '"By type": "Nach Typ"',
+            '"By severity": "Nach Schweregrad"',
+            '"By customer impact": "Nach Kundenauswirkung"',
+            '"Services with more than one incident in this period.": "Dienste mit mehr als einem Vorfall in diesem Zeitraum."',
+            '"Try a broader period or remove one of the filters.": "Versuchen Sie es mit einem längeren Zeitraum oder entfernen Sie einen der Filter."',
         ] as $translation) {
             $this->assertStringContainsString($translation, $localize);
         }
@@ -246,6 +251,9 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('function translateDynamic(value: string): string | undefined', $localize);
         $this->assertStringContainsString('Checked every (\\d+) (minutes|seconds)', $localize);
         $this->assertStringContainsString('The first monitoring results can take up to (\\d+) minutes', $localize);
+        $this->assertStringContainsString('(\\d+) monitorings · (\\d+) healthy(?: · (\\d+) down)?', $localize);
+        $this->assertStringContainsString('(\\d+) components · (\\d+) monitorings', $localize);
+        $this->assertStringContainsString('(\\d+)–(\\d+) of (\\d+) incidents', $localize);
         $this->assertStringContainsString('function intervalLabel', $monitoringDetail);
         $this->assertStringContainsString('function periodDescription', $monitoringDetail);
     }
