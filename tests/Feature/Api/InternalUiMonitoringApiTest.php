@@ -8,6 +8,7 @@ use App\Enums\MonitoringLifecycleStatus;
 use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Enums\TeamRole;
+use App\Enums\UserRole;
 use App\Models\Incident;
 use App\Models\Monitoring;
 use App\Models\MonitoringDailyResult;
@@ -604,6 +605,32 @@ class InternalUiMonitoringApiTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonPath('message', __('monitoring.messages.limit_reached'));
+    }
+
+    public function test_demo_user_cannot_create_an_internal_ui_monitoring(): void
+    {
+        $demoUser = User::factory()->create(['role' => UserRole::DEMO]);
+        $serverInstance = ServerInstance::query()->create([
+            'code' => 'ui-demo-1',
+            'ip_address' => '192.0.2.104',
+            'api_key_hash' => 'test-token-1234567890',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($demoUser)->postJson(route('app.monitorings.store'), [
+            'name' => 'Demo check',
+            'type' => MonitoringType::HTTP->value,
+            'target' => 'https://monitoring.example.test',
+            'status' => MonitoringLifecycleStatus::ACTIVE->value,
+            'timeout' => 5,
+            'http_method' => 'get',
+            'preferred_locations' => [$serverInstance->code],
+            'failure_confirmation_threshold' => 2,
+            'ssl_expiry_warning_days' => 7,
+        ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('monitorings', ['name' => 'Demo check']);
     }
 
     public function test_internal_ui_monitoring_creation_rejects_group_assignments_for_team_monitorings(): void

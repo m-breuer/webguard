@@ -127,7 +127,9 @@
 <main class="mx-auto w-[min(76rem,calc(100%_-_2rem))] py-6 sm:py-10">
     <header class="mb-6 flex flex-col gap-4 border-b border-wg-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div><p class="m-0 text-[0.8125rem] font-extrabold tracking-[0.1em] text-wg-accent uppercase">Service operations</p><h1 class="mt-2 text-[clamp(2rem,5vw,2.75rem)] leading-[1.1] font-bold">Monitorings</h1><p class="mt-3 max-w-2xl leading-6 text-wg-text-muted">Keep system health, monitoring groups, status pages, and incident patterns in one operational view.</p></div>
-        <Button class="tracking-[0.08em] uppercase" type="button" loading={createLoading} onclick={openCreateModal}>Create</Button>
+        {#if dashboard.capabilities.can_create_monitoring}
+            <Button class="tracking-[0.08em] uppercase" type="button" loading={createLoading} onclick={openCreateModal}>Create</Button>
+        {/if}
     </header>
 
     {#if createError}<p class="mb-5 text-sm font-bold text-wg-danger" role="alert">{createError}</p>{/if}
@@ -156,7 +158,13 @@
     </section>
 
     {#if data.monitorings.data.length === 0}
-        <EmptyState title="No monitorings found" description="Adjust your filters or create a monitoring to start collecting availability data.">{#snippet action()}<Button type="button" loading={createLoading} onclick={openCreateModal}>Create monitoring</Button>{/snippet}</EmptyState>
+        {#if dashboard.capabilities.can_create_monitoring}
+            <EmptyState title="No monitorings found" description="Adjust your filters or create a monitoring to start collecting availability data.">
+                {#snippet action()}<Button type="button" loading={createLoading} onclick={openCreateModal}>Create monitoring</Button>{/snippet}
+            </EmptyState>
+        {:else}
+            <EmptyState title="No monitorings found" description="Adjust your filters or create a monitoring to start collecting availability data." />
+        {/if}
     {:else}
         <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
             <section class="overflow-hidden rounded-2xl border border-wg-border bg-wg-surface shadow-wg-surface" aria-labelledby="active-monitorings-heading">
