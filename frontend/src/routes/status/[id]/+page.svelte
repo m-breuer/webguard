@@ -1,7 +1,7 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
     import { formatDateTime } from "$lib/i18n/format";
-    import { translate } from "$lib/i18n/localize";
+    import { translate, type TranslationMessages } from "$lib/i18n/localize";
     import Button from "$lib/components/Button.svelte";
     import Input from "$lib/components/Input.svelte";
     import AppearanceSelector from "$lib/components/AppearanceSelector.svelte";
@@ -16,6 +16,7 @@
 
     interface PublicStatusPageData extends PublicStatusPayload {
         locale: string;
+        messages: TranslationMessages;
         subscriptionNotice: string | null;
     }
 
@@ -27,7 +28,7 @@
     let { data, form }: Props = $props();
 
     function text(value: string): string {
-        return translate(value, data.locale);
+        return translate(value, data.locale, data.messages);
     }
 
     const statusLabel = $derived(text(data.status === "up" ? "All systems operational" : data.status === "down" ? "Service disruption" : "Status unavailable"));

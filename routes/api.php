@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\External\ApiKeyController;
 use App\Http\Controllers\Api\External\BearerServerHealthReportController;
 use App\Http\Controllers\Api\External\PublicMonitoringLocationController;
+use App\Http\Controllers\Api\FrontendTranslationController;
 use App\Http\Controllers\Api\Mobile\MobileAuthController;
 use App\Http\Controllers\Api\PublicStatusPayloadController;
 use App\Http\Controllers\Api\PublicStatusSubscriptionController;
@@ -45,6 +46,10 @@ Route::post('/v1/server-health/{token}', ServerHealthReportController::class)
 Route::get('/public/monitoring-locations', PublicMonitoringLocationController::class)
     ->middleware('throttle:60,1')
     ->name('public.monitoring-locations.index');
+
+Route::get('/translations', FrontendTranslationController::class)
+    ->middleware('public.cache')
+    ->name('translations.index');
 
 Route::post('/server-health/monitorings/{monitoring}', BearerServerHealthReportController::class)
     ->middleware(['auth:sanctum', 'api-key.ability:server-health:write', 'throttle:60,1'])

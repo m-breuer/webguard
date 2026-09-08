@@ -24,8 +24,9 @@ and mutate browser state; it never accesses the database directly.
 - `X-Request-Id`, `X-Query-Count`, `X-Response-Bytes`, and `Server-Timing`
   provide private operational telemetry without exposing query bindings or
   request payloads.
-- Endpoint payloads are locale-neutral data. Labels, relative times, URLs, and
-  rendered HTML belong to SvelteKit rather than this API.
+- Endpoint payloads are locale-neutral data by default. The explicit
+  `GET /api/translations` catalog is the exception: Laravel owns the approved
+  SvelteKit language files, while SvelteKit owns rendering and interpolation.
 
 ## Session and guest authentication
 
@@ -47,6 +48,25 @@ verification-mail resend, which require an authenticated session.
 Inbound signed verification, invitation, password-reset, OAuth callback, and
 other token URLs remain Laravel web routes. They preserve their existing URL
 and signature semantics before returning users to a SvelteKit page.
+
+## Translation catalog
+
+The SvelteKit browser loads its language catalog from Laravel instead of keeping
+a second translation table in TypeScript. The endpoint is public because it is
+also used by anonymous public status pages, but it only reads the explicitly
+scoped `resources/lang/{locale}/sveltekit.php` files; callers cannot select a
+file path or arbitrary Laravel translation key.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/translations?locale=en|de` | Return the requested locale, the English fallback locale, and the approved flat message catalog in `data` |
+
+The catalog files are grouped by UI domain (`common`, `navigation`,
+`monitorings`, `incidents`, `status_pages`, `admin`, `profile`, `teams`,
+`maintenance`, and `dynamic`). Dynamic messages use named placeholders such as
+`:value` and `:count`; SvelteKit performs interpolation after receiving the
+catalog. Unsupported locales fall back to English, and an unavailable catalog
+falls back to the original English source text in the browser.
 
 ## Account bootstrap and settings
 

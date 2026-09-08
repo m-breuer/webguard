@@ -42,7 +42,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertIsString($checkbox);
         $this->assertStringContainsString('function toggleGroup', $checkbox);
         $this->assertStringContainsString('group = input.checked', $checkbox);
-        $this->assertSame(2, substr_count($checkbox, 'rounded-full'));
+        $this->assertSame(2, mb_substr_count($checkbox, 'rounded-full'));
         $this->assertStringNotContainsString('bind:group', $checkbox);
     }
 
@@ -106,36 +106,43 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('aria-label={searchPlaceholder}', $select);
     }
 
-    public function test_sveltekit_german_locale_covers_shared_interface_text_and_uses_locale_aware_dates(): void
+    public function test_sveltekit_locale_uses_the_laravel_translation_catalog_and_locale_aware_dates(): void
     {
         $localize = file_get_contents(base_path('frontend/src/lib/i18n/localize.ts'));
         $format = file_get_contents(base_path('frontend/src/lib/i18n/format.ts'));
+        $germanTranslations = file_get_contents(base_path('resources/lang/de/sveltekit.php'));
+        $layout = file_get_contents(base_path('frontend/src/routes/+layout.server.ts'));
 
         $this->assertIsString($localize);
         $this->assertIsString($format);
+        $this->assertIsString($germanTranslations);
+        $this->assertIsString($layout);
 
         foreach ([
-            '"Application navigation": "Anwendungsnavigation"',
-            '"Create monitoring": "Überwachung erstellen"',
-            '"Search by name, target, port or keyword": "Nach Name, Ziel, Port oder Schlüsselwort suchen"',
-            '"Response-time data will appear after the monitoring collects results.": "Antwortzeitdaten werden angezeigt, sobald die Überwachung Ergebnisse erfasst."',
-            '"Subscribe to updates": "Updates abonnieren"',
-            '"Users could not be loaded.": "Benutzer konnten nicht geladen werden."',
-            '"Your session has expired. Sign in again to continue.": "Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren."',
-            '"Ongoing": "Laufend"',
-            '"Resolved incident": "Gelöster Vorfall"',
-            '"Down": "Ausgefallen"',
-            '"Last 7 Days": "Letzte 7 Tage"',
-            '"Successful": "Erfolgreich"',
-            '"Up": "Betriebsbereit"',
-            '"By type": "Nach Typ"',
-            '"By severity": "Nach Schweregrad"',
-            '"By customer impact": "Nach Kundenauswirkung"',
-            '"Services with more than one incident in this period.": "Dienste mit mehr als einem Vorfall in diesem Zeitraum."',
-            '"Try a broader period or remove one of the filters.": "Versuchen Sie es mit einem längeren Zeitraum oder entfernen Sie einen der Filter."',
+            "'Application navigation' => 'Anwendungsnavigation'",
+            "'Create monitoring' => 'Überwachung erstellen'",
+            "'Search by name, target, port or keyword' => 'Nach Name, Ziel, Port oder Schlüsselwort suchen'",
+            "'Response-time data will appear after the monitoring collects results.' => 'Antwortzeitdaten werden angezeigt, sobald die Überwachung Ergebnisse erfasst.'",
+            "'Subscribe to updates' => 'Updates abonnieren'",
+            "'Users could not be loaded.' => 'Benutzer konnten nicht geladen werden.'",
+            "'Your session has expired. Sign in again to continue.' => 'Ihre Sitzung ist abgelaufen. Melden Sie sich erneut an, um fortzufahren.'",
+            "'Ongoing' => 'Laufend'",
+            "'Resolved incident' => 'Gelöster Vorfall'",
+            "'Down' => 'Ausgefallen'",
+            "'Last 7 Days' => 'Letzte 7 Tage'",
+            "'Successful' => 'Erfolgreich'",
+            "'Up' => 'Betriebsbereit'",
+            "'By type' => 'Nach Typ'",
+            "'By severity' => 'Nach Schweregrad'",
+            "'By customer impact' => 'Nach Kundenauswirkung'",
+            "'Services with more than one incident in this period.' => 'Dienste mit mehr als einem Vorfall in diesem Zeitraum.'",
+            "'Try a broader period or remove one of the filters.' => 'Versuchen Sie es mit einem längeren Zeitraum oder entfernen Sie einen der Filter.'",
         ] as $translation) {
-            $this->assertStringContainsString($translation, $localize);
+            $this->assertStringContainsString($translation, $germanTranslations);
         }
+
+        $this->assertStringNotContainsString('const german:', $localize);
+        $this->assertStringContainsString('/api/translations?locale=', $layout);
 
         $dashboard = file_get_contents(base_path('frontend/src/routes/(app)/dashboard/+page.svelte'));
 
@@ -248,7 +255,7 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('function handleToggle(event: Event): void', $localeSelector);
         $this->assertStringContainsString('(event.currentTarget as HTMLDetailsElement).open', $appearanceSelector);
         $this->assertStringContainsString('(event.currentTarget as HTMLDetailsElement).open', $localeSelector);
-        $this->assertStringContainsString('function translateDynamic(value: string): string | undefined', $localize);
+        $this->assertStringContainsString('function translateDynamic(value: string, messages: TranslationMessages): string | undefined', $localize);
         $this->assertStringContainsString('Checked every (\\d+) (minutes|seconds)', $localize);
         $this->assertStringContainsString('The first monitoring results can take up to (\\d+) minutes', $localize);
         $this->assertStringContainsString('(\\d+) monitorings · (\\d+) healthy(?: · (\\d+) down)?', $localize);
@@ -278,8 +285,8 @@ class SvelteKitQualityGateTest extends TestCase
         $this->assertStringContainsString('if (endpoint === null)', $appearanceSelector);
         $this->assertStringContainsString('src="/brand/webguard-logo.png"', $statusPage);
         $this->assertStringContainsString('<span class="font-extrabold tracking-tight">WebGuard</span>', $statusPage);
-        $this->assertStringContainsString('import { translate } from "$lib/i18n/localize";', $statusPage);
-        $this->assertStringContainsString('return translate(value, data.locale);', $statusPage);
+        $this->assertStringContainsString('import { translate, type TranslationMessages } from "$lib/i18n/localize";', $statusPage);
+        $this->assertStringContainsString('return translate(value, data.locale, data.messages);', $statusPage);
     }
 
     public function test_notification_inbox_updates_read_state_from_successful_mutation_responses(): void
