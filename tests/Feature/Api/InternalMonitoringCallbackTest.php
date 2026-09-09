@@ -8,6 +8,7 @@ use App\Enums\MonitoringStatus;
 use App\Enums\MonitoringType;
 use App\Models\Incident;
 use App\Models\Monitoring;
+use App\Models\MonitoringResponse;
 use App\Models\MonitoringSslResult;
 use App\Models\Package;
 use App\Models\ServerInstance;
@@ -140,6 +141,85 @@ class InternalMonitoringCallbackTest extends TestCase
 
         $this->assertDatabaseCount('monitoring_ssl_results', 1);
         $this->assertSame(1, MonitoringSslResult::query()->where('monitoring_id', $monitoring->id)->count());
+    }
+
+    public function test_monitoring_response_callback_replays_a_duplicate_idempotency_key_without_repeating_the_write(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = $this->serverInstance('internal-callback-idempotent');
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code],
+        ]);
+        $payload = [
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP->value,
+            'response_time' => 100,
+        ];
+        $headers = [...$this->instanceHeaders($serverInstance), 'Idempotency-Key' => '6f3a8bb2-8a66-4c84-91db-5166c9c291c5'];
+
+        $firstResponse = $this->withHeaders($headers)
+            ->postJson(route('instances.monitoring-responses.store'), $payload)
+            ->assertOk();
+        $this->withHeaders($headers)
+            ->postJson(route('instances.monitoring-responses.store'), $payload)
+            ->assertOk()
+            ->assertExactJson($firstResponse->json());
+
+        $this->assertDatabaseCount('monitoring_response_results', 1);
+    }
+
+    public function test_reusing_an_idempotency_key_with_a_different_payload_returns_conflict(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = $this->serverInstance('internal-callback-idempotent-conflict');
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code],
+        ]);
+        $headers = [
+            ...$this->instanceHeaders($serverInstance),
+            'Idempotency-Key' => '39d4e4b3-2b2e-446c-9f79-58f6c7e35099',
+        ];
+
+        $this->withHeaders($headers)
+            ->postJson(route('instances.monitoring-responses.store'), [
+                'monitoring_id' => $monitoring->id,
+                'status' => MonitoringStatus::UP->value,
+                'response_time' => 100,
+            ])->assertOk();
+
+        $this->withHeaders($headers)
+            ->postJson(route('instances.monitoring-responses.store'), [
+                'monitoring_id' => $monitoring->id,
+                'status' => MonitoringStatus::DOWN->value,
+                'response_time' => 250,
+            ])->assertStatus(409)
+            ->assertJsonPath('message', 'Idempotency key was already used with a different request.');
+
+        $this->assertSame(1, MonitoringResponse::query()->where('monitoring_id', $monitoring->id)->count());
+    }
+
+    public function test_invalid_instance_callback_idempotency_key_is_rejected(): void
+    {
+        Package::factory()->create();
+        $user = User::factory()->create();
+        $serverInstance = $this->serverInstance('internal-callback-invalid-key');
+        $monitoring = Monitoring::factory()->for($user)->create([
+            'preferred_location' => $serverInstance->code,
+            'preferred_locations' => [$serverInstance->code],
+        ]);
+
+        $this->withHeaders([
+            ...$this->instanceHeaders($serverInstance),
+            'Idempotency-Key' => 'not-a-uuid',
+        ])->postJson(route('instances.monitoring-responses.store'), [
+            'monitoring_id' => $monitoring->id,
+            'status' => MonitoringStatus::UP->value,
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['Idempotency-Key']);
     }
 
     public function test_unassigned_instance_cannot_store_callback_payloads(): void

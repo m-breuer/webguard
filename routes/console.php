@@ -29,6 +29,9 @@ Schedule::command('notifications:prune-demo')
     ->dailyAt('01:30')
     ->withoutOverlapping();
 
+// Prune expired instance callback idempotency records daily.
+Schedule::command('instances:prune-callback-idempotency')->dailyAt('02:45')->withoutOverlapping();
+
 /**
  * =================================================================
  * MONITORING & DATA MANAGEMENT

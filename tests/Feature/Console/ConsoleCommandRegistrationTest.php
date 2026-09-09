@@ -43,6 +43,10 @@ class ConsoleCommandRegistrationTest extends TestCase
                 'notifications:prune-read',
                 'Delete read notifications that are older than one month.',
             ],
+            'prune instance callback idempotency' => [
+                'instances:prune-callback-idempotency',
+                'Delete expired instance callback idempotency records.',
+            ],
             'send ssl expiry warnings' => [
                 'notifications:send-ssl-expiry-warnings',
                 'Checks SSL certificates and domains and dispatches expiry notifications.',
