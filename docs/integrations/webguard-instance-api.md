@@ -34,6 +34,7 @@ Every scanner request sends these headers:
 | `X-API-KEY` | yes | Instance secret verified by Core; never log, persist in output, or include in retry diagnostics. |
 | `Accept: application/json` | recommended | Requests JSON responses. |
 | `Content-Type: application/json` | required for writes | Encodes callback payloads. |
+| `Idempotency-Key` | recommended for result callbacks | UUID v4 identifying one monitoring execution; reuse it for every retry of that execution. |
 
 Core rejects missing, inactive, unknown, or invalid credentials with `401` and
 `{"message":"Unauthorized"}`. A scanner may access only monitorings assigned to
@@ -125,15 +126,25 @@ incident returns `404` with `{"message":"No open incident found."}`.
 
 ## Retry and idempotency
 
-The current callback contract does not yet expose an idempotency key. An instance
-may retry only transport failures or `5xx` responses with bounded exponential
-backoff and jitter. It must not retry `401`, `403`, `422`, or the successful
-regional-consensus response. A timeout after a request was sent has ambiguous
-delivery semantics; record it safely and use the existing retry policy without
-assuming the callback was not persisted.
+New instance versions send a UUID v4 `Idempotency-Key` header on
+`/monitoring-responses`, `/ssl-results`, and `/domain-results`. The value is
+created once per claimed or independently executed monitoring job and is reused
+for every retry of that execution. It must not contain a target, credential, or
+other monitoring data.
 
-A later idempotency change requires a new linked Core and instance issue and an
-additive contract section before either repository implements it.
+Core scopes a key to the authenticated instance, callback endpoint, and key. It
+retains the resulting success response for 24 hours and prunes expired records
+daily. A matching retry returns the original response without repeating the
+database write, incident evaluation, notification, or observation side effects.
+Reusing the same key with a different payload returns `409`. The same key may
+be used for the response and domain-result callbacks of one execution because
+the endpoint is part of the scope.
+
+Instances must retry only transport failures or `5xx` responses with bounded
+backoff. They must not retry `401`, `403`, `409`, `422`, or successful responses.
+A timeout after a request was sent remains safe to retry with the same key.
+Instances that omit the header remain compatible during rollout, but Core cannot
+deduplicate those legacy callbacks.
 
 ## Coordinated changes
 
